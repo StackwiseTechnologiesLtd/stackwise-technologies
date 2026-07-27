@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "build:worker": "npm run build && open-next build",
+    "deploy": "npm run build:worker && wrangler deploy"
   },
   "dependencies": {
     "@deemlol/next-icons": "^0.2.7",
