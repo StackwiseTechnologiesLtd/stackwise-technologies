@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Hey, we're Stackwise 👋
 
-## Getting Started
+<p align="center">
+  <img width="1983" height="793" alt="Stackwise Banner" src="https://github.com/user-attachments/assets/4a7f3e2c-aa94-42b7-af0d-0cfe5fc7a8e9" />
+</p>
 
-First, run the development server:
+We're an international software engineering company with African roots, building scalable software, AI systems, cloud infrastructure, and digital products for businesses worldwide. Our mission is to accelerate business growth by delivering world-class technology solutions that are secure, scalable, and beautifully designed.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🌍 What we build
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+At Stackwise, we take a strategic approach to software engineering. We don't just write code; we solve business problems.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 🤖 AI & Automation
+We integrate intelligent systems into your workflows. From AI-powered assistants and predictive analytics to automated operational tooling, we help companies reduce manual work and scale efficiently.
 
-## Learn More
+### ☁️ Cloud Infrastructure
+We design and deploy robust, high-performance backends. Our team specializes in scalable databases, microservices architectures, serverless computing, and DevOps pipelines that guarantee high availability.
 
-To learn more about Next.js, take a look at the following resources:
+### 🌐 Web & Mobile Applications
+We build responsive web platforms, intuitive SaaS products, and native mobile experiences that delight users. We focus on modern frameworks, clean UI/UX, and exceptional performance.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### ⚡ APIs & Backend Systems
+We develop secure RESTful and GraphQL APIs that power everything from mobile apps to enterprise integrations, ensuring seamless data flow across your entire tech stack.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 🧩 Developer Tools
+We build utilities and open-source packages that help other engineers work faster, smarter, and with fewer friction points.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🛠️ Our Tech Stack
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+We utilize a modern, battle-tested technology stack to ensure our products are robust and future-proof:
+
+- **Frontend:** React, Next.js, Vue.js, Tailwind CSS
+- **Backend:** Node.js, Python, Go, TypeScript
+- **Database:** PostgreSQL, MongoDB, Redis, Firebase
+- **Cloud & DevOps:** AWS, Google Cloud, Docker, Kubernetes, CI/CD
+- **AI/ML:** OpenAI, LangChain, TensorFlow
+
+---
+
+## ❤️ Open Source Commitment
+
+We believe in giving back to the community that makes our work possible. Some repositories here power production systems, while others are open-source projects, internal tools, and experiments that push technology forward. Feel free to explore, fork, and contribute!
+
+---
+
+## 🤝 Let's build together
+
+Whether you're looking for a reliable technology partner, exploring our previous work, or looking to contribute to our open-source ecosystem—welcome to Stackwise.
+
+We're always excited to discuss new ideas, solve complex problems, and build the future. 
+
+📫 **Get in touch:**
+- **Website:** [https://stackwisetechnologies.com](https://stackwisetechnologies.com)
+- **Email:** info@stackwisetechnologies.com
+- **Book a Call:** [Schedule a 30-min discovery call](https://calendly.com/stackwisetechnologies-info/30min)
+
+<p align="center">
+  <i>Building the future, one line of code at a time.</i>
+</p>
