@@ -27,7 +27,8 @@ fi
 # Wrangler version tags: lowercase letters, numbers, underscores, dashes, periods, colons
 TAG="$(printf '%s' "$BRANCH" | tr '[:upper:]' '[:lower:]' | sed -E 's/[^a-z0-9._:-]+/-/g; s/^-+//; s/-+$//')"
 TAG="${TAG:-local}${DIRTY}"
-MESSAGE="live deploy from ${BRANCH}@${SHA}${DIRTY}"
+# No spaces: OpenNext invokes wrangler with shell:true, which splits unquoted message words.
+MESSAGE="live:${BRANCH}@${SHA}${DIRTY}"
 
 echo "==> Deploying live Worker"
 echo "    worker:  ${WORKER_NAME}"
@@ -42,9 +43,11 @@ npm run build:worker
 
 echo
 echo "==> Publishing to Cloudflare (100% production traffic)"
+# Prefer --flag=value so the whole token survives OpenNext's shell passthrough.
 npx opennextjs-cloudflare deploy -- \
-  --tag "$TAG" \
-  --message "$MESSAGE"
+  "--tag=${TAG}" \
+  "--message=${MESSAGE}"
+
 
 echo
 echo "==> Live deployment status"
