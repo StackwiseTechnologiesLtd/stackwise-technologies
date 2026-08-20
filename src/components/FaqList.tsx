@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { faqs } from "@/lib/site";
+import type { FaqItem } from "@/lib/content";
 
-export default function FaqList() {
+export default function FaqList({ items }: { items: readonly FaqItem[] }) {
   const [open, setOpen] = useState(0);
 
   return (
     <div className="divide-y divide-white/8 border-y border-white/8">
-      {faqs.map((item, index) => {
+      {items.map((item, index) => {
         const isOpen = open === index;
         const n = String(index + 1).padStart(2, "0");
         return (
@@ -40,7 +40,14 @@ export default function FaqList() {
             </button>
             {isOpen ? (
               <div className="pb-6 pl-12 pr-8 text-[15px] leading-relaxed text-muted sm:pl-14">
-                {item.a}
+                <p>{item.a}</p>
+                {item.points ? (
+                  <ul className="mt-3 list-disc space-y-1 pl-5">
+                    {item.points.map((point) => (
+                      <li key={point}>{point}</li>
+                    ))}
+                  </ul>
+                ) : null}
               </div>
             ) : null}
           </div>
