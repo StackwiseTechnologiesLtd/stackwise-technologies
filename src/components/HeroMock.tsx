@@ -1,6 +1,14 @@
-import { launcherItems } from "@/lib/site";
+import { launcherItemsFor, type Locale, type SiteCopy } from "@/lib/content";
 
-export default function HeroMock() {
+export default function HeroMock({
+  locale,
+  copy,
+}: {
+  locale: Locale;
+  copy: Pick<SiteCopy["hero"], "mockTitle" | "searchPlaceholder">;
+}) {
+  const items = launcherItemsFor(locale);
+
   return (
     <div className="relative mx-auto mt-16 w-full max-w-3xl">
       <div className="pointer-events-none absolute -inset-8 rounded-4xl bg-[radial-gradient(ellipse_at_center,rgba(226,75,92,0.12),transparent_70%)]" />
@@ -10,7 +18,7 @@ export default function HeroMock() {
           <span className="size-2.5 rounded-full bg-[#febc2e]" />
           <span className="size-2.5 rounded-full bg-[#28c840]" />
           <span className="ml-3 font-mono text-[11px] text-muted">
-            stackwise — delivery
+            {copy.mockTitle}
           </span>
         </div>
         <div className="p-4 sm:p-5">
@@ -26,10 +34,10 @@ export default function HeroMock() {
               <circle cx="11" cy="11" r="7" />
               <path d="M20 20l-3-3" />
             </svg>
-            Search a capability…
+            {copy.searchPlaceholder}
           </div>
           <ul className="space-y-1">
-            {launcherItems.map((item, i) => (
+            {items.map((item, i) => (
               <li
                 key={item}
                 className={`flex items-center justify-between rounded-xl px-3 py-2.5 text-sm ${
