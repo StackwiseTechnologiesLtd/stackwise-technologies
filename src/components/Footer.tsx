@@ -1,36 +1,35 @@
-import { Instagram, Twitter } from "@deemlol/next-icons";
+import Mark from "@/components/Mark";
+import { SITE_NAME, TWITTER_URL } from "@/lib/site";
 
 export default function Footer() {
-    const currentYear = new Date().getFullYear();
+  const year = new Date().getFullYear();
 
   return (
-      <footer className="nk-footer">
-          <div className="container">
-              <div className="nk-footer-bar border-top border-light py-15 py-lg-10">
-                  <div className="row justify-content-center gy-2 gx-3">
-                      <div className="col-lg-6">
-                          <p className="mb-0">
-                              Stackwise Technologie Limited &copy; {currentYear} - Engineered for Scale
-                          </p>
-                      </div>
-                      <div className="col-lg-6">
-                          <ul className="nk-list-inline gap-6 fs-9 justify-content-lg-end">
-                              <li>
-                                  <a className="link-content" href="https://x.com/StackwiseTech">
-                                      <Twitter className="icon ni ni-facebook-circle" color="#FFFFFF" strokeWidth={1.5} />
-                                    </a>
-                              </li>
-                              <li>
-                                  <a className="link-content" href="https://x.com/StackwiseTech">
-                                      <Instagram className="icon ni ni-facebook-circle" color="#FFFFFF" strokeWidth={1.5} />
-                                    </a>
-                              </li>
-                              
-                          </ul>
-                      </div>
-                  </div>
-              </div>
-          </div>
-      </footer>
-  )
+    <footer className="border-t border-white/8">
+      <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-8 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <div className="flex items-center gap-2.5 text-sm text-muted">
+          <Mark className="size-6" gradientId="sw-mark-footer" />
+          <span>
+            {SITE_NAME} · {year}
+          </span>
+        </div>
+        <div className="flex items-center gap-5 text-sm text-muted">
+          <a href="#work" className="hover:text-foreground">
+            Work
+          </a>
+          <a href="#faq" className="hover:text-foreground">
+            FAQ
+          </a>
+          <a
+            href={TWITTER_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-foreground"
+          >
+            X
+          </a>
+        </div>
+      </div>
+    </footer>
+  );
 }
