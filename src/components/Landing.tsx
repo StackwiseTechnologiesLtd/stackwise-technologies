@@ -148,7 +148,13 @@ function Features({ copy }: { copy: SiteCopy["features"] }) {
   );
 }
 
-function Work({ copy }: { copy: SiteCopy["work"] }) {
+function Work({
+  locale,
+  copy,
+}: {
+  locale: Locale;
+  copy: SiteCopy["work"];
+}) {
   return (
     <section id="work" className="mx-auto max-w-6xl scroll-mt-24 px-4 py-20 sm:px-6">
       <SectionLabel>{copy.label}</SectionLabel>
@@ -162,7 +168,7 @@ function Work({ copy }: { copy: SiteCopy["work"] }) {
             key={item.title}
             className="overflow-hidden rounded-2xl border border-white/10 bg-panel transition-colors hover:bg-panel-hover"
           >
-            <WorkVisual index={index} />
+            <WorkVisual index={index} locale={locale} />
             <div className="border-t border-white/8 p-6 sm:p-7">
               <h3 className="text-lg font-semibold tracking-tight sm:text-xl">
                 {item.title}
@@ -362,7 +368,7 @@ export default function Landing({
     <main>
       <Hero locale={locale} copy={copy} />
       <Features copy={copy.features} />
-      <Work copy={copy.work} />
+      <Work locale={locale} copy={copy.work} />
       <Providers copy={copy.providers} />
       <CompareTable id="compare" copy={copy.compare} />
       <CompareTable copy={copy.cost} />
