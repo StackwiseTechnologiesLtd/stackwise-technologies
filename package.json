@@ -7,11 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
     "build:worker": "opennextjs-cloudflare build",
     "deploy": "opennextjs-cloudflare deploy"
   },
   "dependencies": {
-    "@deemlol/next-icons": "^0.2.7",
     "next": "16.2.6",
     "react": "19.2.4",
     "react-dom": "19.2.4"
@@ -26,6 +27,7 @@
     "eslint-config-next": "16.2.6",
     "tailwindcss": "^4",
     "typescript": "^5",
+    "vitest": "^4.1.11",
     "wrangler": "^4.114.0"
   }
 }

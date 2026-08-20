@@ -1,13 +1,13 @@
+import Landing from "@/components/Landing";
 import Footer from "@/components/Footer";
-import Header from "@/components/Header";
-import HomeMain from "@/components/HomeMain";
+import SiteNav from "@/components/SiteNav";
 
 export default function Home() {
   return (
     <>
-    <Header />
-    <HomeMain />
-    <Footer />
+      <SiteNav />
+      <Landing />
+      <Footer />
     </>
   );
 }
