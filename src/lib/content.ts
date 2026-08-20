@@ -144,7 +144,7 @@ export const en: SiteCopy = {
     language: "English",
   },
   hero: {
-    brand: "Stackwise",
+    brand: "Stackwise Technologies",
     headline: "Engineering software at the speed of your business.",
     subtitle:
       "Custom platforms, AI systems, cloud infrastructure, dedicated teams, and the unglamorous work that keeps a company shipping — one engineering partner.",
@@ -286,7 +286,10 @@ export const en: SiteCopy = {
       { title: "Data platforms", detail: "Warehouses, ETL, and BI" },
       { title: "Internal tools", detail: "Ops systems your team lives in" },
       { title: "UI / UX", detail: "Product design with the build" },
-      { title: "Auth & security", detail: "Identity, secrets, least privilege" },
+      {
+        title: "Auth & security",
+        detail: "Identity, secrets, least privilege",
+      },
       { title: "Observability", detail: "Logs, metrics, and alerting" },
       { title: "Next.js & React", detail: "The stack we ship on most" },
       { title: "Node, Python, Go", detail: "Backends that match the job" },
@@ -299,7 +302,10 @@ export const en: SiteCopy = {
       { title: "Billing", detail: "Subscriptions, invoicing, usage" },
       { title: "Admin consoles", detail: "The screens operators actually use" },
       { title: "Migrations", detail: "Move off the stack that is on fire" },
-      { title: "Technical advising", detail: "Build vs buy, architecture reviews" },
+      {
+        title: "Technical advising",
+        detail: "Build vs buy, architecture reviews",
+      },
     ],
   },
   compare: {
@@ -494,7 +500,7 @@ export const fr: SiteCopy = {
     language: "Français",
   },
   hero: {
-    brand: "Stackwise",
+    brand: "Stackwise Technologies",
     headline: "Des logiciels à la vitesse de votre métier.",
     subtitle:
       "Plateformes sur mesure, systèmes d’IA, infrastructure cloud, équipes dédiées et le travail peu glamour qui fait livrer une entreprise — un seul partenaire ingénierie.",
@@ -629,8 +635,14 @@ export const fr: SiteCopy = {
       { title: "Plateformes web", detail: "SaaS, portails, tableaux de bord" },
       { title: "Apps mobiles", detail: "iOS, Android, cross-platform" },
       { title: "Assistants IA", detail: "Agents, RAG et copilotes" },
-      { title: "Automatisation", detail: "Des flux qui remplacent le busywork" },
-      { title: "REST & GraphQL", detail: "Des API auxquelles on fait confiance" },
+      {
+        title: "Automatisation",
+        detail: "Des flux qui remplacent le busywork",
+      },
+      {
+        title: "REST & GraphQL",
+        detail: "Des API auxquelles on fait confiance",
+      },
       { title: "Architecture cloud", detail: "AWS, GCP, multi-région" },
       { title: "DevOps & CI", detail: "Pipelines, conteneurs, K8s" },
       { title: "Plateformes data", detail: "Entrepôts, ETL et BI" },
@@ -644,7 +656,10 @@ export const fr: SiteCopy = {
       { title: "Next.js & React", detail: "La stack que nous livrons le plus" },
       { title: "Node, Python, Go", detail: "Des backends adaptés au job" },
       { title: "Postgres & Redis", detail: "Des stores qui restent rapides" },
-      { title: "Open source", detail: "Des outils que nous utilisons et rendons" },
+      {
+        title: "Open source",
+        detail: "Des outils que nous utilisons et rendons",
+      },
       { title: "Intégrations", detail: "Paiements, CRM, API tierces" },
       { title: "Recherche", detail: "De Postgres FTS aux index dédiés" },
       { title: "Temps réel", detail: "Sockets, jobs et vues live" },
@@ -843,5 +858,7 @@ export function getCopy(locale: Locale): SiteCopy {
 }
 
 export function launcherItemsFor(locale: Locale): string[] {
-  return getCopy(locale).work.items.slice(0, 5).map((item) => item.title);
+  return getCopy(locale)
+    .work.items.slice(0, 5)
+    .map((item) => item.title);
 }
