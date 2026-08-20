@@ -41,6 +41,54 @@ We utilize a modern, battle-tested technology stack to ensure our products are r
 
 ---
 
+## 🖥️ Website (this repo)
+
+Marketing site for [stackwisetechnologies.com](https://stackwisetechnologies.com), built with Next.js and deployed to Cloudflare Workers via OpenNext.
+
+### Local development
+
+```bash
+npm install
+npm run dev
+```
+
+Locales:
+
+- English: [http://localhost:3000/en](http://localhost:3000/en)
+- French: [http://localhost:3000/fr](http://localhost:3000/fr)
+
+### Scripts
+
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Next.js local dev server |
+| `npm run build` | Production Next.js build |
+| `npm run lint` | ESLint |
+| `npm test` | Unit tests (Vitest) |
+| `npm run typecheck` | TypeScript (`tsc --noEmit`) |
+| `npm run preview` | Build OpenNext worker and preview in `workerd` via Wrangler |
+| `npm run build:worker` | Build the Cloudflare Worker bundle only |
+| `npm run deploy` | Build + deploy to Cloudflare Workers |
+| `npm run deploy:live` | Build + deploy current branch/commit as the **live** production Worker (tagged) |
+| `npm run cf:whoami` | Show Cloudflare auth account |
+| `npm run cf:status` | Show the live Workers deployment status |
+
+### Deploy from your machine
+
+You do not need GitHub Actions or the Cloudflare dashboard to ship:
+
+```bash
+# one-time: log in if needed
+npx wrangler login
+
+# ship the current branch as production
+npm run deploy:live
+```
+
+`deploy:live` tags the Worker version with the current git branch and short SHA (and marks `-dirty` if you have uncommitted changes), then rolls it out to 100% production traffic.
+
+---
+
 ## ❤️ Open Source Commitment
 
 We believe in giving back to the community that makes our work possible. Some repositories here power production systems, while others are open-source projects, internal tools, and experiments that push technology forward. Feel free to explore, fork, and contribute!
@@ -51,7 +99,7 @@ We believe in giving back to the community that makes our work possible. Some re
 
 Whether you're looking for a reliable technology partner, exploring our previous work, or looking to contribute to our open-source ecosystem—welcome to Stackwise.
 
-We're always excited to discuss new ideas, solve complex problems, and build the future. 
+We're always excited to discuss new ideas, solve complex problems, and build the future.
 
 📫 **Get in touch:**
 - **Website:** [https://stackwisetechnologies.com](https://stackwisetechnologies.com)
