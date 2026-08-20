@@ -41,6 +41,8 @@ describe("content catalogs", () => {
     expect(en.cost.rows).toHaveLength(fr.cost.rows.length);
     expect(en.architecture.steps).toHaveLength(fr.architecture.steps.length);
     expect(en.faq.items).toHaveLength(fr.faq.items.length);
+    expect(en.hero.callouts).toHaveLength(fr.hero.callouts.length);
+    expect(en.hero.callouts.length).toBe(4);
     expect(launcherItemsFor("en")).toHaveLength(5);
     expect(launcherItemsFor("fr")).toHaveLength(5);
     expect(en.faq.items[0]?.points?.length).toBeGreaterThan(0);

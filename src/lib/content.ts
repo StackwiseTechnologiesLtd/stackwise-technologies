@@ -26,9 +26,8 @@ export type SiteCopy = {
     language: string;
   };
   hero: {
-    eyebrow: string;
-    titleLead: string;
-    titleAccent: string;
+    brand: string;
+    headline: string;
     subtitle: string;
     primaryCta: string;
     secondaryCta: string;
@@ -39,8 +38,10 @@ export type SiteCopy = {
     enterpriseLink: string;
     searchPlaceholder: string;
     mockTitle: string;
+    pinnedLabel: string;
     copyLabel: string;
     copiedLabel: string;
+    callouts: { title: string; body: string }[];
   };
   features: {
     label: string;
@@ -143,10 +144,10 @@ export const en: SiteCopy = {
     language: "English",
   },
   hero: {
-    eyebrow: "Engineering partner",
-    titleLead: "Stackwise",
-    titleAccent: "Ltd",
-    subtitle: "A strategic technology partner for modern businesses.",
+    brand: "Stackwise",
+    headline: "Engineering software at the speed of your business.",
+    subtitle:
+      "Custom platforms, AI systems, cloud infrastructure, dedicated teams, and the unglamorous work that keeps a company shipping — one engineering partner.",
     primaryCta: "Book a call",
     secondaryCta: "Email us",
     offer: "International team · African roots · Built for scale",
@@ -154,10 +155,29 @@ export const en: SiteCopy = {
     installLabel: "Or reach us by email",
     enterpriseBefore: "Enterprise?",
     enterpriseLink: "Book a call with the team",
-    searchPlaceholder: "Search a capability…",
+    searchPlaceholder: "Search apps, systems, and capabilities…",
     mockTitle: "stackwise — delivery",
+    pinnedLabel: "Pinned",
     copyLabel: "Copy",
     copiedLabel: "Copied",
+    callouts: [
+      {
+        title: "AI in the loop",
+        body: "Assistants and automation wired into the systems you already run.",
+      },
+      {
+        title: "Product + platform",
+        body: "SaaS, portals, and APIs designed to ship together — not thrown over a wall.",
+      },
+      {
+        title: "Cloud that stays up",
+        body: "Pipelines, observability, and the boring reliability work after launch.",
+      },
+      {
+        title: "A named team",
+        body: "Senior engineers on a shared backlog — not a staffing board.",
+      },
+    ],
   },
   features: {
     label: "Feature set",
@@ -436,7 +456,7 @@ export const en: SiteCopy = {
   },
   cta: {
     kicker: "Ready when you are",
-    title: "Let’s build.",
+    title: "Let’s build with Stackwise.",
     subtitle:
       "The engineering partner for people who live in products, pipelines, and production.",
     offer: "International team · African roots · Built for scale",
@@ -474,11 +494,10 @@ export const fr: SiteCopy = {
     language: "Français",
   },
   hero: {
-    eyebrow: "Partenaire ingénierie",
-    titleLead: "Stackwise",
-    titleAccent: "Ltd",
+    brand: "Stackwise",
+    headline: "Des logiciels à la vitesse de votre métier.",
     subtitle:
-      "Un partenaire technologique stratégique pour les entreprises modernes.",
+      "Plateformes sur mesure, systèmes d’IA, infrastructure cloud, équipes dédiées et le travail peu glamour qui fait livrer une entreprise — un seul partenaire ingénierie.",
     primaryCta: "Réserver un appel",
     secondaryCta: "Nous écrire",
     offer: "Équipe internationale · Racines africaines · Pensé pour l’échelle",
@@ -486,10 +505,29 @@ export const fr: SiteCopy = {
     installLabel: "Ou contactez-nous par e-mail",
     enterpriseBefore: "Pour votre entreprise ?",
     enterpriseLink: "Réserver un appel avec l’équipe",
-    searchPlaceholder: "Rechercher une capacité…",
+    searchPlaceholder: "Rechercher apps, systèmes et capacités…",
     mockTitle: "stackwise — livraison",
+    pinnedLabel: "Épinglé",
     copyLabel: "Copier",
     copiedLabel: "Copié",
+    callouts: [
+      {
+        title: "IA dans la boucle",
+        body: "Assistants et automatisation branchés sur les systèmes que vous avez déjà.",
+      },
+      {
+        title: "Produit + plateforme",
+        body: "SaaS, portails et API conçus pour livrer ensemble — pas jetés par-dessus le mur.",
+      },
+      {
+        title: "Un cloud qui tient",
+        body: "Pipelines, observabilité et le travail de fiabilité après le lancement.",
+      },
+      {
+        title: "Une équipe nommée",
+        body: "Des seniors sur un backlog partagé — pas un tableau de staffing.",
+      },
+    ],
   },
   features: {
     label: "Ensemble de fonctionnalités",
@@ -777,7 +815,7 @@ export const fr: SiteCopy = {
   },
   cta: {
     kicker: "Quand vous êtes prêts",
-    title: "Construisons.",
+    title: "Construisons avec Stackwise.",
     subtitle:
       "Le partenaire ingénierie pour celles et ceux qui vivent dans les produits, les pipelines et la production.",
     offer: "Équipe internationale · Racines africaines · Pensé pour l’échelle",

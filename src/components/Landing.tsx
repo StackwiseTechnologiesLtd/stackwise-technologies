@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import CopyCommand from "@/components/CopyCommand";
 import FaqList from "@/components/FaqList";
 import HeroMock from "@/components/HeroMock";
+import Mark from "@/components/Mark";
 import ProviderTabs from "@/components/ProviderTabs";
 import WorkVisual from "@/components/WorkVisual";
 import {
@@ -52,60 +53,54 @@ function SecondaryButton({
   );
 }
 
-function HeroInstall({ copy }: { copy: SiteCopy["hero"] }) {
-  return (
-    <div className="mt-8 space-y-3 text-center">
-      <p className="text-sm text-muted">{copy.installLabel}</p>
-      <CopyCommand
-        value={EMAIL}
-        copyLabel={copy.copyLabel}
-        copiedLabel={copy.copiedLabel}
-      />
-      <p className="text-sm text-muted">
-        {copy.enterpriseBefore}{" "}
-        <a
-          href={CALENDLY_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-foreground underline decoration-white/20 underline-offset-4 hover:decoration-accent"
-        >
-          {copy.enterpriseLink}
-        </a>
-      </p>
-    </div>
-  );
-}
-
 function Hero({ locale, copy }: { locale: Locale; copy: SiteCopy }) {
+  const hero = copy.hero;
   return (
-    <section id="home" className="relative scroll-mt-24 px-4 pb-8 pt-16 sm:pt-24">
+    <section
+      id="home"
+      className="relative scroll-mt-24 overflow-hidden px-4 pb-16 pt-14 sm:px-6 sm:pt-20"
+    >
       <div className="hero-glow pointer-events-none absolute inset-0" />
-      <div className="relative mx-auto max-w-3xl text-center">
-        <p className="mb-5 flex items-center justify-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-accent">
-          {copy.hero.eyebrow}
-          <span className="inline-block size-1.5 rounded-full bg-accent" />
-        </p>
-        <h1 className="text-5xl font-bold tracking-tight sm:text-7xl md:text-8xl">
-          {copy.hero.titleLead}{" "}
-          <span className="text-gradient-accent">{copy.hero.titleAccent}</span>
-        </h1>
-        <p className="mx-auto mt-5 max-w-xl text-lg text-foreground/90 sm:text-xl">
-          {copy.hero.subtitle}
-        </p>
-        <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <PrimaryButton href={CALENDLY_URL}>{copy.hero.primaryCta}</PrimaryButton>
-          <SecondaryButton href={`mailto:${EMAIL}`}>
-            {copy.hero.secondaryCta}
-          </SecondaryButton>
+      <div className="relative mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:gap-10">
+        <div className="relative z-10 max-w-xl">
+          <div className="mb-6 flex items-center gap-3">
+            <Mark className="size-12" gradientId="sw-mark-hero" />
+            <span className="text-lg font-semibold tracking-tight">
+              {hero.brand}
+            </span>
+          </div>
+          <h1 className="text-4xl font-bold tracking-tight text-balance sm:text-5xl lg:text-[3.25rem] lg:leading-[1.08]">
+            {hero.headline}
+          </h1>
+          <p className="mt-5 max-w-lg text-[15px] leading-relaxed text-muted sm:text-base">
+            {hero.subtitle}
+          </p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <PrimaryButton href={CALENDLY_URL}>{hero.primaryCta}</PrimaryButton>
+            <SecondaryButton href={`mailto:${EMAIL}`}>
+              {hero.secondaryCta}
+            </SecondaryButton>
+          </div>
+          <p className="mt-5 text-sm text-yellow-200/90">
+            <span className="mr-1">✦</span>
+            {hero.offer}
+          </p>
+          <p className="mt-1.5 text-sm text-muted">{hero.requirement}</p>
+          <div className="mt-8">
+            <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted">
+              {hero.installLabel}
+            </p>
+            <CopyCommand
+              value={EMAIL}
+              copyLabel={hero.copyLabel}
+              copiedLabel={hero.copiedLabel}
+            />
+          </div>
         </div>
-        <p className="mt-5 text-sm text-yellow-200/90">
-          <span className="mr-1">✦</span>
-          {copy.hero.offer}
-        </p>
-        <p className="mt-2 text-sm text-muted">{copy.hero.requirement}</p>
-        <HeroInstall copy={copy.hero} />
+        <div className="relative z-10 lg:pl-4">
+          <HeroMock locale={locale} copy={hero} />
+        </div>
       </div>
-      <HeroMock locale={locale} copy={copy.hero} />
     </section>
   );
 }
@@ -326,31 +321,57 @@ function Faq({ copy }: { copy: SiteCopy["faq"] }) {
 }
 
 function Cta({ copy }: { copy: SiteCopy }) {
+  const { cta, hero } = copy;
   return (
-    <section className="px-4 pb-28 pt-8">
-      <div className="mx-auto max-w-2xl text-center">
-        <p className="mb-4 text-sm text-muted">{copy.cta.kicker}</p>
-        <h2 className="text-4xl font-semibold tracking-tight sm:text-6xl">
-          {copy.cta.title}
-        </h2>
-        <p className="mx-auto mt-4 max-w-md text-muted sm:text-lg">
-          {copy.cta.subtitle}
-        </p>
-        <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <PrimaryButton href={CALENDLY_URL}>
-            {copy.hero.primaryCta}
-          </PrimaryButton>
-          <SecondaryButton href={`mailto:${EMAIL}`}>
-            {copy.hero.secondaryCta}
-          </SecondaryButton>
-        </div>
-        <p className="mt-5 text-sm text-yellow-200/90">
-          <span className="mr-1">✦</span>
-          {copy.cta.offer}
-        </p>
-        <p className="mt-2 text-sm text-muted">{copy.cta.requirement}</p>
-        <div className="mt-8">
-          <HeroInstall copy={copy.hero} />
+    <section className="px-4 pb-28 pt-8 sm:px-6">
+      <div className="mx-auto max-w-6xl overflow-hidden rounded-[2rem] border border-white/10 bg-[#0c0c0c] px-6 py-10 sm:px-10 sm:py-14 lg:px-14">
+        <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+          <div>
+            <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-accent">
+              {cta.kicker}
+            </p>
+            <h2 className="text-3xl font-semibold tracking-tight text-balance sm:text-5xl">
+              {cta.title}
+            </h2>
+            <p className="mt-4 max-w-md text-[15px] leading-relaxed text-muted sm:text-base">
+              {cta.subtitle}
+            </p>
+          </div>
+
+          <div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <PrimaryButton href={CALENDLY_URL}>{hero.primaryCta}</PrimaryButton>
+              <SecondaryButton href={`mailto:${EMAIL}`}>
+                {hero.secondaryCta}
+              </SecondaryButton>
+            </div>
+            <p className="mt-5 text-sm text-yellow-200/90">
+              <span className="mr-1">✦</span>
+              {cta.offer}
+            </p>
+            <p className="mt-1.5 text-sm text-muted">{cta.requirement}</p>
+            <div className="mt-8">
+              <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted">
+                {cta.installLabel}
+              </p>
+              <CopyCommand
+                value={EMAIL}
+                copyLabel={hero.copyLabel}
+                copiedLabel={hero.copiedLabel}
+              />
+            </div>
+            <p className="mt-4 text-sm text-muted">
+              {cta.enterpriseBefore}{" "}
+              <a
+                href={CALENDLY_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-foreground underline decoration-white/25 underline-offset-4 hover:decoration-accent"
+              >
+                {cta.enterpriseLink}
+              </a>
+            </p>
+          </div>
         </div>
       </div>
     </section>
