@@ -1,7 +1,7 @@
 import Mark from "@/components/Mark";
-import { SITE_NAME, TWITTER_URL } from "@/lib/site";
+import { TWITTER_URL, type SiteCopy } from "@/lib/content";
 
-export default function Footer() {
+export default function Footer({ copy }: { copy: SiteCopy["footer"] }) {
   const year = new Date().getFullYear();
 
   return (
@@ -10,15 +10,15 @@ export default function Footer() {
         <div className="flex items-center gap-2.5 text-sm text-muted">
           <Mark className="size-6" gradientId="sw-mark-footer" />
           <span>
-            {SITE_NAME} · {year}
+            {copy.tagline} · {year}
           </span>
         </div>
         <div className="flex items-center gap-5 text-sm text-muted">
           <a href="#work" className="hover:text-foreground">
-            Work
+            {copy.work}
           </a>
           <a href="#faq" className="hover:text-foreground">
-            FAQ
+            {copy.faq}
           </a>
           <a
             href={TWITTER_URL}
@@ -26,7 +26,7 @@ export default function Footer() {
             rel="noopener noreferrer"
             className="hover:text-foreground"
           >
-            X
+            {copy.twitter}
           </a>
         </div>
       </div>
