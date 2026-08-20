@@ -44,8 +44,13 @@ body {
 .hero-glow {
   background:
     radial-gradient(
-      ellipse 70% 45% at 50% -10%,
-      color-mix(in srgb, var(--accent) 16%, transparent),
+      ellipse 55% 50% at 72% 42%,
+      color-mix(in srgb, var(--accent) 22%, transparent),
+      transparent 68%
+    ),
+    radial-gradient(
+      ellipse 40% 35% at 20% 0%,
+      color-mix(in srgb, var(--accent) 10%, transparent),
       transparent 60%
     );
 }
