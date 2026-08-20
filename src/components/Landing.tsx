@@ -1,21 +1,18 @@
 import type { ReactNode } from "react";
+import CopyCommand from "@/components/CopyCommand";
 import FaqList from "@/components/FaqList";
 import HeroMock from "@/components/HeroMock";
+import ProviderTabs from "@/components/ProviderTabs";
+import WorkVisual from "@/components/WorkVisual";
 import {
   CALENDLY_URL,
-  capabilities,
-  compareRows,
   EMAIL,
-  processSteps,
-  stackPills,
-  stats,
-  workItems,
-} from "@/lib/site";
+  type Locale,
+  type SiteCopy,
+} from "@/lib/content";
 
 function SectionLabel({ children }: { children: ReactNode }) {
-  return (
-    <p className="mb-3 text-sm text-muted">{children}</p>
-  );
+  return <p className="mb-3 text-sm text-muted">{children}</p>;
 }
 
 function PrimaryButton({
@@ -55,68 +52,94 @@ function SecondaryButton({
   );
 }
 
-function Hero() {
+function HeroInstall({ copy }: { copy: SiteCopy["hero"] }) {
+  return (
+    <div className="mt-8 space-y-3 text-center">
+      <p className="text-sm text-muted">{copy.installLabel}</p>
+      <CopyCommand
+        value={EMAIL}
+        copyLabel={copy.copyLabel}
+        copiedLabel={copy.copiedLabel}
+      />
+      <p className="text-sm text-muted">
+        {copy.enterpriseBefore}{" "}
+        <a
+          href={CALENDLY_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-foreground underline decoration-white/20 underline-offset-4 hover:decoration-accent"
+        >
+          {copy.enterpriseLink}
+        </a>
+      </p>
+    </div>
+  );
+}
+
+function Hero({ locale, copy }: { locale: Locale; copy: SiteCopy }) {
   return (
     <section id="home" className="relative scroll-mt-24 px-4 pb-8 pt-16 sm:pt-24">
       <div className="hero-glow pointer-events-none absolute inset-0" />
       <div className="relative mx-auto max-w-3xl text-center">
         <p className="mb-5 flex items-center justify-center gap-2 text-[11px] font-semibold uppercase tracking-[0.22em] text-accent">
-          Engineering partner
+          {copy.hero.eyebrow}
           <span className="inline-block size-1.5 rounded-full bg-accent" />
         </p>
         <h1 className="text-5xl font-bold tracking-tight sm:text-7xl md:text-8xl">
-          Stackwise<span className="text-gradient-accent">.</span>
+          {copy.hero.titleLead}{" "}
+          <span className="text-gradient-accent">{copy.hero.titleAccent}</span>
         </h1>
         <p className="mx-auto mt-5 max-w-xl text-lg text-foreground/90 sm:text-xl">
-          Engineering scalable software for modern businesses.
+          {copy.hero.subtitle}
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <PrimaryButton href={CALENDLY_URL}>Book a call</PrimaryButton>
-          <SecondaryButton href={`mailto:${EMAIL}`}>Email us</SecondaryButton>
+          <PrimaryButton href={CALENDLY_URL}>{copy.hero.primaryCta}</PrimaryButton>
+          <SecondaryButton href={`mailto:${EMAIL}`}>
+            {copy.hero.secondaryCta}
+          </SecondaryButton>
         </div>
-        <p className="mt-5 text-sm text-muted">
-          <span className="mr-1 text-yellow-300">✦</span>
-          International team · African roots · Built for scale
+        <p className="mt-5 text-sm text-yellow-200/90">
+          <span className="mr-1">✦</span>
+          {copy.hero.offer}
         </p>
+        <p className="mt-2 text-sm text-muted">{copy.hero.requirement}</p>
+        <HeroInstall copy={copy.hero} />
       </div>
-      <HeroMock />
+      <HeroMock locale={locale} copy={copy.hero} />
     </section>
   );
 }
 
-function Stats() {
+function Features({ copy }: { copy: SiteCopy["features"] }) {
   return (
-    <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-      <SectionLabel>What we bring</SectionLabel>
+    <section id="features" className="mx-auto max-w-6xl scroll-mt-24 px-4 py-20 sm:px-6">
+      <SectionLabel>{copy.label}</SectionLabel>
       <h2 className="max-w-2xl text-3xl font-semibold tracking-tight sm:text-5xl">
-        A technology partner, not a ticket mill.
+        {copy.title}
       </h2>
-      <p className="mt-4 max-w-2xl text-muted sm:text-lg">
-        Custom software, dedicated teams, and AI systems — engineered to last,
-        delivered without the agency theatre.
-      </p>
+      <p className="mt-4 max-w-2xl text-muted sm:text-lg">{copy.subtitle}</p>
 
       <div className="mt-10 overflow-hidden rounded-2xl border border-white/10">
         <div className="grid gap-px bg-white/8 md:grid-cols-2">
-          {stats.map((stat, i) => (
-            <article
-              key={stat.kicker}
-              className={`bg-black p-6 sm:p-8 ${i === 0 ? "md:col-span-2" : ""}`}
-            >
-              <p className="text-sm text-muted">{stat.kicker}</p>
-              {i === 0 ? (
-                <p className="mt-3 text-5xl font-semibold tracking-tight sm:text-6xl">
-                  {stat.value}
-                  <span className="text-accent">.</span>
-                </p>
-              ) : (
-                <p className="mt-2 text-2xl font-semibold tracking-tight">
-                  {stat.value}
-                </p>
-              )}
-              <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted sm:text-base">
-                {stat.label}
+          <article className="bg-black p-6 sm:p-8 md:col-span-2 md:row-span-2">
+            <p className="text-sm text-muted">{copy.featuredKicker}</p>
+            <p className="mt-3 text-5xl font-semibold tracking-tight sm:text-6xl">
+              {copy.featuredValue}
+              <span className="text-accent">.</span>
+            </p>
+            <p className="mt-2 font-mono text-sm text-accent">{copy.featuredHint}</p>
+            <p className="mt-4 max-w-2xl text-sm leading-relaxed text-muted sm:text-base">
+              {copy.featuredBody}
+            </p>
+          </article>
+          {copy.cards.map((card) => (
+            <article key={card.kicker} className="bg-black p-6 sm:p-8">
+              <p className="text-sm text-muted">{card.kicker}</p>
+              <p className="mt-2 text-2xl font-semibold tracking-tight">
+                {card.value}
               </p>
+              <p className="mt-1 font-mono text-xs text-accent">{card.hint}</p>
+              <p className="mt-3 text-sm leading-relaxed text-muted">{card.body}</p>
             </article>
           ))}
         </div>
@@ -125,29 +148,22 @@ function Stats() {
   );
 }
 
-function Work() {
+function Work({ copy }: { copy: SiteCopy["work"] }) {
   return (
     <section id="work" className="mx-auto max-w-6xl scroll-mt-24 px-4 py-20 sm:px-6">
-      <SectionLabel>In practice</SectionLabel>
+      <SectionLabel>{copy.label}</SectionLabel>
       <h2 className="max-w-2xl text-3xl font-semibold tracking-tight sm:text-5xl">
-        See what we actually ship.
+        {copy.title}
       </h2>
-      <p className="mt-4 max-w-2xl text-muted sm:text-lg">
-        Every one of these is work we do today — product, platform, and the
-        unglamorous systems that keep a company moving.
-      </p>
+      <p className="mt-4 max-w-2xl text-muted sm:text-lg">{copy.subtitle}</p>
       <div className="mt-10 grid gap-3 sm:grid-cols-2">
-        {workItems.map((item, index) => (
+        {copy.items.map((item, index) => (
           <article
             key={item.title}
             className="overflow-hidden rounded-2xl border border-white/10 bg-panel transition-colors hover:bg-panel-hover"
           >
-            <div className="flex h-28 items-end border-b border-white/8 bg-[radial-gradient(ellipse_at_top_right,rgba(226,75,92,0.18),transparent_55%)] px-6 py-4">
-              <span className="font-mono text-xs text-muted">
-                {String(index + 1).padStart(2, "0")}
-              </span>
-            </div>
-            <div className="p-6 sm:p-7">
+            <WorkVisual index={index} />
+            <div className="border-t border-white/8 p-6 sm:p-7">
               <h3 className="text-lg font-semibold tracking-tight sm:text-xl">
                 {item.title}
               </h3>
@@ -162,31 +178,111 @@ function Work() {
   );
 }
 
-function Capabilities() {
+function Providers({ copy }: { copy: SiteCopy["providers"] }) {
   return (
-    <section id="capabilities" className="mx-auto max-w-6xl scroll-mt-24 px-4 py-20 sm:px-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+    <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
+      <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-accent">
+        {copy.kicker}
+      </p>
+      <SectionLabel>{copy.label}</SectionLabel>
+      <h2 className="max-w-2xl text-3xl font-semibold tracking-tight sm:text-5xl">
+        {copy.title}
+      </h2>
+      <p className="mt-4 max-w-2xl text-muted sm:text-lg">{copy.subtitle}</p>
+      <p className="mt-3 max-w-2xl text-sm text-muted">{copy.aside}</p>
+      <ProviderTabs key={copy.tabs.map((tab) => tab.label).join("-")} copy={copy} />
+      <p className="mt-4 text-xs text-muted">{copy.note}</p>
+
+      <div className="mt-14 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <SectionLabel>Full inventory</SectionLabel>
-          <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-            {capabilities.length} capabilities
-          </h2>
+          <h3 className="text-2xl font-semibold tracking-tight sm:text-3xl">
+            {copy.inventoryLabel}
+          </h3>
+          <p className="mt-1 text-sm text-muted">{copy.inventoryCount}</p>
         </div>
-        <p className="max-w-md text-sm text-muted">
-          Frontend through infrastructure. We pick the stack that fits the
-          problem — then we stay on it.
-        </p>
       </div>
-      <ul className="mt-10 grid gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-4">
-        {capabilities.map((cap) => (
-          <li key={cap.title} className="border-t border-white/8 pt-3">
-            <p className="font-medium tracking-tight">{cap.title}</p>
-            <p className="mt-0.5 text-sm text-muted">{cap.detail}</p>
+      <ul className="mt-8 grid gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-4">
+        {copy.inventory.map((item) => (
+          <li key={item.title} className="border-t border-white/8 pt-3">
+            <p className="font-medium tracking-tight">{item.title}</p>
+            <p className="mt-0.5 text-sm text-muted">{item.detail}</p>
           </li>
         ))}
       </ul>
-      <div className="mt-10 flex flex-wrap gap-2">
-        {stackPills.map((pill) => (
+    </section>
+  );
+}
+
+function CompareTable({
+  id,
+  copy,
+}: {
+  id?: string;
+  copy: SiteCopy["compare"] | SiteCopy["cost"];
+}) {
+  const isCompare = "rows" in copy && "feature" in copy.rows[0];
+  return (
+    <section
+      id={id}
+      className="mx-auto max-w-6xl scroll-mt-24 px-4 py-20 sm:px-6"
+    >
+      <SectionLabel>{copy.label}</SectionLabel>
+      <h2 className="max-w-2xl text-3xl font-semibold tracking-tight sm:text-5xl">
+        {copy.title}
+      </h2>
+      <p className="mt-4 max-w-2xl text-muted sm:text-lg">{copy.subtitle}</p>
+      <p className="mt-3 text-sm text-muted">{copy.scroll}</p>
+      <div className="mt-10 overflow-x-auto rounded-2xl border border-white/10">
+        <table className="w-full min-w-xl border-collapse text-left text-sm">
+          <thead>
+            <tr className="border-b border-white/10 text-muted">
+              {copy.columns.map((column) => (
+                <th key={column} className="px-5 py-4 font-medium">
+                  {column}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {isCompare
+              ? (copy as SiteCopy["compare"]).rows.map((row) => (
+                  <tr
+                    key={row.feature}
+                    className="border-b border-white/8 last:border-0"
+                  >
+                    <td className="px-5 py-4 font-medium">{row.feature}</td>
+                    <td className="px-5 py-4 text-muted">{row.typical}</td>
+                    <td className="px-5 py-4 text-accent">{row.stackwise}</td>
+                  </tr>
+                ))
+              : (copy as SiteCopy["cost"]).rows.map((row) => (
+                  <tr
+                    key={row.need}
+                    className="border-b border-white/8 last:border-0"
+                  >
+                    <td className="px-5 py-4 font-medium">{row.need}</td>
+                    <td className="px-5 py-4 text-muted">{row.scattered}</td>
+                    <td className="px-5 py-4 text-accent">{row.stackwise}</td>
+                  </tr>
+                ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="mt-4 text-xs leading-relaxed text-muted">{copy.footnote}</p>
+    </section>
+  );
+}
+
+function Architecture({ copy }: { copy: SiteCopy["architecture"] }) {
+  return (
+    <section id="process" className="mx-auto max-w-6xl scroll-mt-24 px-4 py-20 sm:px-6">
+      <SectionLabel>{copy.label}</SectionLabel>
+      <h2 className="max-w-2xl text-3xl font-semibold tracking-tight sm:text-5xl">
+        {copy.title}
+      </h2>
+      <p className="mt-4 max-w-2xl text-muted sm:text-lg">{copy.subtitle}</p>
+      <div className="mt-6 flex flex-wrap gap-2">
+        {copy.pills.map((pill) => (
           <span
             key={pill}
             className="rounded-full border border-white/10 px-3 py-1 text-xs text-muted"
@@ -195,57 +291,8 @@ function Capabilities() {
           </span>
         ))}
       </div>
-    </section>
-  );
-}
-
-function Compare() {
-  return (
-    <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
-      <SectionLabel>Side by side</SectionLabel>
-      <h2 className="max-w-2xl text-3xl font-semibold tracking-tight sm:text-5xl">
-        Four vendors. One partner.
-      </h2>
-      <p className="mt-4 max-w-2xl text-muted sm:text-lg">
-        Same essentials. Fewer handoffs and less overhead.
-      </p>
-      <div className="mt-10 overflow-x-auto rounded-2xl border border-white/10">
-        <table className="w-full min-w-xl border-collapse text-left text-sm">
-          <thead>
-            <tr className="border-b border-white/10 text-muted">
-              <th className="px-5 py-4 font-medium">What you need</th>
-              <th className="px-5 py-4 font-medium">Piecing it together</th>
-              <th className="px-5 py-4 font-medium">Stackwise</th>
-            </tr>
-          </thead>
-          <tbody>
-            {compareRows.map((row) => (
-              <tr key={row.need} className="border-b border-white/8 last:border-0">
-                <td className="px-5 py-4 font-medium">{row.need}</td>
-                <td className="px-5 py-4 text-muted">{row.scattered}</td>
-                <td className="px-5 py-4 text-accent">{row.stackwise}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </section>
-  );
-}
-
-function Process() {
-  return (
-    <section id="process" className="mx-auto max-w-6xl scroll-mt-24 px-4 py-20 sm:px-6">
-      <SectionLabel>How we work</SectionLabel>
-      <h2 className="max-w-2xl text-3xl font-semibold tracking-tight sm:text-5xl">
-        Not a factory wearing a product coat.
-      </h2>
-      <p className="mt-4 max-w-2xl text-muted sm:text-lg">
-        Discovery, design, build, and run — in one loop, with the people who
-        will still be here after launch.
-      </p>
-      <div className="mt-12 grid gap-10 md:grid-cols-2 lg:grid-cols-4">
-        {processSteps.map((step) => (
+      <div className="mt-12 grid gap-10 md:grid-cols-3">
+        {copy.steps.map((step) => (
           <article key={step.n}>
             <p className="font-mono text-sm text-muted">{step.n}</p>
             <h3 className="mt-3 text-xl font-semibold tracking-tight">
@@ -261,50 +308,67 @@ function Process() {
   );
 }
 
-function Faq() {
+function Faq({ copy }: { copy: SiteCopy["faq"] }) {
   return (
     <section id="faq" className="mx-auto max-w-6xl scroll-mt-24 px-4 py-20 sm:px-6">
       <h2 className="mb-8 text-3xl font-semibold tracking-tight sm:text-5xl">
-        FAQ
+        {copy.title}
       </h2>
-      <FaqList />
+      <FaqList items={copy.items} />
     </section>
   );
 }
 
-function Cta() {
+function Cta({ copy }: { copy: SiteCopy }) {
   return (
     <section className="px-4 pb-28 pt-8">
       <div className="mx-auto max-w-2xl text-center">
-        <p className="mb-4 text-sm text-muted">Ready when you are</p>
+        <p className="mb-4 text-sm text-muted">{copy.cta.kicker}</p>
         <h2 className="text-4xl font-semibold tracking-tight sm:text-6xl">
-          Let&apos;s build.
+          {copy.cta.title}
         </h2>
         <p className="mx-auto mt-4 max-w-md text-muted sm:text-lg">
-          Partner with Stackwise to design, ship, and scale software that
-          actually matches how your business works.
+          {copy.cta.subtitle}
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <PrimaryButton href={CALENDLY_URL}>Book a call</PrimaryButton>
-          <SecondaryButton href={`mailto:${EMAIL}`}>Email us</SecondaryButton>
+          <PrimaryButton href={CALENDLY_URL}>
+            {copy.hero.primaryCta}
+          </PrimaryButton>
+          <SecondaryButton href={`mailto:${EMAIL}`}>
+            {copy.hero.secondaryCta}
+          </SecondaryButton>
         </div>
-        <p className="mt-5 text-sm text-muted">{EMAIL}</p>
+        <p className="mt-5 text-sm text-yellow-200/90">
+          <span className="mr-1">✦</span>
+          {copy.cta.offer}
+        </p>
+        <p className="mt-2 text-sm text-muted">{copy.cta.requirement}</p>
+        <div className="mt-8">
+          <HeroInstall copy={copy.hero} />
+        </div>
       </div>
     </section>
   );
 }
 
-export default function Landing() {
+export default function Landing({
+  locale,
+  copy,
+}: {
+  locale: Locale;
+  copy: SiteCopy;
+}) {
   return (
     <main>
-      <Hero />
-      <Stats />
-      <Work />
-      <Capabilities />
-      <Compare />
-      <Process />
-      <Faq />
-      <Cta />
+      <Hero locale={locale} copy={copy} />
+      <Features copy={copy.features} />
+      <Work copy={copy.work} />
+      <Providers copy={copy.providers} />
+      <CompareTable id="compare" copy={copy.compare} />
+      <CompareTable copy={copy.cost} />
+      <Architecture copy={copy.architecture} />
+      <Faq copy={copy.faq} />
+      <Cta copy={copy} />
     </main>
   );
 }
