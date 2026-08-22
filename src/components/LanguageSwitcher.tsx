@@ -10,8 +10,8 @@ const flags: Record<Locale, string> = {
 };
 
 const labels: Record<Locale, string> = {
-  en: "English",
-  fr: "Français",
+  en: "EN",
+  fr: "FR",
 };
 
 export default function LanguageSwitcher({
