@@ -19,12 +19,12 @@ export default function SiteNav({
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 rounded-2xl border border-white/10 bg-black/80 px-3 py-2 shadow-[0_8px_40px_rgba(0,0,0,0.45)] backdrop-blur-xl">
         <a href={`/${locale}#home`} className="flex items-center gap-2.5 py-1 pl-1">
           <Mark className="size-8" gradientId="sw-mark-nav" />
-          <span className="text-[15px] font-semibold tracking-tight">
+          {/* <span className="text-[15px] font-semibold tracking-tight">
             Stackwise
           </span>
           <span className="rounded-md border border-white/10 bg-white/5 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-muted">
             Ltd
-          </span>
+          </span> */}
         </a>
 
         <nav
