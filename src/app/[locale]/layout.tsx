@@ -34,12 +34,12 @@ export const metadata: Metadata = {
     siteName: "Stackwise Technologies LTD",
     images: [
       {
-        url: "/image/og-landing-1200x630.png",
+        url: "/images/og-landing-1200x630.png",
         width: 1200,
         height: 630,
       },
       {
-        url: "/image/og-landing-1200x1200.png",
+        url: "/images/og-landing-1200x1200.png",
         width: 1200,
         height: 1200,
       },
