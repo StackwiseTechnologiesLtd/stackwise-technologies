@@ -64,7 +64,7 @@ function Hero({ locale, copy }: { locale: Locale; copy: SiteCopy }) {
       <div className="relative mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:gap-10">
         <div className="relative z-10 max-w-xl">
           <div className="mb-6 flex items-center gap-3">
-            <Mark className="size-12" gradientId="sw-mark-hero" />
+            <Mark className="size-6" gradientId="sw-mark-hero" />
             <span className="text-lg font-semibold tracking-tight">
               {hero.brand}
             </span>
@@ -323,7 +323,7 @@ function Faq({ copy }: { copy: SiteCopy["faq"] }) {
 function Cta({ copy }: { copy: SiteCopy }) {
   const { cta, hero } = copy;
   return (
-    <section className="px-4 pb-28 pt-8 sm:px-6">
+    <section className="px-2 pb-28 pt-8 sm:px-6">
       <div className="mx-auto max-w-6xl overflow-hidden rounded-[2rem] border border-white/10 bg-[#0c0c0c] px-6 py-10 sm:px-10 sm:py-14 lg:px-14">
         <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
           <div>
