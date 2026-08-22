@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     description:
       "Stackwise Technologies Ltd is your trusted engineering partner for product development. We specialize in custom platforms, AI systems, cloud infrastructure, dedicated teams, and the essential work that drives business delivery.",
     url: "https://stackwisetechnologies.com",
-    siteName: "Stackwise Technologies LTD",
+    siteName: "Stackwise Technologies Ltd",
     images: [
       {
         url: "/images/og-landing-1200x630.png",
