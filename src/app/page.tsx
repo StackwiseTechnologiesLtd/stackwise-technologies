@@ -1,13 +1,6 @@
-import Footer from "@/components/Footer";
-import Header from "@/components/Header";
-import HomeMain from "@/components/HomeMain";
+import { redirect } from "next/navigation";
+import { defaultLocale } from "@/lib/content";
 
-export default function Home() {
-  return (
-    <>
-    <Header />
-    <HomeMain />
-    <Footer />
-    </>
-  );
+export default function RootPage() {
+  redirect(`/${defaultLocale}`);
 }

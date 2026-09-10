@@ -1,26 +1,63 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #000000;
+  --foreground: #f5f5f5;
+  --muted: #a1a1aa;
+  --accent: #e24b5c;
+  --accent-hover: #f15d6c;
+  --line: #1f1f1f;
+  --panel: #0b0b0b;
+  --panel-hover: #121212;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-line: var(--line);
+  --color-panel: var(--panel);
+  --color-panel-hover: var(--panel-hover);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
+  color-scheme: dark;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  min-height: 100%;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 40%, black);
+  color: white;
+}
+
+.hero-glow {
+  background:
+    radial-gradient(
+      ellipse 55% 50% at 72% 42%,
+      color-mix(in srgb, var(--accent) 22%, transparent),
+      transparent 68%
+    ),
+    radial-gradient(
+      ellipse 40% 35% at 20% 0%,
+      color-mix(in srgb, var(--accent) 10%, transparent),
+      transparent 60%
+    );
+}
+
+.text-gradient-accent {
+  background: linear-gradient(180deg, #ffb3bc 0%, #e24b5c 55%, #8f1d2c 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
