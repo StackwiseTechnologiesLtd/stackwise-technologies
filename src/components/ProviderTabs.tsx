@@ -24,11 +24,10 @@ export default function ProviderTabs({ copy }: { copy: SiteCopy["providers"] }) 
               <button
                 type="button"
                 onClick={() => setActive(tab.id)}
-                className={`rounded-full px-4 py-1.5 text-sm transition-colors ${
-                  selected
+                className={`rounded-full px-4 py-1.5 text-sm transition-colors ${selected
                     ? "bg-white text-black"
                     : "border border-white/10 text-muted hover:text-foreground"
-                }`}
+                  }`}
               >
                 {tab.label}
               </button>
