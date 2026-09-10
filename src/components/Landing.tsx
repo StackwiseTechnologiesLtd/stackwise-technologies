@@ -247,25 +247,25 @@ function CompareTable({
           <tbody>
             {isCompare
               ? (copy as SiteCopy["compare"]).rows.map((row) => (
-                  <tr
-                    key={row.feature}
-                    className="border-b border-white/8 last:border-0"
-                  >
-                    <td className="px-5 py-4 font-medium">{row.feature}</td>
-                    <td className="px-5 py-4 text-muted">{row.typical}</td>
-                    <td className="px-5 py-4 text-accent">{row.stackwise}</td>
-                  </tr>
-                ))
+                <tr
+                  key={row.feature}
+                  className="border-b border-white/8 last:border-0"
+                >
+                  <td className="px-5 py-4 font-medium">{row.feature}</td>
+                  <td className="px-5 py-4 text-muted">{row.typical}</td>
+                  <td className="px-5 py-4 text-accent">{row.stackwise}</td>
+                </tr>
+              ))
               : (copy as SiteCopy["cost"]).rows.map((row) => (
-                  <tr
-                    key={row.need}
-                    className="border-b border-white/8 last:border-0"
-                  >
-                    <td className="px-5 py-4 font-medium">{row.need}</td>
-                    <td className="px-5 py-4 text-muted">{row.scattered}</td>
-                    <td className="px-5 py-4 text-accent">{row.stackwise}</td>
-                  </tr>
-                ))}
+                <tr
+                  key={row.need}
+                  className="border-b border-white/8 last:border-0"
+                >
+                  <td className="px-5 py-4 font-medium">{row.need}</td>
+                  <td className="px-5 py-4 text-muted">{row.scattered}</td>
+                  <td className="px-5 py-4 text-accent">{row.stackwise}</td>
+                </tr>
+              ))}
           </tbody>
         </table>
       </div>
@@ -324,7 +324,7 @@ function Cta({ copy }: { copy: SiteCopy }) {
   const { cta, hero } = copy;
   return (
     <section className="px-2 pb-28 pt-8 sm:px-6">
-      <div className="mx-auto max-w-6xl overflow-hidden rounded-[2rem] border border-white/10 bg-[#0c0c0c] px-6 py-10 sm:px-10 sm:py-14 lg:px-14">
+      <div className="mx-auto max-w-6xl overflow-hidden rounded-4xl border border-white/10 bg-[#0c0c0c] px-6 py-10 sm:px-10 sm:py-14 lg:px-14">
         <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
           <div>
             <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-accent">
