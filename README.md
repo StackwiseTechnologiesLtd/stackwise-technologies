@@ -149,6 +149,7 @@ Requires `wrangler` login. Uploads all non-comment `KEY=value` lines from the fi
 - Admin dashboard: [http://localhost:3000/admin](http://localhost:3000/admin)
 - Payment admin uses Neon Postgres, KPay, and SMTP — configure in `.env.local`.
 - For local payment E2E, set `NEXT_PUBLIC_SITE_URL=http://localhost:3000` in `.env.local`.
+- See [docs/PAYMENTS.md](docs/PAYMENTS.md) for payment flow, receipts, and legal notices.
 
 ---
 
