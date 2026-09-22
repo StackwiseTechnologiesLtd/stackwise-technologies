@@ -18,7 +18,7 @@ export function resolveSmtpConfig(): Partial<SmtpConfig> {
     secure:
       process.env.SMTP_SECURE === "true" ||
       Number(process.env.SMTP_PORT ?? 587) === 465,
-    user: process.env.SMTP_USER,
+    user: process.env.SMTP_FROM_ADDRESS ?? EMAIL,
     password: process.env.SMTP_PASSWORD,
     fromName: process.env.SMTP_FROM_NAME ?? SITE_NAME,
     fromAddress: process.env.SMTP_FROM_ADDRESS ?? EMAIL,

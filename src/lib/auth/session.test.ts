@@ -6,11 +6,12 @@ import {
 
 describe("session tokens", () => {
   beforeEach(() => {
-    process.env.SESSION_SECRET = "test-secret-key-at-least-32-characters-long";
+    process.env.KPAY_WEBHOOK_SECRET =
+      "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef";
   });
 
   afterEach(() => {
-    delete process.env.SESSION_SECRET;
+    delete process.env.KPAY_WEBHOOK_SECRET;
   });
 
   it("creates and verifies a valid token", async () => {

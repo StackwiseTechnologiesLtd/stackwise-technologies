@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { getAppSecret } from "@/lib/secrets";
 
 const COOKIE_NAME = "sw_admin_session";
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -9,11 +10,7 @@ type SessionPayload = {
 };
 
 function getSessionSecret(): string {
-  const secret = process.env.SESSION_SECRET;
-  if (!secret || secret.length < 32) {
-    throw new Error("SESSION_SECRET must be at least 32 characters");
-  }
-  return secret;
+  return getAppSecret();
 }
 
 function encodeBase64Url(data: string): string {
