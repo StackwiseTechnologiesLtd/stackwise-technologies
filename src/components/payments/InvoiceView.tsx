@@ -70,7 +70,7 @@ export function InvoiceView({
           <p className="mt-2">
             <span className="text-[#64748b]">Date </span>
             <span className="font-medium">
-              {new Date(link.createdAt).toLocaleDateString()}
+              {new Date(link.createdAt).toLocaleString()}
             </span>
           </p>
           {link.kpayReference && (
