@@ -111,6 +111,48 @@ export async function getPayment(id: string): Promise<KPayPayment> {
   return kpayFetch<KPayPayment>(`/api/v1/payments/${id}`);
 }
 
+export type KPayWalletBalance = {
+  currency: string;
+  balance: number;
+  reservedBalance: number;
+  availableBalance: number;
+};
+
+export type KPayWithdrawParams = {
+  amount: number;
+  provider: string;
+  phoneNumber: string;
+  externalId: string;
+  description?: string;
+};
+
+export type KPayWithdrawResponse = {
+  id: string;
+  reference: string;
+  status: KPayPaymentStatus;
+  amount: number;
+  netAmount: number;
+  feeAmount: number;
+  currency: string;
+  externalId: string;
+  provider: string;
+  phoneNumber: string;
+  message: string;
+};
+
+export async function getWalletBalances(): Promise<KPayWalletBalance[]> {
+  return kpayFetch<KPayWalletBalance[]>("/api/v1/payments/balance");
+}
+
+export async function initWithdraw(
+  params: KPayWithdrawParams,
+): Promise<KPayWithdrawResponse> {
+  return kpayFetch<KPayWithdrawResponse>("/api/v1/payments/withdraw", {
+    method: "POST",
+    body: JSON.stringify(params),
+  });
+}
+
 export async function getExchangeRate(
   from: string,
   to: string,

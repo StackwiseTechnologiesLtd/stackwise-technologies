@@ -37,6 +37,12 @@ export function AdminShell({ children }: { children: ReactNode }) {
                 Dashboard
               </Link>
               <Link
+                href="/admin/withdraw"
+                className="text-muted transition hover:text-foreground"
+              >
+                Withdraw
+              </Link>
+              <Link
                 href="/admin/payment-links/new"
                 className="rounded-lg bg-accent px-3 py-1.5 font-medium text-white transition hover:bg-accent-hover"
               >
