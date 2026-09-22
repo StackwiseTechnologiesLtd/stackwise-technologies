@@ -2,8 +2,27 @@ import Link from "next/link";
 import { EnvironmentBadge } from "@/components/admin/EnvironmentBadge";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { formatMoney } from "@/lib/currency";
-import { resolvePaymentEnvironment } from "@/lib/kpay/environment";
+import {
+  resolvePaymentEnvironment,
+  summarizePaymentLinks,
+  type PaymentLinkSummary,
+  type PaymentEnvironment,
+} from "@/lib/kpay/environment";
 import type { PaymentLink } from "@/lib/payments/types";
+
+function AmountCell({ link }: { link: PaymentLink }) {
+  return (
+    <div>
+      <p className="font-medium tabular-nums">${link.amountUsd.toFixed(2)}</p>
+      <p className="text-xs text-muted tabular-nums">
+        {formatMoney(link.amountLocal, link.currency)}
+      </p>
+      <p className="text-[11px] text-muted tabular-nums">
+        1 USD = {link.exchangeRate.toFixed(4)} {link.currency}
+      </p>
+    </div>
+  );
+}
 
 function PaymentLinkRow({ link }: { link: PaymentLink }) {
   const environment = resolvePaymentEnvironment(link);
@@ -27,12 +46,7 @@ function PaymentLinkRow({ link }: { link: PaymentLink }) {
         <p className="mt-2 font-medium">{link.customerName}</p>
         <p className="text-xs text-muted">{link.customerEmail}</p>
         <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <p className="font-medium">${link.amountUsd.toFixed(2)}</p>
-            <p className="text-xs text-muted">
-              {formatMoney(link.amountLocal, link.currency)}
-            </p>
-          </div>
+          <AmountCell link={link} />
           <p className="text-xs text-muted">
             {new Date(link.createdAt).toLocaleDateString()}
           </p>
@@ -57,10 +71,7 @@ function PaymentLinkRow({ link }: { link: PaymentLink }) {
           <p className="text-xs text-muted">{link.customerEmail}</p>
         </td>
         <td className="px-4 py-3">
-          <p>${link.amountUsd.toFixed(2)}</p>
-          <p className="text-xs text-muted">
-            {formatMoney(link.amountLocal, link.currency)}
-          </p>
+          <AmountCell link={link} />
         </td>
         <td className="px-4 py-3">
           <StatusBadge status={link.status} />
@@ -73,17 +84,75 @@ function PaymentLinkRow({ link }: { link: PaymentLink }) {
   );
 }
 
+function SectionTotals({
+  environment,
+  summary,
+}: {
+  environment: PaymentEnvironment;
+  summary: PaymentLinkSummary;
+}) {
+  const localEntries = Object.entries(summary.localByCurrency);
+
+  return (
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="rounded-xl border border-line bg-panel p-4">
+        <div className="flex items-center gap-2">
+          <EnvironmentBadge environment={environment} compact />
+          <p className="text-sm text-muted">Invoiced</p>
+        </div>
+        <p className="mt-1 text-xl font-semibold tabular-nums">
+          ${summary.totalUsd.toFixed(2)}
+        </p>
+        <p className="mt-1 text-xs text-muted">
+          {summary.count} link{summary.count === 1 ? "" : "s"}
+        </p>
+      </div>
+
+      <div className="rounded-xl border border-line bg-panel p-4">
+        <p className="text-sm text-muted">Collected (paid)</p>
+        <p className="mt-1 text-xl font-semibold tabular-nums">
+          ${summary.paidUsd.toFixed(2)}
+        </p>
+        <p className="mt-1 text-xs text-muted">
+          {summary.paidCount} paid
+        </p>
+      </div>
+
+      {localEntries.map(([currency, bucket]) => (
+        <div
+          key={currency}
+          className="rounded-xl border border-line bg-panel p-4"
+        >
+          <p className="text-sm text-muted">{currency} converted</p>
+          <p className="mt-1 text-xl font-semibold tabular-nums">
+            {formatMoney(bucket.total, currency)}
+          </p>
+          <p className="mt-1 text-xs text-muted">
+            {bucket.paidCount > 0
+              ? `${formatMoney(bucket.paid, currency)} collected`
+              : "No paid links yet"}
+          </p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function PaymentLinkSection({
   title,
   description,
+  environment,
   links,
   emptyMessage,
 }: {
   title: string;
   description: string;
+  environment: PaymentEnvironment;
   links: PaymentLink[];
   emptyMessage: string;
 }) {
+  const summary = summarizePaymentLinks(links);
+
   if (links.length === 0) {
     return (
       <section className="space-y-3">
@@ -99,20 +168,26 @@ function PaymentLinkSection({
   }
 
   return (
-    <section className="space-y-3">
+    <section className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div>
           <h2 className="text-lg font-semibold">{title}</h2>
           <p className="text-sm text-muted">{description}</p>
         </div>
-        <p className="text-sm text-muted">{links.length} link{links.length === 1 ? "" : "s"}</p>
+        <p className="text-sm text-muted">
+          {links.length} link{links.length === 1 ? "" : "s"}
+        </p>
       </div>
+
+      <SectionTotals environment={environment} summary={summary} />
 
       <div className="overflow-hidden rounded-xl border border-line">
         {/* Mobile list */}
-        <div className="md:hidden">{links.map((link) => (
-          <PaymentLinkRow key={link.id} link={link} />
-        ))}</div>
+        <div className="md:hidden">
+          {links.map((link) => (
+            <PaymentLinkRow key={link.id} link={link} />
+          ))}
+        </div>
 
         {/* Desktop table */}
         <table className="hidden w-full text-sm md:table">
@@ -146,14 +221,16 @@ export function PaymentLinksList({ links }: { links: PaymentLink[] }) {
   return (
     <div className="space-y-8">
       <PaymentLinkSection
-        title="Production payments"
-        description="Live KPay transactions — real funds."
+        title="Live payments"
+        description="Real KPay transactions — actual funds."
+        environment="production"
         links={production}
-        emptyMessage="No production payment links yet."
+        emptyMessage="No live payment links yet."
       />
       <PaymentLinkSection
         title="Test payments"
         description="Sandbox KPay transactions — no real charges."
+        environment="test"
         links={test}
         emptyMessage="No test payment links yet."
       />

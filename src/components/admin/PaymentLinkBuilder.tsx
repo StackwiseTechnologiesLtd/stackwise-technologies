@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { InvoiceView } from "@/components/payments/InvoiceView";
+import { formatMoney } from "@/lib/currency";
 import { KPAY_CARD_MAX_USD } from "@/lib/kpay/buildGatewayInit";
 import { SERVICES_CATALOG } from "@/lib/services-catalog";
 import { SUPPORTED_CURRENCIES } from "@/lib/payments/types";
@@ -321,8 +322,9 @@ export function PaymentLinkBuilder() {
                 <p className="text-sm text-muted">Total (USD)</p>
                 <p className="text-2xl font-semibold">${totalUsd.toFixed(2)}</p>
                 {totalUsd > 0 && (
-                  <p className="mt-1 text-sm text-muted">
-                    ≈ {converted.toLocaleString()} {currency} (rate {rate.toFixed(4)})
+                  <p className="mt-1 text-sm text-muted tabular-nums">
+                    ≈ {formatMoney(converted, currency)} (1 USD = {rate.toFixed(4)}{" "}
+                    {currency})
                   </p>
                 )}
                 {totalUsd > KPAY_CARD_MAX_USD && (

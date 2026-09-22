@@ -16,6 +16,7 @@
     "deploy:live": "bash scripts/deploy-live.sh",
     "cf:secrets": "node scripts/sync-cloudflare-env.mjs .env.prod",
     "db:migrate:prod": "MIGRATE_ENV=prod node scripts/migrate.mjs",
+    "db:reset:prod-payments": "MIGRATE_ENV=prod node scripts/db-reset-prod-payments.mjs",
     "cf:whoami": "wrangler whoami",
     "cf:status": "wrangler deployments status --name stackwise-technologies"
   },

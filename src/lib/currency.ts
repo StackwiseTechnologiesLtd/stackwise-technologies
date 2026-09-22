@@ -31,6 +31,15 @@ export function roundForCurrency(amount: number, currency: string): number {
   return Math.round(amount * 100) / 100;
 }
 
+/** Derive local amount from USD total and stored exchange rate. */
+export function localAmountFromUsd(
+  amountUsd: number,
+  rate: number,
+  currency: string,
+): number {
+  return roundForCurrency(amountUsd * rate, currency);
+}
+
 export async function convertUsdToCurrency(
   amountUsd: number,
   targetCurrency: string,

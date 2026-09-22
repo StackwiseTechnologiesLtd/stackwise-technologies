@@ -1,3 +1,5 @@
+import { localAmountFromUsd } from "@/lib/currency";
+
 export type PaymentLinkStatus =
   | "DRAFT"
   | "SENT"
@@ -86,15 +88,19 @@ export function rowToPaymentLink(row: PaymentLinkRow): PaymentLink {
       ? (JSON.parse(row.line_items) as LineItem[])
       : row.line_items;
 
+  const amountUsd = Number(row.amount_usd);
+  const exchangeRate = Number(row.exchange_rate);
+  const currency = row.currency;
+
   return {
     id: row.id,
     slug: row.slug,
     customerName: row.customer_name,
     customerEmail: row.customer_email,
-    currency: row.currency,
-    amountUsd: Number(row.amount_usd),
-    amountLocal: Number(row.amount_local),
-    exchangeRate: Number(row.exchange_rate),
+    currency,
+    amountUsd,
+    amountLocal: localAmountFromUsd(amountUsd, exchangeRate, currency),
+    exchangeRate,
     status: row.status as PaymentLinkStatus,
     lineItems,
     notes: row.notes,

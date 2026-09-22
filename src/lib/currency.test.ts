@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { roundForCurrency, formatMoney } from "@/lib/currency";
+import {
+  formatMoney,
+  localAmountFromUsd,
+  roundForCurrency,
+} from "@/lib/currency";
 
 describe("roundForCurrency", () => {
   it("rounds XAF to whole numbers", () => {
@@ -8,6 +12,16 @@ describe("roundForCurrency", () => {
 
   it("keeps two decimals for ZMW", () => {
     expect(roundForCurrency(99.999, "ZMW")).toBe(100);
+  });
+});
+
+describe("localAmountFromUsd", () => {
+  it("rounds KES to whole numbers", () => {
+    expect(localAmountFromUsd(199, 129.4367, "KES")).toBe(25758);
+  });
+
+  it("keeps two decimals for ZMW", () => {
+    expect(localAmountFromUsd(99.99, 27.5, "ZMW")).toBe(2749.73);
   });
 });
 

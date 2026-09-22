@@ -1,4 +1,5 @@
-import { convertUsdToCurrency } from "@/lib/currency";
+import { convertUsdToCurrency, localAmountFromUsd } from "@/lib/currency";
+import { isKPayTestMode } from "@/lib/kpay/environment";
 import {
   buildGatewayInitPayload,
   type CheckoutPaymentMethod,
@@ -37,8 +38,9 @@ export async function createPaymentLink(
     throw new Error("Total amount must be greater than zero");
   }
 
-  const { amount, rate } = await convertUsdToCurrency(amountUsd, input.currency);
-  if (amount < 50 && input.currency === "XAF") {
+  const { rate } = await convertUsdToCurrency(amountUsd, input.currency);
+  const amountLocal = localAmountFromUsd(amountUsd, rate, input.currency);
+  if (amountLocal < 50 && input.currency === "XAF") {
     throw new Error("Converted amount is below KPay minimum (50 XAF)");
   }
 
@@ -50,14 +52,14 @@ export async function createPaymentLink(
     customerEmail: input.customerEmail.trim().toLowerCase(),
     currency: input.currency,
     amountUsd,
-    amountLocal: amount,
+    amountLocal,
     exchangeRate: rate,
     status: "DRAFT",
     lineItems: input.lineItems,
     notes: input.notes?.trim() ?? null,
     kpayPaymentId: null,
     kpayReference: null,
-    kpayIsTest: null,
+    kpayIsTest: isKPayTestMode(),
     gatewayUrl: null,
     invoiceNumber: await nextInvoiceNumber(),
     sentAt: null,

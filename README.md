@@ -68,6 +68,7 @@ Locales:
 | `npm run typecheck` | TypeScript (`tsc --noEmit`) |
 | `npm run db:migrate` | Apply SQL migrations to Neon (uses `.env.local` → `.env.prod` → `.env`) |
 | `npm run db:migrate:prod` | Apply migrations to **production** Neon (`MIGRATE_ENV=prod`, reads `.env.prod` only) |
+| `npm run db:reset:prod-payments` | Dry-run cleanup of sandbox rows in prod Neon; pass `--confirm` to apply |
 | `npm run preview` | Build OpenNext worker and preview in `workerd` via Wrangler |
 | `npm run build:worker` | Build the Cloudflare Worker bundle only |
 | `npm run deploy` | Build + deploy to Cloudflare Workers |
@@ -141,6 +142,7 @@ Requires `wrangler` login. Uploads all non-comment `KEY=value` lines from the fi
 | `scripts/deploy-live.sh` | `npm run deploy:live` | End-to-end production deploy: env, secrets, build, publish. |
 | `scripts/sync-cloudflare-env.mjs` | `npm run cf:secrets`, `deploy-live.sh` | Parses an env file and runs `wrangler secret bulk` for Worker `stackwise-technologies`. Optional arg: path to env file (default `.env.prod`). |
 | `scripts/migrate.mjs` | `npm run db:migrate`, `npm run db:migrate:prod` | Loads env files, connects to Neon, runs all `migrations/*.sql` in order. Set `MIGRATE_ENV=prod` to force `.env.prod`. |
+| `scripts/db-reset-prod-payments.mjs` | `npm run db:reset:prod-payments` | Removes test/sandbox payment links from production Neon and marks remaining drafts as live (`kpay_is_test = false`). Dry-run by default; `--confirm` to apply. |
 
 ### Admin & payments (local)
 

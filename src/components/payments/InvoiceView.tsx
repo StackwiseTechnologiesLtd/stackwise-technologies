@@ -154,6 +154,12 @@ export function InvoiceView({
                 {formatMoney(link.amountLocal, link.currency)}
               </span>
             </div>
+            <div className="flex justify-between gap-4 text-[#64748b]">
+              <span>Exchange rate</span>
+              <span className="tabular-nums">
+                1 USD = {link.exchangeRate.toFixed(4)} {link.currency}
+              </span>
+            </div>
             <div
               className={`flex justify-between gap-4 border-t border-[#e2e8f0] pt-3 font-semibold ${
                 compact ? "text-sm" : "text-base"
