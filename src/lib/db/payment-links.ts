@@ -206,28 +206,7 @@ export async function savePaymentLink(link: PaymentLink): Promise<PaymentLink> {
 }
 
 export async function nextInvoiceNumber(): Promise<string> {
-  const year = new Date().getFullYear();
-  const prefix = `SW-${year}-`;
-
-  if (isDatabaseConfigured()) {
-    await dbReady();
-    const sql = getSql();
-    const rows = asRows<{ invoice_number: string }>(await sql`
-      SELECT invoice_number FROM payment_links
-      WHERE invoice_number LIKE ${`${prefix}%`}
-      ORDER BY invoice_number DESC
-      LIMIT 1
-    `);
-    const last = rows[0]?.invoice_number
-      ? Number.parseInt(String(rows[0].invoice_number).replace(prefix, ""), 10)
-      : 0;
-    return `${prefix}${String(last + 1).padStart(4, "0")}`;
-  }
-
-  const memCount = Array.from(memoryStore.values()).filter((r) =>
-    String(r.invoice_number).startsWith(prefix),
-  ).length;
-  return `${prefix}${String(memCount + 1).padStart(4, "0")}`;
+  return `STL-${crypto.randomUUID()}`;
 }
 
 export function createSlug(): string {

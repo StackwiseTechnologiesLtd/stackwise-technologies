@@ -63,7 +63,12 @@ const KPAY_IS_TEST_SQL = `
 ALTER TABLE payment_links ADD COLUMN IF NOT EXISTS kpay_is_test BOOLEAN;
 `;
 
+const INVOICE_NUMBER_UUID_SQL = `
+ALTER TABLE payment_links ALTER COLUMN invoice_number TYPE VARCHAR(64);
+`;
+
 export const MIGRATION_STATEMENTS = [
   ...splitStatements(INIT_SQL),
   ...splitStatements(KPAY_IS_TEST_SQL),
+  ...splitStatements(INVOICE_NUMBER_UUID_SQL),
 ];

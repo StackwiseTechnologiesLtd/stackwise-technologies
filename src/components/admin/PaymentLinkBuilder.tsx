@@ -83,7 +83,7 @@ export function PaymentLinkBuilder() {
       kpayReference: previewMode === "receipt" ? "PREVIEW-REF" : null,
       kpayIsTest: null,
       gatewayUrl: null,
-      invoiceNumber: "SW-PREVIEW",
+      invoiceNumber: "STL-PREVIEW",
       sentAt: null,
       paidAt: previewMode === "receipt" ? now : null,
       receiptSentAt: null,
