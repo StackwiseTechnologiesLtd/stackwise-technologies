@@ -19,6 +19,7 @@ function link(status: PaymentLink["status"]): PaymentLink {
     kpayReference: null,
     kpayIsTest: false,
     gatewayUrl: null,
+    allowedPaymentMethods: "BOTH",
     invoiceNumber: "STL-550E8400",
     sentAt: null,
     paidAt: null,

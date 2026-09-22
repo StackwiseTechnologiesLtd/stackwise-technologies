@@ -8,6 +8,7 @@ import { SendLinkButton } from "@/components/admin/SendLinkButton";
 import { InvoiceView } from "@/components/payments/InvoiceView";
 import { resolvePaymentEnvironment } from "@/lib/kpay/environment";
 import { canAccessReceipt } from "@/lib/payments/receipt-access";
+import { PAYMENT_METHODS_OPTIONS } from "@/lib/payments/payment-methods";
 
 function siteUrl() {
   return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
@@ -53,14 +54,26 @@ export default async function PaymentLinkDetailPage({
         </div>
       </div>
 
-      <div className="rounded-xl border border-line bg-background p-4">
-        <p className="text-sm text-muted">Payment link</p>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="rounded-xl border border-line bg-background p-4">
+          <p className="text-sm text-muted">Payment methods</p>
+          <p className="mt-1 text-sm font-medium">
+            {
+              PAYMENT_METHODS_OPTIONS.find(
+                (option) => option.value === link.allowedPaymentMethods,
+              )?.label
+            }
+          </p>
+        </div>
+        <div className="rounded-xl border border-line bg-background p-4">
+          <p className="text-sm text-muted">Payment link</p>
         <a
           href={payUrl}
           className="mt-1 block break-all font-mono text-sm text-accent hover:underline"
         >
           {payUrl}
         </a>
+        </div>
       </div>
 
       <InvoiceView link={link} />

@@ -24,6 +24,7 @@ function link(partial: Partial<PaymentLink>): PaymentLink {
     kpayReference: null,
     kpayIsTest: null,
     gatewayUrl: null,
+    allowedPaymentMethods: "BOTH",
     invoiceNumber: "STL-550E8400",
     sentAt: null,
     paidAt: null,
