@@ -19,7 +19,7 @@ export function EnvironmentBadge({
 }) {
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${styles[environment]}`}
+      className={`inline-flex items-center rounded-sm w-fit px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${styles[environment]}`}
     >
       {compact ? (environment === "test" ? "Test" : "Live") : labels[environment]}
     </span>

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { EnvironmentBadge } from "@/components/admin/EnvironmentBadge";
 import { PaymentSectionTotals } from "@/components/admin/PaymentSectionTotals";
 import { StatusBadge } from "@/components/admin/StatusBadge";
@@ -8,6 +7,7 @@ import {
   type PaymentEnvironment,
 } from "@/lib/kpay/environment";
 import type { PaymentLink } from "@/lib/payments/types";
+import Link from "next/link";
 
 function AmountCell({ link }: { link: PaymentLink }) {
   return (
@@ -15,9 +15,6 @@ function AmountCell({ link }: { link: PaymentLink }) {
       <p className="font-medium tabular-nums">${link.amountUsd.toFixed(2)}</p>
       <p className="text-xs text-muted tabular-nums">
         {formatMoney(link.amountLocal, link.currency)}
-      </p>
-      <p className="text-[11px] text-muted tabular-nums">
-        1 USD = {link.exchangeRate.toFixed(4)} {link.currency}
       </p>
     </div>
   );
@@ -47,22 +44,20 @@ function PaymentLinkRow({ link }: { link: PaymentLink }) {
         <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
           <AmountCell link={link} />
           <p className="text-xs text-muted">
-            {new Date(link.createdAt).toLocaleDateString()}
+            {new Date(link.createdAt).toLocaleString()}
           </p>
         </div>
       </div>
 
       {/* Desktop row */}
       <tr className="hidden border-t border-line transition hover:bg-panel/50 md:table-row">
-        <td className="px-4 py-3">
+        <td className="px-4 py-3 flex flex-col gap-1">
           <Link
             href={`/admin/payment-links/${link.id}`}
             className="font-mono text-accent hover:underline"
           >
             {link.invoiceNumber}
           </Link>
-        </td>
-        <td className="px-4 py-3">
           <EnvironmentBadge environment={environment} compact />
         </td>
         <td className="px-4 py-3">
@@ -72,11 +67,14 @@ function PaymentLinkRow({ link }: { link: PaymentLink }) {
         <td className="px-4 py-3">
           <AmountCell link={link} />
         </td>
-        <td className="px-4 py-3">
+        <td className="px-4 py-3 flex flex-col gap-1">
           <StatusBadge status={link.status} />
+          <p className="text-[11px] text-muted tabular-nums">
+            1 USD = {link.exchangeRate.toFixed(4)} {link.currency}
+          </p>
         </td>
         <td className="px-4 py-3 text-muted">
-          {new Date(link.createdAt).toLocaleDateString()}
+          {new Date(link.createdAt).toLocaleString()}
         </td>
       </tr>
     </>
@@ -121,7 +119,6 @@ function PaymentLinkSection({
             <thead className="bg-panel text-left text-muted">
               <tr>
                 <th className="px-4 py-3 font-medium">Invoice</th>
-                <th className="px-4 py-3 font-medium">Env</th>
                 <th className="px-4 py-3 font-medium">Customer</th>
                 <th className="px-4 py-3 font-medium">Amount</th>
                 <th className="px-4 py-3 font-medium">Status</th>

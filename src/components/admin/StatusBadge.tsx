@@ -13,7 +13,7 @@ const styles: Record<PaymentLinkStatus, string> = {
 export function StatusBadge({ status }: { status: PaymentLinkStatus }) {
   return (
     <span
-      className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${styles[status]}`}
+      className={`inline-flex rounded-sm w-fit px-2.5 py-0.5 text-xs font-medium ${styles[status]}`}
     >
       {status}
     </span>

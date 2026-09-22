@@ -1,10 +1,10 @@
-import { formatMoney } from "@/lib/currency";
-import { EMAIL } from "@/lib/content";
-import { BRAND_BURGUNDY } from "@/lib/company";
-import type { PaymentLink } from "@/lib/payments/types";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { InvoiceHeader } from "@/components/payments/InvoiceHeader";
 import { InvoiceStamp } from "@/components/payments/InvoiceStamp";
+import { BRAND_BURGUNDY } from "@/lib/company";
+import { EMAIL } from "@/lib/content";
+import { formatMoney } from "@/lib/currency";
+import type { PaymentLink } from "@/lib/payments/types";
 
 export function InvoiceView({
   link,
@@ -22,14 +22,13 @@ export function InvoiceView({
 
   return (
     <article
-      className={`relative overflow-visible rounded-xl border border-[#e2e8f0] bg-white text-[#0f172a] shadow-sm print:border print:shadow-none ${
-        compact ? "p-5" : "p-6 md:p-8"
-      }`}
+      className={`relative overflow-visible rounded-xl border border-[#e2e8f0] bg-white text-[#0f172a] shadow-sm print:border print:shadow-none ${compact ? "p-5" : "p-6 md:p-8"
+        }`}
     >
       <InvoiceHeader compact={compact} />
 
       <div
-        className={`flex flex-wrap items-start justify-between gap-4 ${compact ? "mb-6" : "mb-8"}`}
+        className={`flex flex-wrap items-start justify-between gap-2 ${compact ? "mb-2" : "mb-4"}`}
       >
         <div className="min-w-0">
           <p
@@ -39,7 +38,7 @@ export function InvoiceView({
             {title}
           </p>
           <h1
-            className={`mt-1 font-semibold tracking-tight ${compact ? "text-xl" : "text-2xl"}`}
+            className={`mt-1 font-semibold tracking-tight ${compact ? "text-md" : "text-lg"}`}
           >
             {link.invoiceNumber}
           </h1>
@@ -137,12 +136,11 @@ export function InvoiceView({
         className={`relative ${isReceipt ? (compact ? "pb-16" : "pb-20 sm:pb-24") : ""}`}
       >
         <div
-          className={`ml-auto w-full max-w-sm rounded-xl border border-[#e8ecf1] bg-[#fafbfc] ${
-            compact ? "p-4" : "p-5"
-          } ${isReceipt ? "pr-28 sm:pr-36" : ""}`}
+          className={`ml-auto w-full max-w-sm rounded-xl border border-[#e8ecf1] bg-[#fafbfc] ${compact ? "p-4" : "p-5"
+            } ${isReceipt ? "pr-2 sm:pr-3" : ""}`}
         >
-          <div className={`space-y-2 ${compact ? "text-xs" : "text-sm"}`}>
-            <div className="flex justify-between gap-4">
+          <div className={`space-y-2 w-full flex flex-col gap-2 ${compact ? "text-xs" : "text-sm"}`}>
+            <div className="flex justify-between gap-4 w-full">
               <span className="text-[#64748b]">Subtotal (USD)</span>
               <span className="font-medium tabular-nums">
                 ${link.amountUsd.toFixed(2)}
@@ -161,9 +159,8 @@ export function InvoiceView({
               </span>
             </div>
             <div
-              className={`flex justify-between gap-4 border-t border-[#e2e8f0] pt-3 font-semibold ${
-                compact ? "text-sm" : "text-base"
-              }`}
+              className={`flex justify-between gap-4 border-t border-[#e2e8f0] pt-3 font-semibold ${compact ? "text-sm" : "text-base"
+                }`}
             >
               <span>{isReceipt ? "Amount paid" : "Amount due"}</span>
               <span className="tabular-nums">${link.amountUsd.toFixed(2)} USD</span>
@@ -176,9 +173,8 @@ export function InvoiceView({
 
       {link.notes && (
         <div
-          className={`mt-6 rounded-lg border border-[#eef2f6] bg-[#fafbfc] text-[#64748b] ${
-            compact ? "p-3 text-xs" : "p-4 text-sm"
-          }`}
+          className={`mt-6 rounded-lg border border-[#eef2f6] bg-[#fafbfc] text-[#64748b] ${compact ? "p-3 text-xs" : "p-4 text-sm"
+            }`}
         >
           {link.notes}
         </div>

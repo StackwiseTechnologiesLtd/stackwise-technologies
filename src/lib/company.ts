@@ -9,5 +9,5 @@ export const BRAND_BURGUNDY = "#541111";
 export const companyFooterLines = [
   SITE_NAME,
   `RC: ${COMPANY_RC}`,
-  `${EMAIL} | ${COMPANY_WEBSITE}`,
+  `${EMAIL}`,
 ] as const;
