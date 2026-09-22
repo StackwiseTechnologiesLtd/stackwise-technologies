@@ -176,7 +176,7 @@ export function PaymentLinkBuilder() {
         </p>
       </div>
 
-      <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,420px)]">
+      <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(360px,540px)]">
         <div className="space-y-8">
           <section className="grid gap-6 rounded-xl border border-line bg-panel p-6 md:grid-cols-2">
             <label className="block space-y-2">
@@ -362,32 +362,46 @@ export function PaymentLinkBuilder() {
         </div>
 
         <aside className="space-y-4 xl:sticky xl:top-8 xl:self-start">
-          <div className="flex items-center justify-between">
-            <h2 className="font-medium">Live preview</h2>
-            <div className="flex rounded-lg border border-line p-1 text-xs">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="font-medium">Live preview</h2>
+              <p className="text-xs text-muted">Updates as you edit the form</p>
+            </div>
+            <div className="flex shrink-0 rounded-lg border border-line bg-background p-1 text-xs">
               <button
                 type="button"
                 onClick={() => setPreviewMode("invoice")}
-                className={`rounded px-2 py-1 ${previewMode === "invoice" ? "bg-panel text-foreground" : "text-muted"}`}
+                className={`rounded-md px-3 py-1.5 transition ${
+                  previewMode === "invoice"
+                    ? "bg-panel font-medium text-foreground shadow-sm"
+                    : "text-muted hover:text-foreground"
+                }`}
               >
                 Invoice
               </button>
               <button
                 type="button"
                 onClick={() => setPreviewMode("receipt")}
-                className={`rounded px-2 py-1 ${previewMode === "receipt" ? "bg-panel text-foreground" : "text-muted"}`}
+                className={`rounded-md px-3 py-1.5 transition ${
+                  previewMode === "receipt"
+                    ? "bg-panel font-medium text-foreground shadow-sm"
+                    : "text-muted hover:text-foreground"
+                }`}
               >
                 Receipt
               </button>
             </div>
           </div>
           {previewLink ? (
-            <div className="scale-[0.92] origin-top">
-              <InvoiceView
-                link={previewLink}
-                showStatus={previewMode === "invoice"}
-                variant={previewMode}
-              />
+            <div className="overflow-hidden rounded-xl border border-line bg-[#eef2f6] p-3 shadow-inner sm:p-4">
+              <div className="max-h-[calc(100vh-8rem)] overflow-y-auto overscroll-contain">
+                <InvoiceView
+                  link={previewLink}
+                  showStatus={previewMode === "invoice"}
+                  variant={previewMode}
+                  compact
+                />
+              </div>
             </div>
           ) : (
             <div className="rounded-xl border border-dashed border-line bg-panel p-8 text-center text-sm text-muted">
