@@ -6,6 +6,10 @@ import { InvoiceView } from "@/components/payments/InvoiceView";
 import { formatMoney } from "@/lib/currency";
 import { KPAY_CARD_MAX_USD } from "@/lib/kpay/buildGatewayInit";
 import { SERVICES_CATALOG } from "@/lib/services-catalog";
+import {
+  PAYMENT_METHODS_OPTIONS,
+  type PaymentMethodsOption,
+} from "@/lib/payments/payment-methods";
 import { SUPPORTED_CURRENCIES } from "@/lib/payments/types";
 import type { LineItem, PaymentLink } from "@/lib/payments/types";
 
@@ -20,10 +24,19 @@ export function PaymentLinkBuilder() {
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [currency, setCurrency] = useState("KES");
+  const [allowedPaymentMethods, setAllowedPaymentMethods] =
+    useState<PaymentMethodsOption>("BOTH");
   const [notes, setNotes] = useState("");
   const [sendEmail, setSendEmail] = useState(false);
   const [items, setItems] = useState<SelectedItem[]>([]);
-  const [fx, setFx] = useState<{ converted: number; rate: number } | null>(null);
+  const [fxResult, setFxResult] = useState<{
+    key: string;
+    converted: number;
+    rate: number;
+  } | null>(null);
+  const [fxError, setFxError] = useState<{ key: string; message: string } | null>(
+    null,
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [previewMode, setPreviewMode] = useState<"invoice" | "receipt">("invoice");
@@ -33,27 +46,53 @@ export function PaymentLinkBuilder() {
     [items],
   );
 
+  const fxRequestKey = totalUsd > 0 ? `${currency}:${totalUsd}` : null;
+  const fx =
+    fxRequestKey && fxResult?.key === fxRequestKey ? fxResult : null;
+  const fxErrorMessage =
+    fxError?.key === fxRequestKey ? fxError.message : null;
+  const fxLoading = Boolean(
+    fxRequestKey && fxResult?.key !== fxRequestKey && !fxErrorMessage,
+  );
+
   useEffect(() => {
-    if (totalUsd <= 0) return;
+    if (!fxRequestKey) return;
 
     const controller = new AbortController();
     fetch(
       `/api/exchange-rate?from=USD&to=${currency}&amount=${totalUsd}`,
       { signal: controller.signal },
     )
-      .then((res) => res.json() as Promise<{ converted?: number; rate?: number }>)
-      .then((data) => {
-        if (data.converted != null && data.rate != null) {
-          setFx({ converted: data.converted, rate: data.rate });
+      .then(async (res) => {
+        const data = (await res.json()) as {
+          converted?: number;
+          rate?: number;
+          error?: string;
+        };
+        if (!res.ok) {
+          throw new Error(data.error ?? "Unable to fetch exchange rate");
         }
+        if (data.converted == null || data.rate == null) {
+          throw new Error("Invalid exchange rate response");
+        }
+        setFxResult({
+          key: fxRequestKey,
+          converted: data.converted,
+          rate: data.rate,
+        });
+        setFxError(null);
       })
-      .catch(() => {});
+      .catch((err: Error) => {
+        if (err.name !== "AbortError") {
+          setFxError({
+            key: fxRequestKey,
+            message: err.message || "Unable to fetch exchange rate",
+          });
+        }
+      });
 
     return () => controller.abort();
-  }, [totalUsd, currency]);
-
-  const converted = totalUsd > 0 ? fx?.converted ?? totalUsd : 0;
-  const rate = totalUsd > 0 ? fx?.rate ?? 1 : 1;
+  }, [fxRequestKey, currency, totalUsd]);
 
   const previewLink: PaymentLink | null = useMemo(() => {
     if (items.length === 0) return null;
@@ -74,8 +113,8 @@ export function PaymentLinkBuilder() {
       customerEmail: customerEmail.trim() || "customer@example.com",
       currency,
       amountUsd: totalUsd,
-      amountLocal: converted,
-      exchangeRate: rate,
+      amountLocal: fx?.converted ?? 0,
+      exchangeRate: fx?.rate ?? 0,
       status: previewMode === "receipt" ? "PAID" : "DRAFT",
       lineItems,
       notes: notes.trim() || null,
@@ -83,6 +122,7 @@ export function PaymentLinkBuilder() {
       kpayReference: previewMode === "receipt" ? "PREVIEW-REF" : null,
       kpayIsTest: null,
       gatewayUrl: null,
+      allowedPaymentMethods,
       invoiceNumber: "STL-PREVIEW",
       sentAt: null,
       paidAt: previewMode === "receipt" ? now : null,
@@ -96,8 +136,9 @@ export function PaymentLinkBuilder() {
     customerEmail,
     currency,
     totalUsd,
-    converted,
-    rate,
+    fx?.converted,
+    fx?.rate,
+    allowedPaymentMethods,
     notes,
     previewMode,
   ]);
@@ -155,6 +196,7 @@ export function PaymentLinkBuilder() {
           currency,
           lineItems,
           notes,
+          allowedPaymentMethods,
           sendEmail: saveOnly ? false : sendEmail,
         }),
       });
@@ -201,7 +243,7 @@ export function PaymentLinkBuilder() {
                 placeholder="client@company.com"
               />
             </label>
-            <label className="block space-y-2 md:col-span-2">
+            <label className="block space-y-2">
               <span className="text-sm text-muted">Payment currency</span>
               <select
                 value={currency}
@@ -214,6 +256,29 @@ export function PaymentLinkBuilder() {
                   </option>
                 ))}
               </select>
+            </label>
+            <label className="block space-y-2">
+              <span className="text-sm text-muted">Payment methods</span>
+              <select
+                value={allowedPaymentMethods}
+                onChange={(e) =>
+                  setAllowedPaymentMethods(e.target.value as PaymentMethodsOption)
+                }
+                className="w-full rounded-lg border border-line bg-background px-3 py-2"
+              >
+                {PAYMENT_METHODS_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-muted">
+                {
+                  PAYMENT_METHODS_OPTIONS.find(
+                    (option) => option.value === allowedPaymentMethods,
+                  )?.description
+                }
+              </p>
             </label>
           </section>
 
@@ -321,15 +386,23 @@ export function PaymentLinkBuilder() {
               <div>
                 <p className="text-sm text-muted">Total (USD)</p>
                 <p className="text-2xl font-semibold">${totalUsd.toFixed(2)}</p>
-                {totalUsd > 0 && (
+                {totalUsd > 0 && fxLoading && (
+                  <p className="mt-1 text-sm text-muted">Fetching exchange rate…</p>
+                )}
+                {totalUsd > 0 && fxErrorMessage && (
+                  <p className="mt-1 text-sm text-amber-300">{fxErrorMessage}</p>
+                )}
+                {totalUsd > 0 && fx && !fxLoading && (
                   <p className="mt-1 text-sm text-muted tabular-nums">
-                    ≈ {formatMoney(converted, currency)} (1 USD = {rate.toFixed(4)}{" "}
-                    {currency})
+                    ≈ {formatMoney(fx.converted, currency)} (1 USD ={" "}
+                    {fx.rate.toFixed(4)} {currency})
                   </p>
                 )}
-                {totalUsd > KPAY_CARD_MAX_USD && (
+                {totalUsd > KPAY_CARD_MAX_USD &&
+                  allowedPaymentMethods !== "MOBILE_MONEY" && (
                   <p className="mt-2 text-sm text-amber-300">
-                    Over ${KPAY_CARD_MAX_USD} USD — card checkout blocked; customer can pay with Mobile Money only.
+                    Over ${KPAY_CARD_MAX_USD} USD — card checkout blocked; customer
+                    can pay with Mobile Money only.
                   </p>
                 )}
               </div>
@@ -403,6 +476,11 @@ export function PaymentLinkBuilder() {
           </div>
           {previewLink ? (
             <div className="overflow-hidden rounded-xl border border-line bg-[#eef2f6] p-3 shadow-inner sm:p-4">
+              {fxLoading && totalUsd > 0 && (
+                <p className="mb-3 text-center text-xs text-muted">
+                  Updating converted total…
+                </p>
+              )}
               <div className="max-h-[calc(100vh-8rem)] overflow-y-auto overscroll-contain">
                 <InvoiceView
                   link={previewLink}

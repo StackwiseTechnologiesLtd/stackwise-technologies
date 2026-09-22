@@ -10,7 +10,31 @@ const NO_DECIMAL_CURRENCIES = new Set([
   "CDF",
 ]);
 
+const RATE_CACHE_MS = 60 * 60 * 1000;
+const rateCache = new Map<string, { rate: number; at: number }>();
+
+function cacheKey(from: string, to: string): string {
+  return `${from}->${to}`;
+}
+
+function readCachedRate(from: string, to: string): number | null {
+  const hit = rateCache.get(cacheKey(from, to));
+  if (!hit) return null;
+  if (Date.now() - hit.at > RATE_CACHE_MS) {
+    rateCache.delete(cacheKey(from, to));
+    return null;
+  }
+  return hit.rate;
+}
+
+function writeCachedRate(from: string, to: string, rate: number): void {
+  rateCache.set(cacheKey(from, to), { rate, at: Date.now() });
+}
+
 async function getFrankfurterRate(from: string, to: string): Promise<number | null> {
+  const cached = readCachedRate(from, to);
+  if (cached != null) return cached;
+
   try {
     const res = await fetch(
       `https://api.frankfurter.app/latest?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
@@ -18,10 +42,22 @@ async function getFrankfurterRate(from: string, to: string): Promise<number | nu
     );
     if (!res.ok) return null;
     const data = (await res.json()) as { rates: Record<string, number> };
-    return data.rates[to] ?? null;
+    const rate = data.rates[to] ?? null;
+    if (rate != null) writeCachedRate(from, to, rate);
+    return rate;
   } catch {
     return null;
   }
+}
+
+async function getKPayRate(from: string, to: string): Promise<number | null> {
+  const cached = readCachedRate(`kpay:${from}`, to);
+  if (cached != null) return cached;
+
+  const result = await getExchangeRate(from, to);
+  if (!result) return null;
+  writeCachedRate(`kpay:${from}`, to, result.rate);
+  return result.rate;
 }
 
 export function roundForCurrency(amount: number, currency: string): number {
@@ -48,18 +84,11 @@ export async function convertUsdToCurrency(
     return { amount: amountUsd, rate: 1 };
   }
 
-  const kpayDirect = await getExchangeRate("USD", targetCurrency);
-  if (kpayDirect) {
-    return {
-      amount: roundForCurrency(amountUsd * kpayDirect.rate, targetCurrency),
-      rate: kpayDirect.rate,
-    };
-  }
-
   if (targetCurrency === "XAF" || targetCurrency === "XOF") {
     const usdToEur = await getFrankfurterRate("USD", "EUR");
     if (usdToEur) {
       const rate = usdToEur * CFA_PEG;
+      writeCachedRate("USD", targetCurrency, rate);
       return {
         amount: roundForCurrency(amountUsd * rate, targetCurrency),
         rate,
@@ -67,21 +96,35 @@ export async function convertUsdToCurrency(
     }
   }
 
-  const kpayViaEur = await getExchangeRate("EUR", targetCurrency);
-  const usdToEur = await getFrankfurterRate("USD", "EUR");
-  if (kpayViaEur && usdToEur) {
-    const rate = usdToEur * kpayViaEur.rate;
+  const [frankfurterRate, kpayUsdRate] = await Promise.all([
+    getFrankfurterRate("USD", targetCurrency),
+    getKPayRate("USD", targetCurrency),
+  ]);
+
+  if (kpayUsdRate) {
     return {
-      amount: roundForCurrency(amountUsd * rate, targetCurrency),
-      rate,
+      amount: roundForCurrency(amountUsd * kpayUsdRate, targetCurrency),
+      rate: kpayUsdRate,
     };
   }
 
-  const frankfurter = await getFrankfurterRate("USD", targetCurrency);
-  if (frankfurter) {
+  if (frankfurterRate) {
     return {
-      amount: roundForCurrency(amountUsd * frankfurter, targetCurrency),
-      rate: frankfurter,
+      amount: roundForCurrency(amountUsd * frankfurterRate, targetCurrency),
+      rate: frankfurterRate,
+    };
+  }
+
+  const [kpayEurRate, usdToEur] = await Promise.all([
+    getKPayRate("EUR", targetCurrency),
+    getFrankfurterRate("USD", "EUR"),
+  ]);
+  if (kpayEurRate && usdToEur) {
+    const rate = usdToEur * kpayEurRate;
+    writeCachedRate("USD", targetCurrency, rate);
+    return {
+      amount: roundForCurrency(amountUsd * rate, targetCurrency),
+      rate,
     };
   }
 

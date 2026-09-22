@@ -15,6 +15,10 @@ import {
 } from "@/lib/db/payment-links";
 import type { LineItem, PaymentLink } from "@/lib/payments/types";
 import { finalizePaidPayment } from "@/lib/payments/receipts";
+import {
+  isCheckoutMethodAllowed,
+  type PaymentMethodsOption,
+} from "@/lib/payments/payment-methods";
 import { sumLineItemsUsd } from "@/lib/services-catalog";
 
 function siteUrl(): string {
@@ -28,6 +32,7 @@ export type CreatePaymentLinkInput = {
   lineItems: LineItem[];
   notes?: string;
   sendEmail?: boolean;
+  allowedPaymentMethods?: PaymentMethodsOption;
 };
 
 export async function createPaymentLink(
@@ -61,6 +66,7 @@ export async function createPaymentLink(
     kpayReference: null,
     kpayIsTest: isKPayTestMode(),
     gatewayUrl: null,
+    allowedPaymentMethods: input.allowedPaymentMethods ?? "BOTH",
     invoiceNumber: await nextInvoiceNumber(),
     sentAt: null,
     paidAt: null,
@@ -82,6 +88,9 @@ export async function initiateKPayPayment(
   const link = await getPaymentLinkBySlug(slug);
   if (!link) throw new Error("Payment link not found");
   if (link.status === "PAID") throw new Error("This invoice is already paid");
+  if (!isCheckoutMethodAllowed(link, method)) {
+    throw new Error("This payment method is not available for this invoice");
+  }
 
   const returnUrl = `${siteUrl()}/pay/${slug}/return`;
   const cancelUrl = `${siteUrl()}/pay/${slug}`;

@@ -57,7 +57,13 @@ export default async function PayPage({
 
       <InvoiceView link={link} showStatus={!isPaid} />
 
-      {!isPaid && <PayButton slug={slug} />}
+      {!isPaid && (
+        <PayButton
+          slug={slug}
+          allowedPaymentMethods={link.allowedPaymentMethods}
+          amountUsd={link.amountUsd}
+        />
+      )}
 
       <PaymentLegalNotice />
     </div>

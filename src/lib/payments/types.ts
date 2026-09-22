@@ -1,4 +1,5 @@
 import { localAmountFromUsd } from "@/lib/currency";
+import type { PaymentMethodsOption } from "@/lib/payments/payment-methods";
 
 export type PaymentLinkStatus =
   | "DRAFT"
@@ -33,6 +34,7 @@ export type PaymentLink = {
   kpayReference: string | null;
   kpayIsTest: boolean | null;
   gatewayUrl: string | null;
+  allowedPaymentMethods: PaymentMethodsOption;
   invoiceNumber: string;
   sentAt: number | null;
   paidAt: number | null;
@@ -57,6 +59,7 @@ export type PaymentLinkRow = {
   kpay_reference: string | null;
   kpay_is_test: boolean | null;
   gateway_url: string | null;
+  allowed_payment_methods: string | null;
   invoice_number: string;
   sent_at: Date | string | null;
   paid_at: Date | string | null;
@@ -76,6 +79,13 @@ export const SUPPORTED_CURRENCIES = [
 ] as const;
 
 export type SupportedCurrency = (typeof SUPPORTED_CURRENCIES)[number]["code"];
+
+function normalizePaymentMethodsOption(value: string | null | undefined): PaymentMethodsOption {
+  if (value === "CARD" || value === "MOBILE_MONEY" || value === "BOTH") {
+    return value;
+  }
+  return "BOTH";
+}
 
 function toMs(value: Date | string | null | undefined): number | null {
   if (!value) return null;
@@ -108,6 +118,7 @@ export function rowToPaymentLink(row: PaymentLinkRow): PaymentLink {
     kpayReference: row.kpay_reference,
     kpayIsTest: row.kpay_is_test,
     gatewayUrl: row.gateway_url,
+    allowedPaymentMethods: normalizePaymentMethodsOption(row.allowed_payment_methods),
     invoiceNumber: row.invoice_number,
     sentAt: toMs(row.sent_at),
     paidAt: toMs(row.paid_at),

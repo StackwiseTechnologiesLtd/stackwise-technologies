@@ -4,6 +4,7 @@ import { listPaymentLinks } from "@/lib/db/payment-links";
 import { createPaymentLink } from "@/lib/payments/actions";
 import { sendPaymentLinkEmail } from "@/lib/emails/payments";
 import type { LineItem } from "@/lib/payments/types";
+import type { PaymentMethodsOption } from "@/lib/payments/payment-methods";
 
 export async function GET() {
   const session = await getAdminSession();
@@ -29,6 +30,7 @@ export async function POST(request: Request) {
       lineItems?: LineItem[];
       notes?: string;
       sendEmail?: boolean;
+      allowedPaymentMethods?: PaymentMethodsOption;
     };
 
     if (!body.customerName?.trim() || !body.customerEmail?.trim()) {
@@ -50,6 +52,7 @@ export async function POST(request: Request) {
       currency: body.currency ?? process.env.DEFAULT_PAYMENT_CURRENCY ?? "XAF",
       lineItems: body.lineItems,
       notes: body.notes,
+      allowedPaymentMethods: body.allowedPaymentMethods,
     });
 
     let saved = link;
