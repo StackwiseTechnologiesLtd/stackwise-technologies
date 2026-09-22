@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { InvoiceView } from "@/components/payments/InvoiceView";
+import { KPAY_CARD_MAX_USD } from "@/lib/kpay/buildGatewayInit";
 import { SERVICES_CATALOG } from "@/lib/services-catalog";
 import { SUPPORTED_CURRENCIES } from "@/lib/payments/types";
 import type { LineItem, PaymentLink } from "@/lib/payments/types";
@@ -321,6 +322,11 @@ export function PaymentLinkBuilder() {
                 {totalUsd > 0 && (
                   <p className="mt-1 text-sm text-muted">
                     ≈ {converted.toLocaleString()} {currency} (rate {rate.toFixed(4)})
+                  </p>
+                )}
+                {totalUsd > KPAY_CARD_MAX_USD && (
+                  <p className="mt-2 text-sm text-amber-300">
+                    Over ${KPAY_CARD_MAX_USD} USD — card checkout blocked; customer can pay with Mobile Money only.
                   </p>
                 )}
               </div>

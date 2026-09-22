@@ -1,4 +1,8 @@
 import { convertUsdToCurrency } from "@/lib/currency";
+import {
+  buildGatewayInitPayload,
+  type CheckoutPaymentMethod,
+} from "@/lib/kpay/buildGatewayInit";
 import { initGatewayPayment, getPayment } from "@/lib/kpay/client";
 import {
   createId,
@@ -65,7 +69,10 @@ export async function createPaymentLink(
   return savePaymentLink(link);
 }
 
-export async function initiateKPayPayment(slug: string): Promise<{
+export async function initiateKPayPayment(
+  slug: string,
+  method: CheckoutPaymentMethod,
+): Promise<{
   link: PaymentLink;
   gatewayUrl: string;
 }> {
@@ -73,27 +80,12 @@ export async function initiateKPayPayment(slug: string): Promise<{
   if (!link) throw new Error("Payment link not found");
   if (link.status === "PAID") throw new Error("This invoice is already paid");
 
-  if (link.gatewayUrl && link.status === "PENDING") {
-    return { link, gatewayUrl: link.gatewayUrl };
-  }
-
-  const externalId = link.id;
   const returnUrl = `${siteUrl()}/pay/${slug}/return`;
   const cancelUrl = `${siteUrl()}/pay/${slug}`;
 
-  const payment = await initGatewayPayment({
-    amount: link.amountLocal,
-    externalId,
-    returnUrl,
-    cancelUrl,
-    description: `Invoice ${link.invoiceNumber} — Stackwise Technologies`,
-    paymentMethod: "CARD",
-    metadata: {
-      invoiceNumber: link.invoiceNumber,
-      slug: link.slug,
-      amountUsd: link.amountUsd,
-    },
-  });
+  const payment = await initGatewayPayment(
+    buildGatewayInitPayload(link, method, { returnUrl, cancelUrl }),
+  );
 
   const updated: PaymentLink = {
     ...link,
