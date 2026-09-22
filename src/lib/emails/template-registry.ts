@@ -92,7 +92,7 @@ Amount: {{amountUsd}} USD ({{amountLocal}})
 Reference: {{reference}}
 Invoice: {{invoiceNumber}}
 
-View receipt: {{receiptUrl}}
+View & print your receipt (A4): {{receiptUrl}}
 
 — Stackwise Technologies`,
   html: `<!DOCTYPE html>
@@ -109,7 +109,8 @@ View receipt: {{receiptUrl}}
           <div style="font-size:12px;color:#64748b;margin:8px 0;">{{lineItemsSummary}}</div>
           <div style="font-size:14px;font-weight:700;margin:8px 0;">{{amountUsd}} USD · {{amountLocal}}</div>
           <div style="font-size:12px;color:#64748b;">Reference: {{reference}}</div>
-          <a href="{{receiptUrl}}" style="display:block;text-align:center;background:#541111;color:#ffffff;text-decoration:none;font-weight:700;border-radius:6px;padding:16px 24px;margin:16px 0;">View receipt</a>
+          <a href="{{receiptUrl}}" style="display:block;text-align:center;background:#541111;color:#ffffff;text-decoration:none;font-weight:700;border-radius:6px;padding:16px 24px;margin:16px 0;">View &amp; print receipt</a>
+          <p style="font-size:12px;color:#64748b;margin:8px 0 0;">Save or print this receipt for your records. Link: {{receiptUrl}}</p>
         </td>
       </tr>
       <tr>

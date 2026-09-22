@@ -11,19 +11,22 @@ export function InvoiceView({
   showStatus = true,
   variant = "invoice",
   compact = false,
+  printMode = false,
 }: {
   link: PaymentLink;
   showStatus?: boolean;
   variant?: "invoice" | "receipt";
   compact?: boolean;
+  printMode?: boolean;
 }) {
   const isReceipt = variant === "receipt" || link.status === "PAID";
   const title = isReceipt ? "Receipt" : "Invoice";
 
   return (
     <article
-      className={`relative overflow-visible rounded-xl border border-[#e2e8f0] bg-white text-[#0f172a] shadow-sm print:border print:shadow-none ${compact ? "p-5" : "p-6 md:p-8"
-        }`}
+      className={`relative overflow-visible rounded-xl border border-[#e2e8f0] bg-white text-[#0f172a] shadow-sm print:border print:shadow-none ${
+        printMode ? "receipt-print-document" : ""
+      } ${compact ? "p-5" : "p-6 md:p-8 print:p-0"}`}
     >
       <InvoiceHeader compact={compact} />
 

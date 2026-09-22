@@ -6,6 +6,7 @@ import { EnvironmentBadge } from "@/components/admin/EnvironmentBadge";
 import { SendLinkButton } from "@/components/admin/SendLinkButton";
 import { InvoiceView } from "@/components/payments/InvoiceView";
 import { resolvePaymentEnvironment } from "@/lib/kpay/environment";
+import { canAccessReceipt } from "@/lib/payments/receipt-access";
 
 function siteUrl() {
   return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
@@ -40,12 +41,14 @@ export default async function PaymentLinkDetailPage({
         </div>
         <div className="flex flex-wrap gap-3">
           <SendLinkButton id={link.id} />
-          <Link
-            href={`/pay/${link.slug}/receipt`}
-            className="rounded-lg border border-line px-4 py-2 text-sm transition hover:bg-panel-hover"
-          >
-            View receipt
-          </Link>
+          {canAccessReceipt(link) && (
+            <Link
+              href={`/pay/${link.slug}/receipt`}
+              className="rounded-lg border border-line px-4 py-2 text-sm transition hover:bg-panel-hover"
+            >
+              View receipt
+            </Link>
+          )}
         </div>
       </div>
 

@@ -49,7 +49,7 @@ export async function sendPaymentReceiptEmails(
 ): Promise<{ customerSent: boolean; adminSent: boolean }> {
   const metadata = baseMetadata(link);
   const customerHeadline = `Receipt ${link.invoiceNumber} — payment received`;
-  const customerBody = `Hi ${link.customerName}, thank you. We received your payment for Stackwise services.`;
+  const customerBody = `Hi ${link.customerName}, thank you. We received your payment for Stackwise services. Open the link below to view and print your receipt (formatted for A4).`;
 
   let customerSent = false;
   try {

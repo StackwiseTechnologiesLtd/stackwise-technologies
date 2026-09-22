@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Mark from "@/components/Mark";
 import { InvoiceView } from "@/components/payments/InvoiceView";
+import { PaymentLegalNotice } from "@/components/payments/PaymentLegalNotice";
 import { PayButton } from "@/components/payments/PayButton";
 import { getPaymentLinkBySlug } from "@/lib/db/payment-links";
 import { syncPaymentStatusFromKPay } from "@/lib/payments/actions";
@@ -53,6 +54,8 @@ export default async function PayPage({
       <InvoiceView link={link} showStatus={!isPaid} />
 
       {!isPaid && <PayButton slug={slug} />}
+
+      <PaymentLegalNotice />
     </div>
   );
 }

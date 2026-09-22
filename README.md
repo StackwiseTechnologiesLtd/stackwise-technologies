@@ -151,6 +151,10 @@ Requires `wrangler` login. Uploads all non-comment `KEY=value` lines from the fi
 - For local payment E2E, set `NEXT_PUBLIC_SITE_URL=http://localhost:3000` in `.env.local`.
 - See [docs/PAYMENTS.md](docs/PAYMENTS.md) for payment flow, receipts, and legal notices.
 
+### Payments legal & compliance
+
+Customer payment pages (`/pay/*`) include a legal notice linking to [Payment processing & data](/pay/legal). See [docs/PAYMENTS.md](docs/PAYMENTS.md) for how payments, receipts, and personal data are handled.
+
 ---
 
 ## ❤️ Open Source Commitment
