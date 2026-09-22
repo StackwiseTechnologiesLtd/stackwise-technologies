@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { recordPaymentAudit } from "@/lib/db/payment-audit";
 import type { CheckoutPaymentMethod } from "@/lib/kpay/buildGatewayInit";
 import { initiateKPayPayment } from "@/lib/payments/actions";
 
@@ -18,7 +19,8 @@ export async function POST(
       method?: unknown;
     };
     const method = parseMethod(body.method);
-    const { gatewayUrl } = await initiateKPayPayment(slug, method);
+    const { link, gatewayUrl } = await initiateKPayPayment(slug, method);
+    recordPaymentAudit(link.id, "PAYMENT_INIT", request.headers, { method });
     return NextResponse.json({ gatewayUrl });
   } catch (error) {
     return NextResponse.json(

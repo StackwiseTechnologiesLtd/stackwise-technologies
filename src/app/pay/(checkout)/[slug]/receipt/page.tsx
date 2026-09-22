@@ -1,6 +1,8 @@
+import { headers } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { InvoiceView } from "@/components/payments/InvoiceView";
 import { PrintButton } from "@/components/payments/PrintButton";
+import { recordPaymentAudit } from "@/lib/db/payment-audit";
 import { getPaymentLinkBySlug } from "@/lib/db/payment-links";
 import { COMPANY_WEBSITE, COMPANY_WEBSITE_URL } from "@/lib/company";
 import { SITE_NAME } from "@/lib/content";
@@ -18,6 +20,8 @@ export default async function ReceiptPage({
   if (!canAccessReceipt(link)) {
     redirect(`/pay/${slug}`);
   }
+
+  recordPaymentAudit(link.id, "RECEIPT_VIEW", await headers());
 
   return (
     <div className="receipt-print-root space-y-6 print:space-y-4">

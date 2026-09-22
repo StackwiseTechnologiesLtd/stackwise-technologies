@@ -1,5 +1,7 @@
+import { headers } from "next/headers";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { recordPaymentAudit } from "@/lib/db/payment-audit";
 import { handleGatewayReturn } from "@/lib/payments/return";
 
 export default async function PayReturnPage({
@@ -15,7 +17,10 @@ export default async function PayReturnPage({
   const handled = await handleGatewayReturn(slug, query);
   if (!handled) notFound();
 
-  const { result } = handled;
+  const { link, result } = handled;
+  recordPaymentAudit(link.id, "RETURN_CALLBACK", await headers(), {
+    outcome: result.outcome,
+  });
 
   if (result.outcome === "receipt") {
     redirect(`/pay/${slug}/receipt`);

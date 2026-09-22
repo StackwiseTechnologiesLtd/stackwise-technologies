@@ -1,8 +1,10 @@
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import Mark from "@/components/Mark";
 import { InvoiceView } from "@/components/payments/InvoiceView";
 import { PaymentLegalNotice } from "@/components/payments/PaymentLegalNotice";
 import { PayButton } from "@/components/payments/PayButton";
+import { recordPaymentAudit } from "@/lib/db/payment-audit";
 import { getPaymentLinkBySlug } from "@/lib/db/payment-links";
 import { syncPaymentStatusFromKPay } from "@/lib/payments/actions";
 import { SITE_NAME } from "@/lib/content";
@@ -19,6 +21,8 @@ export default async function PayPage({
   if (link.kpayPaymentId && link.status === "PENDING") {
     link = await syncPaymentStatusFromKPay(link);
   }
+
+  recordPaymentAudit(link.id, "PAY_PAGE_VIEW", await headers());
 
   const isPaid = link.status === "PAID";
 

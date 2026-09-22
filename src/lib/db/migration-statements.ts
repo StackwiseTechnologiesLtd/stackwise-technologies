@@ -63,7 +63,22 @@ const KPAY_IS_TEST_SQL = `
 ALTER TABLE payment_links ADD COLUMN IF NOT EXISTS kpay_is_test BOOLEAN;
 `;
 
+const PAYMENT_AUDIT_LOGS_SQL = `
+CREATE TABLE IF NOT EXISTS payment_audit_logs (
+  id UUID PRIMARY KEY,
+  payment_link_id UUID NOT NULL REFERENCES payment_links(id) ON DELETE CASCADE,
+  event VARCHAR(32) NOT NULL,
+  ip_address VARCHAR(45),
+  user_agent TEXT,
+  metadata JSONB,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_payment_audit_link ON payment_audit_logs(payment_link_id, created_at DESC);
+`;
+
 export const MIGRATION_STATEMENTS = [
   ...splitStatements(INIT_SQL),
   ...splitStatements(KPAY_IS_TEST_SQL),
+  ...splitStatements(PAYMENT_AUDIT_LOGS_SQL),
 ];

@@ -51,7 +51,10 @@ export default function PaymentLegalPage() {
           <li>Name and email address provided on the invoice</li>
           <li>Invoice line items, amounts, and currency conversion rates</li>
           <li>Payment status, KPay reference, and completion timestamp</li>
-          <li>Technical logs for fraud prevention and support (IP, user agent)</li>
+          <li>
+            IP address and browser user agent on pay pages, stored for internal
+            auditing (not shared with third parties)
+          </li>
         </ul>
         <p>
           We do <strong>not</strong> receive or store card numbers, CVV codes,

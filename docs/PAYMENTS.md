@@ -19,6 +19,19 @@ Every pay page includes a **PaymentLegalNotice** footer linking to `/pay/legal`.
 - Stackwise stores invoice metadata and payment status in Neon Postgres.
 - Card numbers and mobile-money PINs are never stored by Stackwise.
 
+## Audit logging
+
+Customer interactions on pay pages log IP address and user agent to `payment_audit_logs`:
+
+| Event | Trigger |
+| --- | --- |
+| `PAY_PAGE_VIEW` | Invoice page load |
+| `PAYMENT_INIT` | Pay button / KPay redirect |
+| `RETURN_CALLBACK` | KPay return URL |
+| `RECEIPT_VIEW` | Receipt page (paid only) |
+
+Logs are visible on the admin payment-link detail page. Apply migration `0003_payment_audit_logs.sql` (or `npm run db:migrate`).
+
 ## Receipt access
 
 Receipts are gated by payment status:

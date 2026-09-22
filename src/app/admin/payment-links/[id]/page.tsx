@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { getAdminSession } from "@/lib/auth/session";
 import { getPaymentLinkById } from "@/lib/db/payment-links";
 import { EnvironmentBadge } from "@/components/admin/EnvironmentBadge";
+import { PaymentAuditLog } from "@/components/admin/PaymentAuditLog";
 import { SendLinkButton } from "@/components/admin/SendLinkButton";
 import { InvoiceView } from "@/components/payments/InvoiceView";
 import { resolvePaymentEnvironment } from "@/lib/kpay/environment";
@@ -63,6 +64,8 @@ export default async function PaymentLinkDetailPage({
       </div>
 
       <InvoiceView link={link} />
+
+      <PaymentAuditLog paymentLinkId={link.id} />
     </div>
   );
 }
