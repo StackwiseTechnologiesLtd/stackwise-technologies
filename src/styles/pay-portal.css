@@ -1,0 +1,20 @@
+/* /pay/* uses a light document theme; globals.css defaults to the marketing dark theme. */
+body.pay-portal {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --muted: #64748b;
+  --line: #e2e8f0;
+  --panel: #ffffff;
+  --panel-hover: #f1f5f9;
+  background: var(--background);
+  color: var(--foreground);
+  color-scheme: light;
+}
+
+body.pay-portal a {
+  color: #0f172a;
+}
+
+body.pay-portal a:hover {
+  color: #334155;
+}
