@@ -30,7 +30,7 @@ Customer interactions on pay pages log IP address and user agent to `payment_aud
 | `RETURN_CALLBACK` | KPay return URL |
 | `RECEIPT_VIEW` | Receipt page (paid only) |
 
-Logs are visible on the admin payment-link detail page. Apply migration `0003_payment_audit_logs.sql` (or `npm run db:migrate`).
+Logs are visible at `/admin/audit-logs` (latest 100 events) and on each payment-link detail page. Apply migration `0003_payment_audit_logs.sql` (or `npm run db:migrate`).
 
 ## Receipt access
 

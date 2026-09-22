@@ -32,66 +32,70 @@ function AmountCell({ link }: { link: PaymentLink }) {
   );
 }
 
-function PaymentLinkRow({ link }: { link: PaymentLink }) {
+function PaymentLinkMobileCard({ link }: { link: PaymentLink }) {
   const environment = resolvePaymentEnvironment(link);
 
   return (
-    <>
-      <div className="border-t border-line p-4 md:hidden">
-        <div className="flex flex-wrap items-start justify-between gap-2">
+    <div className="border-t border-line p-4">
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <Link
+          href={`/admin/payment-links/${link.id}`}
+          className="font-mono text-sm font-medium text-accent hover:underline"
+        >
+          {link.invoiceNumber}
+        </Link>
+        <div className="flex flex-wrap gap-2">
+          <EnvironmentBadge environment={environment} compact />
+          <StatusBadge status={link.status} />
+        </div>
+      </div>
+      <p className="mt-2 font-medium">{link.customerName}</p>
+      <p className="text-xs text-muted">{link.customerEmail}</p>
+      <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
+        <AmountCell link={link} />
+        <p className="text-xs text-muted">
+          {new Date(link.createdAt).toLocaleString()}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function PaymentLinkTableRow({ link }: { link: PaymentLink }) {
+  const environment = resolvePaymentEnvironment(link);
+
+  return (
+    <tr className="border-t border-line transition hover:bg-panel/50">
+      <td className="px-4 py-3">
+        <div className="flex flex-col gap-1">
           <Link
             href={`/admin/payment-links/${link.id}`}
-            className="font-mono text-sm font-medium text-accent hover:underline"
+            className="font-mono text-accent hover:underline"
           >
             {link.invoiceNumber}
           </Link>
-          <div className="flex flex-wrap gap-2">
-            <EnvironmentBadge environment={environment} compact />
-            <StatusBadge status={link.status} />
-          </div>
+          <EnvironmentBadge environment={environment} compact />
         </div>
-        <p className="mt-2 font-medium">{link.customerName}</p>
+      </td>
+      <td className="px-4 py-3">
+        <p>{link.customerName}</p>
         <p className="text-xs text-muted">{link.customerEmail}</p>
-        <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
-          <AmountCell link={link} />
-          <p className="text-xs text-muted">
-            {new Date(link.createdAt).toLocaleString()}
+      </td>
+      <td className="px-4 py-3">
+        <AmountCell link={link} />
+      </td>
+      <td className="px-4 py-3">
+        <div className="flex flex-col gap-1">
+          <StatusBadge status={link.status} />
+          <p className="text-[11px] text-muted tabular-nums">
+            1 USD = {link.exchangeRate.toFixed(4)} {link.currency}
           </p>
         </div>
-      </div>
-
-      <tr className="hidden border-t border-line transition hover:bg-panel/50 md:table-row">
-        <td className="px-4 py-3">
-          <div className="flex flex-col gap-1">
-            <Link
-              href={`/admin/payment-links/${link.id}`}
-              className="font-mono text-accent hover:underline"
-            >
-              {link.invoiceNumber}
-            </Link>
-            <EnvironmentBadge environment={environment} compact />
-          </div>
-        </td>
-        <td className="px-4 py-3">
-          <p>{link.customerName}</p>
-          <p className="text-xs text-muted">{link.customerEmail}</p>
-        </td>
-        <td className="px-4 py-3">
-          <AmountCell link={link} />
-        </td>
-        <td className="px-4 py-3">
-          <div className="flex flex-col gap-1">
-            <StatusBadge status={link.status} />
-            <p className="text-[11px] text-muted tabular-nums">
-              1 USD = {link.exchangeRate.toFixed(4)} {link.currency}
-            </p>
-          </div>
-        </td>
-        <td className="px-4 py-3 text-muted">
-          {new Date(link.createdAt).toLocaleString()}
-        </td>
-      </tr>
-    </>
+      </td>
+      <td className="px-4 py-3 text-muted">
+        {new Date(link.createdAt).toLocaleString()}
+      </td>
+    </tr>
   );
 }
 
@@ -175,7 +179,7 @@ export function PaymentLinksTable({ links }: { links: PaymentLink[] }) {
         <div className="overflow-hidden rounded-xl border border-line">
           <div className="md:hidden">
             {pageLinks.map((link) => (
-              <PaymentLinkRow key={link.id} link={link} />
+              <PaymentLinkMobileCard key={link.id} link={link} />
             ))}
           </div>
           <table className="hidden w-full text-sm md:table">
@@ -190,7 +194,7 @@ export function PaymentLinksTable({ links }: { links: PaymentLink[] }) {
             </thead>
             <tbody>
               {pageLinks.map((link) => (
-                <PaymentLinkRow key={link.id} link={link} />
+                <PaymentLinkTableRow key={link.id} link={link} />
               ))}
             </tbody>
           </table>

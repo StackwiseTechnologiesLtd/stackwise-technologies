@@ -106,6 +106,50 @@ export function recordPaymentAudit(
   }).catch(() => {});
 }
 
+export type PaymentAuditLogWithLink = PaymentAuditLog & {
+  invoiceNumber: string;
+  customerName: string;
+};
+
+type PaymentAuditWithLinkRow = PaymentAuditRow & {
+  invoice_number: string;
+  customer_name: string;
+};
+
+function rowToLogWithLink(row: PaymentAuditWithLinkRow): PaymentAuditLogWithLink {
+  return {
+    ...rowToLog(row),
+    invoiceNumber: row.invoice_number,
+    customerName: row.customer_name,
+  };
+}
+
+export async function listRecentPaymentAuditLogs(
+  limit = 100,
+): Promise<PaymentAuditLogWithLink[]> {
+  if (isDatabaseConfigured()) {
+    await ensureSchema();
+    const sql = getSql();
+    const rows = asRows<PaymentAuditWithLinkRow>(await sql`
+      SELECT
+        l.*,
+        pl.invoice_number,
+        pl.customer_name
+      FROM payment_audit_logs l
+      JOIN payment_links pl ON pl.id = l.payment_link_id
+      ORDER BY l.created_at DESC
+      LIMIT ${limit}
+    `);
+    return rows.map(rowToLogWithLink);
+  }
+
+  return memoryStore.slice(0, limit).map((row) => ({
+    ...rowToLog(row),
+    invoiceNumber: "—",
+    customerName: "—",
+  }));
+}
+
 export async function listPaymentAuditLogs(
   paymentLinkId: string,
   limit = 50,

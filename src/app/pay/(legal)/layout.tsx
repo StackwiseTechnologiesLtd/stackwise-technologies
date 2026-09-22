@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
+import { createPageMetadata } from "@/lib/metadata";
+import { SITE_NAME } from "@/lib/content";
 import "../../../styles/globals.css";
 import "../../../styles/pay-legal.css";
 
@@ -11,6 +13,13 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+export const metadata = createPageMetadata({
+  title: `Payment processing & data | ${SITE_NAME}`,
+  description:
+    "How Stackwise Technologies handles payment processing, customer data, receipts, and KPay checkout.",
+  path: "/pay/legal",
 });
 
 export default function PayLegalLayout({ children }: { children: ReactNode }) {

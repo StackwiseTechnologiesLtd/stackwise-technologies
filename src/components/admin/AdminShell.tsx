@@ -8,6 +8,7 @@ import { SITE_NAME } from "@/lib/content";
 
 const navLinks = [
   { href: "/admin", label: "Dashboard" },
+  { href: "/admin/audit-logs", label: "Access logs" },
   { href: "/admin/withdraw", label: "Withdraw" },
 ] as const;
 
@@ -109,7 +110,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
           isLogin
             ? ""
             : `mx-auto w-full px-4 py-6 sm:py-8 ${
-                pathname.startsWith("/admin/payment-links/new")
+                pathname.startsWith("/admin/payment-links/new") ||
+                pathname.startsWith("/admin/audit-logs")
                   ? "max-w-7xl"
                   : "max-w-5xl"
               }`

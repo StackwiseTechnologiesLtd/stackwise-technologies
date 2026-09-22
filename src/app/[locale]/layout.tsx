@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import { notFound } from "next/navigation";
+import { createPageMetadata } from "@/lib/metadata";
 import { isLocale, locales, type Locale } from "@/lib/content";
 import "../../styles/globals.css";
 
@@ -15,46 +16,16 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  icons: [
-    {
-      rel: "icon",
-      type: "image/svg+xml",
-      url: "/favicon.svg",
-    },
-  ],
-  title: "Stackwise Technologies LTD | Your Engineering Partner for Product Development",
-  description:
-    "Stackwise Technologies Ltd is your trusted engineering partner for product development. We specialize in custom platforms, AI systems, cloud infrastructure, dedicated teams, and the essential work that drives business delivery.",
-  openGraph: {
-    title: "Stackwise Technologies LTD | Your Engineering Partner for Product Development",
-    description:
-      "Stackwise Technologies Ltd is your trusted engineering partner for product development. We specialize in custom platforms, AI systems, cloud infrastructure, dedicated teams, and the essential work that drives business delivery.",
-    url: "https://stackwisetechnologies.com",
-    siteName: "Stackwise Technologies Ltd",
-    images: [
-      {
-        url: "https://stackwisetechnologies.com/images/og-landing-1200x630.png",
-        width: 1200,
-        height: 630,
-      },
-      {
-        url: "https://stackwisetechnologies.com/images/og-landing-1200x1200.png",
-        width: 1200,
-        height: 1200,
-      },
-    ],
-    locale: "en_US",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Stackwise Technologies LTD | Your Engineering Partner for Product Development",
-    description:
-      "Stackwise Technologies Ltd is your trusted engineering partner for product development. We specialize in custom platforms, AI systems, cloud infrastructure, dedicated teams, and the essential work that drives business delivery.",
-    images: ["https://stackwisetechnologies.com/image/og-landing-1200x630.png"],
-  },
+const MARKETING_TITLE =
+  "Stackwise Technologies LTD | Your Engineering Partner for Product Development";
+const MARKETING_DESCRIPTION =
+  "Stackwise Technologies Ltd is your trusted engineering partner for product development. We specialize in custom platforms, AI systems, cloud infrastructure, dedicated teams, and the essential work that drives business delivery.";
 
+export const metadata: Metadata = {
+  ...createPageMetadata({
+    title: MARKETING_TITLE,
+    description: MARKETING_DESCRIPTION,
+  }),
   keywords: [
     "Stackwise Technologies",
     "Engineering Partner",
@@ -110,6 +81,24 @@ export const metadata: Metadata = {
     "Software Engineering Solutions",
     "Product Development Services",
   ],
+  openGraph: {
+    ...createPageMetadata({
+      title: MARKETING_TITLE,
+      description: MARKETING_DESCRIPTION,
+    }).openGraph,
+    images: [
+      {
+        url: "https://stackwisetechnologies.com/images/og-landing-1200x630.png",
+        width: 1200,
+        height: 630,
+      },
+      {
+        url: "https://stackwisetechnologies.com/images/og-landing-1200x1200.png",
+        width: 1200,
+        height: 1200,
+      },
+    ],
+  },
 };
 
 export function generateStaticParams() {

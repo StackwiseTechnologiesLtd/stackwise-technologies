@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
+import { createPageMetadata } from "@/lib/metadata";
+import { SITE_NAME } from "@/lib/content";
 import "../../../styles/globals.css";
 import "../../../styles/print-receipt.css";
 
@@ -13,9 +15,12 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata = {
-  title: "Pay | Stackwise Technologies",
-};
+export const metadata = createPageMetadata({
+  title: `Pay | ${SITE_NAME}`,
+  description: `Secure invoice payment for ${SITE_NAME}. Pay by card or Mobile Money via KPay.`,
+  path: "/pay",
+  noIndex: true,
+});
 
 export default function PayCheckoutLayout({ children }: { children: ReactNode }) {
   return (

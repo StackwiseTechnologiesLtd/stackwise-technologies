@@ -7,10 +7,6 @@ import {
 } from "@/lib/company";
 import { EMAIL, SITE_NAME } from "@/lib/content";
 
-export const metadata = {
-  title: "Payment processing & data | Stackwise Technologies",
-};
-
 export default function PaymentLegalPage() {
   return (
     <div className="space-y-8 text-sm leading-relaxed text-[#334155]">

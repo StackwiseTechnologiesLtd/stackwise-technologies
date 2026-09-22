@@ -1,7 +1,7 @@
-import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AdminShell } from "@/components/admin/AdminShell";
+import { createPageMetadata } from "@/lib/metadata";
 import "../../styles/globals.css";
 
 const geistSans = Geist({
@@ -14,17 +14,13 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
+export const metadata = createPageMetadata({
   title: "Admin | Stackwise Technologies",
-  robots: { index: false, follow: false },
-  icons: [
-    {
-      rel: "icon",
-      type: "image/svg+xml",
-      url: "/favicon.svg",
-    },
-  ],
-};
+  description:
+    "Stackwise Technologies payments admin — manage invoices, payment links, withdrawals, and access logs.",
+  path: "/admin",
+  noIndex: true,
+});
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
