@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AdminShell } from "@/components/admin/AdminShell";
@@ -13,9 +14,16 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Admin | Stackwise Technologies",
   robots: { index: false, follow: false },
+  icons: [
+    {
+      rel: "icon",
+      type: "image/svg+xml",
+      url: "/favicon.svg",
+    },
+  ],
 };
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
