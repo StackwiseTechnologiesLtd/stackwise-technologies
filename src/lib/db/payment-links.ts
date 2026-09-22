@@ -205,8 +205,18 @@ export async function savePaymentLink(link: PaymentLink): Promise<PaymentLink> {
   return link;
 }
 
+const INVOICE_NUMBER_PREFIX = "STL-";
+const INVOICE_NUMBER_LENGTH = 12;
+const INVOICE_SUFFIX_CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+function randomInvoiceSuffix(length: number): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(length));
+  return Array.from(bytes, (b) => INVOICE_SUFFIX_CHARS[b % INVOICE_SUFFIX_CHARS.length]).join("");
+}
+
 export async function nextInvoiceNumber(): Promise<string> {
-  return `STL-${crypto.randomUUID()}`;
+  const suffixLength = INVOICE_NUMBER_LENGTH - INVOICE_NUMBER_PREFIX.length;
+  return `${INVOICE_NUMBER_PREFIX}${randomInvoiceSuffix(suffixLength)}`;
 }
 
 export function createSlug(): string {

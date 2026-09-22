@@ -19,7 +19,7 @@ function link(status: PaymentLink["status"]): PaymentLink {
     kpayReference: null,
     kpayIsTest: false,
     gatewayUrl: null,
-    invoiceNumber: "STL-550e8400-e29b-41d4-a716-446655440000",
+    invoiceNumber: "STL-550E8400",
     sentAt: null,
     paidAt: null,
     receiptSentAt: null,
