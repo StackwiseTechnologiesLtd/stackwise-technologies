@@ -1,3 +1,4 @@
+import { ensureSchema } from "@/lib/db/ensure-schema";
 import { asRows, getSql, isDatabaseConfigured } from "@/lib/db/postgres";
 import { sendEmail } from "@/lib/emails/sendEmail";
 import {
@@ -32,6 +33,7 @@ export async function sendAdminLoginOtp(email: string): Promise<{
     throw new Error("Valid email is required");
   }
 
+  await ensureSchema();
   await assertOtpNotLocked(subjectHash);
   await assertOtpSendAllowed(subjectHash);
 
@@ -105,6 +107,7 @@ export async function verifyAdminLoginOtp(
     throw new Error("Invalid or expired OTP");
   }
 
+  await ensureSchema();
   await assertOtpNotLocked(subjectHash);
 
   let valid = false;

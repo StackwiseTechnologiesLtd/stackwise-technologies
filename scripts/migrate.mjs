@@ -19,6 +19,7 @@ function loadEnvFile(filename) {
 
 loadEnvFile(".env.local");
 loadEnvFile(".env");
+loadEnvFile(".env.example");
 
 const url = process.env.DATABASE_URL;
 if (!url) {

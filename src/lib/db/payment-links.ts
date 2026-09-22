@@ -1,4 +1,9 @@
+import { ensureSchema } from "@/lib/db/ensure-schema";
 import { asRows, getSql, isDatabaseConfigured } from "@/lib/db/postgres";
+
+async function dbReady() {
+  await ensureSchema();
+}
 import {
   rowToPaymentLink,
   type PaymentLink,
@@ -36,6 +41,7 @@ function paymentLinkToRow(link: PaymentLink): PaymentLinkRow {
 
 async function upsertRow(row: PaymentLinkRow): Promise<void> {
   if (isDatabaseConfigured()) {
+    await dbReady();
     const sql = getSql();
     const lineItems =
       typeof row.line_items === "string"
@@ -104,6 +110,7 @@ async function upsertRow(row: PaymentLinkRow): Promise<void> {
 
 async function findRowBySlug(slug: string): Promise<PaymentLinkRow | null> {
   if (isDatabaseConfigured()) {
+    await dbReady();
     const sql = getSql();
     const rows = asRows<PaymentLinkRow>(await sql`
       SELECT * FROM payment_links WHERE slug = ${slug} LIMIT 1
@@ -119,6 +126,7 @@ async function findRowBySlug(slug: string): Promise<PaymentLinkRow | null> {
 
 async function findRowById(id: string): Promise<PaymentLinkRow | null> {
   if (isDatabaseConfigured()) {
+    await dbReady();
     const sql = getSql();
     const rows = asRows<PaymentLinkRow>(await sql`
       SELECT * FROM payment_links WHERE id = ${id}::uuid LIMIT 1
@@ -130,6 +138,7 @@ async function findRowById(id: string): Promise<PaymentLinkRow | null> {
 
 export async function listPaymentLinks(): Promise<PaymentLink[]> {
   if (isDatabaseConfigured()) {
+    await dbReady();
     const sql = getSql();
     const rows = asRows<PaymentLinkRow>(await sql`
       SELECT * FROM payment_links ORDER BY created_at DESC
@@ -171,6 +180,7 @@ export async function nextInvoiceNumber(): Promise<string> {
   const prefix = `SW-${year}-`;
 
   if (isDatabaseConfigured()) {
+    await dbReady();
     const sql = getSql();
     const rows = asRows<{ invoice_number: string }>(await sql`
       SELECT invoice_number FROM payment_links
