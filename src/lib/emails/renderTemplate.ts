@@ -1,14 +1,4 @@
-import fs from "node:fs";
-import path from "node:path";
-
-function templatePath(template: string, version: string, ext: string) {
-  return path.join(
-    process.cwd(),
-    "src/lib/emails/templates",
-    template,
-    `${version}.${ext}`,
-  );
-}
+import { getEmailTemplate } from "@/lib/emails/template-registry";
 
 function interpolate(source: string, metadata: Record<string, unknown>) {
   return source.replace(/\{\{(\w+)\}\}/g, (_, key: string) => {
@@ -23,18 +13,10 @@ export function renderEmailTemplate(
   metadata: Record<string, unknown>,
 ) {
   const enriched = { ...metadata };
-  const textBody = interpolate(
-    fs.readFileSync(templatePath(template, version, "txt"), "utf8"),
-    enriched,
-  );
-  const subjectLine = interpolate(
-    fs.readFileSync(templatePath(template, version, "subject"), "utf8"),
-    enriched,
-  );
-  const htmlBody = interpolate(
-    fs.readFileSync(templatePath(template, version, "html"), "utf8"),
-    enriched,
-  );
+  const parts = getEmailTemplate(template, version);
+  const textBody = interpolate(parts.txt, enriched);
+  const subjectLine = interpolate(parts.subject, enriched);
+  const htmlBody = interpolate(parts.html, enriched);
 
   return { textBody, subjectLine, htmlBody };
 }
