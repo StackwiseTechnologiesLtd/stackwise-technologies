@@ -87,8 +87,6 @@ export async function initiateKPayPayment(slug: string): Promise<{
     returnUrl,
     cancelUrl,
     description: `Invoice ${link.invoiceNumber} — Stackwise Technologies`,
-    customerName: link.customerName,
-    customerEmail: link.customerEmail,
     metadata: {
       invoiceNumber: link.invoiceNumber,
       slug: link.slug,
