@@ -181,7 +181,7 @@ export function InvoiceView({
       )}
 
       <p className={`mt-6 text-[#64748b] ${compact ? "text-[11px]" : "text-xs"}`}>
-        Questions? Contact {EMAIL}
+        Questions? Reach out to {EMAIL}
       </p>
     </article>
   );
