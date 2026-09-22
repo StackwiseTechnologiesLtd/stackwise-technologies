@@ -171,35 +171,46 @@ export function PaymentLinksTable({ links }: { links: PaymentLink[] }) {
           : ""}
       </p>
 
-      {pageLinks.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-line bg-panel/40 px-4 py-8 text-center text-sm text-muted">
-          No payment links match your filters.
-        </div>
-      ) : (
-        <div className="overflow-hidden rounded-xl border border-line">
-          <div className="md:hidden">
-            {pageLinks.map((link) => (
+      <div className="overflow-hidden rounded-xl border border-line">
+        <div className="md:hidden">
+          {pageLinks.length === 0 ? (
+            <p className="px-4 py-8 text-center text-sm text-muted">
+              No payment links match your filters.
+            </p>
+          ) : (
+            pageLinks.map((link) => (
               <PaymentLinkMobileCard key={link.id} link={link} />
-            ))}
-          </div>
-          <table className="hidden w-full text-sm md:table">
-            <thead className="bg-panel text-left text-muted">
-              <tr>
-                <th className="px-4 py-3 font-medium">Invoice</th>
-                <th className="px-4 py-3 font-medium">Customer</th>
-                <th className="px-4 py-3 font-medium">Amount</th>
-                <th className="px-4 py-3 font-medium">Status</th>
-                <th className="px-4 py-3 font-medium">Created</th>
-              </tr>
-            </thead>
-            <tbody>
-              {pageLinks.map((link) => (
-                <PaymentLinkTableRow key={link.id} link={link} />
-              ))}
-            </tbody>
-          </table>
+            ))
+          )}
         </div>
-      )}
+        <table className="hidden w-full text-sm md:table">
+          <thead className="bg-panel text-left text-muted">
+            <tr>
+              <th className="px-4 py-3 font-medium">Invoice</th>
+              <th className="px-4 py-3 font-medium">Customer</th>
+              <th className="px-4 py-3 font-medium">Amount</th>
+              <th className="px-4 py-3 font-medium">Status</th>
+              <th className="px-4 py-3 font-medium">Created</th>
+            </tr>
+          </thead>
+          <tbody>
+            {pageLinks.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={5}
+                  className="px-4 py-8 text-center text-sm text-muted"
+                >
+                  No payment links match your filters.
+                </td>
+              </tr>
+            ) : (
+              pageLinks.map((link) => (
+                <PaymentLinkTableRow key={link.id} link={link} />
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
 
       {totalPages > 1 && (
         <div className="flex flex-wrap items-center justify-between gap-3 text-sm">

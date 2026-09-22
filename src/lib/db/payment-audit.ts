@@ -125,7 +125,7 @@ function rowToLogWithLink(row: PaymentAuditWithLinkRow): PaymentAuditLogWithLink
 }
 
 export async function listRecentPaymentAuditLogs(
-  limit = 100,
+  limit = 1000,
 ): Promise<PaymentAuditLogWithLink[]> {
   if (isDatabaseConfigured()) {
     await ensureSchema();

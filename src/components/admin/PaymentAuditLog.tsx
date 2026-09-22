@@ -1,9 +1,8 @@
+import { PaymentAuditLogsPanel } from "@/components/admin/PaymentAuditLogsPanel";
 import { listPaymentAuditLogs } from "@/lib/db/payment-audit";
-import { PaymentAuditLogTable } from "@/components/admin/PaymentAuditLogTable";
 
 export async function PaymentAuditLog({ paymentLinkId }: { paymentLinkId: string }) {
-  const logs = await listPaymentAuditLogs(paymentLinkId, 25);
-  if (logs.length === 0) return null;
+  const logs = await listPaymentAuditLogs(paymentLinkId, 500);
 
   return (
     <section className="rounded-xl border border-line bg-background p-4">
@@ -12,7 +11,7 @@ export async function PaymentAuditLog({ paymentLinkId }: { paymentLinkId: string
         IP address and browser info for internal auditing.
       </p>
       <div className="mt-4">
-        <PaymentAuditLogTable logs={logs} />
+        <PaymentAuditLogsPanel logs={logs} totalCount={logs.length} />
       </div>
     </section>
   );
