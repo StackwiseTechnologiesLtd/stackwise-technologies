@@ -1,11 +1,10 @@
 import Link from "next/link";
 import { EnvironmentBadge } from "@/components/admin/EnvironmentBadge";
+import { PaymentSectionTotals } from "@/components/admin/PaymentSectionTotals";
 import { StatusBadge } from "@/components/admin/StatusBadge";
-import { WalletBalancesLoader } from "@/components/admin/WalletBalancesLoader";
 import { formatMoney } from "@/lib/currency";
 import {
   resolvePaymentEnvironment,
-  summarizePaymentLinks,
   type PaymentEnvironment,
 } from "@/lib/kpay/environment";
 import type { PaymentLink } from "@/lib/payments/types";
@@ -84,19 +83,6 @@ function PaymentLinkRow({ link }: { link: PaymentLink }) {
   );
 }
 
-function invoiceSummaryText(links: PaymentLink[]): string {
-  const summary = summarizePaymentLinks(links);
-  if (summary.count === 0) return "";
-  const parts = [
-    `${summary.count} link${summary.count === 1 ? "" : "s"}`,
-    `$${summary.totalUsd.toFixed(2)} invoiced`,
-  ];
-  if (summary.paidCount > 0) {
-    parts.push(`$${summary.paidUsd.toFixed(2)} paid`);
-  }
-  return parts.join(" · ");
-}
-
 function PaymentLinkSection({
   title,
   description,
@@ -110,37 +96,27 @@ function PaymentLinkSection({
   links: PaymentLink[];
   emptyMessage: string;
 }) {
-  const summaryText = invoiceSummaryText(links);
-
   return (
     <section className="space-y-4">
-      <div className="flex flex-wrap items-end justify-between gap-2">
-        <div>
-          <h2 className="text-lg font-semibold">{title}</h2>
-          <p className="text-sm text-muted">{description}</p>
-          {summaryText && (
-            <p className="mt-1 text-xs text-muted tabular-nums">{summaryText}</p>
-          )}
-        </div>
+      <div>
+        <h2 className="text-lg font-semibold">{title}</h2>
+        <p className="text-sm text-muted">{description}</p>
       </div>
 
-      <WalletBalancesLoader environment={environment} />
+      <PaymentSectionTotals environment={environment} links={links} />
 
       {links.length === 0 ? (
         <div className="rounded-xl border border-dashed border-line bg-panel/40 px-4 py-8 text-center text-sm text-muted">
           {emptyMessage}
         </div>
       ) : (
-
         <div className="overflow-hidden rounded-xl border border-line">
-          {/* Mobile list */}
           <div className="md:hidden">
             {links.map((link) => (
               <PaymentLinkRow key={link.id} link={link} />
             ))}
           </div>
 
-          {/* Desktop table */}
           <table className="hidden w-full text-sm md:table">
             <thead className="bg-panel text-left text-muted">
               <tr>
@@ -164,28 +140,33 @@ function PaymentLinkSection({
   );
 }
 
-export function PaymentLinksList({ links }: { links: PaymentLink[] }) {
-  const production = links.filter(
-    (link) => resolvePaymentEnvironment(link) === "production",
-  );
-  const test = links.filter((link) => resolvePaymentEnvironment(link) === "test");
-
+export function PaymentLinksList({
+  liveLinks,
+  testLinks,
+  showTestSection,
+}: {
+  liveLinks: PaymentLink[];
+  testLinks: PaymentLink[];
+  showTestSection: boolean;
+}) {
   return (
     <div className="space-y-8">
       <PaymentLinkSection
         title="Live payments"
-        description="Real KPay wallet and payment links."
+        description="Production payment links from your database (kpay_is_test = false)."
         environment="production"
-        links={production}
+        links={liveLinks}
         emptyMessage="No live payment links yet."
       />
-      <PaymentLinkSection
-        title="Test payments"
-        description="Sandbox KPay wallet and payment links."
-        environment="test"
-        links={test}
-        emptyMessage="No test payment links yet."
-      />
+      {showTestSection && (
+        <PaymentLinkSection
+          title="Test payments"
+          description="Sandbox payment links — not included in live totals."
+          environment="test"
+          links={testLinks}
+          emptyMessage="No test payment links yet."
+        />
+      )}
     </div>
   );
 }

@@ -49,23 +49,13 @@ describe("resolvePaymentEnvironment", () => {
     expect(resolvePaymentEnvironment(link({ kpayIsTest: true }))).toBe("test");
   });
 
-  it("treats legacy initiated links without a flag as test", () => {
-    process.env.KPAY_API_KEY = "kpay_live_abc";
+  it("treats unset or legacy links as test", () => {
+    expect(resolvePaymentEnvironment(link({ kpayIsTest: null }))).toBe("test");
     expect(
       resolvePaymentEnvironment(
         link({ kpayIsTest: null, kpayPaymentId: "pay_123" }),
       ),
     ).toBe("test");
-  });
-
-  it("assigns draft links to current key mode", () => {
-    process.env.KPAY_API_KEY = "kpay_live_abc";
-    expect(resolvePaymentEnvironment(link({ kpayIsTest: null }))).toBe(
-      "production",
-    );
-
-    process.env.KPAY_API_KEY = "kpay_test_abc";
-    expect(resolvePaymentEnvironment(link({ kpayIsTest: null }))).toBe("test");
   });
 });
 

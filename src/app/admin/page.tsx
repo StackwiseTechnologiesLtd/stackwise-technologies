@@ -10,8 +10,14 @@ export default async function AdminDashboardPage() {
   const session = await getAdminSession();
   if (!session) redirect("/admin/login");
 
-  const links = await listPaymentLinks();
   const kpayMode = isKPayTestMode() ? "test" : "production";
+  const showTestSection = kpayMode === "test";
+  const [liveLinks, testLinks] = showTestSection
+    ? await Promise.all([
+        listPaymentLinks("production"),
+        listPaymentLinks("test"),
+      ])
+    : [await listPaymentLinks("production"), []];
 
   return (
     <div className="space-y-6">
@@ -32,9 +38,13 @@ export default async function AdminDashboardPage() {
         </Link>
       </div>
 
-      <PaymentLinksList links={links} />
+      <PaymentLinksList
+        liveLinks={liveLinks}
+        testLinks={testLinks}
+        showTestSection={showTestSection}
+      />
 
-      {links.length === 0 && (
+      {liveLinks.length === 0 && !showTestSection && (
         <div className="rounded-xl border border-line bg-panel p-8 text-center sm:p-12">
           <p className="text-muted">No payment links yet.</p>
           <Link

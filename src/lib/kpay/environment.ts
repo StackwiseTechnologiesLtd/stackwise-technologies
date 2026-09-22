@@ -48,18 +48,13 @@ export function getKPayCredentials(
   return { apiKey, secretKey };
 }
 
-/**
- * Resolved environment for a payment link.
- * Uses the stored KPay flag when set; draft links follow the current key mode;
- * legacy initiated links without a flag are treated as test (sandbox) data.
- */
+/** Only links explicitly marked live (kpay_is_test = false) are production. */
 export function resolvePaymentEnvironment(link: PaymentLink): PaymentEnvironment {
-  if (link.kpayIsTest === true) return "test";
-  if (link.kpayIsTest === false) return "production";
-  if (!link.kpayPaymentId) {
-    return isKPayTestMode() ? "test" : "production";
-  }
-  return "test";
+  return link.kpayIsTest === false ? "production" : "test";
+}
+
+export function isLivePaymentLink(link: PaymentLink): boolean {
+  return link.kpayIsTest === false;
 }
 
 export function partitionPaymentLinks(links: PaymentLink[]): {

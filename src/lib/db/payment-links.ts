@@ -139,22 +139,49 @@ async function findRowById(id: string): Promise<PaymentLinkRow | null> {
   return memoryStore.get(id) ?? null;
 }
 
-export async function listPaymentLinks(): Promise<PaymentLink[]> {
+export type ListPaymentLinksFilter = "production" | "test" | "all";
+
+export async function listPaymentLinks(
+  filter: ListPaymentLinksFilter = "all",
+): Promise<PaymentLink[]> {
   if (isDatabaseConfigured()) {
     await dbReady();
     const sql = getSql();
-    const rows = asRows<PaymentLinkRow>(await sql`
-      SELECT * FROM payment_links ORDER BY created_at DESC
-    `);
+    const rows = asRows<PaymentLinkRow>(
+      filter === "production"
+        ? await sql`
+            SELECT * FROM payment_links
+            WHERE kpay_is_test = false
+            ORDER BY created_at DESC
+          `
+        : filter === "test"
+          ? await sql`
+              SELECT * FROM payment_links
+              WHERE kpay_is_test IS DISTINCT FROM false
+              ORDER BY created_at DESC
+            `
+          : await sql`
+              SELECT * FROM payment_links
+              ORDER BY created_at DESC
+            `,
+    );
     return rows.map(rowToPaymentLink);
   }
 
-  return Array.from(memoryStore.values())
+  const all = Array.from(memoryStore.values())
     .sort(
       (a, b) =>
         new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
     )
     .map(rowToPaymentLink);
+
+  if (filter === "production") {
+    return all.filter((link) => link.kpayIsTest === false);
+  }
+  if (filter === "test") {
+    return all.filter((link) => link.kpayIsTest !== false);
+  }
+  return all;
 }
 
 export async function getPaymentLinkBySlug(slug: string): Promise<PaymentLink | null> {
