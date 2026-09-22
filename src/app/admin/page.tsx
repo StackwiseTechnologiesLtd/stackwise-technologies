@@ -32,7 +32,9 @@ export default async function AdminDashboardPage() {
         </Link>
       </div>
 
-      {links.length === 0 ? (
+      <PaymentLinksList links={links} />
+
+      {links.length === 0 && (
         <div className="rounded-xl border border-line bg-panel p-8 text-center sm:p-12">
           <p className="text-muted">No payment links yet.</p>
           <Link
@@ -42,8 +44,6 @@ export default async function AdminDashboardPage() {
             Create your first link
           </Link>
         </div>
-      ) : (
-        <PaymentLinksList links={links} />
       )}
     </div>
   );

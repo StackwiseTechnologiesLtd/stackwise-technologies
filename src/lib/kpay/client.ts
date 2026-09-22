@@ -65,7 +65,12 @@ export type KPayWebhookEvent = {
   timestamp: string;
 };
 
-function getCredentials() {
+export type KPayCredentials = {
+  apiKey: string;
+  secretKey: string;
+};
+
+function getCredentials(): KPayCredentials {
   const apiKey = process.env.KPAY_API_KEY;
   const secretKey = process.env.KPAY_SECRET_KEY;
   if (!apiKey || !secretKey) {
@@ -74,11 +79,12 @@ function getCredentials() {
   return { apiKey, secretKey };
 }
 
-async function kpayFetch<T>(
+async function kpayFetchWithCredentials<T>(
+  credentials: KPayCredentials,
   path: string,
   init?: RequestInit,
 ): Promise<T> {
-  const { apiKey, secretKey } = getCredentials();
+  const { apiKey, secretKey } = credentials;
   const res = await fetch(`${KPAY_BASE}${path}`, {
     ...init,
     headers: {
@@ -96,6 +102,10 @@ async function kpayFetch<T>(
     );
   }
   return data;
+}
+
+async function kpayFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  return kpayFetchWithCredentials(getCredentials(), path, init);
 }
 
 export async function initGatewayPayment(
@@ -142,6 +152,15 @@ export type KPayWithdrawResponse = {
 
 export async function getWalletBalances(): Promise<KPayWalletBalance[]> {
   return kpayFetch<KPayWalletBalance[]>("/api/v1/payments/balance");
+}
+
+export async function getWalletBalancesWithCredentials(
+  credentials: KPayCredentials,
+): Promise<KPayWalletBalance[]> {
+  return kpayFetchWithCredentials<KPayWalletBalance[]>(
+    credentials,
+    "/api/v1/payments/balance",
+  );
 }
 
 export async function initWithdraw(

@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import type { PaymentLink } from "@/lib/payments/types";
 import {
+  getKPayCredentials,
   partitionPaymentLinks,
   resolvePaymentEnvironment,
   summarizePaymentLinks,
@@ -76,6 +77,44 @@ describe("partitionPaymentLinks", () => {
     ]);
     expect(production).toHaveLength(1);
     expect(test).toHaveLength(1);
+  });
+});
+
+describe("getKPayCredentials", () => {
+  afterEach(() => {
+    delete process.env.KPAY_API_KEY;
+    delete process.env.KPAY_SECRET_KEY;
+    delete process.env.KPAY_LIVE_API_KEY;
+    delete process.env.KPAY_LIVE_SECRET_KEY;
+    delete process.env.KPAY_TEST_API_KEY;
+    delete process.env.KPAY_TEST_SECRET_KEY;
+  });
+
+  it("uses explicit live and test keys when set", () => {
+    process.env.KPAY_LIVE_API_KEY = "kpay_live_a";
+    process.env.KPAY_LIVE_SECRET_KEY = "live_secret";
+    process.env.KPAY_TEST_API_KEY = "kpay_test_b";
+    process.env.KPAY_TEST_SECRET_KEY = "test_secret";
+
+    expect(getKPayCredentials("production")).toEqual({
+      apiKey: "kpay_live_a",
+      secretKey: "live_secret",
+    });
+    expect(getKPayCredentials("test")).toEqual({
+      apiKey: "kpay_test_b",
+      secretKey: "test_secret",
+    });
+  });
+
+  it("falls back to default test keys for test wallet only", () => {
+    process.env.KPAY_API_KEY = "kpay_test_default";
+    process.env.KPAY_SECRET_KEY = "test_default_secret";
+
+    expect(getKPayCredentials("test")).toEqual({
+      apiKey: "kpay_test_default",
+      secretKey: "test_default_secret",
+    });
+    expect(getKPayCredentials("production")).toBeNull();
   });
 });
 

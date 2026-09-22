@@ -1,20 +1,27 @@
 import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth/session";
-import { getWalletBalances } from "@/lib/kpay/client";
+import {
+  isKPayTestMode,
+  type PaymentEnvironment,
+} from "@/lib/kpay/environment";
+import { fetchWalletSnapshot } from "@/lib/kpay/wallets";
 
-export async function GET() {
+function parseEnvironment(value: string | null): PaymentEnvironment | null {
+  if (value === "production" || value === "test") return value;
+  return null;
+}
+
+export async function GET(request: Request) {
   const session = await getAdminSession();
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  try {
-    const balances = await getWalletBalances();
-    return NextResponse.json({ balances });
-  } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to fetch balance" },
-      { status: 500 },
-    );
-  }
+  const { searchParams } = new URL(request.url);
+  const environment =
+    parseEnvironment(searchParams.get("environment")) ??
+    (isKPayTestMode() ? "test" : "production");
+
+  const snapshot = await fetchWalletSnapshot(environment);
+  return NextResponse.json(snapshot);
 }

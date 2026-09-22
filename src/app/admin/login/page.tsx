@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { OtpInput } from "@/components/admin/OtpInput";
 import Mark from "@/components/Mark";
 import { SITE_NAME } from "@/lib/content";
 
@@ -36,15 +37,14 @@ export default function AdminLoginPage() {
     }
   }
 
-  async function verifyOtp(e: React.FormEvent) {
-    e.preventDefault();
+  async function verifyOtpWithCode(code: string) {
     setLoading(true);
     setError(null);
     try {
       const res = await fetch("/api/admin/login/otp/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, otp }),
+        body: JSON.stringify({ email, otp: code }),
       });
       const data = (await res.json()) as { error?: string };
       if (!res.ok) throw new Error(data.error ?? "Invalid code");
@@ -55,6 +55,11 @@ export default function AdminLoginPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function verifyOtp(e: React.FormEvent) {
+    e.preventDefault();
+    await verifyOtpWithCode(otp);
   }
 
   return (
@@ -95,19 +100,22 @@ export default function AdminLoginPage() {
             <p className="text-sm text-muted">
               Enter the 6-digit code sent to <strong>{email}</strong>
             </p>
-            <label className="block space-y-2">
-              <span className="text-sm text-muted">Verification code</span>
-              <input
-                inputMode="numeric"
-                pattern="[0-9]{6}"
-                maxLength={6}
+            <div className="space-y-3">
+              <p id="otp-input-label" className="text-center text-sm text-muted">
+                Verification code
+              </p>
+              <OtpInput
                 value={otp}
-                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
-                required
-                className="w-full rounded-lg border border-line bg-background px-3 py-2 text-center text-lg tracking-[0.3em]"
-                placeholder="000000"
+                onChange={setOtp}
+                autoFocus
+                disabled={loading}
+                onComplete={(code) => {
+                  if (!loading) {
+                    void verifyOtpWithCode(code);
+                  }
+                }}
               />
-            </label>
+            </div>
             {message && <p className="text-sm text-muted">{message}</p>}
             {error && <p className="text-sm text-red-400">{error}</p>}
             <button

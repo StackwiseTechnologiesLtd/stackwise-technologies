@@ -13,10 +13,39 @@ export type PaymentLinkSummary = {
   >;
 };
 
+/** Whether a KPay API key is sandbox/test mode. */
+export function isKPayTestKey(apiKey: string): boolean {
+  return apiKey.includes("_test_") || apiKey.startsWith("kpay_test");
+}
+
 /** Whether the configured KPay API key is sandbox/test mode. */
 export function isKPayTestMode(): boolean {
-  const key = process.env.KPAY_API_KEY ?? "";
-  return key.includes("_test_") || key.startsWith("kpay_test");
+  return isKPayTestKey(process.env.KPAY_API_KEY ?? "");
+}
+
+/** Credentials for a specific environment (live vs test wallet). */
+export function getKPayCredentials(
+  environment: PaymentEnvironment,
+): { apiKey: string; secretKey: string } | null {
+  const liveApi = process.env.KPAY_LIVE_API_KEY?.trim();
+  const liveSecret = process.env.KPAY_LIVE_SECRET_KEY?.trim();
+  const testApi = process.env.KPAY_TEST_API_KEY?.trim();
+  const testSecret = process.env.KPAY_TEST_SECRET_KEY?.trim();
+  const defaultApi = process.env.KPAY_API_KEY?.trim() ?? "";
+  const defaultSecret = process.env.KPAY_SECRET_KEY?.trim() ?? "";
+  const defaultIsTest = isKPayTestKey(defaultApi);
+
+  if (environment === "production") {
+    const apiKey = liveApi || (!defaultIsTest ? defaultApi : "");
+    const secretKey = liveSecret || (!defaultIsTest ? defaultSecret : "");
+    if (!apiKey || !secretKey) return null;
+    return { apiKey, secretKey };
+  }
+
+  const apiKey = testApi || (defaultIsTest ? defaultApi : "");
+  const secretKey = testSecret || (defaultIsTest ? defaultSecret : "");
+  if (!apiKey || !secretKey) return null;
+  return { apiKey, secretKey };
 }
 
 /**

@@ -1,9 +1,12 @@
 import { redirect } from "next/navigation";
-import { getAdminSession } from "@/lib/auth/session";
 import { WithdrawPanel } from "@/components/admin/WithdrawPanel";
+import { getAdminSession } from "@/lib/auth/session";
+import { isKPayTestMode } from "@/lib/kpay/environment";
 
 export default async function WithdrawPage() {
   const session = await getAdminSession();
   if (!session) redirect("/admin/login");
-  return <WithdrawPanel />;
+
+  const environment = isKPayTestMode() ? "test" : "production";
+  return <WithdrawPanel environment={environment} />;
 }

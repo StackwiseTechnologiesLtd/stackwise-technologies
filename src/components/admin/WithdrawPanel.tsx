@@ -1,18 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { formatMoney } from "@/lib/currency";
+import { useState } from "react";
+import { EnvironmentBadge } from "@/components/admin/EnvironmentBadge";
+import { WalletBalancesLoader } from "@/components/admin/WalletBalancesLoader";
 import { KPAY_WITHDRAW_PROVIDERS } from "@/lib/kpay/providers";
+import type { PaymentEnvironment } from "@/lib/kpay/environment";
 
-type Balance = {
-  currency: string;
-  balance: number;
-  reservedBalance: number;
-  availableBalance: number;
-};
-
-export function WithdrawPanel() {
-  const [balances, setBalances] = useState<Balance[]>([]);
+export function WithdrawPanel({
+  environment,
+}: {
+  environment: PaymentEnvironment;
+}) {
   const [amount, setAmount] = useState("");
   const [provider, setProvider] = useState("MPESA_KEN");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -20,15 +18,7 @@ export function WithdrawPanel() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetch("/api/admin/kpay/balance")
-      .then((res) => res.json())
-      .then((data: { balances?: Balance[]; error?: string }) => {
-        if (data.balances) setBalances(data.balances);
-      })
-      .catch(() => {});
-  }, []);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -55,9 +45,7 @@ export function WithdrawPanel() {
         `${data.withdrawal!.message} Reference: ${data.withdrawal!.reference}`,
       );
       setAmount("");
-      const refreshed = await fetch("/api/admin/kpay/balance");
-      const balanceData = (await refreshed.json()) as { balances?: Balance[] };
-      if (balanceData.balances) setBalances(balanceData.balances);
+      setRefreshKey((key) => key + 1);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Withdrawal failed");
     } finally {
@@ -72,28 +60,13 @@ export function WithdrawPanel() {
       <div>
         <h1 className="text-2xl font-semibold">Withdraw funds</h1>
         <p className="mt-1 text-sm text-muted">
-          Transfer from your KPay wallet to Mobile Money.
+          Transfer from your{" "}
+          <EnvironmentBadge environment={environment} compact /> KPay wallet to
+          Mobile Money.
         </p>
       </div>
 
-      {balances.length > 0 && (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {balances.map((wallet) => (
-            <div
-              key={wallet.currency}
-              className="rounded-xl border border-line bg-panel p-4"
-            >
-              <p className="text-sm text-muted">{wallet.currency} wallet</p>
-              <p className="mt-1 text-xl font-semibold">
-                {formatMoney(wallet.availableBalance, wallet.currency)}
-              </p>
-              <p className="mt-1 text-xs text-muted">
-                Reserved {formatMoney(wallet.reservedBalance, wallet.currency)}
-              </p>
-            </div>
-          ))}
-        </div>
-      )}
+      <WalletBalancesLoader environment={environment} refreshKey={refreshKey} />
 
       <form
         onSubmit={submit}
@@ -139,9 +112,11 @@ export function WithdrawPanel() {
             className="w-full rounded-lg border border-line bg-background px-3 py-2"
             placeholder="254703456789"
           />
-          <p className="text-xs text-muted">
-            Sandbox test (Kenya M-Pesa success): 254703456789
-          </p>
+          {environment === "test" && (
+            <p className="text-xs text-muted">
+              Sandbox test (Kenya M-Pesa success): 254703456789
+            </p>
+          )}
         </label>
 
         <label className="block space-y-2">
@@ -154,12 +129,8 @@ export function WithdrawPanel() {
           />
         </label>
 
-        {error && (
-          <p className="text-sm text-red-400">{error}</p>
-        )}
-        {success && (
-          <p className="text-sm text-emerald-400">{success}</p>
-        )}
+        {error && <p className="text-sm text-red-400">{error}</p>}
+        {success && <p className="text-sm text-emerald-400">{success}</p>}
 
         <button
           type="submit"

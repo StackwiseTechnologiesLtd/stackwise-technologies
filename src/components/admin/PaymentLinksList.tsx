@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { EnvironmentBadge } from "@/components/admin/EnvironmentBadge";
 import { StatusBadge } from "@/components/admin/StatusBadge";
+import { WalletBalancesLoader } from "@/components/admin/WalletBalancesLoader";
 import { formatMoney } from "@/lib/currency";
 import {
   resolvePaymentEnvironment,
   summarizePaymentLinks,
-  type PaymentLinkSummary,
   type PaymentEnvironment,
 } from "@/lib/kpay/environment";
 import type { PaymentLink } from "@/lib/payments/types";
@@ -84,58 +84,17 @@ function PaymentLinkRow({ link }: { link: PaymentLink }) {
   );
 }
 
-function SectionTotals({
-  environment,
-  summary,
-}: {
-  environment: PaymentEnvironment;
-  summary: PaymentLinkSummary;
-}) {
-  const localEntries = Object.entries(summary.localByCurrency);
-
-  return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-      <div className="rounded-xl border border-line bg-panel p-4">
-        <div className="flex items-center gap-2">
-          <EnvironmentBadge environment={environment} compact />
-          <p className="text-sm text-muted">Invoiced</p>
-        </div>
-        <p className="mt-1 text-xl font-semibold tabular-nums">
-          ${summary.totalUsd.toFixed(2)}
-        </p>
-        <p className="mt-1 text-xs text-muted">
-          {summary.count} link{summary.count === 1 ? "" : "s"}
-        </p>
-      </div>
-
-      <div className="rounded-xl border border-line bg-panel p-4">
-        <p className="text-sm text-muted">Collected (paid)</p>
-        <p className="mt-1 text-xl font-semibold tabular-nums">
-          ${summary.paidUsd.toFixed(2)}
-        </p>
-        <p className="mt-1 text-xs text-muted">
-          {summary.paidCount} paid
-        </p>
-      </div>
-
-      {localEntries.map(([currency, bucket]) => (
-        <div
-          key={currency}
-          className="rounded-xl border border-line bg-panel p-4"
-        >
-          <p className="text-sm text-muted">{currency} converted</p>
-          <p className="mt-1 text-xl font-semibold tabular-nums">
-            {formatMoney(bucket.total, currency)}
-          </p>
-          <p className="mt-1 text-xs text-muted">
-            {bucket.paidCount > 0
-              ? `${formatMoney(bucket.paid, currency)} collected`
-              : "No paid links yet"}
-          </p>
-        </div>
-      ))}
-    </div>
-  );
+function invoiceSummaryText(links: PaymentLink[]): string {
+  const summary = summarizePaymentLinks(links);
+  if (summary.count === 0) return "";
+  const parts = [
+    `${summary.count} link${summary.count === 1 ? "" : "s"}`,
+    `$${summary.totalUsd.toFixed(2)} invoiced`,
+  ];
+  if (summary.paidCount > 0) {
+    parts.push(`$${summary.paidUsd.toFixed(2)} paid`);
+  }
+  return parts.join(" · ");
 }
 
 function PaymentLinkSection({
@@ -151,21 +110,7 @@ function PaymentLinkSection({
   links: PaymentLink[];
   emptyMessage: string;
 }) {
-  const summary = summarizePaymentLinks(links);
-
-  if (links.length === 0) {
-    return (
-      <section className="space-y-3">
-        <div>
-          <h2 className="text-lg font-semibold">{title}</h2>
-          <p className="text-sm text-muted">{description}</p>
-        </div>
-        <div className="rounded-xl border border-dashed border-line bg-panel/40 px-4 py-8 text-center text-sm text-muted">
-          {emptyMessage}
-        </div>
-      </section>
-    );
-  }
+  const summaryText = invoiceSummaryText(links);
 
   return (
     <section className="space-y-4">
@@ -173,41 +118,48 @@ function PaymentLinkSection({
         <div>
           <h2 className="text-lg font-semibold">{title}</h2>
           <p className="text-sm text-muted">{description}</p>
+          {summaryText && (
+            <p className="mt-1 text-xs text-muted tabular-nums">{summaryText}</p>
+          )}
         </div>
-        <p className="text-sm text-muted">
-          {links.length} link{links.length === 1 ? "" : "s"}
-        </p>
       </div>
 
-      <SectionTotals environment={environment} summary={summary} />
+      <WalletBalancesLoader environment={environment} />
 
-      <div className="overflow-hidden rounded-xl border border-line">
-        {/* Mobile list */}
-        <div className="md:hidden">
-          {links.map((link) => (
-            <PaymentLinkRow key={link.id} link={link} />
-          ))}
+      {links.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-line bg-panel/40 px-4 py-8 text-center text-sm text-muted">
+          {emptyMessage}
         </div>
+      ) : (
 
-        {/* Desktop table */}
-        <table className="hidden w-full text-sm md:table">
-          <thead className="bg-panel text-left text-muted">
-            <tr>
-              <th className="px-4 py-3 font-medium">Invoice</th>
-              <th className="px-4 py-3 font-medium">Env</th>
-              <th className="px-4 py-3 font-medium">Customer</th>
-              <th className="px-4 py-3 font-medium">Amount</th>
-              <th className="px-4 py-3 font-medium">Status</th>
-              <th className="px-4 py-3 font-medium">Created</th>
-            </tr>
-          </thead>
-          <tbody>
+        <div className="overflow-hidden rounded-xl border border-line">
+          {/* Mobile list */}
+          <div className="md:hidden">
             {links.map((link) => (
               <PaymentLinkRow key={link.id} link={link} />
             ))}
-          </tbody>
-        </table>
-      </div>
+          </div>
+
+          {/* Desktop table */}
+          <table className="hidden w-full text-sm md:table">
+            <thead className="bg-panel text-left text-muted">
+              <tr>
+                <th className="px-4 py-3 font-medium">Invoice</th>
+                <th className="px-4 py-3 font-medium">Env</th>
+                <th className="px-4 py-3 font-medium">Customer</th>
+                <th className="px-4 py-3 font-medium">Amount</th>
+                <th className="px-4 py-3 font-medium">Status</th>
+                <th className="px-4 py-3 font-medium">Created</th>
+              </tr>
+            </thead>
+            <tbody>
+              {links.map((link) => (
+                <PaymentLinkRow key={link.id} link={link} />
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </section>
   );
 }
@@ -222,14 +174,14 @@ export function PaymentLinksList({ links }: { links: PaymentLink[] }) {
     <div className="space-y-8">
       <PaymentLinkSection
         title="Live payments"
-        description="Real KPay transactions — actual funds."
+        description="Real KPay wallet and payment links."
         environment="production"
         links={production}
         emptyMessage="No live payment links yet."
       />
       <PaymentLinkSection
         title="Test payments"
-        description="Sandbox KPay transactions — no real charges."
+        description="Sandbox KPay wallet and payment links."
         environment="test"
         links={test}
         emptyMessage="No test payment links yet."
