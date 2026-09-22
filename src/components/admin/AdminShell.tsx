@@ -59,7 +59,17 @@ export function AdminShell({ children }: { children: ReactNode }) {
           </div>
         </header>
       )}
-      <main className={isLogin ? "" : "mx-auto max-w-5xl px-4 py-8"}>
+      <main
+        className={
+          isLogin
+            ? ""
+            : `mx-auto px-4 py-8 ${
+                pathname.startsWith("/admin/payment-links/new")
+                  ? "max-w-7xl"
+                  : "max-w-5xl"
+              }`
+        }
+      >
         {children}
       </main>
     </div>
