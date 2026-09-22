@@ -28,7 +28,7 @@ export function InvoiceView({
       <InvoiceHeader compact={compact} />
 
       <div
-        className={`flex flex-wrap items-start justify-between gap-2 ${compact ? "mb-2" : "mb-4"}`}
+        className={`flex flex-wrap items-start justify-between gap-2 ${compact ? "mb-2" : "mb-3"}`}
       >
         <div className="min-w-0">
           <p
@@ -54,16 +54,16 @@ export function InvoiceView({
       </div>
 
       <div
-        className={`mb-6 grid gap-4 ${compact ? "text-xs" : "sm:grid-cols-2 text-sm"}`}
+        className={`mb-2 grid gap-4 ${compact ? "text-xs" : "sm:grid-cols-2 text-sm"}`}
       >
-        <div className="rounded-lg border border-[#eef2f6] bg-[#fafbfc] p-4">
+        <div className="rounded-lg border border-[#eef2f6] bg-[#fafbfc] p-2">
           <p className="text-xs font-medium uppercase tracking-wide text-[#64748b]">
             Bill to
           </p>
           <p className="mt-2 font-semibold text-[#0f172a]">{link.customerName}</p>
           <p className="mt-0.5 break-all text-[#64748b]">{link.customerEmail}</p>
         </div>
-        <div className="rounded-lg border border-[#eef2f6] bg-[#fafbfc] p-4 sm:text-right">
+        <div className="rounded-lg border border-[#eef2f6] bg-[#fafbfc] p-2 sm:text-right">
           <p className="text-xs font-medium uppercase tracking-wide text-[#64748b]">
             {isReceipt ? "Receipt details" : "Invoice details"}
           </p>
