@@ -1,9 +1,5 @@
 import Mark from "@/components/Mark";
-import {
-  BRAND_BURGUNDY,
-  COMPANY_TAGLINE,
-  companyFooterLines,
-} from "@/lib/company";
+import { BRAND_BURGUNDY, companyFooterLines } from "@/lib/company";
 
 export function InvoiceHeader({ compact = false }: { compact?: boolean }) {
   const [companyName, ...companyDetails] = companyFooterLines;
@@ -28,24 +24,6 @@ export function InvoiceHeader({ compact = false }: { compact?: boolean }) {
           >
             Stackwise
           </p>
-          {!compact && (
-            <>
-              <div
-                className="hidden h-10 w-px shrink-0 sm:block"
-                style={{ backgroundColor: BRAND_BURGUNDY }}
-                aria-hidden="true"
-              />
-              <p
-                className="hidden min-w-0 text-lg italic sm:block"
-                style={{
-                  color: BRAND_BURGUNDY,
-                  fontFamily: "Georgia, 'Times New Roman', serif",
-                }}
-              >
-                {COMPANY_TAGLINE}
-              </p>
-            </>
-          )}
         </div>
 
         <div
@@ -61,16 +39,6 @@ export function InvoiceHeader({ compact = false }: { compact?: boolean }) {
           ))}
         </div>
       </div>
-
-      <p
-        className={`text-base italic ${compact ? "mt-3" : "mt-4 sm:hidden"}`}
-        style={{
-          color: BRAND_BURGUNDY,
-          fontFamily: "Georgia, 'Times New Roman', serif",
-        }}
-      >
-        {COMPANY_TAGLINE}
-      </p>
     </header>
   );
 }

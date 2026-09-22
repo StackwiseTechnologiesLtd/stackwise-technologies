@@ -28,10 +28,10 @@ export function PayButton({ slug }: { slug: string }) {
         disabled={loading}
         className="w-full rounded-xl bg-accent px-6 py-4 text-lg font-semibold text-white transition hover:bg-accent-hover disabled:opacity-60"
       >
-        {loading ? "Redirecting to KPay…" : "Pay with Mobile Money or Card"}
+        {loading ? "Redirecting to KPay…" : "Pay with Card"}
       </button>
       <p className="text-center text-xs text-muted">
-        Secure payment via KPay — USSD (MTN, Orange, etc.) or Visa/Mastercard
+        Secure card payment via KPay — Visa/Mastercard. Mobile Money also available on the payment page.
       </p>
       {error && (
         <p className="rounded-lg border border-red-900 bg-red-950/40 px-4 py-3 text-sm text-red-300">
