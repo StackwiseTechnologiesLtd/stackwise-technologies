@@ -2,8 +2,10 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getAdminSession } from "@/lib/auth/session";
 import { getPaymentLinkById } from "@/lib/db/payment-links";
-import { InvoiceView } from "@/components/payments/InvoiceView";
+import { EnvironmentBadge } from "@/components/admin/EnvironmentBadge";
 import { SendLinkButton } from "@/components/admin/SendLinkButton";
+import { InvoiceView } from "@/components/payments/InvoiceView";
+import { resolvePaymentEnvironment } from "@/lib/kpay/environment";
 
 function siteUrl() {
   return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
@@ -31,7 +33,10 @@ export default async function PaymentLinkDetailPage({
             ← Back to dashboard
           </Link>
           <h1 className="mt-2 text-2xl font-semibold">{link.invoiceNumber}</h1>
-          <p className="text-sm text-muted">{link.customerName}</p>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <EnvironmentBadge environment={resolvePaymentEnvironment(link)} />
+            <p className="text-sm text-muted">{link.customerName}</p>
+          </div>
         </div>
         <div className="flex flex-wrap gap-3">
           <SendLinkButton id={link.id} />

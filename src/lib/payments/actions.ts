@@ -57,6 +57,7 @@ export async function createPaymentLink(
     notes: input.notes?.trim() ?? null,
     kpayPaymentId: null,
     kpayReference: null,
+    kpayIsTest: null,
     gatewayUrl: null,
     invoiceNumber: await nextInvoiceNumber(),
     sentAt: null,
@@ -92,6 +93,7 @@ export async function initiateKPayPayment(
     status: "PENDING",
     kpayPaymentId: payment.id,
     kpayReference: payment.reference,
+    kpayIsTest: payment.isTest,
     gatewayUrl: payment.gatewayUrl,
     updatedAt: Date.now(),
   };

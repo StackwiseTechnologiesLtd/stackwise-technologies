@@ -24,6 +24,20 @@ export async function ensureSchema(): Promise<void> {
     for (const statement of statements) {
       await sql.query(statement);
     }
+
+    const migrationsDir = path.join(process.cwd(), "migrations");
+    for (const file of fs.readdirSync(migrationsDir).sort()) {
+      if (file === "0001_neon_init.sql") continue;
+      if (!file.endsWith(".sql")) continue;
+      const extra = fs.readFileSync(path.join(migrationsDir, file), "utf8");
+      for (const statement of extra
+        .split(";")
+        .map((s) => s.trim())
+        .filter(Boolean)) {
+        await sql.query(statement);
+      }
+    }
+
     schemaReady = true;
   })();
 

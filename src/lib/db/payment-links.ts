@@ -27,6 +27,7 @@ function paymentLinkToRow(link: PaymentLink): PaymentLinkRow {
     notes: link.notes,
     kpay_payment_id: link.kpayPaymentId,
     kpay_reference: link.kpayReference,
+    kpay_is_test: link.kpayIsTest,
     gateway_url: link.gatewayUrl,
     invoice_number: link.invoiceNumber,
     sent_at: link.sentAt ? new Date(link.sentAt).toISOString() : null,
@@ -52,7 +53,7 @@ async function upsertRow(row: PaymentLinkRow): Promise<void> {
       INSERT INTO payment_links (
         id, slug, customer_name, customer_email, currency,
         amount_usd, amount_local, exchange_rate, status, line_items,
-        notes, kpay_payment_id, kpay_reference, gateway_url,
+        notes, kpay_payment_id, kpay_reference, kpay_is_test, gateway_url,
         invoice_number, sent_at, paid_at, receipt_sent_at, created_at, updated_at
       ) VALUES (
         ${row.id}::uuid,
@@ -68,6 +69,7 @@ async function upsertRow(row: PaymentLinkRow): Promise<void> {
         ${row.notes},
         ${row.kpay_payment_id},
         ${row.kpay_reference},
+        ${row.kpay_is_test},
         ${row.gateway_url},
         ${row.invoice_number},
         ${row.sent_at},
@@ -89,6 +91,7 @@ async function upsertRow(row: PaymentLinkRow): Promise<void> {
         notes = EXCLUDED.notes,
         kpay_payment_id = EXCLUDED.kpay_payment_id,
         kpay_reference = EXCLUDED.kpay_reference,
+        kpay_is_test = EXCLUDED.kpay_is_test,
         gateway_url = EXCLUDED.gateway_url,
         invoice_number = EXCLUDED.invoice_number,
         sent_at = EXCLUDED.sent_at,

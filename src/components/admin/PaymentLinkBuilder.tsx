@@ -80,6 +80,7 @@ export function PaymentLinkBuilder() {
       notes: notes.trim() || null,
       kpayPaymentId: null,
       kpayReference: previewMode === "receipt" ? "PREVIEW-REF" : null,
+      kpayIsTest: null,
       gatewayUrl: null,
       invoiceNumber: "SW-PREVIEW",
       sentAt: null,

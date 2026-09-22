@@ -38,6 +38,32 @@ echo "    tag:     ${TAG}"
 echo "    message: ${MESSAGE}"
 echo
 
+ENV_PROD="${ROOT}/.env.prod"
+PROD_LOCAL="${ROOT}/.env.production.local"
+PROD_LOCAL_BACKUP=""
+if [[ -f "$ENV_PROD" ]]; then
+  echo "==> Applying .env.prod for Next.js production build"
+  if [[ -f "$PROD_LOCAL" ]]; then
+    PROD_LOCAL_BACKUP="${PROD_LOCAL}.deploy-backup"
+    cp "$PROD_LOCAL" "$PROD_LOCAL_BACKUP"
+  fi
+  cp "$ENV_PROD" "$PROD_LOCAL"
+else
+  echo "warning: .env.prod not found — NEXT_PUBLIC_* may default to localhost" >&2
+fi
+
+cleanup_prod_local() {
+  if [[ -n "$PROD_LOCAL_BACKUP" && -f "$PROD_LOCAL_BACKUP" ]]; then
+    mv "$PROD_LOCAL_BACKUP" "$PROD_LOCAL"
+  elif [[ -f "$PROD_LOCAL" && -f "$ENV_PROD" ]]; then
+    rm -f "$PROD_LOCAL"
+  fi
+}
+trap cleanup_prod_local EXIT
+
+echo "==> Syncing Cloudflare Worker secrets from .env.prod"
+node scripts/sync-cloudflare-env.mjs .env.prod
+
 echo "==> Building OpenNext Cloudflare worker"
 npm run build:worker
 

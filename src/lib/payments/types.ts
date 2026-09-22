@@ -29,6 +29,7 @@ export type PaymentLink = {
   notes: string | null;
   kpayPaymentId: string | null;
   kpayReference: string | null;
+  kpayIsTest: boolean | null;
   gatewayUrl: string | null;
   invoiceNumber: string;
   sentAt: number | null;
@@ -52,6 +53,7 @@ export type PaymentLinkRow = {
   notes: string | null;
   kpay_payment_id: string | null;
   kpay_reference: string | null;
+  kpay_is_test: boolean | null;
   gateway_url: string | null;
   invoice_number: string;
   sent_at: Date | string | null;
@@ -98,6 +100,7 @@ export function rowToPaymentLink(row: PaymentLinkRow): PaymentLink {
     notes: row.notes,
     kpayPaymentId: row.kpay_payment_id,
     kpayReference: row.kpay_reference,
+    kpayIsTest: row.kpay_is_test,
     gatewayUrl: row.gateway_url,
     invoiceNumber: row.invoice_number,
     sentAt: toMs(row.sent_at),
