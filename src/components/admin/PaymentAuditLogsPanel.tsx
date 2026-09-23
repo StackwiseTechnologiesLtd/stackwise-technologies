@@ -8,6 +8,7 @@ import type {
   PaymentAuditLogWithLink,
 } from "@/lib/db/payment-audit";
 import { PAYMENT_AUDIT_EVENT_LABELS } from "@/lib/payments/audit-labels";
+import { BTN_GHOST } from "@/lib/ui/buttons";
 
 const PAGE_SIZE = 10;
 
@@ -17,6 +18,7 @@ const EVENT_OPTIONS: Array<PaymentAuditEvent | "ALL"> = [
   "PAYMENT_INIT",
   "RECEIPT_VIEW",
   "RETURN_CALLBACK",
+  "MANUAL_PAYMENT_RECORDED",
 ];
 
 type AuditRow = PaymentAuditLog | PaymentAuditLogWithLink;
@@ -125,7 +127,7 @@ export function PaymentAuditLogsPanel({
             type="button"
             disabled={currentPage <= 1}
             onClick={() => setPage((p) => Math.max(1, p - 1))}
-            className="rounded-lg border border-line px-3 py-1.5 disabled:opacity-40"
+            className={`border border-line ${BTN_GHOST}`}
           >
             Previous
           </button>
@@ -136,7 +138,7 @@ export function PaymentAuditLogsPanel({
             type="button"
             disabled={currentPage >= totalPages}
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            className="rounded-lg border border-line px-3 py-1.5 disabled:opacity-40"
+            className={`border border-line ${BTN_GHOST}`}
           >
             Next
           </button>

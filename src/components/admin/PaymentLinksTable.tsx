@@ -6,6 +6,7 @@ import { EnvironmentBadge } from "@/components/admin/EnvironmentBadge";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { formatMoney } from "@/lib/currency";
 import { formatDateTime } from "@/lib/format-datetime";
+import { BTN_GHOST } from "@/lib/ui/buttons";
 import { resolvePaymentEnvironment } from "@/lib/kpay/environment";
 import type { PaymentLink, PaymentLinkStatus } from "@/lib/payments/types";
 
@@ -219,7 +220,7 @@ export function PaymentLinksTable({ links }: { links: PaymentLink[] }) {
             type="button"
             disabled={currentPage <= 1}
             onClick={() => setPage((p) => Math.max(1, p - 1))}
-            className="rounded-lg border border-line px-3 py-1.5 disabled:opacity-40"
+            className={`border border-line ${BTN_GHOST}`}
           >
             Previous
           </button>
@@ -230,7 +231,7 @@ export function PaymentLinksTable({ links }: { links: PaymentLink[] }) {
             type="button"
             disabled={currentPage >= totalPages}
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            className="rounded-lg border border-line px-3 py-1.5 disabled:opacity-40"
+            className={`border border-line ${BTN_GHOST}`}
           >
             Next
           </button>

@@ -10,6 +10,8 @@ export type PaymentLinkStatus =
   | "CANCELLED"
   | "EXPIRED";
 
+export type PaymentSource = "KPAY" | "MANUAL";
+
 export type LineItem = {
   serviceId: string;
   name: string;
@@ -39,6 +41,13 @@ export type PaymentLink = {
   sentAt: number | null;
   paidAt: number | null;
   receiptSentAt: number | null;
+  paymentSource: PaymentSource | null;
+  paymentMethod: string | null;
+  amountReceivedUsd: number | null;
+  amountReceivedLocal: number | null;
+  collectedAt: number | null;
+  paymentReference: string | null;
+  paymentNotes: string | null;
   createdAt: number;
   updatedAt: number;
 };
@@ -64,6 +73,13 @@ export type PaymentLinkRow = {
   sent_at: Date | string | null;
   paid_at: Date | string | null;
   receipt_sent_at: Date | string | null;
+  payment_source: string | null;
+  payment_method: string | null;
+  amount_received_usd: string | number | null;
+  amount_received_local: string | number | null;
+  collected_at: Date | string | null;
+  payment_reference: string | null;
+  payment_notes: string | null;
   created_at: Date | string;
   updated_at: Date | string;
 };
@@ -123,6 +139,18 @@ export function rowToPaymentLink(row: PaymentLinkRow): PaymentLink {
     sentAt: toMs(row.sent_at),
     paidAt: toMs(row.paid_at),
     receiptSentAt: toMs(row.receipt_sent_at),
+    paymentSource:
+      row.payment_source === "MANUAL" || row.payment_source === "KPAY"
+        ? row.payment_source
+        : null,
+    paymentMethod: row.payment_method,
+    amountReceivedUsd:
+      row.amount_received_usd != null ? Number(row.amount_received_usd) : null,
+    amountReceivedLocal:
+      row.amount_received_local != null ? Number(row.amount_received_local) : null,
+    collectedAt: toMs(row.collected_at),
+    paymentReference: row.payment_reference,
+    paymentNotes: row.payment_notes,
     createdAt: toMs(row.created_at) ?? Date.now(),
     updatedAt: toMs(row.updated_at) ?? Date.now(),
   };

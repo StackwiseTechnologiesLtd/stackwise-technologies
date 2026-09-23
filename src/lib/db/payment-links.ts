@@ -36,6 +36,13 @@ function paymentLinkToRow(link: PaymentLink): PaymentLinkRow {
     receipt_sent_at: link.receiptSentAt
       ? new Date(link.receiptSentAt).toISOString()
       : null,
+    payment_source: link.paymentSource,
+    payment_method: link.paymentMethod,
+    amount_received_usd: link.amountReceivedUsd,
+    amount_received_local: link.amountReceivedLocal,
+    collected_at: link.collectedAt ? new Date(link.collectedAt).toISOString() : null,
+    payment_reference: link.paymentReference,
+    payment_notes: link.paymentNotes,
     created_at: new Date(link.createdAt).toISOString(),
     updated_at: new Date(link.updatedAt).toISOString(),
   };
@@ -56,6 +63,8 @@ async function upsertRow(row: PaymentLinkRow): Promise<void> {
         amount_usd, amount_local, exchange_rate, status, line_items,
         notes, kpay_payment_id, kpay_reference, kpay_is_test, gateway_url,
         allowed_payment_methods, invoice_number, sent_at, paid_at, receipt_sent_at,
+        payment_source, payment_method, amount_received_usd, amount_received_local,
+        collected_at, payment_reference, payment_notes,
         created_at, updated_at
       ) VALUES (
         ${row.id}::uuid,
@@ -78,6 +87,13 @@ async function upsertRow(row: PaymentLinkRow): Promise<void> {
         ${row.sent_at},
         ${row.paid_at},
         ${row.receipt_sent_at},
+        ${row.payment_source},
+        ${row.payment_method},
+        ${row.amount_received_usd},
+        ${row.amount_received_local},
+        ${row.collected_at},
+        ${row.payment_reference},
+        ${row.payment_notes},
         ${row.created_at},
         ${row.updated_at}
       )
@@ -101,6 +117,13 @@ async function upsertRow(row: PaymentLinkRow): Promise<void> {
         sent_at = EXCLUDED.sent_at,
         paid_at = EXCLUDED.paid_at,
         receipt_sent_at = EXCLUDED.receipt_sent_at,
+        payment_source = EXCLUDED.payment_source,
+        payment_method = EXCLUDED.payment_method,
+        amount_received_usd = EXCLUDED.amount_received_usd,
+        amount_received_local = EXCLUDED.amount_received_local,
+        collected_at = EXCLUDED.collected_at,
+        payment_reference = EXCLUDED.payment_reference,
+        payment_notes = EXCLUDED.payment_notes,
         updated_at = EXCLUDED.updated_at
     `;
     return;

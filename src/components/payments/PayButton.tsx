@@ -1,8 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useToast } from "@/components/ToastProvider";
 import type { CheckoutPaymentMethod } from "@/lib/kpay/buildGatewayInit";
 import { resolveCheckoutMethods, type PaymentMethodsOption } from "@/lib/payments/payment-methods";
+import { BTN_PRESS } from "@/lib/ui/buttons";
 
 const PAY_INIT_TIMEOUT_MS = 30_000;
 
@@ -33,8 +35,8 @@ export function PayButton({
   amountUsd: number;
   sticky?: boolean;
 }) {
+  const toast = useToast();
   const [loading, setLoading] = useState<CheckoutPaymentMethod | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   const methods = useMemo(
     () => resolveCheckoutMethods(allowedPaymentMethods, amountUsd),
@@ -43,7 +45,6 @@ export function PayButton({
 
   async function pay(method: CheckoutPaymentMethod) {
     setLoading(method);
-    setError(null);
 
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), PAY_INIT_TIMEOUT_MS);
@@ -61,9 +62,9 @@ export function PayButton({
       window.location.assign(data.gatewayUrl);
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") {
-        setError("Payment request timed out. Please try again.");
+        toast.error("Payment request timed out. Please try again.");
       } else {
-        setError(err instanceof Error ? err.message : "Payment failed");
+        toast.error(err instanceof Error ? err.message : "Payment failed");
       }
       setLoading(null);
     } finally {
@@ -93,7 +94,7 @@ export function PayButton({
             type="button"
             onClick={() => pay("CARD")}
             disabled={loading !== null}
-            className="min-h-14 touch-manipulation rounded-xl bg-accent px-6 py-4 text-base font-semibold text-white transition hover:bg-accent-hover active:scale-[0.99] disabled:opacity-60"
+            className={`min-h-14 rounded-xl bg-accent px-6 py-4 text-base font-semibold text-white hover:bg-accent-hover ${BTN_PRESS}`}
           >
             {loading === "CARD" ? "Redirecting to KPay…" : "Pay with Card"}
           </button>
@@ -103,7 +104,7 @@ export function PayButton({
             type="button"
             onClick={() => pay("MOBILE_MONEY")}
             disabled={loading !== null}
-            className="min-h-14 touch-manipulation rounded-xl border border-line bg-panel px-6 py-4 text-base font-semibold transition hover:bg-panel-hover active:scale-[0.99] disabled:opacity-60"
+            className={`min-h-14 rounded-xl border border-line bg-panel px-6 py-4 text-base font-semibold hover:bg-panel-hover ${BTN_PRESS}`}
           >
             {loading === "MOBILE_MONEY"
               ? "Redirecting to KPay…"
@@ -119,11 +120,6 @@ export function PayButton({
             : methods.includes("CARD")
               ? " — Visa/Mastercard"
               : " — Mobile Money (M-Pesa, MTN, Orange, etc.)"}
-        </p>
-      )}
-      {error && (
-        <p className="rounded-lg border border-red-900 bg-red-950/40 px-4 py-3 text-sm text-red-300">
-          {error}
         </p>
       )}
     </div>

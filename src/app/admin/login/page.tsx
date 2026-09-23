@@ -4,22 +4,21 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { OtpInput } from "@/components/admin/OtpInput";
 import Mark from "@/components/Mark";
+import { useToast } from "@/components/ToastProvider";
 import { SITE_NAME } from "@/lib/content";
+import { BTN_GHOST, BTN_PRIMARY } from "@/lib/ui/buttons";
 
 export default function AdminLoginPage() {
   const router = useRouter();
+  const toast = useToast();
   const [step, setStep] = useState<"email" | "otp">("email");
   const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
 
   async function sendOtp(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    setError(null);
-    setMessage(null);
     try {
       const res = await fetch("/api/admin/login/otp/send", {
         method: "POST",
@@ -29,9 +28,9 @@ export default function AdminLoginPage() {
       const data = (await res.json()) as { error?: string };
       if (!res.ok) throw new Error(data.error ?? "Unable to send code");
       setStep("otp");
-      setMessage("If your email is authorized, a verification code was sent.");
+      toast.toast("If your email is authorized, a verification code was sent.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to send code");
+      toast.error(err instanceof Error ? err.message : "Unable to send code");
     } finally {
       setLoading(false);
     }
@@ -39,7 +38,6 @@ export default function AdminLoginPage() {
 
   async function verifyOtpWithCode(code: string) {
     setLoading(true);
-    setError(null);
     try {
       const res = await fetch("/api/admin/login/otp/verify", {
         method: "POST",
@@ -51,7 +49,7 @@ export default function AdminLoginPage() {
       router.push("/admin");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Invalid code");
+      toast.error(err instanceof Error ? err.message : "Invalid code");
     } finally {
       setLoading(false);
     }
@@ -86,11 +84,10 @@ export default function AdminLoginPage() {
                 placeholder="you@stackwisetechnologies.com"
               />
             </label>
-            {error && <p className="text-sm text-red-400">{error}</p>}
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-lg bg-accent py-2.5 font-medium text-white transition hover:bg-accent-hover disabled:opacity-50"
+              className={`w-full py-2.5 ${BTN_PRIMARY}`}
             >
               {loading ? "Sending code…" : "Send verification code"}
             </button>
@@ -116,12 +113,10 @@ export default function AdminLoginPage() {
                 }}
               />
             </div>
-            {message && <p className="text-sm text-muted">{message}</p>}
-            {error && <p className="text-sm text-red-400">{error}</p>}
             <button
               type="submit"
               disabled={loading || otp.length !== 6}
-              className="w-full rounded-lg bg-accent py-2.5 font-medium text-white transition hover:bg-accent-hover disabled:opacity-50"
+              className={`w-full py-2.5 ${BTN_PRIMARY}`}
             >
               {loading ? "Verifying…" : "Sign in"}
             </button>
@@ -130,9 +125,8 @@ export default function AdminLoginPage() {
               onClick={() => {
                 setStep("email");
                 setOtp("");
-                setError(null);
               }}
-              className="w-full text-sm text-muted hover:text-foreground"
+              className={`w-full ${BTN_GHOST}`}
             >
               Use a different email
             </button>

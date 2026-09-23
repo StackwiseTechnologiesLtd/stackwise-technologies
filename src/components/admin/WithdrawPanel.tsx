@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { EnvironmentBadge } from "@/components/admin/EnvironmentBadge";
 import { WalletBalancesLoader } from "@/components/admin/WalletBalancesLoader";
-import { KPAY_WITHDRAW_PROVIDERS } from "@/lib/kpay/providers";
+import { useToast } from "@/components/ToastProvider";
 import type { PaymentEnvironment } from "@/lib/kpay/environment";
+import { KPAY_WITHDRAW_PROVIDERS } from "@/lib/kpay/providers";
+import { BTN_PRIMARY } from "@/lib/ui/buttons";
 
 export function WithdrawPanel({
   environment,
@@ -15,16 +17,13 @@ export function WithdrawPanel({
   const [provider, setProvider] = useState("MPESA_KEN");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [description, setDescription] = useState("");
+  const toast = useToast();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    setError(null);
-    setSuccess(null);
     try {
       const res = await fetch("/api/admin/kpay/withdraw", {
         method: "POST",
@@ -41,13 +40,13 @@ export function WithdrawPanel({
         error?: string;
       };
       if (!res.ok) throw new Error(data.error ?? "Withdrawal failed");
-      setSuccess(
+      toast.success(
         `${data.withdrawal!.message} Reference: ${data.withdrawal!.reference}`,
       );
       setAmount("");
       setRefreshKey((key) => key + 1);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Withdrawal failed");
+      toast.error(err instanceof Error ? err.message : "Withdrawal failed");
     } finally {
       setLoading(false);
     }
@@ -129,13 +128,10 @@ export function WithdrawPanel({
           />
         </label>
 
-        {error && <p className="text-sm text-red-400">{error}</p>}
-        {success && <p className="text-sm text-emerald-400">{success}</p>}
-
         <button
           type="submit"
           disabled={loading}
-          className="rounded-lg bg-accent px-4 py-2 font-medium text-white transition hover:bg-accent-hover disabled:opacity-50"
+          className={BTN_PRIMARY}
         >
           {loading ? "Processing…" : "Withdraw to Mobile Money"}
         </button>

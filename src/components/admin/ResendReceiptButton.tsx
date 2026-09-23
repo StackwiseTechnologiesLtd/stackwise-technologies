@@ -5,23 +5,23 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ToastProvider";
 import { BTN_SECONDARY } from "@/lib/ui/buttons";
 
-export function SendLinkButton({ id }: { id: string }) {
+export function ResendReceiptButton({ id }: { id: string }) {
   const router = useRouter();
   const toast = useToast();
   const [loading, setLoading] = useState(false);
 
-  async function send() {
+  async function resend() {
     setLoading(true);
     try {
-      const res = await fetch(`/api/admin/payment-links/${id}/send`, {
+      const res = await fetch(`/api/admin/payment-links/${id}/resend-receipt`, {
         method: "POST",
       });
       const data = (await res.json()) as { error?: string };
-      if (!res.ok) throw new Error(data.error ?? "Failed to send");
-      toast.success("Payment link emailed to customer.");
+      if (!res.ok) throw new Error(data.error ?? "Failed to send receipt");
+      toast.success("Receipt emailed to customer.");
       router.refresh();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to send");
+      toast.error(err instanceof Error ? err.message : "Failed to send receipt");
     } finally {
       setLoading(false);
     }
@@ -30,11 +30,11 @@ export function SendLinkButton({ id }: { id: string }) {
   return (
     <button
       type="button"
-      onClick={send}
+      onClick={resend}
       disabled={loading}
-      className={BTN_SECONDARY}
+      className={`text-sm ${BTN_SECONDARY}`}
     >
-      {loading ? "Sending…" : "Email payment link"}
+      {loading ? "Sending…" : "Email receipt"}
     </button>
   );
 }

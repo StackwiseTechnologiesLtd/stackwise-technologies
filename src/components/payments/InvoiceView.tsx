@@ -5,6 +5,12 @@ import { BRAND_BURGUNDY } from "@/lib/company";
 import { EMAIL } from "@/lib/content";
 import { formatMoney } from "@/lib/currency";
 import { formatDate, formatDateTime } from "@/lib/format-datetime";
+import { formatPaymentMethodLabel } from "@/lib/payments/manual-payment-methods";
+import {
+  displayPaymentReference,
+  paidAmountLocal,
+  paidAmountUsd,
+} from "@/lib/payments/manual-payment";
 import type { PaymentLink } from "@/lib/payments/types";
 
 export function InvoiceView({
@@ -22,6 +28,14 @@ export function InvoiceView({
 }) {
   const isReceipt = variant === "receipt" || link.status === "PAID";
   const title = isReceipt ? "Receipt" : "Invoice";
+  const reference = displayPaymentReference(link);
+  const collectionTime = link.collectedAt ?? link.paidAt;
+  const showPaymentDetails =
+    isReceipt &&
+    (link.paymentSource === "MANUAL" ||
+      link.paymentMethod ||
+      link.paymentNotes ||
+      link.amountReceivedUsd != null);
 
   return (
     <article
@@ -77,16 +91,65 @@ export function InvoiceView({
               {formatDateTime(link.createdAt)}
             </span>
           </p>
-          {link.kpayReference && (
+          {reference && !showPaymentDetails && (
             <p className="mt-2">
               <span className="text-[#64748b]">Reference </span>
               <span className="font-mono text-[11px] font-medium sm:text-xs">
-                {link.kpayReference}
+                {reference}
               </span>
             </p>
           )}
         </div>
       </div>
+
+      {showPaymentDetails && (
+        <div
+          className={`mb-4 rounded-lg border border-[#eef2f6] bg-[#fafbfc] ${compact ? "p-3 text-xs" : "p-4 text-sm"}`}
+        >
+          <p className="text-xs font-medium uppercase tracking-wide text-[#64748b]">
+            Payment details
+          </p>
+          <dl className={`mt-3 grid gap-3 ${compact ? "" : "sm:grid-cols-2"}`}>
+            {link.paymentMethod && (
+              <div>
+                <dt className="text-[#64748b]">Method</dt>
+                <dd className="font-medium text-[#0f172a]">
+                  {formatPaymentMethodLabel(link.paymentMethod)}
+                </dd>
+              </div>
+            )}
+            {collectionTime && (
+              <div>
+                <dt className="text-[#64748b]">Collected</dt>
+                <dd className="font-medium tabular-nums text-[#0f172a]">
+                  {formatDateTime(collectionTime)}
+                </dd>
+              </div>
+            )}
+            <div>
+              <dt className="text-[#64748b]">Amount received</dt>
+              <dd className="font-medium tabular-nums text-[#0f172a]">
+                ${paidAmountUsd(link).toFixed(2)} USD ·{" "}
+                {formatMoney(paidAmountLocal(link), link.currency)}
+              </dd>
+            </div>
+            {reference && (
+              <div>
+                <dt className="text-[#64748b]">Reference</dt>
+                <dd className="font-mono text-[11px] font-medium text-[#0f172a] sm:text-xs">
+                  {reference}
+                </dd>
+              </div>
+            )}
+          </dl>
+          {link.paymentNotes && (
+            <p className={`mt-3 text-[#64748b] ${compact ? "text-xs" : "text-sm"}`}>
+              <span className="font-medium text-[#475569]">Notes: </span>
+              {link.paymentNotes}
+            </p>
+          )}
+        </div>
+      )}
 
       <div className={compact ? "" : "overflow-x-auto"}>
         <table className={`mb-6 w-full ${compact ? "text-xs" : "min-w-120 text-sm"}`}>
@@ -167,7 +230,9 @@ export function InvoiceView({
                 }`}
             >
               <span>{isReceipt ? "Amount paid" : "Amount due"}</span>
-              <span className="tabular-nums">${link.amountUsd.toFixed(2)} USD</span>
+              <span className="tabular-nums">
+                ${(isReceipt ? paidAmountUsd(link) : link.amountUsd).toFixed(2)} USD
+              </span>
             </div>
           </div>
 

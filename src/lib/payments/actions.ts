@@ -71,6 +71,13 @@ export async function createPaymentLink(
     sentAt: null,
     paidAt: null,
     receiptSentAt: null,
+    paymentSource: null,
+    paymentMethod: null,
+    amountReceivedUsd: null,
+    amountReceivedLocal: null,
+    collectedAt: null,
+    paymentReference: null,
+    paymentNotes: null,
     createdAt: now,
     updatedAt: now,
   };

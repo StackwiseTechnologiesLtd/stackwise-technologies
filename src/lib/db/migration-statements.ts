@@ -81,9 +81,20 @@ const ALLOWED_PAYMENT_METHODS_SQL = `
 ALTER TABLE payment_links ADD COLUMN IF NOT EXISTS allowed_payment_methods VARCHAR(20) NOT NULL DEFAULT 'BOTH';
 `;
 
+const MANUAL_PAYMENT_FIELDS_SQL = `
+ALTER TABLE payment_links ADD COLUMN IF NOT EXISTS payment_source VARCHAR(20);
+ALTER TABLE payment_links ADD COLUMN IF NOT EXISTS payment_method VARCHAR(32);
+ALTER TABLE payment_links ADD COLUMN IF NOT EXISTS amount_received_usd NUMERIC(12, 2);
+ALTER TABLE payment_links ADD COLUMN IF NOT EXISTS amount_received_local NUMERIC(14, 2);
+ALTER TABLE payment_links ADD COLUMN IF NOT EXISTS collected_at TIMESTAMPTZ;
+ALTER TABLE payment_links ADD COLUMN IF NOT EXISTS payment_reference TEXT;
+ALTER TABLE payment_links ADD COLUMN IF NOT EXISTS payment_notes TEXT;
+`;
+
 export const MIGRATION_STATEMENTS = [
   ...splitStatements(INIT_SQL),
   ...splitStatements(KPAY_IS_TEST_SQL),
   ...splitStatements(PAYMENT_AUDIT_LOGS_SQL),
   ...splitStatements(ALLOWED_PAYMENT_METHODS_SQL),
+  ...splitStatements(MANUAL_PAYMENT_FIELDS_SQL),
 ];

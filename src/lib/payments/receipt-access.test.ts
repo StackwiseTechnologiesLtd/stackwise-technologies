@@ -24,6 +24,13 @@ function link(status: PaymentLink["status"]): PaymentLink {
     sentAt: null,
     paidAt: null,
     receiptSentAt: null,
+    paymentSource: null,
+    paymentMethod: null,
+    amountReceivedUsd: null,
+    amountReceivedLocal: null,
+    collectedAt: null,
+    paymentReference: null,
+    paymentNotes: null,
     createdAt: Date.now(),
     updatedAt: Date.now(),
   };

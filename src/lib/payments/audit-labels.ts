@@ -5,6 +5,7 @@ export const PAYMENT_AUDIT_EVENT_LABELS: Record<PaymentAuditEvent, string> = {
   PAYMENT_INIT: "Payment started",
   RECEIPT_VIEW: "Receipt viewed",
   RETURN_CALLBACK: "KPay return",
+  MANUAL_PAYMENT_RECORDED: "Manual payment recorded",
 };
 
 export { formatDateTime as formatAuditTimestamp } from "@/lib/format-datetime";

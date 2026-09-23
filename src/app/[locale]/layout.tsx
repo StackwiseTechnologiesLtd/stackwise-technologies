@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import { notFound } from "next/navigation";
+import { ClientProviders } from "@/components/ClientProviders";
 import { createPageMetadata } from "@/lib/metadata";
 import { isLocale, locales, type Locale } from "@/lib/content";
 import "../../styles/globals.css";
@@ -122,7 +123,7 @@ export default async function LocaleLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-background font-sans text-foreground">
-        {children}
+        <ClientProviders>{children}</ClientProviders>
       </body>
     </html>
   );

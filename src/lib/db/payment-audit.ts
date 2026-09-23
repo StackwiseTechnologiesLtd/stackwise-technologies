@@ -6,7 +6,8 @@ export type PaymentAuditEvent =
   | "PAY_PAGE_VIEW"
   | "PAYMENT_INIT"
   | "RECEIPT_VIEW"
-  | "RETURN_CALLBACK";
+  | "RETURN_CALLBACK"
+  | "MANUAL_PAYMENT_RECORDED";
 
 export type PaymentAuditLog = {
   id: string;

@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { InvoiceView } from "@/components/payments/InvoiceView";
+import { useToast } from "@/components/ToastProvider";
+import { BTN_GHOST, BTN_PRESS, BTN_PRIMARY, BTN_SECONDARY } from "@/lib/ui/buttons";
 import { formatMoney } from "@/lib/currency";
 import { KPAY_CARD_MAX_USD } from "@/lib/kpay/buildGatewayInit";
 import { SERVICES_CATALOG } from "@/lib/services-catalog";
@@ -21,6 +23,7 @@ function newKey() {
 
 export function PaymentLinkBuilder() {
   const router = useRouter();
+  const toast = useToast();
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [currency, setCurrency] = useState("KES");
@@ -38,7 +41,6 @@ export function PaymentLinkBuilder() {
     null,
   );
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [previewMode, setPreviewMode] = useState<"invoice" | "receipt">("invoice");
 
   const totalUsd = useMemo(
@@ -127,6 +129,13 @@ export function PaymentLinkBuilder() {
       sentAt: null,
       paidAt: previewMode === "receipt" ? now : null,
       receiptSentAt: null,
+      paymentSource: previewMode === "receipt" ? "MANUAL" : null,
+      paymentMethod: previewMode === "receipt" ? "BANK_TRANSFER" : null,
+      amountReceivedUsd: previewMode === "receipt" ? totalUsd : null,
+      amountReceivedLocal: previewMode === "receipt" ? (fx?.converted ?? 0) : null,
+      collectedAt: previewMode === "receipt" ? now : null,
+      paymentReference: previewMode === "receipt" ? "PREVIEWREF" : null,
+      paymentNotes: previewMode === "receipt" ? "Sample payment notes" : null,
       createdAt: now,
       updatedAt: now,
     };
@@ -170,7 +179,6 @@ export function PaymentLinkBuilder() {
   }
 
   async function submit(saveOnly: boolean) {
-    setError(null);
     setLoading(true);
     try {
       if (!customerName.trim() || !customerEmail.trim()) {
@@ -206,7 +214,7 @@ export function PaymentLinkBuilder() {
       router.push(`/admin/payment-links/${data.link!.id}`);
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      toast.error(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -360,7 +368,7 @@ export function PaymentLinkBuilder() {
                     <button
                       type="button"
                       onClick={() => removeItem(item.key)}
-                      className="self-end text-sm text-muted hover:text-accent"
+                      className={`self-end text-sm text-muted hover:text-accent ${BTN_GHOST}`}
                     >
                       Remove
                     </button>
@@ -417,18 +425,12 @@ export function PaymentLinkBuilder() {
             </div>
           </section>
 
-          {error && (
-            <p className="rounded-lg border border-red-900 bg-red-950/40 px-4 py-3 text-sm text-red-300">
-              {error}
-            </p>
-          )}
-
           <div className="flex flex-wrap gap-3">
             <button
               type="button"
               disabled={loading || items.length === 0}
               onClick={() => submit(false)}
-              className="rounded-lg bg-accent px-4 py-2 font-medium text-white transition hover:bg-accent-hover disabled:opacity-50"
+              className={BTN_PRIMARY}
             >
               {loading ? "Creating…" : sendEmail ? "Create & send" : "Create link"}
             </button>
@@ -436,7 +438,7 @@ export function PaymentLinkBuilder() {
               type="button"
               disabled={loading || items.length === 0}
               onClick={() => submit(true)}
-              className="rounded-lg border border-line px-4 py-2 transition hover:bg-panel-hover disabled:opacity-50"
+              className={BTN_SECONDARY}
             >
               Save as draft
             </button>
@@ -453,7 +455,7 @@ export function PaymentLinkBuilder() {
               <button
                 type="button"
                 onClick={() => setPreviewMode("invoice")}
-                className={`rounded-md px-3 py-1.5 transition ${
+                className={`rounded-md px-3 py-1.5 ${BTN_PRESS} ${
                   previewMode === "invoice"
                     ? "bg-panel font-medium text-foreground shadow-sm"
                     : "text-muted hover:text-foreground"
@@ -464,7 +466,7 @@ export function PaymentLinkBuilder() {
               <button
                 type="button"
                 onClick={() => setPreviewMode("receipt")}
-                className={`rounded-md px-3 py-1.5 transition ${
+                className={`rounded-md px-3 py-1.5 ${BTN_PRESS} ${
                   previewMode === "receipt"
                     ? "bg-panel font-medium text-foreground shadow-sm"
                     : "text-muted hover:text-foreground"

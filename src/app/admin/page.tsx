@@ -5,6 +5,7 @@ import { PaymentLinksList } from "@/components/admin/PaymentLinksList";
 import { getAdminSession } from "@/lib/auth/session";
 import { listPaymentLinks } from "@/lib/db/payment-links";
 import { isKPayTestMode } from "@/lib/kpay/environment";
+import { BTN_PRIMARY } from "@/lib/ui/buttons";
 
 export default async function AdminDashboardPage() {
   const session = await getAdminSession();
@@ -32,7 +33,7 @@ export default async function AdminDashboardPage() {
         </div>
         <Link
           href="/admin/payment-links/new"
-          className="inline-flex shrink-0 items-center justify-center rounded-lg bg-accent px-4 py-2.5 text-sm font-medium text-white transition hover:bg-accent-hover"
+          className={`inline-flex shrink-0 items-center justify-center py-2.5 text-sm ${BTN_PRIMARY}`}
         >
           New payment link
         </Link>

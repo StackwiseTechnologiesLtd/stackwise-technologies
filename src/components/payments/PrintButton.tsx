@@ -1,11 +1,13 @@
 "use client";
 
+import { BTN_SECONDARY } from "@/lib/ui/buttons";
+
 export function PrintButton() {
   return (
     <button
       type="button"
       onClick={() => window.print()}
-      className="rounded-lg border border-line px-4 py-2 text-sm transition hover:bg-panel-hover"
+      className={`text-sm ${BTN_SECONDARY}`}
     >
       Print
     </button>

@@ -4,7 +4,9 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import Mark from "@/components/Mark";
+import { useToast } from "@/components/ToastProvider";
 import { SITE_NAME } from "@/lib/content";
+import { BTN_GHOST } from "@/lib/ui/buttons";
 
 const navLinks = [
   { href: "/admin", label: "Dashboard" },
@@ -15,13 +17,19 @@ const navLinks = [
 export function AdminShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const toast = useToast();
   const isLogin = pathname === "/admin/login";
   const [menuOpen, setMenuOpen] = useState(false);
 
   async function logout() {
-    await fetch("/api/admin/logout", { method: "POST" });
-    router.push("/admin/login");
-    router.refresh();
+    try {
+      const res = await fetch("/api/admin/logout", { method: "POST" });
+      if (!res.ok) throw new Error("Sign out failed");
+      router.push("/admin/login");
+      router.refresh();
+    } catch {
+      toast.error("Could not sign out. Please try again.");
+    }
   }
 
   return (
@@ -58,8 +66,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
               ))}
               <button
                 type="button"
-                onClick={logout}
-                className="text-muted transition hover:text-foreground"
+                onClick={() => void logout()}
+                className={BTN_GHOST}
               >
                 Sign out
               </button>
@@ -100,7 +108,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
                     setMenuOpen(false);
                     void logout();
                   }}
-                  className="rounded-lg px-3 py-2 text-left text-muted transition hover:bg-panel hover:text-foreground"
+                  className={`w-full text-left ${BTN_GHOST}`}
                 >
                   Sign out
                 </button>

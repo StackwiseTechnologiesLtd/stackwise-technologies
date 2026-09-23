@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AdminShell } from "@/components/admin/AdminShell";
+import { ClientProviders } from "@/components/ClientProviders";
 import { createPageMetadata } from "@/lib/metadata";
 import "../../styles/globals.css";
 
@@ -29,7 +30,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-background font-sans text-foreground">
-        <AdminShell>{children}</AdminShell>
+        <ClientProviders>
+          <AdminShell>{children}</AdminShell>
+        </ClientProviders>
       </body>
     </html>
   );

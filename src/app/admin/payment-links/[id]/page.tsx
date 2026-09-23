@@ -4,11 +4,15 @@ import { getAdminSession } from "@/lib/auth/session";
 import { getPaymentLinkById } from "@/lib/db/payment-links";
 import { EnvironmentBadge } from "@/components/admin/EnvironmentBadge";
 import { PaymentAuditLog } from "@/components/admin/PaymentAuditLog";
+import { ManualPaymentSummary } from "@/components/admin/ManualPaymentSummary";
+import { RecordManualPaymentForm } from "@/components/admin/RecordManualPaymentForm";
+import { ResendReceiptButton } from "@/components/admin/ResendReceiptButton";
 import { SendLinkButton } from "@/components/admin/SendLinkButton";
 import { InvoiceView } from "@/components/payments/InvoiceView";
 import { resolvePaymentEnvironment } from "@/lib/kpay/environment";
 import { canAccessReceipt } from "@/lib/payments/receipt-access";
 import { PAYMENT_METHODS_OPTIONS } from "@/lib/payments/payment-methods";
+import { BTN_SECONDARY } from "@/lib/ui/buttons";
 
 function siteUrl() {
   return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
@@ -42,14 +46,17 @@ export default async function PaymentLinkDetailPage({
           </div>
         </div>
         <div className="flex flex-wrap gap-3">
-          <SendLinkButton id={link.id} />
+          {!canAccessReceipt(link) && <SendLinkButton id={link.id} />}
           {canAccessReceipt(link) && (
-            <Link
-              href={`/pay/${link.slug}/receipt`}
-              className="rounded-lg border border-line px-4 py-2 text-sm transition hover:bg-panel-hover"
-            >
-              View receipt
-            </Link>
+            <>
+              <Link
+                href={`/pay/${link.slug}/receipt`}
+                className={`text-sm ${BTN_SECONDARY}`}
+              >
+                View receipt
+              </Link>
+              <ResendReceiptButton id={link.id} />
+            </>
           )}
         </div>
       </div>
@@ -76,7 +83,23 @@ export default async function PaymentLinkDetailPage({
         </div>
       </div>
 
+      <ManualPaymentSummary link={link} />
+      <RecordManualPaymentForm link={link} />
+
       <InvoiceView link={link} />
+
+      {canAccessReceipt(link) && (
+        <div className="rounded-xl border border-line bg-panel p-6">
+          <h2 className="text-lg font-semibold">Customer receipt</h2>
+          <p className="mt-1 text-sm text-muted">
+            Preview what the customer sees. Use &quot;View receipt&quot; above to
+            open the printable receipt or email it directly.
+          </p>
+          <div className="mt-4 overflow-hidden rounded-xl border border-line bg-[#eef2f6] p-3 sm:p-4">
+            <InvoiceView link={link} variant="receipt" compact />
+          </div>
+        </div>
+      )}
 
       <PaymentAuditLog paymentLinkId={link.id} />
     </div>
