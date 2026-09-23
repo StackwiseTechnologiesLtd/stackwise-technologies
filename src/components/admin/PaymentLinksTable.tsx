@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { EnvironmentBadge } from "@/components/admin/EnvironmentBadge";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { formatMoney } from "@/lib/currency";
+import { formatDateTime } from "@/lib/format-datetime";
 import { resolvePaymentEnvironment } from "@/lib/kpay/environment";
 import type { PaymentLink, PaymentLinkStatus } from "@/lib/payments/types";
 
@@ -54,7 +55,7 @@ function PaymentLinkMobileCard({ link }: { link: PaymentLink }) {
       <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
         <AmountCell link={link} />
         <p className="text-xs text-muted">
-          {new Date(link.createdAt).toLocaleString()}
+          {formatDateTime(link.createdAt)}
         </p>
       </div>
     </div>
@@ -93,7 +94,7 @@ function PaymentLinkTableRow({ link }: { link: PaymentLink }) {
         </div>
       </td>
       <td className="px-4 py-3 text-muted">
-        {new Date(link.createdAt).toLocaleString()}
+        {formatDateTime(link.createdAt)}
       </td>
     </tr>
   );

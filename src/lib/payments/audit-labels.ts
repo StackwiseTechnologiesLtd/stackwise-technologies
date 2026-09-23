@@ -7,6 +7,4 @@ export const PAYMENT_AUDIT_EVENT_LABELS: Record<PaymentAuditEvent, string> = {
   RETURN_CALLBACK: "KPay return",
 };
 
-export function formatAuditTimestamp(timestamp: number): string {
-  return new Date(timestamp).toLocaleString();
-}
+export { formatDateTime as formatAuditTimestamp } from "@/lib/format-datetime";

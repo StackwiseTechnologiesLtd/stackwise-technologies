@@ -27,8 +27,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-background text-foreground">
       {!isLogin && (
-        <header className="border-b border-line bg-panel/80 backdrop-blur">
-          <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:py-4">
+        <header className="sticky top-0 z-50 border-b border-line bg-panel/95 backdrop-blur supports-[backdrop-filter]:bg-panel/80">
+          <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:gap-4 sm:py-4">
             <Link
               href="/admin"
               className="flex min-w-0 items-center gap-3"
@@ -68,8 +68,9 @@ export function AdminShell({ children }: { children: ReactNode }) {
             {/* Mobile menu toggle */}
             <button
               type="button"
-              className="rounded-lg border border-line px-3 py-2 text-sm sm:hidden"
+              className="inline-flex min-h-11 min-w-11 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-line px-3 py-2 text-sm sm:hidden"
               aria-expanded={menuOpen}
+              aria-controls="admin-mobile-nav"
               aria-label="Toggle menu"
               onClick={() => setMenuOpen((open) => !open)}
             >
@@ -78,7 +79,10 @@ export function AdminShell({ children }: { children: ReactNode }) {
           </div>
 
           {menuOpen && (
-            <nav className="border-t border-line px-4 py-3 sm:hidden">
+            <nav
+              id="admin-mobile-nav"
+              className="relative z-10 border-t border-line bg-panel px-4 py-3 sm:hidden"
+            >
               <div className="flex flex-col gap-1 text-sm">
                 {navLinks.map(({ href, label }) => (
                   <Link

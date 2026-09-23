@@ -4,6 +4,7 @@ import { InvoiceStamp } from "@/components/payments/InvoiceStamp";
 import { BRAND_BURGUNDY } from "@/lib/company";
 import { EMAIL } from "@/lib/content";
 import { formatMoney } from "@/lib/currency";
+import { formatDate, formatDateTime } from "@/lib/format-datetime";
 import type { PaymentLink } from "@/lib/payments/types";
 
 export function InvoiceView({
@@ -51,7 +52,7 @@ export function InvoiceView({
         )}
         {link.status === "PAID" && link.paidAt && (
           <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-100">
-            Paid {new Date(link.paidAt).toLocaleDateString()}
+            Paid {formatDate(link.paidAt)}
           </span>
         )}
       </div>
@@ -73,7 +74,7 @@ export function InvoiceView({
           <p className="mt-2">
             <span className="text-[#64748b]">Date </span>
             <span className="font-medium">
-              {new Date(link.createdAt).toLocaleString()}
+              {formatDateTime(link.createdAt)}
             </span>
           </p>
           {link.kpayReference && (
