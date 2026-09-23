@@ -7,7 +7,7 @@ import {
   displayPaymentReference,
   paidAmountLocal,
   paidAmountUsd,
-} from "@/lib/payments/manual-payment";
+} from "@/lib/payments/payment-display";
 import type { PaymentLink } from "@/lib/payments/types";
 
 const VERSION = "0.0.1";

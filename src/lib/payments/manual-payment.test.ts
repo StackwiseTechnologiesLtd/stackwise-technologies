@@ -1,11 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { formatPaymentMethodLabel } from "@/lib/payments/manual-payment-methods";
 import {
-  paidAmountLocal,
-  paidAmountUsd,
   validateManualPaymentInput,
   validatePaymentReference,
 } from "@/lib/payments/manual-payment";
+import { paidAmountLocal, paidAmountUsd } from "@/lib/payments/payment-display";
 import type { PaymentLink } from "@/lib/payments/types";
 
 function link(partial: Partial<PaymentLink>): PaymentLink {

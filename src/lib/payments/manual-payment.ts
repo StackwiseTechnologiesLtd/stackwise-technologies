@@ -113,15 +113,3 @@ export async function resendPaymentReceipt(linkId: string): Promise<PaymentLink>
 
   return (await maybeSendPaymentReceipts(cleared)) ?? cleared;
 }
-
-export function paidAmountUsd(link: PaymentLink): number {
-  return link.amountReceivedUsd ?? link.amountUsd;
-}
-
-export function paidAmountLocal(link: PaymentLink): number {
-  return link.amountReceivedLocal ?? link.amountLocal;
-}
-
-export function displayPaymentReference(link: PaymentLink): string | null {
-  return link.paymentReference ?? link.kpayReference;
-}

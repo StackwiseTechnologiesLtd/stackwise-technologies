@@ -1,7 +1,7 @@
 import { formatMoney } from "@/lib/currency";
 import { formatDateTime } from "@/lib/format-datetime";
 import { formatPaymentMethodLabel } from "@/lib/payments/manual-payment-methods";
-import { displayPaymentReference } from "@/lib/payments/manual-payment";
+import { displayPaymentReference } from "@/lib/payments/payment-display";
 import type { PaymentLink } from "@/lib/payments/types";
 
 export function ManualPaymentSummary({ link }: { link: PaymentLink }) {
