@@ -1,4 +1,5 @@
 const KPAY_BASE = "https://admin.kpay.site";
+const KPAY_FETCH_TIMEOUT_MS = 25_000;
 
 export type KPayPaymentStatus =
   | "PENDING"
@@ -79,27 +80,65 @@ function getCredentials(): KPayCredentials {
   return { apiKey, secretKey };
 }
 
+async function parseKPayJson<T>(res: Response): Promise<
+  T & { statusCode?: number; message?: string }
+> {
+  const text = await res.text();
+  try {
+    return JSON.parse(text) as T & { statusCode?: number; message?: string };
+  } catch {
+    const snippet = text.replace(/\s+/g, " ").trim().slice(0, 120);
+    if (res.status === 504 || snippet.includes("504")) {
+      throw new Error(
+        "KPay timed out while starting payment. Please try again in a moment.",
+      );
+    }
+    throw new Error(
+      res.ok
+        ? "Invalid response from KPay"
+        : `KPay request failed (${res.status})${snippet ? `: ${snippet}` : ""}`,
+    );
+  }
+}
+
+function wrapKPayFetchError(error: unknown): Error {
+  if (error instanceof Error) {
+    if (error.name === "AbortError" || error.name === "TimeoutError") {
+      return new Error(
+        "KPay timed out while starting payment. Please try again in a moment.",
+      );
+    }
+    return error;
+  }
+  return new Error("KPay request failed");
+}
+
 async function kpayFetchWithCredentials<T>(
   credentials: KPayCredentials,
   path: string,
   init?: RequestInit,
 ): Promise<T> {
   const { apiKey, secretKey } = credentials;
-  const res = await fetch(`${KPAY_BASE}${path}`, {
-    ...init,
-    headers: {
-      "X-API-Key": apiKey,
-      "X-Secret-Key": secretKey,
-      "Content-Type": "application/json",
-      ...init?.headers,
-    },
-  });
 
-  const data = (await res.json()) as T & { statusCode?: number; message?: string };
+  let res: Response;
+  try {
+    res = await fetch(`${KPAY_BASE}${path}`, {
+      ...init,
+      signal: init?.signal ?? AbortSignal.timeout(KPAY_FETCH_TIMEOUT_MS),
+      headers: {
+        "X-API-Key": apiKey,
+        "X-Secret-Key": secretKey,
+        "Content-Type": "application/json",
+        ...init?.headers,
+      },
+    });
+  } catch (error) {
+    throw wrapKPayFetchError(error);
+  }
+
+  const data = await parseKPayJson<T>(res);
   if (!res.ok) {
-    throw new Error(
-      data.message ?? `KPay request failed (${res.status})`,
-    );
+    throw new Error(data.message ?? `KPay request failed (${res.status})`);
   }
   return data;
 }
@@ -209,12 +248,7 @@ export async function verifyWebhookSignature(
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
 
-  if (expected.length !== signature.length) return false;
-  let mismatch = 0;
-  for (let i = 0; i < expected.length; i++) {
-    mismatch |= expected.charCodeAt(i) ^ signature.charCodeAt(i);
-  }
-  return mismatch === 0;
+  return expected === signature.toLowerCase();
 }
 
 export async function verifyGatewayReturnSignature(
@@ -226,11 +260,6 @@ export async function verifyGatewayReturnSignature(
 ): Promise<boolean> {
   const secret = process.env.KPAY_GATEWAY_SECRET;
   if (!secret) return false;
-
-  const tsNum = Number(ts);
-  if (!Number.isFinite(tsNum) || Date.now() - tsNum > 10 * 60 * 1000) {
-    return false;
-  }
 
   const payload = `${status}|${reference}|${externalId}|${ts}`;
   const key = await crypto.subtle.importKey(
@@ -249,10 +278,5 @@ export async function verifyGatewayReturnSignature(
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
 
-  if (expected.length !== sig.length) return false;
-  let mismatch = 0;
-  for (let i = 0; i < expected.length; i++) {
-    mismatch |= expected.charCodeAt(i) ^ sig.charCodeAt(i);
-  }
-  return mismatch === 0;
+  return expected === sig.toLowerCase();
 }

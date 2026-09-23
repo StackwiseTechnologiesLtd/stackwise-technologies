@@ -4,14 +4,34 @@ import { useMemo, useState } from "react";
 import type { CheckoutPaymentMethod } from "@/lib/kpay/buildGatewayInit";
 import { resolveCheckoutMethods, type PaymentMethodsOption } from "@/lib/payments/payment-methods";
 
+const PAY_INIT_TIMEOUT_MS = 30_000;
+
+async function readPayInitResponse(
+  res: Response,
+): Promise<{ gatewayUrl?: string; error?: string }> {
+  const text = await res.text();
+  try {
+    return JSON.parse(text) as { gatewayUrl?: string; error?: string };
+  } catch {
+    if (res.status === 504) {
+      throw new Error(
+        "Payment service timed out. Please try again — if this keeps happening, contact Stackwise.",
+      );
+    }
+    throw new Error("Payment service returned an invalid response. Please try again.");
+  }
+}
+
 export function PayButton({
   slug,
   allowedPaymentMethods,
   amountUsd,
+  sticky = false,
 }: {
   slug: string;
   allowedPaymentMethods: PaymentMethodsOption;
   amountUsd: number;
+  sticky?: boolean;
 }) {
   const [loading, setLoading] = useState<CheckoutPaymentMethod | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -24,22 +44,32 @@ export function PayButton({
   async function pay(method: CheckoutPaymentMethod) {
     setLoading(method);
     setError(null);
+
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), PAY_INIT_TIMEOUT_MS);
+
     try {
       const res = await fetch(`/api/pay/${slug}/init`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ method }),
+        signal: controller.signal,
       });
-      const data = (await res.json()) as { gatewayUrl?: string; error?: string };
+      const data = await readPayInitResponse(res);
       if (!res.ok) throw new Error(data.error ?? "Unable to start payment");
-      window.location.href = data.gatewayUrl!;
+      if (!data.gatewayUrl) throw new Error("Payment provider did not return a checkout URL");
+      window.location.assign(data.gatewayUrl);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Payment failed");
+      if (err instanceof DOMException && err.name === "AbortError") {
+        setError("Payment request timed out. Please try again.");
+      } else {
+        setError(err instanceof Error ? err.message : "Payment failed");
+      }
       setLoading(null);
+    } finally {
+      window.clearTimeout(timeout);
     }
   }
-
-  const busy = loading !== null;
 
   if (methods.length === 0) {
     return (
@@ -49,7 +79,7 @@ export function PayButton({
     );
   }
 
-  return (
+  const content = (
     <div className="space-y-3">
       <div
         className={
@@ -62,36 +92,48 @@ export function PayButton({
           <button
             type="button"
             onClick={() => pay("CARD")}
-            disabled={busy}
-            className="rounded-xl bg-accent px-6 py-4 text-base font-semibold text-white transition hover:bg-accent-hover disabled:opacity-60"
+            disabled={loading !== null}
+            className="min-h-14 touch-manipulation rounded-xl bg-accent px-6 py-4 text-base font-semibold text-white transition hover:bg-accent-hover active:scale-[0.99] disabled:opacity-60"
           >
-            {loading === "CARD" ? "Redirecting…" : "Pay with Card"}
+            {loading === "CARD" ? "Redirecting to KPay…" : "Pay with Card"}
           </button>
         )}
         {methods.includes("MOBILE_MONEY") && (
           <button
             type="button"
             onClick={() => pay("MOBILE_MONEY")}
-            disabled={busy}
-            className="rounded-xl border border-line bg-panel px-6 py-4 text-base font-semibold transition hover:bg-panel-hover disabled:opacity-60"
+            disabled={loading !== null}
+            className="min-h-14 touch-manipulation rounded-xl border border-line bg-panel px-6 py-4 text-base font-semibold transition hover:bg-panel-hover active:scale-[0.99] disabled:opacity-60"
           >
-            {loading === "MOBILE_MONEY" ? "Redirecting…" : "Pay with Mobile Money"}
+            {loading === "MOBILE_MONEY"
+              ? "Redirecting to KPay…"
+              : "Pay with Mobile Money"}
           </button>
         )}
       </div>
-      <p className="text-center text-xs text-muted">
-        Secure payment via KPay
-        {methods.length === 2
-          ? " — Visa/Mastercard or Mobile Money (M-Pesa, MTN, Orange, etc.)"
-          : methods.includes("CARD")
-            ? " — Visa/Mastercard"
-            : " — Mobile Money (M-Pesa, MTN, Orange, etc.)"}
-      </p>
+      {!sticky && (
+        <p className="text-center text-xs text-muted">
+          Secure payment via KPay
+          {methods.length === 2
+            ? " — Visa/Mastercard or Mobile Money (M-Pesa, MTN, Orange, etc.)"
+            : methods.includes("CARD")
+              ? " — Visa/Mastercard"
+              : " — Mobile Money (M-Pesa, MTN, Orange, etc.)"}
+        </p>
+      )}
       {error && (
         <p className="rounded-lg border border-red-900 bg-red-950/40 px-4 py-3 text-sm text-red-300">
           {error}
         </p>
       )}
+    </div>
+  );
+
+  if (!sticky) return content;
+
+  return (
+    <div className="fixed inset-x-0 bottom-0 z-50 border-t border-line bg-[#0b0b0b]/95 px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-md md:static md:z-auto md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none">
+      {content}
     </div>
   );
 }

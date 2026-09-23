@@ -9,6 +9,21 @@ import { getPaymentLinkBySlug } from "@/lib/db/payment-links";
 import { syncPaymentStatusFromKPay } from "@/lib/payments/actions";
 import { SITE_NAME } from "@/lib/content";
 
+async function maybeSyncPendingLink(link: Awaited<ReturnType<typeof getPaymentLinkBySlug>>) {
+  if (!link?.kpayPaymentId || link.status !== "PENDING") return link;
+
+  try {
+    return await Promise.race([
+      syncPaymentStatusFromKPay(link),
+      new Promise<typeof link>((resolve) => {
+        setTimeout(() => resolve(link), 8_000);
+      }),
+    ]);
+  } catch {
+    return link;
+  }
+}
+
 export default async function PayPage({
   params,
 }: {
@@ -18,16 +33,14 @@ export default async function PayPage({
   let link = await getPaymentLinkBySlug(slug);
   if (!link) notFound();
 
-  if (link.kpayPaymentId && link.status === "PENDING") {
-    link = await syncPaymentStatusFromKPay(link);
-  }
+  link = (await maybeSyncPendingLink(link)) ?? link;
 
   recordPaymentAudit(link.id, "PAY_PAGE_VIEW", await headers());
 
   const isPaid = link.status === "PAID";
 
   return (
-    <div className="space-y-8">
+    <div className={`space-y-8 ${!isPaid ? "pb-44 md:pb-0" : ""}`}>
       <div className="flex items-center gap-3">
         <Mark className="h-8 w-8" />
         <div>
@@ -58,11 +71,23 @@ export default async function PayPage({
       <InvoiceView link={link} showStatus={!isPaid} />
 
       {!isPaid && (
-        <PayButton
-          slug={slug}
-          allowedPaymentMethods={link.allowedPaymentMethods}
-          amountUsd={link.amountUsd}
-        />
+        <>
+          <div className="hidden md:block">
+            <PayButton
+              slug={slug}
+              allowedPaymentMethods={link.allowedPaymentMethods}
+              amountUsd={link.amountUsd}
+            />
+          </div>
+          <div className="md:hidden">
+            <PayButton
+              slug={slug}
+              allowedPaymentMethods={link.allowedPaymentMethods}
+              amountUsd={link.amountUsd}
+              sticky
+            />
+          </div>
+        </>
       )}
 
       <PaymentLegalNotice />

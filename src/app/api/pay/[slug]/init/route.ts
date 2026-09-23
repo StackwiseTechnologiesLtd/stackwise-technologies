@@ -23,9 +23,9 @@ export async function POST(
     recordPaymentAudit(link.id, "PAYMENT_INIT", request.headers, { method });
     return NextResponse.json({ gatewayUrl });
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Payment initiation failed" },
-      { status: 400 },
-    );
+    const message =
+      error instanceof Error ? error.message : "Payment initiation failed";
+    const status = message.includes("timed out") ? 504 : 400;
+    return NextResponse.json({ error: message }, { status });
   }
 }
