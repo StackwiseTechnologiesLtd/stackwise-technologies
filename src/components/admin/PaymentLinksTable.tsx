@@ -6,11 +6,10 @@ import { EnvironmentBadge } from "@/components/admin/EnvironmentBadge";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { formatMoney } from "@/lib/currency";
 import { formatDateTime } from "@/lib/format-datetime";
-import { BTN_GHOST } from "@/lib/ui/buttons";
+import { ADMIN_TABLE_PAGE_SIZE, paginate } from "@/lib/admin/pagination";
 import { resolvePaymentEnvironment } from "@/lib/kpay/environment";
 import type { PaymentLink, PaymentLinkStatus } from "@/lib/payments/types";
-
-const PAGE_SIZE = 10;
+import { TablePagination } from "@/components/admin/TablePagination";
 
 const STATUS_OPTIONS: Array<PaymentLinkStatus | "ALL"> = [
   "ALL",
@@ -101,7 +100,13 @@ function PaymentLinkTableRow({ link }: { link: PaymentLink }) {
   );
 }
 
-export function PaymentLinksTable({ links }: { links: PaymentLink[] }) {
+export function PaymentLinksTable({
+  links,
+  emptyMessage = "No payment links match your filters.",
+}: {
+  links: PaymentLink[];
+  emptyMessage?: string;
+}) {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<PaymentLinkStatus | "ALL">("ALL");
   const [page, setPage] = useState(1);
@@ -119,16 +124,20 @@ export function PaymentLinksTable({ links }: { links: PaymentLink[] }) {
     });
   }, [links, query, status]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const currentPage = Math.min(page, totalPages);
-  const pageLinks = filtered.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE,
-  );
+  const {
+    items: pageLinks,
+    currentPage,
+    totalPages,
+    totalItems,
+    pageSize,
+  } = paginate(filtered, page, ADMIN_TABLE_PAGE_SIZE);
 
   function resetPage() {
     setPage(1);
   }
+
+  const noRowsMessage =
+    links.length === 0 ? emptyMessage : "No payment links match your filters.";
 
   return (
     <div className="space-y-4">
@@ -166,8 +175,7 @@ export function PaymentLinksTable({ links }: { links: PaymentLink[] }) {
       </div>
 
       <p className="text-xs text-muted">
-        Showing {pageLinks.length} of {filtered.length} link
-        {filtered.length === 1 ? "" : "s"}
+        {filtered.length} link{filtered.length === 1 ? "" : "s"}
         {filtered.length !== links.length
           ? ` (filtered from ${links.length})`
           : ""}
@@ -177,7 +185,7 @@ export function PaymentLinksTable({ links }: { links: PaymentLink[] }) {
         <div className="md:hidden">
           {pageLinks.length === 0 ? (
             <p className="px-4 py-8 text-center text-sm text-muted">
-              No payment links match your filters.
+              {noRowsMessage}
             </p>
           ) : (
             pageLinks.map((link) => (
@@ -202,7 +210,7 @@ export function PaymentLinksTable({ links }: { links: PaymentLink[] }) {
                   colSpan={5}
                   className="px-4 py-8 text-center text-sm text-muted"
                 >
-                  No payment links match your filters.
+                  {noRowsMessage}
                 </td>
               </tr>
             ) : (
@@ -214,29 +222,13 @@ export function PaymentLinksTable({ links }: { links: PaymentLink[] }) {
         </table>
       </div>
 
-      {totalPages > 1 && (
-        <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
-          <button
-            type="button"
-            disabled={currentPage <= 1}
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            className={`border border-line ${BTN_GHOST}`}
-          >
-            Previous
-          </button>
-          <span className="text-muted">
-            Page {currentPage} of {totalPages}
-          </span>
-          <button
-            type="button"
-            disabled={currentPage >= totalPages}
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            className={`border border-line ${BTN_GHOST}`}
-          >
-            Next
-          </button>
-        </div>
-      )}
+      <TablePagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        pageSize={pageSize}
+        onPageChange={setPage}
+      />
     </div>
   );
 }

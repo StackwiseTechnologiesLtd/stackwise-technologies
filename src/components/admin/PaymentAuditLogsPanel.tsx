@@ -7,10 +7,9 @@ import type {
   PaymentAuditLog,
   PaymentAuditLogWithLink,
 } from "@/lib/db/payment-audit";
+import { ADMIN_TABLE_PAGE_SIZE, paginate } from "@/lib/admin/pagination";
+import { TablePagination } from "@/components/admin/TablePagination";
 import { PAYMENT_AUDIT_EVENT_LABELS } from "@/lib/payments/audit-labels";
-import { BTN_GHOST } from "@/lib/ui/buttons";
-
-const PAGE_SIZE = 10;
 
 const EVENT_OPTIONS: Array<PaymentAuditEvent | "ALL"> = [
   "ALL",
@@ -59,12 +58,13 @@ export function PaymentAuditLogsPanel({
     });
   }, [logs, query, event]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const currentPage = Math.min(page, totalPages);
-  const pageLogs = filtered.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE,
-  );
+  const {
+    items: pageLogs,
+    currentPage,
+    totalPages,
+    totalItems,
+    pageSize,
+  } = paginate(filtered, page, ADMIN_TABLE_PAGE_SIZE);
 
   function resetPage() {
     setPage(1);
@@ -110,8 +110,7 @@ export function PaymentAuditLogsPanel({
       </div>
 
       <p className="text-xs text-muted">
-        Showing {pageLogs.length} of {filtered.length} log
-        {filtered.length === 1 ? "" : "s"}
+        {filtered.length} log{filtered.length === 1 ? "" : "s"}
         {filtered.length !== loadedCount
           ? ` (filtered from ${loadedCount})`
           : ""}
@@ -121,29 +120,13 @@ export function PaymentAuditLogsPanel({
         <PaymentAuditLogTable logs={pageLogs} showInvoice={showInvoice} />
       </div>
 
-      {totalPages > 1 && (
-        <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
-          <button
-            type="button"
-            disabled={currentPage <= 1}
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            className={`border border-line ${BTN_GHOST}`}
-          >
-            Previous
-          </button>
-          <span className="text-muted">
-            Page {currentPage} of {totalPages}
-          </span>
-          <button
-            type="button"
-            disabled={currentPage >= totalPages}
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            className={`border border-line ${BTN_GHOST}`}
-          >
-            Next
-          </button>
-        </div>
-      )}
+      <TablePagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalItems={totalItems}
+        pageSize={pageSize}
+        onPageChange={setPage}
+      />
     </div>
   );
 }

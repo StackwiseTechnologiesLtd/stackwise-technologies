@@ -25,13 +25,7 @@ function PaymentLinkSection({
 
       <PaymentSectionTotals environment={environment} links={links} />
 
-      {links.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-line bg-panel/40 px-4 py-8 text-center text-sm text-muted">
-          {emptyMessage}
-        </div>
-      ) : (
-        <PaymentLinksTable links={links} />
-      )}
+      <PaymentLinksTable links={links} emptyMessage={emptyMessage} />
     </section>
   );
 }
