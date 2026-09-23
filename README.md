@@ -66,26 +66,94 @@ Locales:
 | `npm run lint` | ESLint |
 | `npm test` | Unit tests (Vitest) |
 | `npm run typecheck` | TypeScript (`tsc --noEmit`) |
+| `npm run db:migrate` | Apply SQL migrations to Neon (uses `.env.local` → `.env.prod` → `.env`) |
+| `npm run db:migrate:prod` | Apply migrations to **production** Neon (`MIGRATE_ENV=prod`, reads `.env.prod` only) |
+| `npm run db:reset:prod-payments` | Dry-run cleanup of sandbox rows in prod Neon; pass `--confirm` to apply |
 | `npm run preview` | Build OpenNext worker and preview in `workerd` via Wrangler |
 | `npm run build:worker` | Build the Cloudflare Worker bundle only |
 | `npm run deploy` | Build + deploy to Cloudflare Workers |
-| `npm run deploy:live` | Build + deploy current branch/commit as the **live** production Worker (tagged) |
+| `npm run deploy:live` | Full production deploy — see [Deploy to production](#deploy-to-production) |
+| `npm run cf:secrets` | Upload Worker secrets from `.env.prod` without redeploying |
 | `npm run cf:whoami` | Show Cloudflare auth account |
 | `npm run cf:status` | Show the live Workers deployment status |
 
-### Deploy from your machine
+### Environment files
+
+| File | Purpose |
+| --- | --- |
+| `.env.local` | Local development (gitignored). Copy from `.env.example`. |
+| `.env.prod` | Production secrets and config (gitignored). Used by deploy and prod migrations. |
+| `.env.example` | Template with placeholder keys — safe to commit. |
+
+Never commit `.env.local` or `.env.prod`.
+
+### Database migrations
+
+Migrations live in `migrations/*.sql` and are applied in filename order.
+
+```bash
+# Local / dev Neon
+npm run db:migrate
+
+# Production Neon (uses DATABASE_URL from .env.prod)
+npm run db:migrate:prod
+```
+
+The app also runs `ensureSchema()` on first DB access, which applies any pending migration files automatically.
+
+### Deploy to production
 
 You do not need GitHub Actions or the Cloudflare dashboard to ship:
 
 ```bash
-# one-time: log in if needed
+# One-time: log in to Cloudflare
 npx wrangler login
 
-# ship the current branch as production
+# Create .env.prod with production values (see .env.example)
+# Then ship:
 npm run deploy:live
 ```
 
-`deploy:live` tags the Worker version with the current git branch and short SHA (and marks `-dirty` if you have uncommitted changes), then rolls it out to 100% production traffic.
+#### What `npm run deploy:live` does
+
+Runs `scripts/deploy-live.sh`, which:
+
+1. **Checks auth** — exits if `wrangler whoami` fails.
+2. **Build env** — copies `.env.prod` → `.env.production.local` so `NEXT_PUBLIC_*` (e.g. site URL) is baked into the Next.js build, not localhost from `.env.local`.
+3. **Sync secrets** — calls `scripts/sync-cloudflare-env.mjs` to upload every key in `.env.prod` to the `stackwise-technologies` Worker via `wrangler secret bulk`.
+4. **Build** — runs `npm run build:worker` (OpenNext + Next.js production build).
+5. **Deploy** — publishes to Cloudflare Workers at 100% traffic, tagged with git branch + short SHA (e.g. `main@abc1234`).
+
+#### Sync secrets only (no redeploy)
+
+After editing `.env.prod`, push new secrets without rebuilding:
+
+```bash
+npm run cf:secrets
+# equivalent to: node scripts/sync-cloudflare-env.mjs .env.prod
+```
+
+Requires `wrangler` login. Uploads all non-comment `KEY=value` lines from the file as encrypted Worker secrets.
+
+#### Script reference (`scripts/`)
+
+| File | Invoked by | Description |
+| --- | --- | --- |
+| `scripts/deploy-live.sh` | `npm run deploy:live` | End-to-end production deploy: env, secrets, build, publish. |
+| `scripts/sync-cloudflare-env.mjs` | `npm run cf:secrets`, `deploy-live.sh` | Parses an env file and runs `wrangler secret bulk` for Worker `stackwise-technologies`. Optional arg: path to env file (default `.env.prod`). |
+| `scripts/migrate.mjs` | `npm run db:migrate`, `npm run db:migrate:prod` | Loads env files, connects to Neon, runs all `migrations/*.sql` in order. Set `MIGRATE_ENV=prod` to force `.env.prod`. |
+| `scripts/db-reset-prod-payments.mjs` | `npm run db:reset:prod-payments` | Removes test/sandbox payment links from production Neon and marks remaining drafts as live (`kpay_is_test = false`). Dry-run by default; `--confirm` to apply. |
+
+### Admin & payments (local)
+
+- Admin dashboard: [http://localhost:3000/admin](http://localhost:3000/admin)
+- Payment admin uses Neon Postgres, KPay, and SMTP — configure in `.env.local`.
+- For local payment E2E, set `NEXT_PUBLIC_SITE_URL=http://localhost:3000` in `.env.local`.
+- See [docs/PAYMENTS.md](docs/PAYMENTS.md) for payment flow, receipts, and legal notices.
+
+### Payments legal & compliance
+
+Customer payment pages (`/pay/*`) include a legal notice linking to [Payment processing & data](/pay/legal). See [docs/PAYMENTS.md](docs/PAYMENTS.md) for how payments, receipts, and personal data are handled.
 
 ---
 

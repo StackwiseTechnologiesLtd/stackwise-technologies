@@ -1,0 +1,11 @@
+{{headline}}
+
+{{body}}
+
+Amount: {{amountUsd}} USD ({{amountLocal}})
+Reference: {{reference}}
+Invoice: {{invoiceNumber}}{{paymentDetails}}
+
+View receipt: {{receiptUrl}}
+
+— Stackwise Technologies

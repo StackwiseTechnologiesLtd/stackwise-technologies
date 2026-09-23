@@ -3,6 +3,7 @@
   "version": "0.2.0",
   "private": true,
   "scripts": {
+    "db:migrate": "node scripts/migrate.mjs",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -13,15 +14,21 @@
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "deploy:live": "bash scripts/deploy-live.sh",
+    "cf:secrets": "node scripts/sync-cloudflare-env.mjs .env.prod",
+    "db:migrate:prod": "MIGRATE_ENV=prod node scripts/migrate.mjs",
+    "db:reset:prod-payments": "MIGRATE_ENV=prod node scripts/db-reset-prod-payments.mjs",
     "cf:whoami": "wrangler whoami",
     "cf:status": "wrangler deployments status --name stackwise-technologies"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.0.2",
     "next": "16.2.6",
+    "nodemailer": "^7.0.6",
     "react": "19.2.4",
     "react-dom": "19.2.4"
   },
   "devDependencies": {
+    "@types/nodemailer": "^7.0.1",
     "@opennextjs/cloudflare": "^1.20.2",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",

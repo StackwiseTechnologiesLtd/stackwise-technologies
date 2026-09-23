@@ -60,7 +60,7 @@ export default function SiteNav({
           </a>
           <button
             type="button"
-            className="inline-flex size-9 items-center justify-center rounded-lg border border-white/12 text-foreground lg:hidden"
+            className="inline-flex min-h-11 min-w-11 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-white/12 text-foreground lg:hidden"
             aria-expanded={open}
             aria-controls="mobile-nav"
             onClick={() => setOpen((value) => !value)}
@@ -88,7 +88,7 @@ export default function SiteNav({
       {open ? (
         <nav
           id="mobile-nav"
-          className="mx-auto mt-2 max-w-6xl rounded-2xl border border-white/10 bg-black/95 p-2 backdrop-blur-xl lg:hidden"
+          className="relative z-10 mx-auto mt-2 max-w-6xl rounded-2xl border border-white/10 bg-black/95 p-2 backdrop-blur-xl lg:hidden"
         >
           {copy.links.map((link) => (
             <a

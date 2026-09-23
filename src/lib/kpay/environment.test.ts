@@ -1,0 +1,138 @@
+import { afterEach, describe, expect, it } from "vitest";
+import type { PaymentLink } from "@/lib/payments/types";
+import {
+  getKPayCredentials,
+  partitionPaymentLinks,
+  resolvePaymentEnvironment,
+  summarizePaymentLinks,
+} from "@/lib/kpay/environment";
+
+function link(partial: Partial<PaymentLink>): PaymentLink {
+  return {
+    id: "id",
+    slug: "slug",
+    customerName: "Customer",
+    customerEmail: "c@example.com",
+    currency: "KES",
+    amountUsd: 100,
+    amountLocal: 12900,
+    exchangeRate: 129,
+    status: "DRAFT",
+    lineItems: [],
+    notes: null,
+    kpayPaymentId: null,
+    kpayReference: null,
+    kpayIsTest: null,
+    gatewayUrl: null,
+    allowedPaymentMethods: "BOTH",
+    invoiceNumber: "STL-550E8400",
+    sentAt: null,
+    paidAt: null,
+    receiptSentAt: null,
+    paymentSource: null,
+    paymentMethod: null,
+    amountReceivedUsd: null,
+    amountReceivedLocal: null,
+    collectedAt: null,
+    paymentReference: null,
+    paymentNotes: null,
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+    ...partial,
+  };
+}
+
+describe("resolvePaymentEnvironment", () => {
+  afterEach(() => {
+    delete process.env.KPAY_API_KEY;
+  });
+
+  it("uses stored live flag", () => {
+    expect(resolvePaymentEnvironment(link({ kpayIsTest: false }))).toBe(
+      "production",
+    );
+  });
+
+  it("uses stored test flag", () => {
+    expect(resolvePaymentEnvironment(link({ kpayIsTest: true }))).toBe("test");
+  });
+
+  it("treats unset or legacy links as test", () => {
+    expect(resolvePaymentEnvironment(link({ kpayIsTest: null }))).toBe("test");
+    expect(
+      resolvePaymentEnvironment(
+        link({ kpayIsTest: null, kpayPaymentId: "pay_123" }),
+      ),
+    ).toBe("test");
+  });
+});
+
+describe("partitionPaymentLinks", () => {
+  it("splits live and test links", () => {
+    const { production, test } = partitionPaymentLinks([
+      link({ id: "1", kpayIsTest: false }),
+      link({ id: "2", kpayIsTest: true }),
+    ]);
+    expect(production).toHaveLength(1);
+    expect(test).toHaveLength(1);
+  });
+});
+
+describe("getKPayCredentials", () => {
+  afterEach(() => {
+    delete process.env.KPAY_API_KEY;
+    delete process.env.KPAY_SECRET_KEY;
+    delete process.env.KPAY_LIVE_API_KEY;
+    delete process.env.KPAY_LIVE_SECRET_KEY;
+    delete process.env.KPAY_TEST_API_KEY;
+    delete process.env.KPAY_TEST_SECRET_KEY;
+  });
+
+  it("uses explicit live and test keys when set", () => {
+    process.env.KPAY_LIVE_API_KEY = "kpay_live_a";
+    process.env.KPAY_LIVE_SECRET_KEY = "live_secret";
+    process.env.KPAY_TEST_API_KEY = "kpay_test_b";
+    process.env.KPAY_TEST_SECRET_KEY = "test_secret";
+
+    expect(getKPayCredentials("production")).toEqual({
+      apiKey: "kpay_live_a",
+      secretKey: "live_secret",
+    });
+    expect(getKPayCredentials("test")).toEqual({
+      apiKey: "kpay_test_b",
+      secretKey: "test_secret",
+    });
+  });
+
+  it("falls back to default test keys for test wallet only", () => {
+    process.env.KPAY_API_KEY = "kpay_test_default";
+    process.env.KPAY_SECRET_KEY = "test_default_secret";
+
+    expect(getKPayCredentials("test")).toEqual({
+      apiKey: "kpay_test_default",
+      secretKey: "test_default_secret",
+    });
+    expect(getKPayCredentials("production")).toBeNull();
+  });
+});
+
+describe("summarizePaymentLinks", () => {
+  it("totals USD and local amounts", () => {
+    const summary = summarizePaymentLinks([
+      link({ amountUsd: 100, amountLocal: 12900, status: "PAID" }),
+      link({
+        id: "2",
+        amountUsd: 50,
+        amountLocal: 6450,
+        status: "DRAFT",
+      }),
+    ]);
+
+    expect(summary.count).toBe(2);
+    expect(summary.totalUsd).toBe(150);
+    expect(summary.paidUsd).toBe(100);
+    expect(summary.paidCount).toBe(1);
+    expect(summary.localByCurrency.KES.total).toBe(19350);
+    expect(summary.localByCurrency.KES.paid).toBe(12900);
+  });
+});
