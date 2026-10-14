@@ -6,15 +6,17 @@ import { PaymentLegalNotice } from "@/components/payments/PaymentLegalNotice";
 import { PayButton } from "@/components/payments/PayButton";
 import { recordPaymentAudit } from "@/lib/db/payment-audit";
 import { getPaymentLinkBySlug } from "@/lib/db/payment-links";
-import { syncPaymentStatusFromKPay } from "@/lib/payments/actions";
+import { syncPendingPayment } from "@/lib/payments/actions";
+import { cardCheckoutProcessor } from "@/lib/payments/processor";
 import { SITE_NAME } from "@/lib/content";
 
 async function maybeSyncPendingLink(link: Awaited<ReturnType<typeof getPaymentLinkBySlug>>) {
-  if (!link?.kpayPaymentId || link.status !== "PENDING") return link;
+  if (!link || link.status !== "PENDING") return link;
+  if (!link.paystackReference && !link.kpayPaymentId) return link;
 
   try {
     return await Promise.race([
-      syncPaymentStatusFromKPay(link),
+      syncPendingPayment(link),
       new Promise<typeof link>((resolve) => {
         setTimeout(() => resolve(link), 8_000);
       }),
@@ -38,6 +40,7 @@ export default async function PayPage({
   recordPaymentAudit(link.id, "PAY_PAGE_VIEW", await headers());
 
   const isPaid = link.status === "PAID";
+  const cardProcessor = cardCheckoutProcessor();
 
   return (
     <div className={`space-y-8 ${!isPaid ? "pb-44 md:pb-0" : ""}`}>
@@ -77,6 +80,7 @@ export default async function PayPage({
               slug={slug}
               allowedPaymentMethods={link.allowedPaymentMethods}
               amountUsd={link.amountUsd}
+              cardProcessor={cardProcessor}
             />
           </div>
           <div className="md:hidden">
@@ -84,6 +88,7 @@ export default async function PayPage({
               slug={slug}
               allowedPaymentMethods={link.allowedPaymentMethods}
               amountUsd={link.amountUsd}
+              cardProcessor={cardProcessor}
               sticky
             />
           </div>

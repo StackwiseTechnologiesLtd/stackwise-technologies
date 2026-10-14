@@ -10,8 +10,10 @@ import { KPAY_CARD_MAX_USD } from "@/lib/kpay/buildGatewayInit";
 import { SERVICES_CATALOG } from "@/lib/services-catalog";
 import {
   PAYMENT_METHODS_OPTIONS,
+  paymentMethodOptionDescription,
   type PaymentMethodsOption,
 } from "@/lib/payments/payment-methods";
+import type { CardProcessor } from "@/lib/payments/processor";
 import { SUPPORTED_CURRENCIES } from "@/lib/payments/types";
 import type { LineItem, PaymentLink } from "@/lib/payments/types";
 
@@ -21,7 +23,11 @@ function newKey() {
   return crypto.randomUUID();
 }
 
-export function PaymentLinkBuilder() {
+export function PaymentLinkBuilder({
+  cardProcessor = "KPAY",
+}: {
+  cardProcessor?: CardProcessor;
+}) {
   const router = useRouter();
   const toast = useToast();
   const [customerName, setCustomerName] = useState("");
@@ -123,6 +129,7 @@ export function PaymentLinkBuilder() {
       kpayPaymentId: null,
       kpayReference: previewMode === "receipt" ? "PREVIEW-REF" : null,
       kpayIsTest: null,
+      paystackReference: null,
       gatewayUrl: null,
       allowedPaymentMethods,
       invoiceNumber: "STL-PREVIEW",
@@ -281,11 +288,10 @@ export function PaymentLinkBuilder() {
                 ))}
               </select>
               <p className="text-xs text-muted">
-                {
-                  PAYMENT_METHODS_OPTIONS.find(
-                    (option) => option.value === allowedPaymentMethods,
-                  )?.description
-                }
+                {paymentMethodOptionDescription(
+                  allowedPaymentMethods,
+                  cardProcessor,
+                )}
               </p>
             </label>
           </section>
@@ -406,7 +412,8 @@ export function PaymentLinkBuilder() {
                     {fx.rate.toFixed(4)} {currency})
                   </p>
                 )}
-                {totalUsd > KPAY_CARD_MAX_USD &&
+                {cardProcessor === "KPAY" &&
+                  totalUsd > KPAY_CARD_MAX_USD &&
                   allowedPaymentMethods !== "MOBILE_MONEY" && (
                   <p className="mt-2 text-sm text-amber-300">
                     Over ${KPAY_CARD_MAX_USD} USD — card checkout blocked; customer

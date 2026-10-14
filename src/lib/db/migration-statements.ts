@@ -91,10 +91,16 @@ ALTER TABLE payment_links ADD COLUMN IF NOT EXISTS payment_reference TEXT;
 ALTER TABLE payment_links ADD COLUMN IF NOT EXISTS payment_notes TEXT;
 `;
 
+const PAYSTACK_REFERENCE_SQL = `
+ALTER TABLE payment_links ADD COLUMN IF NOT EXISTS paystack_reference TEXT;
+CREATE INDEX IF NOT EXISTS idx_payment_links_paystack_reference ON payment_links(paystack_reference);
+`;
+
 export const MIGRATION_STATEMENTS = [
   ...splitStatements(INIT_SQL),
   ...splitStatements(KPAY_IS_TEST_SQL),
   ...splitStatements(PAYMENT_AUDIT_LOGS_SQL),
   ...splitStatements(ALLOWED_PAYMENT_METHODS_SQL),
   ...splitStatements(MANUAL_PAYMENT_FIELDS_SQL),
+  ...splitStatements(PAYSTACK_REFERENCE_SQL),
 ];

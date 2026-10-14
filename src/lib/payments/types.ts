@@ -10,7 +10,7 @@ export type PaymentLinkStatus =
   | "CANCELLED"
   | "EXPIRED";
 
-export type PaymentSource = "KPAY" | "MANUAL";
+export type PaymentSource = "PAYSTACK" | "KPAY" | "MANUAL";
 
 export type LineItem = {
   serviceId: string;
@@ -35,6 +35,7 @@ export type PaymentLink = {
   kpayPaymentId: string | null;
   kpayReference: string | null;
   kpayIsTest: boolean | null;
+  paystackReference: string | null;
   gatewayUrl: string | null;
   allowedPaymentMethods: PaymentMethodsOption;
   invoiceNumber: string;
@@ -67,6 +68,7 @@ export type PaymentLinkRow = {
   kpay_payment_id: string | null;
   kpay_reference: string | null;
   kpay_is_test: boolean | null;
+  paystack_reference: string | null;
   gateway_url: string | null;
   allowed_payment_methods: string | null;
   invoice_number: string;
@@ -133,6 +135,7 @@ export function rowToPaymentLink(row: PaymentLinkRow): PaymentLink {
     kpayPaymentId: row.kpay_payment_id,
     kpayReference: row.kpay_reference,
     kpayIsTest: row.kpay_is_test,
+    paystackReference: row.paystack_reference ?? null,
     gatewayUrl: row.gateway_url,
     allowedPaymentMethods: normalizePaymentMethodsOption(row.allowed_payment_methods),
     invoiceNumber: row.invoice_number,
@@ -140,7 +143,9 @@ export function rowToPaymentLink(row: PaymentLinkRow): PaymentLink {
     paidAt: toMs(row.paid_at),
     receiptSentAt: toMs(row.receipt_sent_at),
     paymentSource:
-      row.payment_source === "MANUAL" || row.payment_source === "KPAY"
+      row.payment_source === "MANUAL" ||
+      row.payment_source === "KPAY" ||
+      row.payment_source === "PAYSTACK"
         ? row.payment_source
         : null,
     paymentMethod: row.payment_method,

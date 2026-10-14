@@ -28,6 +28,7 @@ function paymentLinkToRow(link: PaymentLink): PaymentLinkRow {
     kpay_payment_id: link.kpayPaymentId,
     kpay_reference: link.kpayReference,
     kpay_is_test: link.kpayIsTest,
+    paystack_reference: link.paystackReference,
     gateway_url: link.gatewayUrl,
     allowed_payment_methods: link.allowedPaymentMethods,
     invoice_number: link.invoiceNumber,
@@ -61,7 +62,7 @@ async function upsertRow(row: PaymentLinkRow): Promise<void> {
       INSERT INTO payment_links (
         id, slug, customer_name, customer_email, currency,
         amount_usd, amount_local, exchange_rate, status, line_items,
-        notes, kpay_payment_id, kpay_reference, kpay_is_test, gateway_url,
+        notes, kpay_payment_id, kpay_reference, kpay_is_test, paystack_reference, gateway_url,
         allowed_payment_methods, invoice_number, sent_at, paid_at, receipt_sent_at,
         payment_source, payment_method, amount_received_usd, amount_received_local,
         collected_at, payment_reference, payment_notes,
@@ -81,6 +82,7 @@ async function upsertRow(row: PaymentLinkRow): Promise<void> {
         ${row.kpay_payment_id},
         ${row.kpay_reference},
         ${row.kpay_is_test},
+        ${row.paystack_reference},
         ${row.gateway_url},
         ${row.allowed_payment_methods ?? "BOTH"},
         ${row.invoice_number},
@@ -111,6 +113,7 @@ async function upsertRow(row: PaymentLinkRow): Promise<void> {
         kpay_payment_id = EXCLUDED.kpay_payment_id,
         kpay_reference = EXCLUDED.kpay_reference,
         kpay_is_test = EXCLUDED.kpay_is_test,
+        paystack_reference = EXCLUDED.paystack_reference,
         gateway_url = EXCLUDED.gateway_url,
         allowed_payment_methods = EXCLUDED.allowed_payment_methods,
         invoice_number = EXCLUDED.invoice_number,
@@ -225,6 +228,24 @@ export async function getPaymentLinkByExternalId(
   externalId: string,
 ): Promise<PaymentLink | null> {
   return getPaymentLinkById(externalId);
+}
+
+export async function getPaymentLinkByPaystackReference(
+  reference: string,
+): Promise<PaymentLink | null> {
+  if (isDatabaseConfigured()) {
+    await dbReady();
+    const sql = getSql();
+    const rows = asRows<PaymentLinkRow>(await sql`
+      SELECT * FROM payment_links WHERE paystack_reference = ${reference} LIMIT 1
+    `);
+    return rows[0] ? rowToPaymentLink(rows[0]) : null;
+  }
+
+  for (const row of memoryStore.values()) {
+    if (row.paystack_reference === reference) return rowToPaymentLink(row);
+  }
+  return null;
 }
 
 export async function savePaymentLink(link: PaymentLink): Promise<PaymentLink> {

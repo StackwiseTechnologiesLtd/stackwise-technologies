@@ -17,6 +17,7 @@ function link(status: PaymentLink["status"]): PaymentLink {
     notes: null,
     kpayPaymentId: null,
     kpayReference: null,
+    paystackReference: null,
     kpayIsTest: false,
     gatewayUrl: null,
     allowedPaymentMethods: "BOTH",

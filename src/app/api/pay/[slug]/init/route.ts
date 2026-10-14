@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { recordPaymentAudit } from "@/lib/db/payment-audit";
 import type { CheckoutPaymentMethod } from "@/lib/kpay/buildGatewayInit";
-import { initiateKPayPayment } from "@/lib/payments/actions";
+import {
+  initiateKPayPayment,
+  initiatePaystackPayment,
+} from "@/lib/payments/actions";
+import { cardCheckoutProcessor } from "@/lib/payments/processor";
 
 function parseMethod(value: unknown): CheckoutPaymentMethod {
   if (value === "MOBILE_MONEY") return "MOBILE_MONEY";
@@ -19,8 +23,15 @@ export async function POST(
       method?: unknown;
     };
     const method = parseMethod(body.method);
-    const { link, gatewayUrl } = await initiateKPayPayment(slug, method);
-    recordPaymentAudit(link.id, "PAYMENT_INIT", request.headers, { method });
+    const processor = method === "CARD" ? cardCheckoutProcessor() : "KPAY";
+    const { link, gatewayUrl } =
+      processor === "PAYSTACK"
+        ? await initiatePaystackPayment(slug)
+        : await initiateKPayPayment(slug, method);
+    recordPaymentAudit(link.id, "PAYMENT_INIT", request.headers, {
+      method,
+      processor,
+    });
     return NextResponse.json({ gatewayUrl });
   } catch (error) {
     const message =

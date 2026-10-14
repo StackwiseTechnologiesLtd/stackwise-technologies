@@ -22,6 +22,7 @@ function link(partial: Partial<PaymentLink>): PaymentLink {
     notes: null,
     kpayPaymentId: null,
     kpayReference: null,
+    paystackReference: null,
     kpayIsTest: false,
     gatewayUrl: null,
     allowedPaymentMethods: "BOTH",
@@ -99,5 +100,6 @@ describe("paid amount helpers", () => {
 describe("formatPaymentMethodLabel", () => {
   it("returns friendly labels", () => {
     expect(formatPaymentMethodLabel("BANK_TRANSFER")).toBe("Bank transfer");
+    expect(formatPaymentMethodLabel("PAYSTACK_CARD")).toBe("Card (Paystack)");
   });
 });

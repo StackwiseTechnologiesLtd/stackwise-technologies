@@ -21,6 +21,7 @@ function link(partial: Partial<PaymentLink>): PaymentLink {
     notes: null,
     kpayPaymentId: null,
     kpayReference: null,
+    paystackReference: null,
     kpayIsTest: null,
     gatewayUrl: null,
     allowedPaymentMethods: "BOTH",
@@ -55,6 +56,12 @@ describe("resolveCheckoutMethods", () => {
       "MOBILE_MONEY",
     ]);
   });
+
+  it("keeps card above the KPay limit when Paystack is the card processor", () => {
+    expect(
+      resolveCheckoutMethods("BOTH", KPAY_CARD_MAX_USD + 1, "PAYSTACK"),
+    ).toEqual(["CARD", "MOBILE_MONEY"]);
+  });
 });
 
 describe("isCheckoutMethodAllowed", () => {
@@ -65,5 +72,6 @@ describe("isCheckoutMethodAllowed", () => {
     });
     expect(isCheckoutMethodAllowed(invoice, "CARD")).toBe(false);
     expect(isCheckoutMethodAllowed(invoice, "MOBILE_MONEY")).toBe(false);
+    expect(isCheckoutMethodAllowed(invoice, "CARD", "PAYSTACK")).toBe(true);
   });
 });

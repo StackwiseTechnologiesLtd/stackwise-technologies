@@ -1,4 +1,6 @@
 import Link from "next/link";
+
+export const dynamic = "force-dynamic";
 import Mark from "@/components/Mark";
 import {
   COMPANY_RC,
@@ -6,8 +8,11 @@ import {
   COMPANY_WEBSITE_URL,
 } from "@/lib/company";
 import { EMAIL, SITE_NAME } from "@/lib/content";
+import { isPaystackConfigured } from "@/lib/paystack/environment";
 
 export default function PaymentLegalPage() {
+  const paystackEnabled = isPaystackConfigured();
+
   return (
     <div className="space-y-8 text-sm leading-relaxed text-[#334155]">
       <div className="flex items-center gap-3">
@@ -31,13 +36,31 @@ export default function PaymentLegalPage() {
       <section className="space-y-2">
         <h2 className="font-semibold text-[#0f172a]">Payment processor</h2>
         <p>
-          Card and Mobile Money payments are processed by{" "}
-          <a href="https://kpay.site" className="underline" target="_blank" rel="noopener noreferrer">
-            KPay
-          </a>
-          . When you choose a payment method you are redirected to KPay&apos;s
-          hosted checkout. KPay collects the information required to complete
-          the transaction under their terms and privacy policy.
+          {paystackEnabled ? (
+            <>
+              Card payments are processed by{" "}
+              <a href="https://paystack.com" className="underline" target="_blank" rel="noopener noreferrer">
+                Paystack
+              </a>
+              . Mobile Money payments are processed by{" "}
+              <a href="https://kpay.site" className="underline" target="_blank" rel="noopener noreferrer">
+                KPay
+              </a>
+              . Choosing a method redirects you to that provider&apos;s hosted
+              checkout. The provider collects the information required to
+              complete the transaction under their terms and privacy policy.
+            </>
+          ) : (
+            <>
+              Card and Mobile Money payments are processed by{" "}
+              <a href="https://kpay.site" className="underline" target="_blank" rel="noopener noreferrer">
+                KPay
+              </a>
+              . When you choose a payment method you are redirected to KPay&apos;s
+              hosted checkout. KPay collects the information required to complete
+              the transaction under their terms and privacy policy.
+            </>
+          )}
         </p>
       </section>
 
@@ -46,7 +69,7 @@ export default function PaymentLegalPage() {
         <ul className="list-disc space-y-1 pl-5">
           <li>Name and email address provided on the invoice</li>
           <li>Invoice line items, amounts, and currency conversion rates</li>
-          <li>Payment status, KPay reference, and completion timestamp</li>
+          <li>Payment status, processor reference, and completion timestamp</li>
           <li>
             IP address and browser user agent on pay pages, stored for internal
             auditing (not shared with third parties)

@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useToast } from "@/components/ToastProvider";
 import type { CheckoutPaymentMethod } from "@/lib/kpay/buildGatewayInit";
 import { resolveCheckoutMethods, type PaymentMethodsOption } from "@/lib/payments/payment-methods";
+import type { CardProcessor } from "@/lib/payments/processor";
 import { BTN_PRESS } from "@/lib/ui/buttons";
 
 const PAY_INIT_TIMEOUT_MS = 30_000;
@@ -28,19 +29,21 @@ export function PayButton({
   slug,
   allowedPaymentMethods,
   amountUsd,
+  cardProcessor = "KPAY",
   sticky = false,
 }: {
   slug: string;
   allowedPaymentMethods: PaymentMethodsOption;
   amountUsd: number;
+  cardProcessor?: CardProcessor;
   sticky?: boolean;
 }) {
   const toast = useToast();
   const [loading, setLoading] = useState<CheckoutPaymentMethod | null>(null);
 
   const methods = useMemo(
-    () => resolveCheckoutMethods(allowedPaymentMethods, amountUsd),
-    [allowedPaymentMethods, amountUsd],
+    () => resolveCheckoutMethods(allowedPaymentMethods, amountUsd, cardProcessor),
+    [allowedPaymentMethods, amountUsd, cardProcessor],
   );
 
   async function pay(method: CheckoutPaymentMethod) {
@@ -96,7 +99,11 @@ export function PayButton({
             disabled={loading !== null}
             className={`min-h-14 rounded-xl bg-accent px-6 py-4 text-base font-semibold text-white hover:bg-accent-hover ${BTN_PRESS}`}
           >
-            {loading === "CARD" ? "Redirecting to KPay…" : "Pay with Card"}
+            {loading === "CARD"
+              ? cardProcessor === "PAYSTACK"
+                ? "Redirecting to Paystack…"
+                : "Redirecting to KPay…"
+              : "Pay with Card"}
           </button>
         )}
         {methods.includes("MOBILE_MONEY") && (
@@ -114,12 +121,15 @@ export function PayButton({
       </div>
       {!sticky && (
         <p className="text-center text-xs text-muted">
-          Secure payment via KPay
-          {methods.length === 2
-            ? " — Visa/Mastercard or Mobile Money (M-Pesa, MTN, Orange, etc.)"
-            : methods.includes("CARD")
-              ? " — Visa/Mastercard"
-              : " — Mobile Money (M-Pesa, MTN, Orange, etc.)"}
+          {methods.includes("CARD") && cardProcessor === "PAYSTACK"
+            ? methods.includes("MOBILE_MONEY")
+              ? "Card payments are processed by Paystack in USD. Mobile Money is processed by KPay."
+              : "Secure card payment via Paystack — Visa/Mastercard, charged in USD."
+            : methods.includes("CARD") && methods.includes("MOBILE_MONEY")
+              ? "Secure payment via KPay — Visa/Mastercard or Mobile Money (M-Pesa, MTN, Orange, etc.)"
+              : methods.includes("CARD")
+                ? "Secure payment via KPay — Visa/Mastercard"
+                : "Secure payment via KPay — Mobile Money (M-Pesa, MTN, Orange, etc.)"}
         </p>
       )}
     </div>

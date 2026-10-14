@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 export const metadata = createPageMetadata({
   title: `Payment processing & data | ${SITE_NAME}`,
   description:
-    "How Stackwise Technologies handles payment processing, customer data, receipts, and KPay checkout.",
+    "How Stackwise Technologies handles payment processing, customer data, receipts, and checkout.",
   path: "/pay/legal",
 });
 

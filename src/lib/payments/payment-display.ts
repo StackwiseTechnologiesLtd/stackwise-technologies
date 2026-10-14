@@ -10,7 +10,7 @@ export function paidAmountLocal(link: PaymentLink): number {
   return link.amountReceivedLocal ?? link.amountLocal;
 }
 
-/** Customer-facing payment reference (manual or KPay). */
+/** Customer-facing payment reference (manual, Paystack, or KPay). */
 export function displayPaymentReference(link: PaymentLink): string | null {
-  return link.paymentReference ?? link.kpayReference;
+  return link.paymentReference ?? link.paystackReference ?? link.kpayReference;
 }

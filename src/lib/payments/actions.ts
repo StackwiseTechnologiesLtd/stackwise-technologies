@@ -6,9 +6,23 @@ import {
 } from "@/lib/kpay/buildGatewayInit";
 import { initGatewayPayment, getPayment } from "@/lib/kpay/client";
 import {
+  buildPaystackInitializeBody,
+  createPaystackReference,
+  paystackChargeMatchesLink,
+  readPaystackLinkId,
+  type PaystackCharge,
+} from "@/lib/paystack/checkout";
+import {
+  initializePaystackTransaction,
+  verifyPaystackTransaction,
+} from "@/lib/paystack/client";
+import { isPaystackConfigured, isPaystackTestMode } from "@/lib/paystack/environment";
+import {
   createId,
   createSlug,
   getPaymentLinkByExternalId,
+  getPaymentLinkById,
+  getPaymentLinkByPaystackReference,
   getPaymentLinkBySlug,
   nextInvoiceNumber,
   savePaymentLink,
@@ -64,7 +78,8 @@ export async function createPaymentLink(
     notes: input.notes?.trim() ?? null,
     kpayPaymentId: null,
     kpayReference: null,
-    kpayIsTest: isKPayTestMode(),
+    kpayIsTest: isPaystackConfigured() ? isPaystackTestMode() : isKPayTestMode(),
+    paystackReference: null,
     gatewayUrl: null,
     allowedPaymentMethods: input.allowedPaymentMethods ?? "BOTH",
     invoiceNumber: await nextInvoiceNumber(),
@@ -118,6 +133,136 @@ export async function initiateKPayPayment(
   await savePaymentLink(updated);
 
   return { link: updated, gatewayUrl: payment.gatewayUrl };
+}
+
+export async function initiatePaystackPayment(slug: string): Promise<{
+  link: PaymentLink;
+  gatewayUrl: string;
+}> {
+  const link = await getPaymentLinkBySlug(slug);
+  if (!link) throw new Error("Payment link not found");
+  if (link.status === "PAID") throw new Error("This invoice is already paid");
+  if (!isCheckoutMethodAllowed(link, "CARD", "PAYSTACK")) {
+    throw new Error("This payment method is not available for this invoice");
+  }
+
+  const returnUrl = `${siteUrl()}/pay/${slug}/return`;
+  const cancelUrl = `${siteUrl()}/pay/${slug}`;
+  const reference = createPaystackReference(link.slug);
+  let payment;
+  try {
+    payment = await initializePaystackTransaction(
+      buildPaystackInitializeBody(link, reference, { returnUrl, cancelUrl }),
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    if (message === "Invalid key") {
+      throw new Error(
+        "Card checkout is not available right now. Please try Mobile Money or contact Stackwise.",
+      );
+    }
+    throw error;
+  }
+
+  if (!payment.authorization_url) {
+    throw new Error("Paystack did not return a checkout URL");
+  }
+
+  const updated: PaymentLink = {
+    ...link,
+    status: "PENDING",
+    paystackReference: payment.reference || reference,
+    gatewayUrl: payment.authorization_url,
+    updatedAt: Date.now(),
+  };
+  await savePaymentLink(updated);
+
+  return { link: updated, gatewayUrl: payment.authorization_url };
+}
+
+export type PaystackConfirmResult =
+  | { status: "paid"; link: PaymentLink }
+  | { status: "failed"; link: PaymentLink }
+  | { status: "abandoned"; link: PaymentLink }
+  | { status: "pending"; link: PaymentLink }
+  | { status: "ignored" }
+  | { status: "not_found" };
+
+function parsePaystackPaidAt(value: string | null | undefined): number {
+  if (!value) return Date.now();
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? parsed : Date.now();
+}
+
+export async function applyVerifiedPaystackTransaction(
+  charge: PaystackCharge,
+): Promise<PaystackConfirmResult> {
+  const metadataLinkId = readPaystackLinkId(charge.metadata);
+  const link =
+    (await getPaymentLinkByPaystackReference(charge.reference)) ??
+    (metadataLinkId ? await getPaymentLinkById(metadataLinkId) : null);
+  if (!link) return { status: "not_found" };
+  if (link.status === "PAID") return { status: "paid", link };
+  if (!paystackChargeMatchesLink(charge, link)) return { status: "ignored" };
+
+  const chargeStatus = charge.status?.toLowerCase() ?? "";
+
+  if (chargeStatus === "success") {
+    const paid = await finalizePaidPayment(link.id, {
+      paidAt: parsePaystackPaidAt(charge.paid_at),
+      paymentSource: "PAYSTACK",
+      paymentMethod: "PAYSTACK_CARD",
+      paymentReference: charge.reference,
+      paystackReference: charge.reference,
+    });
+    return paid ? { status: "paid", link: paid } : { status: "not_found" };
+  }
+
+  if (chargeStatus === "failed" && link.paystackReference === charge.reference) {
+    const updated = await savePaymentLink({
+      ...link,
+      status: "FAILED",
+      updatedAt: Date.now(),
+    });
+    return { status: "failed", link: updated };
+  }
+
+  if (chargeStatus === "abandoned") {
+    return { status: "abandoned", link };
+  }
+
+  return { status: "pending", link };
+}
+
+export async function syncPaymentStatusFromPaystack(
+  link: PaymentLink,
+): Promise<PaymentLink> {
+  if (!link.paystackReference || link.status === "PAID") return link;
+
+  const charge = await verifyPaystackTransaction(link.paystackReference);
+  const result = await applyVerifiedPaystackTransaction(charge);
+  if (result.status === "paid" || result.status === "failed") return result.link;
+  return link;
+}
+
+export async function syncPendingPayment(link: PaymentLink): Promise<PaymentLink> {
+  if (link.status !== "PENDING") return link;
+
+  let current = link;
+  if (current.paystackReference) {
+    try {
+      current = await syncPaymentStatusFromPaystack(current);
+      if (current.status === "PAID") return current;
+    } catch {
+      // Keep the invoice payable if Paystack verify is temporarily unavailable.
+    }
+  }
+
+  if (current.kpayPaymentId) {
+    return syncPaymentStatusFromKPay(current);
+  }
+
+  return current;
 }
 
 export async function syncPaymentStatusFromKPay(

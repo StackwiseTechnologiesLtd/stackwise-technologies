@@ -22,6 +22,7 @@ function link(partial: Partial<PaymentLink>): PaymentLink {
     notes: null,
     kpayPaymentId: null,
     kpayReference: null,
+    paystackReference: null,
     kpayIsTest: null,
     gatewayUrl: null,
     allowedPaymentMethods: "BOTH",
