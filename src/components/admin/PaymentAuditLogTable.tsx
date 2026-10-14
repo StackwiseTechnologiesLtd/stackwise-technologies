@@ -5,6 +5,7 @@ import { useState } from "react";
 import { AuditLogDetailDialog } from "@/components/admin/AuditLogDetailDialog";
 import type { PaymentAuditLog, PaymentAuditLogWithLink } from "@/lib/db/payment-audit";
 import { ADMIN_TABLE_HEAD, ADMIN_TABLE_SCROLL } from "@/lib/ui/admin";
+import { formatIpGeoSummary } from "@/lib/ip-geo";
 import {
   formatAuditTimestamp,
   formatPaymentInitAuditDetail,
@@ -76,7 +77,9 @@ export function PaymentAuditLogTable({
                 </td>
               </tr>
             ) : (
-              logs.map((log) => (
+              logs.map((log) => {
+                const geoSummary = formatIpGeoSummary(log.ipGeo);
+                return (
                 <tr
                   key={log.id}
                   className="border-t border-[var(--admin-border)] align-top hover:bg-[var(--admin-nav-hover)]"
@@ -111,7 +114,12 @@ export function PaymentAuditLogTable({
                       )}
                   </td>
                   <td className="px-4 py-3 font-mono text-xs sm:text-sm">
-                    {log.ipAddress ?? "—"}
+                    <span>{log.ipAddress ?? "—"}</span>
+                    {geoSummary ? (
+                      <p className="mt-0.5 font-sans text-[11px] font-normal text-muted">
+                        {geoSummary}
+                      </p>
+                    ) : null}
                   </td>
                   <td className="px-4 py-3">
                     <UserAgentPreview
@@ -120,7 +128,8 @@ export function PaymentAuditLogTable({
                     />
                   </td>
                 </tr>
-              ))
+              );
+              })
             )}
           </tbody>
         </table>

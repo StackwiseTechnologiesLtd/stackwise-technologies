@@ -23,7 +23,7 @@ Every pay page includes a **PaymentLegalNotice** footer linking to `/pay/legal`.
 
 ## Audit logging
 
-Customer interactions on pay pages log IP address and user agent to `payment_audit_logs`:
+Customer interactions on pay pages log IP address, user agent, and optional `ip_geo` (country, city, ISP, ASN, coordinates, proxy/hosting flags) to `payment_audit_logs`. Geo is taken from Cloudflare request headers in production when present; otherwise a public-IP lookup via [ipwho.is](https://ipwho.is) runs at log time.
 
 | Event | Trigger |
 | --- | --- |
@@ -32,7 +32,7 @@ Customer interactions on pay pages log IP address and user agent to `payment_aud
 | `RETURN_CALLBACK` | Paystack or KPay return URL |
 | `RECEIPT_VIEW` | Receipt page (paid only) |
 
-Logs are visible at `/admin/audit-logs` (latest 100 events) and on each payment-link detail page. Apply migration `0003_payment_audit_logs.sql` (or `npm run db:migrate`).
+Logs are visible at `/admin/audit-logs` (latest 1000 events) and on each payment-link detail page. Run `npm run db:migrate` (includes `ip_geo` via migration `0008_payment_audit_ip_geo.sql`).
 
 ## Receipt access
 

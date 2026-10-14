@@ -9,6 +9,7 @@ import type {
 } from "@/lib/db/payment-audit";
 import { ADMIN_TABLE_PAGE_SIZE, paginate } from "@/lib/admin/pagination";
 import { TablePagination } from "@/components/admin/TablePagination";
+import { ipGeoSearchText } from "@/lib/ip-geo";
 import { PAYMENT_AUDIT_EVENT_LABELS } from "@/lib/payments/audit-labels";
 import {
   ADMIN_INPUT,
@@ -55,6 +56,7 @@ export function PaymentAuditLogsPanel({
         invoice.includes(q) ||
         customer.includes(q) ||
         (log.ipAddress ?? "").toLowerCase().includes(q) ||
+        ipGeoSearchText(log.ipGeo).toLowerCase().includes(q) ||
         (log.userAgent ?? "").toLowerCase().includes(q) ||
         (PAYMENT_AUDIT_EVENT_LABELS[log.event] ?? log.event)
           .toLowerCase()
@@ -100,7 +102,7 @@ export function PaymentAuditLogsPanel({
               setQuery(e.target.value);
               resetPage();
             }}
-            placeholder="Search invoice, IP, or user agent…"
+            placeholder="Search invoice, IP, location, ISP, or user agent…"
             className={`${ADMIN_INPUT} pl-9`}
           />
         </label>

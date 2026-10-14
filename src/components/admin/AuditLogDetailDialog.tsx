@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, type ReactNode } from "react";
 import type { PaymentAuditLog, PaymentAuditLogWithLink } from "@/lib/db/payment-audit";
+import { ipGeoDetailRows } from "@/lib/ip-geo";
 import {
   formatPaymentInitAuditDetail,
   PAYMENT_AUDIT_EVENT_LABELS,
@@ -84,6 +85,7 @@ export function AuditLogDetailDialog({
 
   const eventLabel = PAYMENT_AUDIT_EVENT_LABELS[log.event] ?? log.event;
   const tags = metadataTags(log);
+  const geoRows = ipGeoDetailRows(log.ipGeo);
 
   return (
     <div
@@ -186,6 +188,20 @@ export function AuditLogDetailDialog({
               <DetailRow label="IP address">
                 <span className="font-mono text-sm">{log.ipAddress ?? "—"}</span>
               </DetailRow>
+              {geoRows.length > 0 ? (
+                <div className="border-t border-dashed border-[var(--admin-border)] pt-3">
+                  <p className="mb-2 text-xs font-medium text-foreground">
+                    IP geolocation &amp; network
+                  </p>
+                  <dl className="space-y-2">
+                    {geoRows.map((row) => (
+                      <DetailRow key={row.label} label={row.label}>
+                        <span className="font-mono text-xs break-all">{row.value}</span>
+                      </DetailRow>
+                    ))}
+                  </dl>
+                </div>
+              ) : null}
               <DetailRow label="User agent">
                 <p className="font-mono text-xs leading-relaxed break-all text-muted">
                   {log.userAgent ?? "—"}

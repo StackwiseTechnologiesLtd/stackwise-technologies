@@ -77,6 +77,10 @@ CREATE TABLE IF NOT EXISTS payment_audit_logs (
 CREATE INDEX IF NOT EXISTS idx_payment_audit_link ON payment_audit_logs(payment_link_id, created_at DESC);
 `;
 
+const PAYMENT_AUDIT_IP_GEO_SQL = `
+ALTER TABLE payment_audit_logs ADD COLUMN IF NOT EXISTS ip_geo JSONB;
+`;
+
 const ALLOWED_PAYMENT_METHODS_SQL = `
 ALTER TABLE payment_links ADD COLUMN IF NOT EXISTS allowed_payment_methods VARCHAR(20) NOT NULL DEFAULT 'BOTH';
 `;
@@ -139,6 +143,7 @@ export const MIGRATION_STATEMENTS = [
   ...splitStatements(INIT_SQL),
   ...splitStatements(KPAY_IS_TEST_SQL),
   ...splitStatements(PAYMENT_AUDIT_LOGS_SQL),
+  ...splitStatements(PAYMENT_AUDIT_IP_GEO_SQL),
   ...splitStatements(ALLOWED_PAYMENT_METHODS_SQL),
   ...splitStatements(MANUAL_PAYMENT_FIELDS_SQL),
   ...splitStatements(PAYSTACK_REFERENCE_SQL),
