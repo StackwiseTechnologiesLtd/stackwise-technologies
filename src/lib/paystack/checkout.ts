@@ -1,7 +1,6 @@
 import type { PaymentLink } from "@/lib/payments/types";
 
-export const PAYSTACK_CHARGE_CURRENCY = "USD";
-/** Paystack charges USD card payments in cents. */
+/** Minimum invoice total (USD) before card checkout is allowed. */
 export const PAYSTACK_MIN_USD = 1;
 
 const REFERENCE_ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -22,11 +21,12 @@ export type PaystackCharge = {
   metadata?: unknown;
 };
 
-export function toPaystackSubunit(amountUsd: number): number {
-  if (!Number.isFinite(amountUsd)) {
+/** Paystack `amount` is in the currency minor unit (e.g. KES cents). */
+export function toPaystackSubunit(amountMajor: number, _currency: string): number {
+  if (!Number.isFinite(amountMajor) || amountMajor <= 0) {
     throw new Error("Invoice amount is invalid");
   }
-  return Math.round(amountUsd * 100);
+  return Math.round(amountMajor * 100);
 }
 
 export function createPaystackReference(slug: string): string {
@@ -54,10 +54,15 @@ export function readPaystackLinkId(metadata: unknown): string | null {
 
 export function paystackChargeMatchesLink(
   charge: Pick<PaystackCharge, "amount" | "currency" | "reference" | "metadata">,
-  link: Pick<PaymentLink, "id" | "amountUsd" | "paystackReference">,
+  link: Pick<
+    PaymentLink,
+    "id" | "currency" | "amountLocal" | "paystackReference"
+  >,
 ): boolean {
-  if (charge.currency.toUpperCase() !== PAYSTACK_CHARGE_CURRENCY) return false;
-  if (Number(charge.amount) !== toPaystackSubunit(link.amountUsd)) return false;
+  if (charge.currency.toUpperCase() !== link.currency.toUpperCase()) return false;
+  if (Number(charge.amount) !== toPaystackSubunit(link.amountLocal, link.currency)) {
+    return false;
+  }
 
   const linkId = readPaystackLinkId(charge.metadata);
   if (linkId && linkId !== link.id) return false;
@@ -86,8 +91,8 @@ export function buildPaystackInitializeBody(
 
   return {
     email: link.customerEmail,
-    amount: toPaystackSubunit(link.amountUsd),
-    currency: PAYSTACK_CHARGE_CURRENCY,
+    amount: toPaystackSubunit(link.amountLocal, link.currency),
+    currency: link.currency,
     reference,
     callback_url: urls.returnUrl,
     channels: ["card"],

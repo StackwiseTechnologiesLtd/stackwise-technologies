@@ -51,9 +51,9 @@ function link(partial: Partial<PaymentLink> = {}): PaymentLink {
 }
 
 describe("toPaystackSubunit", () => {
-  it("converts USD to cents", () => {
-    expect(toPaystackSubunit(25)).toBe(2500);
-    expect(toPaystackSubunit(10.1)).toBe(1010);
+  it("converts major units to Paystack minor units", () => {
+    expect(toPaystackSubunit(25, "USD")).toBe(2500);
+    expect(toPaystackSubunit(3225, "KES")).toBe(322500);
   });
 });
 
@@ -71,8 +71,8 @@ describe("paystackChargeMatchesLink", () => {
     expect(
       paystackChargeMatchesLink(
         {
-          amount: 2500,
-          currency: "USD",
+          amount: 322500,
+          currency: "KES",
           reference: "ps-abc123-ref",
           metadata: { linkId: "link-id" },
         },
@@ -85,8 +85,8 @@ describe("paystackChargeMatchesLink", () => {
     expect(
       paystackChargeMatchesLink(
         {
-          amount: 2500,
-          currency: "usd",
+          amount: 322500,
+          currency: "kes",
           reference: "ps-abc123-other",
           metadata: { linkId: "link-id" },
         },
@@ -100,7 +100,7 @@ describe("paystackChargeMatchesLink", () => {
       paystackChargeMatchesLink(
         {
           amount: 100,
-          currency: "USD",
+          currency: "KES",
           reference: "ps-abc123-ref",
           metadata: { linkId: "link-id" },
         },
@@ -110,8 +110,8 @@ describe("paystackChargeMatchesLink", () => {
     expect(
       paystackChargeMatchesLink(
         {
-          amount: 2500,
-          currency: "USD",
+          amount: 322500,
+          currency: "KES",
           reference: "ps-abc123-ref",
           metadata: { linkId: "other-link" },
         },
@@ -130,13 +130,13 @@ describe("readPaystackLinkId", () => {
 });
 
 describe("buildPaystackInitializeBody", () => {
-  it("charges the invoice in USD cents", () => {
+  it("charges the invoice local currency in minor units", () => {
     const body = buildPaystackInitializeBody(link(), "ps-abc123-ref", {
       returnUrl: "https://example.com/pay/abc123/return",
       cancelUrl: "https://example.com/pay/abc123",
     });
-    expect(body.amount).toBe(2500);
-    expect(body.currency).toBe("USD");
+    expect(body.amount).toBe(322500);
+    expect(body.currency).toBe("KES");
     expect(body.channels).toEqual(["card"]);
     expect(body.metadata.cancel_action).toBe("https://example.com/pay/abc123");
   });

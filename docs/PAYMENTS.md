@@ -15,7 +15,7 @@ Every pay page includes a **PaymentLegalNotice** footer linking to `/pay/legal`.
 
 ## Payment processor
 
-- **Paystack** is the primary card checkout when `PAYSTACK_SECRET_KEY` is set. Cards are charged in USD on Paystack's hosted page.
+- **Paystack** is the primary card checkout when `PAYSTACK_SECRET_KEY` is set. Cards are charged in the invoice's local currency on Paystack's hosted page.
 - **KPay** still handles Mobile Money. If Paystack is not configured, KPay also handles cards (including the existing USD card limit).
 - Stackwise stores invoice metadata and payment status in Neon Postgres.
 - Card numbers and mobile-money PINs are never stored by Stackwise.
@@ -62,4 +62,13 @@ The email includes a **receipt URL** (`/pay/[slug]/receipt`) for viewing and pri
 
 See `.env.example` for `PAYSTACK_SECRET_KEY`, `KPAY_*`, `DATABASE_URL`, `SMTP_*`, and `ADMIN_EMAILS`.
 
-Paystack webhook URL: `https://<site>/api/webhooks/paystack` (event `charge.success`). The secret key signs webhooks; no separate webhook secret is required.
+Paystack dashboard (Settings → API Keys & Webhooks):
+
+| Field | Value |
+| --- | --- |
+| **Webhook URL** (test and live) | `https://stackwisetechnologies.com/api/webhooks/paystack` |
+| **Callback URL** (test and live) | Leave blank, or `https://stackwisetechnologies.com/pay` — **not** the webhook path. Customers return to `/pay/{slug}/return` because each `transaction/initialize` sets `callback_url`. |
+
+Env: `PAYSTACK_SECRET_KEY` only (`sk_test_` / `sk_live_`). The public key is unused in the hosted-checkout flow.
+
+Webhooks: listen for `charge.success` (and `charge.failed` is acknowledged). The secret key signs payloads (`x-paystack-signature`); no separate webhook secret.

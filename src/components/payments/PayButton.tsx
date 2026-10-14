@@ -123,8 +123,8 @@ export function PayButton({
         <p className="text-center text-xs text-muted">
           {methods.includes("CARD") && cardProcessor === "PAYSTACK"
             ? methods.includes("MOBILE_MONEY")
-              ? "Card payments are processed by Paystack in USD. Mobile Money is processed by KPay."
-              : "Secure card payment via Paystack — Visa/Mastercard, charged in USD."
+              ? "Card payments are processed by Paystack. Mobile Money is processed by KPay."
+              : "Secure card payment via Paystack — Visa/Mastercard."
             : methods.includes("CARD") && methods.includes("MOBILE_MONEY")
               ? "Secure payment via KPay — Visa/Mastercard or Mobile Money (M-Pesa, MTN, Orange, etc.)"
               : methods.includes("CARD")
