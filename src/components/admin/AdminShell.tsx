@@ -124,7 +124,7 @@ function SidebarFooter({
             collapsed ? "justify-center px-2" : ""
           }`}
         >
-          <AdminNavIcon name="settings" className="size-4 shrink-0" />
+          <AdminNavIcon name="logout" className="size-4 shrink-0" />
           {!collapsed ? <span>Sign out</span> : null}
           {collapsed ? <span className="sr-only">Sign out</span> : null}
         </button>
@@ -136,9 +136,11 @@ function SidebarFooter({
           }`}
           aria-expanded={!collapsed}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          title={collapsed ? "Expand sidebar" : undefined}
         >
           <CollapseIcon collapsed={collapsed} />
           {!collapsed ? <span>Collapse sidebar</span> : null}
+          {collapsed ? <span className="sr-only">Collapse sidebar</span> : null}
         </button>
     </div>
   );
@@ -340,7 +342,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
                   }}
                   className={`${ADMIN_NAV_LINK} w-full text-muted hover:bg-[var(--admin-nav-hover)] hover:text-foreground`}
                 >
-                  <AdminNavIcon name="settings" className="size-4" />
+                  <AdminNavIcon name="logout" className="size-4" />
                   Sign out
                 </button>
               </div>

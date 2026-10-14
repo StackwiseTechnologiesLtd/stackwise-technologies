@@ -1,10 +1,12 @@
 import type { AdminNavItem } from "@/lib/admin/nav-meta";
 
+export type AdminNavIconName = AdminNavItem["icon"] | "logout";
+
 export function AdminNavIcon({
   name,
   className = "size-4",
 }: {
-  name: AdminNavItem["icon"];
+  name: AdminNavIconName;
   className?: string;
 }) {
   const props = {
@@ -57,6 +59,14 @@ export function AdminNavIcon({
           <path
             d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"
           />
+        </svg>
+      );
+    case "logout":
+      return (
+        <svg {...props}>
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+          <path d="M16 17l5-5-5-5" />
+          <path d="M21 12H9" />
         </svg>
       );
     default:
