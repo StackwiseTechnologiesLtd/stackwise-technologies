@@ -3,6 +3,7 @@ import CopyCommand from "@/components/CopyCommand";
 import FaqList from "@/components/FaqList";
 import HeroMock from "@/components/HeroMock";
 import Mark from "@/components/Mark";
+import Portfolio from "@/components/Portfolio";
 import ProviderTabs from "@/components/ProviderTabs";
 import WorkVisual from "@/components/WorkVisual";
 import {
@@ -389,6 +390,7 @@ export default function Landing({
     <main>
       <Hero locale={locale} copy={copy} />
       <Features copy={copy.features} />
+      <Portfolio copy={copy.portfolio} />
       <Work locale={locale} copy={copy.work} />
       <Providers copy={copy.providers} />
       <CompareTable id="compare" copy={copy.compare} />

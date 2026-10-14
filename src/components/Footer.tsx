@@ -14,7 +14,7 @@ export default function Footer({ copy }: { copy: SiteCopy["footer"] }) {
           </span>
         </div>
         <div className="flex items-center gap-5 text-sm text-muted">
-          <a href="#work" className="hover:text-foreground">
+          <a href="#portfolio" className="hover:text-foreground">
             {copy.work}
           </a>
           <a href="#faq" className="hover:text-foreground">

@@ -53,6 +53,19 @@ export type SiteCopy = {
     featuredBody: string;
     cards: { kicker: string; value: string; hint: string; body: string }[];
   };
+  portfolio: {
+    label: string;
+    title: string;
+    subtitle: string;
+    visitLabel: string;
+    items: {
+      title: string;
+      body: string;
+      href: string;
+      image: string;
+      imageAlt: string;
+    }[];
+  };
   work: {
     label: string;
     title: string;
@@ -131,6 +144,7 @@ export const en: SiteCopy = {
   },
   nav: {
     links: [
+      { href: "#portfolio", label: "Portfolio" },
       { href: "#work", label: "See it work" },
       { href: "#features", label: "Features" },
       { href: "#compare", label: "Compare" },
@@ -213,6 +227,46 @@ export const en: SiteCopy = {
         value: "100%",
         hint: "Partner",
         body: "We embed with your business. No bait-and-switch outsourcing.",
+      },
+    ],
+  },
+  portfolio: {
+    label: "Selected work",
+    title: "Client projects in production.",
+    subtitle:
+      "A sample of platforms we have designed, built, and maintain — marketing sites, e-commerce, dashboards, and consultancy brands.",
+    visitLabel: "Visit live site",
+    items: [
+      {
+        title: "Alemnet",
+        body:
+          "ISP marketing site with multilingual packages, speed test, and subscriber-focused flows.",
+        href: "https://alemnet.net/",
+        image: "/images/portfolio/alemnet.png",
+        imageAlt: "Screenshot of the Alemnet internet provider website",
+      },
+      {
+        title: "Alem Techno Shop",
+        body: "E-commerce storefront for devices and internet packages in the Alemnet ecosystem.",
+        href: "https://alemtechnoshop.com/",
+        image: "/images/portfolio/alem-technoshop.png",
+        imageAlt: "Screenshot of the Alem Techno Shop online store",
+      },
+      {
+        title: "TEMPS International",
+        body:
+          "Bilingual consultancy site for public health, nutrition, and infrastructure programs.",
+        href: "https://www.temps-international.org/en",
+        image: "/images/portfolio/temps.png",
+        imageAlt: "Screenshot of the TEMPS International website",
+      },
+      {
+        title: "OPEN SARL",
+        body:
+          "Infrastructure advisory platform for public-sector programs in DRC and Central Africa.",
+        href: "https://open-sarl.vercel.app/",
+        image: "/images/portfolio/open.png",
+        imageAlt: "Screenshot of the OPEN SARL advisory website",
       },
     ],
   },
@@ -487,6 +541,7 @@ export const fr: SiteCopy = {
   },
   nav: {
     links: [
+      { href: "#portfolio", label: "Portfolio" },
       { href: "#work", label: "Voir en action" },
       { href: "#features", label: "Fonctionnalités" },
       { href: "#compare", label: "Comparer" },
@@ -569,6 +624,47 @@ export const fr: SiteCopy = {
         value: "100 %",
         hint: "Partenaire",
         body: "Nous nous intégrons à votre métier. Pas d’externalisation bâton-et-carotte.",
+      },
+    ],
+  },
+  portfolio: {
+    label: "Réalisations",
+    title: "Projets clients en production.",
+    subtitle:
+      "Un échantillon de plateformes que nous avons conçues, construites et maintenons — sites marketing, e-commerce, tableaux de bord et marques de conseil.",
+    visitLabel: "Voir le site",
+    items: [
+      {
+        title: "Alemnet",
+        body:
+          "Site marketing FAI multilingue — forfaits, test de débit et parcours abonnés.",
+        href: "https://alemnet.net/",
+        image: "/images/portfolio/alemnet.png",
+        imageAlt: "Capture d’écran du site Alemnet",
+      },
+      {
+        title: "Alem Techno Shop",
+        body:
+          "Boutique en ligne pour appareils et forfaits internet dans l’écosystème Alemnet.",
+        href: "https://alemtechnoshop.com/",
+        image: "/images/portfolio/alem-technoshop.png",
+        imageAlt: "Capture d’écran de la boutique Alem Techno Shop",
+      },
+      {
+        title: "TEMPS International",
+        body:
+          "Site bilingue pour la santé publique, la nutrition et les programmes d’infrastructure.",
+        href: "https://www.temps-international.org/en",
+        image: "/images/portfolio/temps.png",
+        imageAlt: "Capture d’écran du site TEMPS International",
+      },
+      {
+        title: "OPEN SARL",
+        body:
+          "Plateforme de conseil en infrastructures pour le secteur public en RDC et en Afrique centrale.",
+        href: "https://open-sarl.vercel.app/",
+        image: "/images/portfolio/open.png",
+        imageAlt: "Capture d’écran du site OPEN SARL",
       },
     ],
   },
