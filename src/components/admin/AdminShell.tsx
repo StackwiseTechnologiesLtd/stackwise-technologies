@@ -59,7 +59,7 @@ function SidebarNav({
   onNavigate?: () => void;
 }) {
   return (
-    <nav className="flex flex-1 flex-col gap-1 px-2 py-3" aria-label="Admin">
+    <nav className="flex flex-col gap-1 px-2 py-3" aria-label="Admin">
       {!collapsed ? (
         <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-wider text-muted">
           Billing
@@ -100,24 +100,22 @@ function SidebarNav({
   );
 }
 
-function DesktopSidebar({
-  pathname,
+function SidebarFooter({
   collapsed,
-  onToggleCollapse,
   onLogout,
+  onToggleCollapse,
 }: {
-  pathname: string;
   collapsed: boolean;
-  onToggleCollapse: () => void;
   onLogout: () => void;
+  onToggleCollapse: () => void;
 }) {
   return (
-    <aside
-      className="hidden w-[var(--admin-sidebar-width)] shrink-0 flex-col border-r border-[var(--admin-border)] bg-[var(--admin-sidebar)] transition-[width] duration-200 ease-out lg:flex"
+    <div
+      className="shrink-0 space-y-1 border-t border-[var(--admin-border)] p-2"
+      style={{
+        paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))",
+      }}
     >
-      <SidebarBrand collapsed={collapsed} />
-      <SidebarNav pathname={pathname} collapsed={collapsed} />
-      <div className="mt-auto space-y-1 border-t border-[var(--admin-border)] p-2">
         <button
           type="button"
           onClick={onLogout}
@@ -142,7 +140,37 @@ function DesktopSidebar({
           <CollapseIcon collapsed={collapsed} />
           {!collapsed ? <span>Collapse sidebar</span> : null}
         </button>
+    </div>
+  );
+}
+
+function DesktopSidebar({
+  pathname,
+  collapsed,
+  onToggleCollapse,
+  onLogout,
+}: {
+  pathname: string;
+  collapsed: boolean;
+  onToggleCollapse: () => void;
+  onLogout: () => void;
+}) {
+  return (
+    <aside
+      className="hidden h-full max-h-full w-[var(--admin-sidebar-width)] shrink-0 flex-col border-r border-[var(--admin-border)] bg-[var(--admin-sidebar)] transition-[width] duration-200 ease-out lg:flex"
+      style={{
+        paddingTop: "max(0px, env(safe-area-inset-top))",
+      }}
+    >
+      <SidebarBrand collapsed={collapsed} />
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
+        <SidebarNav pathname={pathname} collapsed={collapsed} />
       </div>
+      <SidebarFooter
+        collapsed={collapsed}
+        onLogout={onLogout}
+        onToggleCollapse={onToggleCollapse}
+      />
     </aside>
   );
 }
@@ -212,7 +240,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
   return (
     <div
-      className={`admin-shell flex min-h-screen bg-[var(--admin-canvas)] text-foreground ${
+      className={`admin-shell flex h-dvh max-h-dvh overflow-hidden bg-[var(--admin-canvas)] text-foreground ${
         sidebarCollapsed ? "admin-sidebar-collapsed" : ""
       }`}
     >
@@ -223,7 +251,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
         onLogout={() => void logout()}
       />
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         <header
           className="sticky top-0 z-40 flex h-12 items-center justify-between gap-2 border-b border-[var(--admin-border)] bg-[var(--admin-sidebar)]/90 px-3 backdrop-blur-md sm:gap-3 sm:px-4"
         >
@@ -285,19 +313,25 @@ export function AdminShell({ children }: { children: ReactNode }) {
             />
             <aside
               id="admin-mobile-drawer"
-              className="fixed inset-y-0 left-0 z-50 flex w-[min(100vw-2.5rem,17rem)] max-w-[85vw] flex-col border-r border-[var(--admin-border)] bg-[var(--admin-sidebar)] shadow-2xl lg:hidden"
+              className="fixed inset-y-0 left-0 z-50 flex h-dvh max-h-dvh w-[min(100vw-2.5rem,17rem)] max-w-[85vw] flex-col border-r border-[var(--admin-border)] bg-[var(--admin-sidebar)] shadow-2xl lg:hidden"
               style={{
                 paddingTop: "max(0px, env(safe-area-inset-top))",
-                paddingBottom: "max(0px, env(safe-area-inset-bottom))",
               }}
             >
               <SidebarBrand collapsed={false} />
-              <SidebarNav
-                pathname={pathname}
-                collapsed={false}
-                onNavigate={() => setMenuOpen(false)}
-              />
-              <div className="mt-auto border-t border-[var(--admin-border)] p-2">
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
+                <SidebarNav
+                  pathname={pathname}
+                  collapsed={false}
+                  onNavigate={() => setMenuOpen(false)}
+                />
+              </div>
+              <div
+                className="shrink-0 border-t border-[var(--admin-border)] p-2"
+                style={{
+                  paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))",
+                }}
+              >
                 <button
                   type="button"
                   onClick={() => {
