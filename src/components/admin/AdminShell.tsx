@@ -120,18 +120,6 @@ function DesktopSidebar({
       <div className="mt-auto space-y-1 border-t border-[var(--admin-border)] p-2">
         <button
           type="button"
-          onClick={onToggleCollapse}
-          className={`${ADMIN_NAV_LINK} w-full text-muted hover:bg-[var(--admin-nav-hover)] hover:text-foreground ${
-            collapsed ? "justify-center px-2" : ""
-          }`}
-          aria-expanded={!collapsed}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        >
-          <CollapseIcon collapsed={collapsed} />
-          {!collapsed ? <span>Collapse</span> : null}
-        </button>
-        <button
-          type="button"
           onClick={onLogout}
           title={collapsed ? "Sign out" : undefined}
           className={`${ADMIN_NAV_LINK} w-full text-muted hover:bg-[var(--admin-nav-hover)] hover:text-foreground ${
@@ -141,6 +129,18 @@ function DesktopSidebar({
           <AdminNavIcon name="settings" className="size-4 shrink-0" />
           {!collapsed ? <span>Sign out</span> : null}
           {collapsed ? <span className="sr-only">Sign out</span> : null}
+        </button>
+        <button
+          type="button"
+          onClick={onToggleCollapse}
+          className={`${ADMIN_NAV_LINK} w-full text-muted hover:bg-[var(--admin-nav-hover)] hover:text-foreground ${
+            collapsed ? "justify-center px-2" : ""
+          }`}
+          aria-expanded={!collapsed}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          <CollapseIcon collapsed={collapsed} />
+          {!collapsed ? <span>Collapse sidebar</span> : null}
         </button>
       </div>
     </aside>
@@ -250,15 +250,6 @@ export function AdminShell({ children }: { children: ReactNode }) {
                   <path d="M4 7h16M4 12h16M4 17h16" />
                 )}
               </svg>
-            </button>
-            <button
-              type="button"
-              onClick={toggleSidebar}
-              className="hidden min-h-11 min-w-11 shrink-0 touch-manipulation items-center justify-center rounded-md border border-[var(--admin-border)] text-muted hover:bg-[var(--admin-nav-hover)] hover:text-foreground lg:inline-flex"
-              aria-expanded={!sidebarCollapsed}
-              aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-            >
-              <CollapseIcon collapsed={sidebarCollapsed} />
             </button>
             <nav
               className="flex min-w-0 items-center gap-1 text-muted sm:gap-1.5"
