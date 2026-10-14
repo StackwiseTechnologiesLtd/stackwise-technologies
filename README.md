@@ -1,16 +1,55 @@
-# Hey, we're Stackwise 👋
+<div align="center">
+  <img src="docs/images/mark.svg" alt="Stackwise mark" width="88" />
+  <h1>Stackwise Technologies</h1>
+  <p>
+    International software engineering with African roots — AI systems, cloud infrastructure,
+    and digital products that are secure, scalable, and beautifully designed.
+  </p>
+  <p>
+    <a href="https://stackwisetechnologies.com"><img alt="Website" src="https://img.shields.io/badge/website-stackwisetechnologies.com-541111?style=flat-square" /></a>
+    <a href="https://github.com/stackwise-technologies"><img alt="GitHub" src="https://img.shields.io/badge/GitHub-stackwise--technologies-181717?style=flat-square&logo=github" /></a>
+  </p>
+  <p>
+    <img width="1983" height="793" alt="Stackwise Banner" src="https://github.com/user-attachments/assets/4a7f3e2c-aa94-42b7-af0d-0cfe5fc7a8e9" />
+  </p>
+</div>
+
+<details>
+  <summary>Table of Contents</summary>
+
+- [About](#-about)
+- [What we build](#-what-we-build)
+- [Tech stack](#️-our-tech-stack)
+- [Website (this repo)](#️-website-this-repo)
+- [Open source](#️-open-source-commitment)
+- [Let's build together](#-lets-build-together)
+</details>
+
+---
+
+## 🌍 About
 
 <p align="center">
-  <img width="1983" height="793" alt="Stackwise Banner" src="https://github.com/user-attachments/assets/4a7f3e2c-aa94-42b7-af0d-0cfe5fc7a8e9" />
+  <img src="docs/images/readme-about.jpg" alt="Stackwise — engineering at the speed of your business" width="100%" />
 </p>
 
-We're an international software engineering company with African roots, building scalable software, AI systems, cloud infrastructure, and digital products for businesses worldwide. Our mission is to accelerate business growth by delivering world-class technology solutions that are secure, scalable, and beautifully designed.
+We're an international software engineering company with African roots. We don't just write code; we solve business problems — from AI-powered workflows to production payments, cloud platforms, and product delivery for teams worldwide.
+
+**Website:** [stackwisetechnologies.com](https://stackwisetechnologies.com)
+
+<p align="right"><a href="#stackwise-technologies">(back to top)</a></p>
 
 ---
 
 ## 🌍 What we build
 
-At Stackwise, we take a strategic approach to software engineering. We don't just write code; we solve business problems.
+<details open>
+  <summary><strong>Quick overview</strong></summary>
+  <br />
+  <p align="center">
+    <img src="docs/images/readme-stack.jpg" alt="AI · Cloud · Apps — built for scale" width="100%" />
+  </p>
+</details>
 
 ### 🤖 AI & Automation
 We integrate intelligent systems into your workflows. From AI-powered assistants and predictive analytics to automated operational tooling, we help companies reduce manual work and scale efficiently.
@@ -27,6 +66,15 @@ We develop secure RESTful and GraphQL APIs that power everything from mobile app
 ### 🧩 Developer Tools
 We build utilities and open-source packages that help other engineers work faster, smarter, and with fewer friction points.
 
+### 💳 Payments & subscriptions
+<p align="center">
+  <img src="docs/images/readme-payments.jpg" alt="Secure payments — Paystack, KPay, receipts" width="100%" />
+</p>
+
+This repo also powers Stackwise’s client payment flows: one-time invoices (Paystack card + KPay Mobile Money), printable receipts, and Paystack recurring maintenance subscriptions.
+
+<p align="right"><a href="#stackwise-technologies">(back to top)</a></p>
+
 ---
 
 ## 🛠️ Our Tech Stack
@@ -38,6 +86,7 @@ We utilize a modern, battle-tested technology stack to ensure our products are r
 - **Database:** PostgreSQL, MongoDB, Redis, Firebase
 - **Cloud & DevOps:** AWS, Google Cloud, Docker, Kubernetes, CI/CD
 - **AI/ML:** OpenAI, LangChain, TensorFlow
+- **Payments:** Paystack, KPay, Neon Postgres
 
 ---
 
@@ -154,6 +203,8 @@ Requires `wrangler` login. Uploads all non-comment `KEY=value` lines from the fi
 ### Payments legal & compliance
 
 Customer payment pages (`/pay/*`) include a legal notice linking to [Payment processing & data](/pay/legal). See [docs/PAYMENTS.md](docs/PAYMENTS.md) for how payments, receipts, and personal data are handled.
+
+<p align="right"><a href="#stackwise-technologies">(back to top)</a></p>
 
 ---
 
