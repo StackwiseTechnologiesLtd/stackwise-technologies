@@ -61,8 +61,14 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
-      <div className="w-full max-w-sm space-y-6 rounded-xl border border-line bg-panel p-8">
+    <div
+      className="flex min-h-screen items-center justify-center px-4 py-8"
+      style={{
+        paddingBottom: "max(2rem, env(safe-area-inset-bottom))",
+        paddingTop: "max(2rem, env(safe-area-inset-top))",
+      }}
+    >
+      <div className="w-full max-w-sm space-y-6 rounded-xl border border-line bg-panel p-6 sm:p-8">
         <div className="flex flex-col items-center gap-3 text-center">
           <Mark className="h-10 w-10" />
           <div>

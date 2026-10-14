@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { PaymentAuditLog, PaymentAuditLogWithLink } from "@/lib/db/payment-audit";
+import { ADMIN_TABLE_HEAD, ADMIN_TABLE_SCROLL } from "@/lib/ui/admin";
 import {
   formatAuditTimestamp,
   formatPaymentInitAuditDetail,
@@ -24,15 +25,15 @@ export function PaymentAuditLogTable({
   const columnCount = showInvoice ? 5 : 4;
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-[720px] text-left text-xs">
-        <thead>
-          <tr className="border-b border-line bg-panel text-muted">
-            <th className="px-4 py-3 font-medium">When</th>
-            {showInvoice && <th className="px-4 py-3 font-medium">Invoice</th>}
-            <th className="px-4 py-3 font-medium">Event</th>
-            <th className="px-4 py-3 font-medium">IP</th>
-            <th className="px-4 py-3 font-medium">User agent</th>
+    <div className={ADMIN_TABLE_SCROLL}>
+      <table className="w-full min-w-[720px] text-left text-xs sm:text-sm">
+        <thead className={ADMIN_TABLE_HEAD}>
+          <tr>
+            <th className="px-4 py-2.5">When</th>
+            {showInvoice && <th className="px-4 py-2.5">Invoice</th>}
+            <th className="px-4 py-2.5">Event</th>
+            <th className="px-4 py-2.5">IP</th>
+            <th className="max-w-[12rem] px-4 py-2.5 sm:max-w-none">User agent</th>
           </tr>
         </thead>
         <tbody>
@@ -47,7 +48,10 @@ export function PaymentAuditLogTable({
             </tr>
           ) : (
             logs.map((log) => (
-              <tr key={log.id} className="border-t border-line/60 align-top">
+              <tr
+                key={log.id}
+                className="border-t border-[var(--admin-border)] align-top hover:bg-[var(--admin-nav-hover)]"
+              >
                 <td className="px-4 py-3 whitespace-nowrap text-muted">
                   {formatAuditTimestamp(log.createdAt)}
                 </td>

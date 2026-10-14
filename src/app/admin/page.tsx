@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AdminCheckoutStatus } from "@/components/admin/AdminCheckoutStatus";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { PaymentLinksList } from "@/components/admin/PaymentLinksList";
 import { getAdminSession } from "@/lib/auth/session";
 import { listPaymentLinks } from "@/lib/db/payment-links";
 import { isCheckoutTestMode } from "@/lib/payments/admin-checkout";
 import { cardCheckoutProcessor } from "@/lib/payments/processor";
-import { BTN_PRIMARY } from "@/lib/ui/buttons";
+import { ADMIN_BTN_PRIMARY_BLOCK } from "@/lib/ui/admin";
 
 export default async function AdminDashboardPage() {
   const session = await getAdminSession();
@@ -22,19 +23,21 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0 space-y-2">
-          <h1 className="text-2xl font-semibold">Payment links</h1>
-          <p className="text-sm text-muted">Signed in as {session.email}</p>
-          <AdminCheckoutStatus />
-        </div>
-        <Link
-          href="/admin/payment-links/new"
-          className={`inline-flex shrink-0 items-center justify-center py-2.5 text-sm ${BTN_PRIMARY}`}
-        >
-          New payment link
-        </Link>
-      </div>
+      <AdminPageHeader
+        title="Payment links"
+        description="Create invoices, send checkout links, and track card and Mobile Money payments."
+        meta={
+          <div className="space-y-2 pt-1">
+            <p className="text-xs text-muted">Signed in as {session.email}</p>
+            <AdminCheckoutStatus />
+          </div>
+        }
+        actions={
+          <Link href="/admin/payment-links/new" className={ADMIN_BTN_PRIMARY_BLOCK}>
+            New payment link
+          </Link>
+        }
+      />
 
       <PaymentLinksList
         liveLinks={liveLinks}

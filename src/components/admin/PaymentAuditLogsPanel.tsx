@@ -10,6 +10,11 @@ import type {
 import { ADMIN_TABLE_PAGE_SIZE, paginate } from "@/lib/admin/pagination";
 import { TablePagination } from "@/components/admin/TablePagination";
 import { PAYMENT_AUDIT_EVENT_LABELS } from "@/lib/payments/audit-labels";
+import {
+  ADMIN_INPUT,
+  ADMIN_SELECT,
+  ADMIN_TABLE_WRAP,
+} from "@/lib/ui/admin";
 
 const EVENT_OPTIONS: Array<PaymentAuditEvent | "ALL"> = [
   "ALL",
@@ -73,10 +78,21 @@ export function PaymentAuditLogsPanel({
   const loadedCount = totalCount ?? logs.length;
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-        <label className="block flex-1 space-y-1">
-          <span className="text-xs text-muted">Search</span>
+    <div className="space-y-3">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+        <label className="relative block min-w-0 flex-1">
+          <span className="sr-only">Search access logs</span>
+          <svg
+            className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            aria-hidden
+          >
+            <circle cx="11" cy="11" r="7" />
+            <path d="M20 20l-3-3" />
+          </svg>
           <input
             type="search"
             value={query}
@@ -84,19 +100,19 @@ export function PaymentAuditLogsPanel({
               setQuery(e.target.value);
               resetPage();
             }}
-            placeholder="Invoice, customer, IP, user agent…"
-            className="w-full rounded-lg border border-line bg-background px-3 py-2 text-sm"
+            placeholder="Search invoice, IP, or user agent…"
+            className={`${ADMIN_INPUT} pl-9`}
           />
         </label>
-        <label className="block space-y-1 sm:w-44">
-          <span className="text-xs text-muted">Event</span>
+        <label className="block w-full sm:w-44">
+          <span className="sr-only">Filter by event</span>
           <select
             value={event}
             onChange={(e) => {
               setEvent(e.target.value as PaymentAuditEvent | "ALL");
               resetPage();
             }}
-            className="w-full rounded-lg border border-line bg-background px-3 py-2 text-sm"
+            className={ADMIN_SELECT}
           >
             {EVENT_OPTIONS.map((option) => (
               <option key={option} value={option}>
@@ -116,7 +132,7 @@ export function PaymentAuditLogsPanel({
           : ""}
       </p>
 
-      <div className="overflow-hidden rounded-xl border border-line">
+      <div className={ADMIN_TABLE_WRAP}>
         <PaymentAuditLogTable logs={pageLogs} showInvoice={showInvoice} />
       </div>
 

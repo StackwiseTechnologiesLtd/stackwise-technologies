@@ -18,7 +18,7 @@ function TotalsGrid({
 
   return (
     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-      <div className="rounded-xl border border-line bg-panel p-4">
+      <div className="rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] p-4">
         <div className="flex items-center gap-2">
           <EnvironmentBadge environment={environment} compact />
           <p className="text-sm text-muted">Invoiced (DB)</p>
@@ -31,7 +31,7 @@ function TotalsGrid({
         </p>
       </div>
 
-      <div className="rounded-xl border border-line bg-panel p-4">
+      <div className="rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] p-4">
         <p className="text-sm text-muted">Collected (paid)</p>
         <p className="mt-1 text-xl font-semibold tabular-nums">
           ${summary.paidUsd.toFixed(2)}
@@ -44,7 +44,7 @@ function TotalsGrid({
       {localEntries.map(([currency, bucket]) => (
         <div
           key={currency}
-          className="rounded-xl border border-line bg-panel p-4"
+          className="rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] p-4"
         >
           <p className="text-sm text-muted">{currency} invoiced</p>
           <p className="mt-1 text-xl font-semibold tabular-nums">

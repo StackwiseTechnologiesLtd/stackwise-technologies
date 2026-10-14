@@ -1,6 +1,6 @@
 "use client";
 
-import { BTN_GHOST } from "@/lib/ui/buttons";
+import { ADMIN_BTN_SECONDARY } from "@/lib/ui/admin";
 
 export function TablePagination({
   currentPage,
@@ -19,19 +19,19 @@ export function TablePagination({
   const end = totalItems === 0 ? 0 : Math.min(currentPage * pageSize, totalItems);
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+    <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-[1fr_auto_1fr] sm:items-center">
       <button
         type="button"
         disabled={currentPage <= 1}
         onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-        className={`border border-line ${BTN_GHOST}`}
+        className={`order-2 sm:order-1 justify-self-stretch sm:justify-self-start ${ADMIN_BTN_SECONDARY}`}
         aria-label="Previous page"
       >
         Previous
       </button>
 
-      <div className="text-center text-muted">
-        <p>
+      <div className="order-1 text-center text-muted sm:order-2">
+        <p className="text-sm">
           Page {currentPage} of {totalPages}
         </p>
         <p className="text-xs">
@@ -45,7 +45,7 @@ export function TablePagination({
         type="button"
         disabled={currentPage >= totalPages}
         onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-        className={`border border-line ${BTN_GHOST}`}
+        className={`order-3 justify-self-stretch sm:justify-self-end ${ADMIN_BTN_SECONDARY}`}
         aria-label="Next page"
       >
         Next

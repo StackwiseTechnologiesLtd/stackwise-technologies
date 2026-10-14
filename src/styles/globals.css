@@ -76,3 +76,25 @@ body {
 .toast-enter {
   animation: toast-in 0.2s ease-out;
 }
+
+/* Admin dashboard — Supabase-inspired shell */
+.admin-shell {
+  --admin-sidebar-width: 15rem;
+  --admin-sidebar: #161616;
+  --admin-canvas: #1c1c1c;
+  --admin-surface: #232323;
+  --admin-surface-hover: #2a2a2a;
+  --admin-border: #2e2e2e;
+  --admin-nav-hover: rgba(255, 255, 255, 0.04);
+  --admin-nav-active: rgba(255, 255, 255, 0.06);
+  --admin-focus: #3ecf8e;
+}
+
+.admin-shell .admin-btn-primary {
+  background: #3ecf8e;
+  color: #0d1f17;
+}
+
+.admin-shell .admin-btn-primary:hover {
+  background: #34b87d;
+}

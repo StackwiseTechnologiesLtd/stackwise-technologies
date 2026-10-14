@@ -2,14 +2,10 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getAdminSession } from "@/lib/auth/session";
 import { listMaintenanceSubscriptions } from "@/lib/db/maintenance-subscriptions";
-import { formatMoney } from "@/lib/currency";
-import { formatDateTime } from "@/lib/format-datetime";
 import { isPaystackConfigured } from "@/lib/paystack/environment";
-import {
-  formatSubscriptionInterval,
-  subscriptionAmountMajor,
-} from "@/lib/subscriptions/types";
-import { BTN_PRIMARY } from "@/lib/ui/buttons";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { SubscriptionsTable } from "@/components/admin/SubscriptionsTable";
+import { ADMIN_BTN_PRIMARY_BLOCK } from "@/lib/ui/admin";
 
 export default async function SubscriptionsAdminPage() {
   const session = await getAdminSession();
@@ -20,19 +16,17 @@ export default async function SubscriptionsAdminPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold">Maintenance subscriptions</h1>
-          <p className="mt-1 text-sm text-muted">
-            Recurring software maintenance billed through Paystack (card only).
-          </p>
-        </div>
-        {paystackEnabled && (
-          <Link href="/admin/subscriptions/new" className={BTN_PRIMARY}>
-            New subscription
-          </Link>
-        )}
-      </div>
+      <AdminPageHeader
+        title="Maintenance subscriptions"
+        description="Recurring software maintenance billed through Paystack (card only)."
+        actions={
+          paystackEnabled ? (
+            <Link href="/admin/subscriptions/new" className={ADMIN_BTN_PRIMARY_BLOCK}>
+              New subscription
+            </Link>
+          ) : undefined
+        }
+      />
 
       {!paystackEnabled && (
         <div className="rounded-xl border border-amber-900/40 bg-amber-950/20 p-4 text-sm text-amber-100">
@@ -46,44 +40,7 @@ export default async function SubscriptionsAdminPage() {
       )}
 
       {subscriptions.length > 0 && (
-        <div className="overflow-hidden rounded-xl border border-line">
-          <table className="w-full text-sm">
-            <thead className="bg-panel text-left text-muted">
-              <tr>
-                <th className="px-4 py-3 font-medium">Customer</th>
-                <th className="px-4 py-3 font-medium">Plan</th>
-                <th className="px-4 py-3 font-medium">Status</th>
-                <th className="px-4 py-3 font-medium">Created</th>
-              </tr>
-            </thead>
-            <tbody>
-              {subscriptions.map((sub) => (
-                <tr key={sub.id} className="border-t border-line">
-                  <td className="px-4 py-3">
-                    <Link
-                      href={`/admin/subscriptions/${sub.id}`}
-                      className="font-medium text-accent hover:underline"
-                    >
-                      {sub.customerName}
-                    </Link>
-                    <p className="text-xs text-muted">{sub.customerEmail}</p>
-                  </td>
-                  <td className="px-4 py-3">
-                    <p>{sub.description}</p>
-                    <p className="text-xs text-muted">
-                      {formatMoney(subscriptionAmountMajor(sub), sub.currency)} ·{" "}
-                      {formatSubscriptionInterval(sub.interval)}
-                    </p>
-                  </td>
-                  <td className="px-4 py-3">{sub.status}</td>
-                  <td className="px-4 py-3 text-muted">
-                    {formatDateTime(sub.createdAt)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <SubscriptionsTable subscriptions={subscriptions} />
       )}
     </div>
   );
