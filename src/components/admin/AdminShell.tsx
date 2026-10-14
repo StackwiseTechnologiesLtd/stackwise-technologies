@@ -1,9 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useLayoutEffect, useState, type ReactNode } from "react";
 import { AdminNavIcon } from "@/components/admin/AdminNavIcon";
+import { AdminUserAvatar } from "@/components/admin/AdminUserAvatar";
 import Mark from "@/components/Mark";
 import { useToast } from "@/components/ToastProvider";
 import {
@@ -13,15 +11,17 @@ import {
 } from "@/lib/admin/nav-meta";
 import { SITE_NAME } from "@/lib/content";
 import { ADMIN_BTN_SECONDARY, ADMIN_NAV_LINK } from "@/lib/ui/admin";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useLayoutEffect, useState, type ReactNode } from "react";
 
 const SIDEBAR_STORAGE_KEY = "stackwise-admin-sidebar-collapsed";
 
 function SidebarBrand({ collapsed }: { collapsed: boolean }) {
   return (
     <div
-      className={`flex h-12 shrink-0 items-center border-b border-[var(--admin-border)] ${
-        collapsed ? "justify-center px-2" : "gap-2 px-4"
-      }`}
+      className={`flex h-12 shrink-0 items-center border-b border-[var(--admin-border)] ${collapsed ? "justify-center px-2" : "gap-2 px-4"
+        }`}
     >
       <Mark className="size-7 shrink-0" gradientId="sw-mark-admin" />
       {!collapsed ? (
@@ -60,13 +60,13 @@ function SidebarNav({
 }) {
   return (
     <nav className="flex flex-col gap-1 px-2 py-3" aria-label="Admin">
-      {!collapsed ? (
+      {/* {!collapsed ? (
         <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-wider text-muted">
           Billing
         </p>
       ) : (
         <p className="sr-only">Billing</p>
-      )}
+      )} */}
       {adminNavPrimary.map((item) => {
         const active = isNavActive(pathname, item);
         return (
@@ -75,17 +75,15 @@ function SidebarNav({
             href={item.href}
             title={collapsed ? item.label : undefined}
             onClick={onNavigate}
-            className={`${ADMIN_NAV_LINK} ${
-              collapsed ? "justify-center px-2" : ""
-            } ${
-              active
+            className={`${ADMIN_NAV_LINK} ${collapsed ? "justify-center px-2" : ""
+              } ${active
                 ? collapsed
                   ? "bg-[var(--admin-nav-active)] font-medium text-foreground"
                   : "border-l-2 border-[var(--admin-nav-active-border)] bg-[var(--admin-nav-active)] font-medium text-foreground"
                 : collapsed
                   ? "text-muted hover:bg-[var(--admin-nav-hover)] hover:text-foreground"
                   : "border-l-2 border-transparent text-muted hover:bg-[var(--admin-nav-hover)] hover:text-foreground"
-            }`}
+              }`}
           >
             <AdminNavIcon
               name={item.icon}
@@ -116,32 +114,30 @@ function SidebarFooter({
         paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))",
       }}
     >
-        <button
-          type="button"
-          onClick={onLogout}
-          title={collapsed ? "Sign out" : undefined}
-          className={`${ADMIN_NAV_LINK} w-full text-muted hover:bg-[var(--admin-nav-hover)] hover:text-foreground ${
-            collapsed ? "justify-center px-2" : ""
+      <button
+        type="button"
+        onClick={onLogout}
+        title={collapsed ? "Sign out" : undefined}
+        className={`${ADMIN_NAV_LINK} w-full text-muted hover:bg-[var(--admin-nav-hover)] hover:text-foreground ${collapsed ? "justify-center px-2" : ""
           }`}
-        >
-          <AdminNavIcon name="logout" className="size-4 shrink-0" />
-          {!collapsed ? <span>Sign out</span> : null}
-          {collapsed ? <span className="sr-only">Sign out</span> : null}
-        </button>
-        <button
-          type="button"
-          onClick={onToggleCollapse}
-          className={`${ADMIN_NAV_LINK} w-full text-muted hover:bg-[var(--admin-nav-hover)] hover:text-foreground ${
-            collapsed ? "justify-center px-2" : ""
+      >
+        <AdminNavIcon name="logout" className="size-4 shrink-0" />
+        {!collapsed ? <span>Sign out</span> : null}
+        {collapsed ? <span className="sr-only">Sign out</span> : null}
+      </button>
+      <button
+        type="button"
+        onClick={onToggleCollapse}
+        className={`${ADMIN_NAV_LINK} w-full text-muted hover:bg-[var(--admin-nav-hover)] hover:text-foreground ${collapsed ? "justify-center px-2" : ""
           }`}
-          aria-expanded={!collapsed}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          title={collapsed ? "Expand sidebar" : undefined}
-        >
-          <CollapseIcon collapsed={collapsed} />
-          {!collapsed ? <span>Collapse sidebar</span> : null}
-          {collapsed ? <span className="sr-only">Collapse sidebar</span> : null}
-        </button>
+        aria-expanded={!collapsed}
+        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        title={collapsed ? "Expand sidebar" : undefined}
+      >
+        <CollapseIcon collapsed={collapsed} />
+        {!collapsed ? <span>Collapse sidebar</span> : null}
+        {collapsed ? <span className="sr-only">Collapse sidebar</span> : null}
+      </button>
     </div>
   );
 }
@@ -177,7 +173,18 @@ function DesktopSidebar({
   );
 }
 
-export function AdminShell({ children }: { children: ReactNode }) {
+export type AdminShellUser = {
+  email: string;
+  avatarUrl: string;
+};
+
+export function AdminShell({
+  children,
+  user,
+}: {
+  children: ReactNode;
+  user: AdminShellUser | null;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const toast = useToast();
@@ -242,9 +249,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
   return (
     <div
-      className={`admin-shell flex h-dvh max-h-dvh overflow-hidden bg-[var(--admin-canvas)] text-foreground ${
-        sidebarCollapsed ? "admin-sidebar-collapsed" : ""
-      }`}
+      className={`admin-shell flex h-dvh max-h-dvh overflow-hidden bg-[var(--admin-canvas)] text-foreground ${sidebarCollapsed ? "admin-sidebar-collapsed" : ""
+        }`}
     >
       <DesktopSidebar
         pathname={pathname}
@@ -296,13 +302,18 @@ export function AdminShell({ children }: { children: ReactNode }) {
               </span>
             </nav>
           </div>
-          <button
-            type="button"
-            onClick={() => void logout()}
-            className={`shrink-0 ${ADMIN_BTN_SECONDARY} px-2.5 text-xs sm:px-3.5 sm:text-sm lg:hidden`}
-          >
-            Sign out
-          </button>
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={() => void logout()}
+              className={`${ADMIN_BTN_SECONDARY} px-2.5 text-xs sm:px-3.5 sm:text-sm lg:hidden`}
+            >
+              Sign out
+            </button>
+            {user ? (
+              <AdminUserAvatar email={user.email} avatarUrl={user.avatarUrl} />
+            ) : null}
+          </div>
         </header>
 
         {menuOpen ? (

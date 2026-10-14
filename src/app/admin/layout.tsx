@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { ClientProviders } from "@/components/ClientProviders";
+import { getAdminSession } from "@/lib/auth/session";
+import { gravatarUrl } from "@/lib/gravatar";
 import { createPageMetadata } from "@/lib/metadata";
 import "../../styles/globals.css";
 
@@ -23,7 +25,12 @@ export const metadata = createPageMetadata({
   noIndex: true,
 });
 
-export default function AdminLayout({ children }: { children: ReactNode }) {
+export default async function AdminLayout({ children }: { children: ReactNode }) {
+  const session = await getAdminSession();
+  const user = session
+    ? { email: session.email, avatarUrl: gravatarUrl(session.email, 72) }
+    : null;
+
   return (
     <html
       lang="en"
@@ -31,7 +38,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
     >
       <body className="min-h-full bg-background font-sans text-foreground">
         <ClientProviders>
-          <AdminShell>{children}</AdminShell>
+          <AdminShell user={user}>{children}</AdminShell>
         </ClientProviders>
       </body>
     </html>
