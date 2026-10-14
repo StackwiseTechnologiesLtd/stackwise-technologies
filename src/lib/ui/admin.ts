@@ -1,7 +1,7 @@
 import { BTN_PRESS } from "@/lib/ui/buttons";
 
-/** Supabase-style primary action inside the admin shell */
-export const ADMIN_BTN_PRIMARY = `${BTN_PRESS} admin-btn-primary inline-flex min-h-11 items-center justify-center rounded-md px-3.5 py-2 text-sm font-medium text-[#0d1f17]`;
+/** Primary action inside the admin shell (Stackwise accent) */
+export const ADMIN_BTN_PRIMARY = `${BTN_PRESS} admin-btn-primary inline-flex min-h-11 items-center justify-center rounded-md px-3.5 py-2 text-sm font-semibold text-white`;
 
 /** Full-width on small screens (page headers, toolbars) */
 export const ADMIN_BTN_PRIMARY_BLOCK = `${ADMIN_BTN_PRIMARY} w-full sm:w-auto`;

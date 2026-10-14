@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useState, type ReactNode } from "react";
 import { AdminNavIcon } from "@/components/admin/AdminNavIcon";
 import Mark from "@/components/Mark";
 import { useToast } from "@/components/ToastProvider";
@@ -14,37 +14,136 @@ import {
 import { SITE_NAME } from "@/lib/content";
 import { ADMIN_BTN_SECONDARY, ADMIN_NAV_LINK } from "@/lib/ui/admin";
 
+const SIDEBAR_STORAGE_KEY = "stackwise-admin-sidebar-collapsed";
+
+function SidebarBrand({ collapsed }: { collapsed: boolean }) {
+  return (
+    <div
+      className={`flex h-12 shrink-0 items-center border-b border-[var(--admin-border)] ${
+        collapsed ? "justify-center px-2" : "gap-2 px-4"
+      }`}
+    >
+      <Mark className="size-7 shrink-0" gradientId="sw-mark-admin" />
+      {!collapsed ? (
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold">Stackwise</p>
+          <p className="truncate text-[11px] text-muted">Payments</p>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function CollapseIcon({ collapsed }: { collapsed: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={`size-4 transition-transform ${collapsed ? "rotate-180" : ""}`}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      aria-hidden
+    >
+      <path d="M15 18l-6-6 6-6" />
+    </svg>
+  );
+}
+
 function SidebarNav({
   pathname,
+  collapsed,
   onNavigate,
 }: {
   pathname: string;
+  collapsed: boolean;
   onNavigate?: () => void;
 }) {
   return (
     <nav className="flex flex-1 flex-col gap-1 px-2 py-3" aria-label="Admin">
-      <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-wider text-muted">
-        Billing
-      </p>
+      {!collapsed ? (
+        <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-wider text-muted">
+          Billing
+        </p>
+      ) : (
+        <p className="sr-only">Billing</p>
+      )}
       {adminNavPrimary.map((item) => {
         const active = isNavActive(pathname, item);
         return (
           <Link
             key={item.href}
             href={item.href}
+            title={collapsed ? item.label : undefined}
             onClick={onNavigate}
             className={`${ADMIN_NAV_LINK} ${
+              collapsed ? "justify-center px-2" : ""
+            } ${
               active
-                ? "bg-[var(--admin-nav-active)] font-medium text-foreground"
-                : "text-muted hover:bg-[var(--admin-nav-hover)] hover:text-foreground"
+                ? collapsed
+                  ? "bg-[var(--admin-nav-active)] font-medium text-foreground"
+                  : "border-l-2 border-[var(--admin-nav-active-border)] bg-[var(--admin-nav-active)] font-medium text-foreground"
+                : collapsed
+                  ? "text-muted hover:bg-[var(--admin-nav-hover)] hover:text-foreground"
+                  : "border-l-2 border-transparent text-muted hover:bg-[var(--admin-nav-hover)] hover:text-foreground"
             }`}
           >
-            <AdminNavIcon name={item.icon} className="size-4 shrink-0 opacity-80" />
-            {item.label}
+            <AdminNavIcon
+              name={item.icon}
+              className={`size-4 shrink-0 ${active ? "text-accent" : "opacity-80"}`}
+            />
+            {!collapsed ? <span className="truncate">{item.label}</span> : null}
+            {collapsed ? <span className="sr-only">{item.label}</span> : null}
           </Link>
         );
       })}
     </nav>
+  );
+}
+
+function DesktopSidebar({
+  pathname,
+  collapsed,
+  onToggleCollapse,
+  onLogout,
+}: {
+  pathname: string;
+  collapsed: boolean;
+  onToggleCollapse: () => void;
+  onLogout: () => void;
+}) {
+  return (
+    <aside
+      className="hidden w-[var(--admin-sidebar-width)] shrink-0 flex-col border-r border-[var(--admin-border)] bg-[var(--admin-sidebar)] transition-[width] duration-200 ease-out lg:flex"
+    >
+      <SidebarBrand collapsed={collapsed} />
+      <SidebarNav pathname={pathname} collapsed={collapsed} />
+      <div className="mt-auto space-y-1 border-t border-[var(--admin-border)] p-2">
+        <button
+          type="button"
+          onClick={onToggleCollapse}
+          className={`${ADMIN_NAV_LINK} w-full text-muted hover:bg-[var(--admin-nav-hover)] hover:text-foreground ${
+            collapsed ? "justify-center px-2" : ""
+          }`}
+          aria-expanded={!collapsed}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          <CollapseIcon collapsed={collapsed} />
+          {!collapsed ? <span>Collapse</span> : null}
+        </button>
+        <button
+          type="button"
+          onClick={onLogout}
+          title={collapsed ? "Sign out" : undefined}
+          className={`${ADMIN_NAV_LINK} w-full text-muted hover:bg-[var(--admin-nav-hover)] hover:text-foreground ${
+            collapsed ? "justify-center px-2" : ""
+          }`}
+        >
+          <AdminNavIcon name="settings" className="size-4 shrink-0" />
+          {!collapsed ? <span>Sign out</span> : null}
+          {collapsed ? <span className="sr-only">Sign out</span> : null}
+        </button>
+      </div>
+    </aside>
   );
 }
 
@@ -54,11 +153,32 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const toast = useToast();
   const isLogin = pathname === "/admin/login";
   const [menuOpen, setMenuOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarReady, setSidebarReady] = useState(false);
   const pageTitle = adminPageTitle(pathname);
 
   useEffect(() => {
     setMenuOpen(false);
   }, [pathname]);
+
+  useLayoutEffect(() => {
+    try {
+      const stored = localStorage.getItem(SIDEBAR_STORAGE_KEY);
+      if (stored === "1") setSidebarCollapsed(true);
+    } catch {
+      /* ignore */
+    }
+    setSidebarReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!sidebarReady) return;
+    try {
+      localStorage.setItem(SIDEBAR_STORAGE_KEY, sidebarCollapsed ? "1" : "0");
+    } catch {
+      /* ignore */
+    }
+  }, [sidebarCollapsed, sidebarReady]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -68,6 +188,10 @@ export function AdminShell({ children }: { children: ReactNode }) {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [menuOpen]);
+
+  function toggleSidebar() {
+    setSidebarCollapsed((value) => !value);
+  }
 
   async function logout() {
     try {
@@ -87,30 +211,17 @@ export function AdminShell({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="admin-shell flex min-h-screen bg-[var(--admin-canvas)] text-foreground">
-      {/* Desktop sidebar */}
-      <aside
-        className="hidden w-[var(--admin-sidebar-width)] shrink-0 flex-col border-r border-[var(--admin-border)] bg-[var(--admin-sidebar)] lg:flex"
-      >
-        <div className="flex h-12 items-center gap-2 border-b border-[var(--admin-border)] px-4">
-          <Mark className="size-7 shrink-0" gradientId="sw-mark-admin" />
-          <div className="min-w-0">
-            <p className="truncate text-sm font-medium">Stackwise</p>
-            <p className="truncate text-[11px] text-muted">Payments</p>
-          </div>
-        </div>
-        <SidebarNav pathname={pathname} />
-        <div className="mt-auto border-t border-[var(--admin-border)] p-2">
-          <button
-            type="button"
-            onClick={() => void logout()}
-            className={`${ADMIN_NAV_LINK} w-full text-muted hover:bg-[var(--admin-nav-hover)] hover:text-foreground`}
-          >
-            <AdminNavIcon name="settings" className="size-4" />
-            Sign out
-          </button>
-        </div>
-      </aside>
+    <div
+      className={`admin-shell flex min-h-screen bg-[var(--admin-canvas)] text-foreground ${
+        sidebarCollapsed ? "admin-sidebar-collapsed" : ""
+      }`}
+    >
+      <DesktopSidebar
+        pathname={pathname}
+        collapsed={sidebarCollapsed}
+        onToggleCollapse={toggleSidebar}
+        onLogout={() => void logout()}
+      />
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header
@@ -140,6 +251,15 @@ export function AdminShell({ children }: { children: ReactNode }) {
                 )}
               </svg>
             </button>
+            <button
+              type="button"
+              onClick={toggleSidebar}
+              className="hidden min-h-11 min-w-11 shrink-0 touch-manipulation items-center justify-center rounded-md border border-[var(--admin-border)] text-muted hover:bg-[var(--admin-nav-hover)] hover:text-foreground lg:inline-flex"
+              aria-expanded={!sidebarCollapsed}
+              aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+              <CollapseIcon collapsed={sidebarCollapsed} />
+            </button>
             <nav
               className="flex min-w-0 items-center gap-1 text-muted sm:gap-1.5"
               aria-label="Breadcrumb"
@@ -164,7 +284,6 @@ export function AdminShell({ children }: { children: ReactNode }) {
           </button>
         </header>
 
-        {/* Mobile drawer */}
         {menuOpen ? (
           <>
             <button
@@ -181,15 +300,10 @@ export function AdminShell({ children }: { children: ReactNode }) {
                 paddingBottom: "max(0px, env(safe-area-inset-bottom))",
               }}
             >
-              <div className="flex h-12 items-center gap-2 border-b border-[var(--admin-border)] px-4">
-                <Mark className="size-7 shrink-0" gradientId="sw-mark-admin-mobile" />
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">Stackwise</p>
-                  <p className="truncate text-[11px] text-muted">Payments</p>
-                </div>
-              </div>
+              <SidebarBrand collapsed={false} />
               <SidebarNav
                 pathname={pathname}
+                collapsed={false}
                 onNavigate={() => setMenuOpen(false)}
               />
               <div className="mt-auto border-t border-[var(--admin-border)] p-2">

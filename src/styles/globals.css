@@ -77,24 +77,31 @@ body {
   animation: toast-in 0.2s ease-out;
 }
 
-/* Admin dashboard — Supabase-inspired shell */
+/* Admin dashboard — Stackwise branding */
 .admin-shell {
   --admin-sidebar-width: 15rem;
-  --admin-sidebar: #161616;
-  --admin-canvas: #1c1c1c;
-  --admin-surface: #232323;
-  --admin-surface-hover: #2a2a2a;
-  --admin-border: #2e2e2e;
+  --admin-sidebar-width-collapsed: 3.75rem;
+  --admin-sidebar: #0b0b0b;
+  --admin-canvas: #000000;
+  --admin-surface: #0f0f0f;
+  --admin-surface-hover: #141414;
+  --admin-border: #1f1f1f;
   --admin-nav-hover: rgba(255, 255, 255, 0.04);
-  --admin-nav-active: rgba(255, 255, 255, 0.06);
-  --admin-focus: #3ecf8e;
+  --admin-nav-active: color-mix(in srgb, var(--accent) 14%, transparent);
+  --admin-nav-active-border: var(--accent);
+  --admin-focus: var(--accent);
+}
+
+.admin-shell.admin-sidebar-collapsed {
+  --admin-sidebar-width: var(--admin-sidebar-width-collapsed);
 }
 
 .admin-shell .admin-btn-primary {
-  background: #3ecf8e;
-  color: #0d1f17;
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--accent) 28%, transparent);
 }
 
 .admin-shell .admin-btn-primary:hover {
-  background: #34b87d;
+  background: var(--accent-hover);
 }
