@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { getAdminSession } from "@/lib/auth/session";
 import { getPaymentLinkById } from "@/lib/db/payment-links";
 import { EnvironmentBadge } from "@/components/admin/EnvironmentBadge";
+import { GatewayPaymentSummary } from "@/components/admin/GatewayPaymentSummary";
 import { PaymentAuditLog } from "@/components/admin/PaymentAuditLog";
 import { ManualPaymentSummary } from "@/components/admin/ManualPaymentSummary";
 import { RecordManualPaymentForm } from "@/components/admin/RecordManualPaymentForm";
@@ -11,7 +12,11 @@ import { SendLinkButton } from "@/components/admin/SendLinkButton";
 import { InvoiceView } from "@/components/payments/InvoiceView";
 import { resolvePaymentEnvironment } from "@/lib/kpay/environment";
 import { canAccessReceipt } from "@/lib/payments/receipt-access";
-import { PAYMENT_METHODS_OPTIONS } from "@/lib/payments/payment-methods";
+import { cardCheckoutProcessor } from "@/lib/payments/processor";
+import {
+  PAYMENT_METHODS_OPTIONS,
+  paymentMethodOptionDescription,
+} from "@/lib/payments/payment-methods";
 import { BTN_SECONDARY } from "@/lib/ui/buttons";
 
 function siteUrl() {
@@ -31,6 +36,7 @@ export default async function PaymentLinkDetailPage({
   if (!link) notFound();
 
   const payUrl = `${siteUrl()}/pay/${link.slug}`;
+  const cardProcessor = cardCheckoutProcessor();
 
   return (
     <div className="space-y-6">
@@ -71,6 +77,12 @@ export default async function PaymentLinkDetailPage({
               )?.label
             }
           </p>
+          <p className="mt-1 text-xs text-muted">
+            {paymentMethodOptionDescription(
+              link.allowedPaymentMethods,
+              cardProcessor,
+            )}
+          </p>
         </div>
         <div className="rounded-xl border border-line bg-background p-4">
           <p className="text-sm text-muted">Payment link</p>
@@ -83,6 +95,7 @@ export default async function PaymentLinkDetailPage({
         </div>
       </div>
 
+      <GatewayPaymentSummary link={link} />
       <ManualPaymentSummary link={link} />
       <RecordManualPaymentForm link={link} />
 

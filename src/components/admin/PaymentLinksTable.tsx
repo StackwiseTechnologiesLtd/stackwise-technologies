@@ -8,6 +8,8 @@ import { formatMoney } from "@/lib/currency";
 import { formatDateTime } from "@/lib/format-datetime";
 import { ADMIN_TABLE_PAGE_SIZE, paginate } from "@/lib/admin/pagination";
 import { resolvePaymentEnvironment } from "@/lib/kpay/environment";
+import type { CardProcessor } from "@/lib/payments/processor";
+import { formatLinkProcessorLine } from "@/lib/payments/payment-source";
 import type { PaymentLink, PaymentLinkStatus } from "@/lib/payments/types";
 import { TablePagination } from "@/components/admin/TablePagination";
 
@@ -33,8 +35,15 @@ function AmountCell({ link }: { link: PaymentLink }) {
   );
 }
 
-function PaymentLinkMobileCard({ link }: { link: PaymentLink }) {
+function PaymentLinkMobileCard({
+  link,
+  cardProcessor,
+}: {
+  link: PaymentLink;
+  cardProcessor: CardProcessor;
+}) {
   const environment = resolvePaymentEnvironment(link);
+  const processors = formatLinkProcessorLine(link, cardProcessor);
 
   return (
     <div className="border-t border-line p-4">
@@ -54,16 +63,24 @@ function PaymentLinkMobileCard({ link }: { link: PaymentLink }) {
       <p className="text-xs text-muted">{link.customerEmail}</p>
       <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
         <AmountCell link={link} />
-        <p className="text-xs text-muted">
-          {formatDateTime(link.createdAt)}
-        </p>
+        <div className="text-right text-xs text-muted">
+          <p>{formatDateTime(link.createdAt)}</p>
+          <p className="mt-0.5">{processors}</p>
+        </div>
       </div>
     </div>
   );
 }
 
-function PaymentLinkTableRow({ link }: { link: PaymentLink }) {
+function PaymentLinkTableRow({
+  link,
+  cardProcessor,
+}: {
+  link: PaymentLink;
+  cardProcessor: CardProcessor;
+}) {
   const environment = resolvePaymentEnvironment(link);
+  const processors = formatLinkProcessorLine(link, cardProcessor);
 
   return (
     <tr className="border-t border-line transition hover:bg-panel/50">
@@ -94,7 +111,8 @@ function PaymentLinkTableRow({ link }: { link: PaymentLink }) {
         </div>
       </td>
       <td className="px-4 py-3 text-muted">
-        {formatDateTime(link.createdAt)}
+        <p className="tabular-nums">{formatDateTime(link.createdAt)}</p>
+        <p className="mt-0.5 text-[11px]">{processors}</p>
       </td>
     </tr>
   );
@@ -102,9 +120,11 @@ function PaymentLinkTableRow({ link }: { link: PaymentLink }) {
 
 export function PaymentLinksTable({
   links,
+  cardProcessor,
   emptyMessage = "No payment links match your filters.",
 }: {
   links: PaymentLink[];
+  cardProcessor: CardProcessor;
   emptyMessage?: string;
 }) {
   const [query, setQuery] = useState("");
@@ -189,7 +209,11 @@ export function PaymentLinksTable({
             </p>
           ) : (
             pageLinks.map((link) => (
-              <PaymentLinkMobileCard key={link.id} link={link} />
+              <PaymentLinkMobileCard
+                key={link.id}
+                link={link}
+                cardProcessor={cardProcessor}
+              />
             ))
           )}
         </div>
@@ -215,7 +239,11 @@ export function PaymentLinksTable({
               </tr>
             ) : (
               pageLinks.map((link) => (
-                <PaymentLinkTableRow key={link.id} link={link} />
+                <PaymentLinkTableRow
+                  key={link.id}
+                  link={link}
+                  cardProcessor={cardProcessor}
+                />
               ))
             )}
           </tbody>

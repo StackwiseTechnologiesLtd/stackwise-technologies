@@ -16,7 +16,10 @@ import {
   initializePaystackTransaction,
   verifyPaystackTransaction,
 } from "@/lib/paystack/client";
+import { getPaystackChargeCurrencies } from "@/lib/paystack/currencies";
 import { isPaystackConfigured, isPaystackTestMode } from "@/lib/paystack/environment";
+import { assertInvoiceCurrencyAllowed } from "@/lib/payments/invoice-currencies";
+import { cardCheckoutProcessor } from "@/lib/payments/processor";
 import {
   createId,
   createSlug,
@@ -57,6 +60,14 @@ export async function createPaymentLink(
     throw new Error("Total amount must be greater than zero");
   }
 
+  const allowedPaymentMethods = input.allowedPaymentMethods ?? "BOTH";
+  assertInvoiceCurrencyAllowed(
+    input.currency,
+    allowedPaymentMethods,
+    cardCheckoutProcessor(),
+    getPaystackChargeCurrencies(),
+  );
+
   const { rate } = await convertUsdToCurrency(amountUsd, input.currency);
   const amountLocal = localAmountFromUsd(amountUsd, rate, input.currency);
   if (amountLocal < 50 && input.currency === "XAF") {
@@ -81,7 +92,7 @@ export async function createPaymentLink(
     kpayIsTest: isPaystackConfigured() ? isPaystackTestMode() : isKPayTestMode(),
     paystackReference: null,
     gatewayUrl: null,
-    allowedPaymentMethods: input.allowedPaymentMethods ?? "BOTH",
+    allowedPaymentMethods,
     invoiceNumber: await nextInvoiceNumber(),
     sentAt: null,
     paidAt: null,
@@ -128,6 +139,7 @@ export async function initiateKPayPayment(
     kpayReference: payment.reference,
     kpayIsTest: payment.isTest,
     gatewayUrl: payment.gatewayUrl,
+    paymentMethod: method === "CARD" ? "KPAY_CARD" : "KPAY_MOBILE_MONEY",
     updatedAt: Date.now(),
   };
   await savePaymentLink(updated);
@@ -173,6 +185,7 @@ export async function initiatePaystackPayment(slug: string): Promise<{
     status: "PENDING",
     paystackReference: payment.reference || reference,
     gatewayUrl: payment.authorization_url,
+    paymentMethod: "PAYSTACK_CARD",
     updatedAt: Date.now(),
   };
   await savePaymentLink(updated);
@@ -278,6 +291,12 @@ export async function syncPaymentStatusFromKPay(
     const paid = await finalizePaidPayment(link.id, {
       kpayReference: payment.reference,
       paidAt: paidAt ?? Date.now(),
+      paymentSource: "KPAY",
+      paymentMethod:
+        link.paymentMethod ??
+        (link.allowedPaymentMethods === "MOBILE_MONEY"
+          ? "KPAY_MOBILE_MONEY"
+          : "KPAY_CARD"),
     });
     return paid ?? link;
   } else if (payment.status === "FAILED") {
@@ -308,7 +327,14 @@ export async function markPaymentFromWebhook(
   if (!link) return null;
 
   if (status === "COMPLETED") {
-    return finalizePaidPayment(externalId, {});
+    return finalizePaidPayment(externalId, {
+      paymentSource: "KPAY",
+      paymentMethod:
+        link.paymentMethod ??
+        (link.allowedPaymentMethods === "MOBILE_MONEY"
+          ? "KPAY_MOBILE_MONEY"
+          : "KPAY_CARD"),
+    });
   }
 
   const nextStatus = status === "FAILED" ? "FAILED" : "CANCELLED";

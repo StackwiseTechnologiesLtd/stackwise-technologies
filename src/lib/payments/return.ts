@@ -78,6 +78,12 @@ export async function handleGatewayReturn(
     if (payment.status === "COMPLETED") {
       const paid = await finalizePaidPayment(link.id, {
         kpayReference: reference,
+        paymentSource: "KPAY",
+        paymentMethod:
+          link.paymentMethod ??
+          (link.allowedPaymentMethods === "MOBILE_MONEY"
+            ? "KPAY_MOBILE_MONEY"
+            : "KPAY_CARD"),
       });
       if (paid) {
         return { link: paid, result: { outcome: "receipt" } };

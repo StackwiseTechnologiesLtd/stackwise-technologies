@@ -10,8 +10,10 @@ import { BTN_PRIMARY } from "@/lib/ui/buttons";
 
 export function WithdrawPanel({
   environment,
+  paystackEnabled = false,
 }: {
   environment: PaymentEnvironment;
+  paystackEnabled?: boolean;
 }) {
   const [amount, setAmount] = useState("");
   const [provider, setProvider] = useState("MPESA_KEN");
@@ -61,9 +63,28 @@ export function WithdrawPanel({
         <p className="mt-1 text-sm text-muted">
           Transfer from your{" "}
           <EnvironmentBadge environment={environment} compact /> KPay wallet to
-          Mobile Money.
+          Mobile Money. Card settlements through Paystack are withdrawn from the
+          Paystack dashboard, not here.
         </p>
       </div>
+
+      {paystackEnabled && (
+        <div className="rounded-xl border border-line bg-panel p-4 text-sm text-muted">
+          <p className="font-medium text-foreground">Paystack card balance</p>
+          <p className="mt-1">
+            Payouts and bank transfers for Paystack card payments are managed in{" "}
+            <a
+              href="https://dashboard.paystack.com/#/settings/payouts"
+              className="text-accent hover:underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Paystack → Settings → Payouts
+            </a>
+            . This page only withdraws KPay Mobile Money wallet funds.
+          </p>
+        </div>
+      )}
 
       <WalletBalancesLoader environment={environment} refreshKey={refreshKey} />
 

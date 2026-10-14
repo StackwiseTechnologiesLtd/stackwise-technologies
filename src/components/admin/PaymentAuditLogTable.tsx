@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { PaymentAuditLog, PaymentAuditLogWithLink } from "@/lib/db/payment-audit";
 import {
   formatAuditTimestamp,
+  formatPaymentInitAuditDetail,
   PAYMENT_AUDIT_EVENT_LABELS,
 } from "@/lib/payments/audit-labels";
 
@@ -68,7 +69,13 @@ export function PaymentAuditLogTable({
                   </td>
                 )}
                 <td className="px-4 py-3 whitespace-nowrap">
-                  {PAYMENT_AUDIT_EVENT_LABELS[log.event] ?? log.event}
+                  <p>{PAYMENT_AUDIT_EVENT_LABELS[log.event] ?? log.event}</p>
+                  {log.event === "PAYMENT_INIT" &&
+                    formatPaymentInitAuditDetail(log.metadata) && (
+                      <p className="mt-0.5 text-[11px] text-muted">
+                        {formatPaymentInitAuditDetail(log.metadata)}
+                      </p>
+                    )}
                 </td>
                 <td className="px-4 py-3 font-mono">{log.ipAddress ?? "—"}</td>
                 <td className="px-4 py-3 break-all text-muted">

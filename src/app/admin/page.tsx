@@ -1,18 +1,18 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { EnvironmentBadge } from "@/components/admin/EnvironmentBadge";
+import { AdminCheckoutStatus } from "@/components/admin/AdminCheckoutStatus";
 import { PaymentLinksList } from "@/components/admin/PaymentLinksList";
 import { getAdminSession } from "@/lib/auth/session";
 import { listPaymentLinks } from "@/lib/db/payment-links";
-import { isKPayTestMode } from "@/lib/kpay/environment";
+import { isCheckoutTestMode } from "@/lib/payments/admin-checkout";
+import { cardCheckoutProcessor } from "@/lib/payments/processor";
 import { BTN_PRIMARY } from "@/lib/ui/buttons";
 
 export default async function AdminDashboardPage() {
   const session = await getAdminSession();
   if (!session) redirect("/admin/login");
 
-  const kpayMode = isKPayTestMode() ? "test" : "production";
-  const showTestSection = kpayMode === "test";
+  const showTestSection = isCheckoutTestMode();
   const [liveLinks, testLinks] = showTestSection
     ? await Promise.all([
         listPaymentLinks("production"),
@@ -26,10 +26,7 @@ export default async function AdminDashboardPage() {
         <div className="min-w-0 space-y-2">
           <h1 className="text-2xl font-semibold">Payment links</h1>
           <p className="text-sm text-muted">Signed in as {session.email}</p>
-          <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
-            <span>KPay mode:</span>
-            <EnvironmentBadge environment={kpayMode} />
-          </div>
+          <AdminCheckoutStatus />
         </div>
         <Link
           href="/admin/payment-links/new"
@@ -43,6 +40,7 @@ export default async function AdminDashboardPage() {
         liveLinks={liveLinks}
         testLinks={testLinks}
         showTestSection={showTestSection}
+        cardProcessor={cardCheckoutProcessor()}
       />
 
       {liveLinks.length === 0 && !showTestSection && (

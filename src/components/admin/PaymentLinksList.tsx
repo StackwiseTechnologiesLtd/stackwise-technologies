@@ -1,6 +1,7 @@
 import { PaymentLinksTable } from "@/components/admin/PaymentLinksTable";
 import { PaymentSectionTotals } from "@/components/admin/PaymentSectionTotals";
 import type { PaymentEnvironment } from "@/lib/kpay/environment";
+import type { CardProcessor } from "@/lib/payments/processor";
 import type { PaymentLink } from "@/lib/payments/types";
 
 function PaymentLinkSection({
@@ -8,12 +9,14 @@ function PaymentLinkSection({
   description,
   environment,
   links,
+  cardProcessor,
   emptyMessage,
 }: {
   title: string;
   description: string;
   environment: PaymentEnvironment;
   links: PaymentLink[];
+  cardProcessor: CardProcessor;
   emptyMessage: string;
 }) {
   return (
@@ -25,7 +28,11 @@ function PaymentLinkSection({
 
       <PaymentSectionTotals environment={environment} links={links} />
 
-      <PaymentLinksTable links={links} emptyMessage={emptyMessage} />
+      <PaymentLinksTable
+        links={links}
+        cardProcessor={cardProcessor}
+        emptyMessage={emptyMessage}
+      />
     </section>
   );
 }
@@ -34,18 +41,21 @@ export function PaymentLinksList({
   liveLinks,
   testLinks,
   showTestSection,
+  cardProcessor,
 }: {
   liveLinks: PaymentLink[];
   testLinks: PaymentLink[];
   showTestSection: boolean;
+  cardProcessor: CardProcessor;
 }) {
   return (
     <div className="space-y-8">
       <PaymentLinkSection
         title="Live payments"
-        description="Production payment links from your database (kpay_is_test = false)."
+        description="Live invoices (marked production when created with live Paystack or KPay keys)."
         environment="production"
         links={liveLinks}
+        cardProcessor={cardProcessor}
         emptyMessage="No live payment links yet."
       />
       {showTestSection && (
@@ -54,6 +64,7 @@ export function PaymentLinksList({
           description="Sandbox payment links — not included in live totals."
           environment="test"
           links={testLinks}
+          cardProcessor={cardProcessor}
           emptyMessage="No test payment links yet."
         />
       )}
