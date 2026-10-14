@@ -71,4 +71,11 @@ Paystack dashboard (Settings → API Keys & Webhooks):
 
 Env: `PAYSTACK_SECRET_KEY` only (`sk_test_` / `sk_live_`). The public key is unused in the hosted-checkout flow.
 
-Webhooks: listen for `charge.success` (and `charge.failed` is acknowledged). The secret key signs payloads (`x-paystack-signature`); no separate webhook secret.
+Webhooks: listen for `charge.success`, `charge.failed`, `subscription.create`, and `subscription.disable`. The secret key signs payloads (`x-paystack-signature`); no separate webhook secret.
+
+### Maintenance subscriptions (Paystack)
+
+- Admin → **Subscriptions** creates a Paystack plan and customer link `/pay/subscribe/[slug]`.
+- Customer authorizes recurring card billing (monthly / quarterly / annually).
+- Invoice currency must match Paystack (`PAYSTACK_CURRENCIES`, default `KES`).
+- Renewals and bank payouts are managed in the Paystack dashboard.

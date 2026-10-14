@@ -13,8 +13,8 @@ import {
   paymentMethodOptionDescription,
   type PaymentMethodsOption,
 } from "@/lib/payments/payment-methods";
+import { selectableInvoiceCurrencies } from "@/lib/payments/invoice-currencies";
 import type { CardProcessor } from "@/lib/payments/processor";
-import { SUPPORTED_CURRENCIES } from "@/lib/payments/types";
 import type { LineItem, PaymentLink } from "@/lib/payments/types";
 
 type SelectedItem = LineItem & { key: string };
@@ -25,8 +25,10 @@ function newKey() {
 
 export function PaymentLinkBuilder({
   cardProcessor = "KPAY",
+  paystackCurrencies = [],
 }: {
   cardProcessor?: CardProcessor;
+  paystackCurrencies?: string[];
 }) {
   const router = useRouter();
   const toast = useToast();
@@ -62,6 +64,22 @@ export function PaymentLinkBuilder({
   const fxLoading = Boolean(
     fxRequestKey && fxResult?.key !== fxRequestKey && !fxErrorMessage,
   );
+
+  const currencyOptions = useMemo(
+    () =>
+      selectableInvoiceCurrencies(
+        allowedPaymentMethods,
+        cardProcessor,
+        paystackCurrencies,
+      ),
+    [allowedPaymentMethods, cardProcessor, paystackCurrencies],
+  );
+
+  useEffect(() => {
+    if (!currencyOptions.some((option) => option.code === currency)) {
+      setCurrency(currencyOptions[0]?.code ?? "KES");
+    }
+  }, [currency, currencyOptions]);
 
   useEffect(() => {
     if (!fxRequestKey) return;
@@ -265,12 +283,22 @@ export function PaymentLinkBuilder({
                 onChange={(e) => setCurrency(e.target.value)}
                 className="w-full rounded-lg border border-line bg-background px-3 py-2"
               >
-                {SUPPORTED_CURRENCIES.map((c) => (
+                {currencyOptions.map((c) => (
                   <option key={c.code} value={c.code}>
                     {c.label}
                   </option>
                 ))}
               </select>
+              {cardProcessor === "PAYSTACK" &&
+                allowedPaymentMethods !== "MOBILE_MONEY" && (
+                  <p className="text-xs text-muted">
+                    Card checkout uses your Paystack account currencies only
+                    {paystackCurrencies.length > 0
+                      ? ` (${paystackCurrencies.join(", ")})`
+                      : ""}
+                    .
+                  </p>
+                )}
             </label>
             <label className="block space-y-2">
               <span className="text-sm text-muted">Payment methods</span>

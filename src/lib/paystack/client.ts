@@ -23,12 +23,29 @@ export type PaystackTransaction = PaystackCharge & {
 
 export type PaystackInitializeParams = {
   email: string;
-  amount: number;
-  currency: string;
+  amount?: number;
+  currency?: string;
+  plan?: string;
   reference: string;
   callback_url: string;
-  channels: ["card"];
-  metadata: PaystackMetadata;
+  channels?: ["card"];
+  metadata: PaystackMetadata | Record<string, string | undefined>;
+};
+
+export type PaystackPlan = {
+  plan_code: string;
+  name: string;
+  amount: number;
+  interval: string;
+  currency: string;
+};
+
+export type PaystackCreatePlanParams = {
+  name: string;
+  interval: string;
+  amount: number;
+  currency: string;
+  description?: string;
 };
 
 function toHex(buffer: ArrayBuffer): string {
@@ -108,4 +125,13 @@ export async function verifyPaystackTransaction(
   return paystackFetch<PaystackTransaction>(
     `/transaction/verify/${encodeURIComponent(reference)}`,
   );
+}
+
+export async function createPaystackPlan(
+  params: PaystackCreatePlanParams,
+): Promise<PaystackPlan> {
+  return paystackFetch<PaystackPlan>("/plan", {
+    method: "POST",
+    body: JSON.stringify(params),
+  });
 }

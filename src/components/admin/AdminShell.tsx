@@ -10,6 +10,7 @@ import { BTN_GHOST } from "@/lib/ui/buttons";
 
 const navLinks = [
   { href: "/admin", label: "Dashboard" },
+  { href: "/admin/subscriptions", label: "Subscriptions" },
   { href: "/admin/audit-logs", label: "Access logs" },
   { href: "/admin/withdraw", label: "Withdraw" },
 ] as const;

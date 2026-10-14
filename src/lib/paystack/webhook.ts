@@ -3,12 +3,15 @@ import {
   verifyPaystackSignature,
   verifyPaystackTransaction,
 } from "@/lib/paystack/client";
+import {
+  applySubscriptionCharge,
+  applySubscriptionWebhookEvent,
+  resolveSubscriptionFromCharge,
+} from "@/lib/subscriptions/actions";
 
 type PaystackWebhookEvent = {
   event?: string;
-  data?: {
-    reference?: string;
-  };
+  data?: Record<string, unknown> & { reference?: string };
 };
 
 export async function handlePaystackWebhookRequest(
@@ -28,6 +31,15 @@ export async function handlePaystackWebhookRequest(
     return Response.json({ error: "Invalid payload" }, { status: 400 });
   }
 
+  if (
+    event.event === "subscription.create" ||
+    event.event === "subscription.disable" ||
+    event.event === "subscription.not_renew"
+  ) {
+    await applySubscriptionWebhookEvent(event.event, event.data ?? {});
+    return Response.json({ received: true });
+  }
+
   if (event.event !== "charge.success" && event.event !== "charge.failed") {
     return Response.json({ received: true });
   }
@@ -37,6 +49,12 @@ export async function handlePaystackWebhookRequest(
 
   try {
     const charge = await verifyPaystackTransaction(reference);
+    const subscriptionId = await resolveSubscriptionFromCharge(charge);
+    if (subscriptionId && event.event === "charge.success") {
+      await applySubscriptionCharge(subscriptionId, charge);
+      return Response.json({ received: true });
+    }
+
     const result = await applyVerifiedPaystackTransaction(charge);
     if (result.status === "not_found" && event.event === "charge.success") {
       return Response.json({ error: "Payment link not found" }, { status: 404 });
