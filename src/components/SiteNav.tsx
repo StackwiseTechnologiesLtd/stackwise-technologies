@@ -2,7 +2,7 @@
 
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import Mark from "@/components/Mark";
-import { CALENDLY_URL, type Locale, type SiteCopy } from "@/lib/content";
+import { bookingUrl, type Locale, type SiteCopy } from "@/lib/content";
 import { useState } from "react";
 
 export default function SiteNav({
@@ -51,7 +51,7 @@ export default function SiteNav({
             {copy.email}
           </a> */}
           <a
-            href={CALENDLY_URL}
+            href={bookingUrl()}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex rounded-lg bg-white px-3 py-1.5 text-sm font-semibold text-black transition-opacity hover:opacity-90"

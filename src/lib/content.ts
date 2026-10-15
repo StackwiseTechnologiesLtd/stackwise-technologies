@@ -1,5 +1,4 @@
-export const CALENDLY_URL =
-  "https://calendly.com/stackwisetechnologies-info/30min";
+export { bookingUrl, MEETING_ALWAYS_INVITEE } from "@/lib/booking";
 export const EMAIL = "info@stackwisetechnologies.com";
 export const TWITTER_URL = "https://x.com/StackwiseTech";
 export const SITE_NAME = "Stackwise Technologies Limited";

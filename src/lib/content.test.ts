@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-  CALENDLY_URL,
+  bookingUrl,
+  MEETING_ALWAYS_INVITEE,
   EMAIL,
   en,
   fr,
@@ -13,7 +14,12 @@ import {
 describe("content catalogs", () => {
   it("exposes a reachable contact path", () => {
     expect(EMAIL).toMatch(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
-    expect(CALENDLY_URL.startsWith("https://")).toBe(true);
+    const url = bookingUrl();
+    expect(url.startsWith("https://")).toBe(true);
+    expect(url).toContain("cal.com");
+    expect(url).toContain(
+      `guests=${encodeURIComponent(MEETING_ALWAYS_INVITEE)}`,
+    );
   });
 
   it("supports english and french locales", () => {

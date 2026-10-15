@@ -7,7 +7,7 @@ import Portfolio from "@/components/Portfolio";
 import ProviderTabs from "@/components/ProviderTabs";
 import WorkVisual from "@/components/WorkVisual";
 import {
-  CALENDLY_URL,
+  bookingUrl,
   EMAIL,
   type Locale,
   type SiteCopy,
@@ -80,7 +80,7 @@ function Hero({ locale, copy }: { locale: Locale; copy: SiteCopy }) {
             {hero.subtitle}
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <PrimaryButton href={CALENDLY_URL}>{hero.primaryCta}</PrimaryButton>
+            <PrimaryButton href={bookingUrl()}>{hero.primaryCta}</PrimaryButton>
             <SecondaryButton href={`mailto:${EMAIL}`}>
               {hero.secondaryCta}
             </SecondaryButton>
@@ -456,7 +456,7 @@ function Cta({ copy }: { copy: SiteCopy }) {
 
           <div>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <PrimaryButton href={CALENDLY_URL}>{hero.primaryCta}</PrimaryButton>
+              <PrimaryButton href={bookingUrl()}>{hero.primaryCta}</PrimaryButton>
               <SecondaryButton href={`mailto:${EMAIL}`}>
                 {hero.secondaryCta}
               </SecondaryButton>
@@ -476,7 +476,7 @@ function Cta({ copy }: { copy: SiteCopy }) {
             <p className="mt-4 text-sm text-muted">
               {cta.enterpriseBefore}{" "}
               <a
-                href={CALENDLY_URL}
+                href={bookingUrl()}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-foreground underline decoration-white/25 underline-offset-4 hover:decoration-accent"

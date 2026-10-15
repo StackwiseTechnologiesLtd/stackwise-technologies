@@ -223,7 +223,7 @@ We're always excited to discuss new ideas, solve complex problems, and build the
 📫 **Get in touch:**
 - **Website:** [https://stackwisetechnologies.com](https://stackwisetechnologies.com)
 - **Email:** info@stackwisetechnologies.com
-- **Book a Call:** [Schedule a 30-min discovery call](https://calendly.com/stackwisetechnologies-info/30min)
+- **Book a call:** Cal.com discovery link (see `NEXT_PUBLIC_CAL_COM_BOOKING_URL` in env; guest `tshikombadaniel@gmail.com` is always prefilled)
 
 <p align="center">
   <i>Building the future, one line of code at a time.</i>

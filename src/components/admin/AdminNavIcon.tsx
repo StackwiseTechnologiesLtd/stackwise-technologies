@@ -52,6 +52,15 @@ export function AdminNavIcon({
           <path d="M3 18h.01" />
         </svg>
       );
+    case "growth":
+      return (
+        <svg {...props}>
+          <path d="M4 14v4" />
+          <path d="M10 10v8" />
+          <path d="M16 6v12" />
+          <path d="M22 2v16" />
+        </svg>
+      );
     case "settings":
       return (
         <svg {...props}>

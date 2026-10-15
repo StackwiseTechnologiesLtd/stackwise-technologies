@@ -1,7 +1,7 @@
 export type AdminNavItem = {
   href: string;
   label: string;
-  icon: "links" | "subscription" | "withdraw" | "logs" | "settings";
+  icon: "links" | "subscription" | "withdraw" | "logs" | "growth" | "settings";
   match?: "exact" | "prefix";
 };
 
@@ -15,6 +15,12 @@ export const adminNavPrimary: AdminNavItem[] = [
   },
   { href: "/admin/withdraw", label: "Withdraw", icon: "withdraw", match: "prefix" },
   { href: "/admin/audit-logs", label: "Access logs", icon: "logs", match: "prefix" },
+  {
+    href: "/admin/growth",
+    label: "Growth inbox",
+    icon: "growth",
+    match: "prefix",
+  },
 ];
 
 export function adminPageTitle(pathname: string): string {
@@ -26,6 +32,9 @@ export function adminPageTitle(pathname: string): string {
   if (pathname === "/admin/subscriptions") return "Maintenance subscriptions";
   if (pathname === "/admin/withdraw") return "Withdraw funds";
   if (pathname === "/admin/audit-logs") return "Payment access logs";
+  if (pathname === "/admin/growth") return "Growth inbox";
+  if (pathname.startsWith("/admin/growth/leads")) return "Leads";
+  if (pathname.startsWith("/admin/growth/settings")) return "Growth settings";
   return "Admin";
 }
 
