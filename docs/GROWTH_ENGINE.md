@@ -44,6 +44,8 @@ OPENROUTER_API_KEY=sk-or-…
 OPENROUTER_MODEL=openrouter/auto   # or a specific model from openrouter.ai/models
 # Optional: only call the LLM when composite fit >= this (default 42)
 GROWTH_MIN_DRAFT_SCORE=50
+# Log prompts + OpenRouter completions in the dev server terminal (on by default in npm run dev)
+GROWTH_AI_DEBUG=1
 ```
 
 Harvest visits each lead’s public profile (when a profile URL is available) and stores a short **profile research** blurb on the lead. Drafts are generated via OpenRouter using the post, profile context, and ICP score — with a template fallback if the API is missing or fails.

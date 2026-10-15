@@ -1,6 +1,7 @@
 import { bookingUrl } from "@/lib/booking";
 import { buildReplyDraft, firstName } from "@/lib/growth/drafts";
-import { isOpenRouterConfigured, openRouterChat } from "@/lib/growth/openrouter";
+import { growthAiLog, growthAiLogMultiline } from "@/lib/growth/ai-debug";
+import { isOpenRouterConfigured, openRouterChat, openRouterModel } from "@/lib/growth/openrouter";
 import type { GrowthPlatform, IcpConfig } from "@/lib/growth/types";
 
 export type PersonalizedDraftInput = {
@@ -46,12 +47,28 @@ export async function buildPersonalizedReplyDraft(
   const discoveryKeyword = normalizeDiscoveryKeyword(input.contextSummary);
 
   if (input.compositeScore < minScoreForAiDraft()) {
+    growthAiLog("Skipping OpenRouter — score below threshold", {
+      author: input.authorName,
+      compositeScore: input.compositeScore,
+      minScore: minScoreForAiDraft(),
+    });
     return { body: fallback, usedAi: false };
   }
 
   if (!isOpenRouterConfigured()) {
+    growthAiLog("Skipping OpenRouter — no API key", { author: input.authorName });
     return { body: fallback, usedAi: false, aiError: "OPENROUTER_API_KEY not configured" };
   }
+
+  growthAiLog("Drafting with OpenRouter", {
+    author: input.authorName,
+    platform: input.platform,
+    model: openRouterModel(),
+    compositeScore: input.compositeScore,
+    profileSummaryChars: input.profileSummary?.trim().length ?? 0,
+    postChars: input.bodyText.length,
+    discoveryKeyword: discoveryKeyword ?? null,
+  });
 
   const name = firstName(input.authorName);
   const booking = bookingUrl();
@@ -87,6 +104,8 @@ ${
 
 Write a reply addressed to ${name}. End with the booking link on its own line: ${booking}`;
 
+  growthAiLogMultiline("Prompt → user message", user);
+
   const result = await openRouterChat(
     [
       { role: "system", content: system },
@@ -96,6 +115,10 @@ Write a reply addressed to ${name}. End with the booking link on its own line: $
   );
 
   if ("error" in result) {
+    growthAiLog("Using template fallback after API error", {
+      author: input.authorName,
+      error: result.error,
+    });
     return { body: fallback, usedAi: false, aiError: result.error };
   }
 
@@ -103,6 +126,12 @@ Write a reply addressed to ${name}. End with the booking link on its own line: $
   if (!body.includes(booking)) {
     body = `${body.trim()}\n\n${booking}`;
   }
+
+  growthAiLog("Draft ready", {
+    author: input.authorName,
+    usedAi: true,
+    bodyChars: body.length,
+  });
 
   return { body, usedAi: true };
 }

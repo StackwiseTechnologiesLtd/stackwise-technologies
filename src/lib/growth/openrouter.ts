@@ -1,3 +1,5 @@
+import { growthAiLog, growthAiLogMultiline } from "@/lib/growth/ai-debug";
+
 export type OpenRouterMessage = {
   role: "system" | "user" | "assistant";
   content: string;
@@ -22,6 +24,12 @@ export async function openRouterChat(
   }
 
   const model = openRouterModel();
+  growthAiLog("OpenRouter request", {
+    model,
+    messageCount: messages.length,
+    userChars: messages.find((m) => m.role === "user")?.content.length ?? 0,
+  });
+
   const siteUrl =
     process.env.NEXT_PUBLIC_SITE_URL?.trim() ||
     process.env.VERCEL_URL?.trim() ||
@@ -52,13 +60,17 @@ export async function openRouterChat(
     const detail =
       json.error?.message ??
       `OpenRouter HTTP ${res.status} for model “${model}”`;
+    growthAiLog("OpenRouter error", { status: res.status, detail, model });
     return { error: detail };
   }
 
   const text = json.choices?.[0]?.message?.content?.trim();
   if (!text) {
+    growthAiLog("OpenRouter empty completion", { model });
     return { error: "OpenRouter returned an empty completion" };
   }
+
+  growthAiLogMultiline("OpenRouter completion", text);
 
   return { text };
 }
