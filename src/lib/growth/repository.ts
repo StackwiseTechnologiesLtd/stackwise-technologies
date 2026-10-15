@@ -294,13 +294,14 @@ export async function listInbox(options?: {
           INNER JOIN growth_leads l ON l.id = d.lead_id
           WHERE d.status IN ('pending_review', 'approved')
             AND l.composite_score >= ${minScore}
-          ORDER BY d.created_at DESC
+          ORDER BY l.composite_score DESC, d.created_at DESC
           LIMIT 50
         `
       : await sql`
-          SELECT * FROM growth_drafts
-          WHERE status IN ('pending_review', 'approved')
-          ORDER BY created_at DESC
+          SELECT d.* FROM growth_drafts d
+          LEFT JOIN growth_leads l ON l.id = d.lead_id
+          WHERE d.status IN ('pending_review', 'approved')
+          ORDER BY l.composite_score DESC NULLS LAST, d.created_at DESC
           LIMIT 50
         `,
   );

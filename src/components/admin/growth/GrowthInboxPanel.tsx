@@ -12,6 +12,7 @@ import type {
   GrowthSignal,
 } from "@/lib/growth/types";
 import { growthFetch } from "@/lib/growth/growth-fetch";
+import { sortDraftsByLeadScore } from "@/lib/growth/lead-sort";
 import { normalizeDiscoveryKeyword } from "@/lib/growth/personalized-draft";
 import { useCallback, useEffect, useState } from "react";
 
@@ -122,8 +123,12 @@ export function GrowthInboxPanel() {
     );
   }
 
-  const pending =
-    data?.drafts.filter((d) => d.status === "pending_review") ?? [];
+  const pending = data
+    ? sortDraftsByLeadScore(
+        data.drafts.filter((d) => d.status === "pending_review"),
+        data.leads,
+      )
+    : [];
 
   return (
     <section className="space-y-5">
@@ -131,7 +136,8 @@ export function GrowthInboxPanel() {
         <div>
           <p className="text-lg font-semibold tracking-tight">Review queue</p>
           <p className="text-sm text-muted">
-            {pending.length} personalized draft{pending.length === 1 ? "" : "s"} ready
+            {pending.length} personalized draft{pending.length === 1 ? "" : "s"}{" "}
+            ready · highest fit first
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">

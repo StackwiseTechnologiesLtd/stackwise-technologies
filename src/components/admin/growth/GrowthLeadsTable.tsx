@@ -8,6 +8,7 @@ import {
   scoreBadgeClass,
 } from "@/components/admin/growth/GrowthScoreFilter";
 import { growthFetch } from "@/lib/growth/growth-fetch";
+import { sortLeadsByCompositeScore } from "@/lib/growth/lead-sort";
 import { useCallback, useEffect, useState } from "react";
 
 const statuses: PipelineStatus[] = [
@@ -38,7 +39,7 @@ export function GrowthLeadsTable() {
         const res = await growthFetch(`/api/admin/growth/leads${qs}`);
         if (!res.ok) throw new Error("Failed to load leads");
         const json = (await res.json()) as { leads: GrowthLead[] };
-        setLeads(json.leads);
+        setLeads(sortLeadsByCompositeScore(json.leads));
       } catch (error) {
         toast.error(error instanceof Error ? error.message : "Load failed");
       } finally {
@@ -78,7 +79,10 @@ export function GrowthLeadsTable() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <GrowthScoreFilter minScore={minScore} onChange={setMinScore} />
+        <div className="flex flex-col gap-2">
+          <GrowthScoreFilter minScore={minScore} onChange={setMinScore} />
+          <p className="text-[11px] text-muted">Sorted by highest fit score first</p>
+        </div>
         <AdminActionButton
           busy={refreshing}
           busyLabel="Refreshing…"
