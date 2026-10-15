@@ -28,10 +28,11 @@ export async function POST(request: Request) {
       );
     }
 
-    const { sessionId } = await startDevConnectSession(platform);
+    const { sessionId, interaction } = await startDevConnectSession(platform);
 
     return NextResponse.json({
       sessionId,
+      interaction,
       embedUrl: `/api/admin/growth/connect/dev/v1/embed?session=${sessionId}`,
     });
   } catch (error) {

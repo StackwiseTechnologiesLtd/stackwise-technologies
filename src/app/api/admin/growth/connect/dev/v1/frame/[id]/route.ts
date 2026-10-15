@@ -17,7 +17,7 @@ export async function GET(
   }
 
   const { id } = await context.params;
-  const frame = getDevConnectFrame(id);
+  const frame = await getDevConnectFrame(id);
   if (!frame) {
     return new NextResponse(null, { status: 204 });
   }

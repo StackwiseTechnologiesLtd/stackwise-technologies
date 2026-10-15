@@ -1,6 +1,8 @@
 "use client";
 
 import { AdminActionButton } from "@/components/admin/AdminActionButton";
+import { GrowthConnectHeadedWatcher } from "@/components/admin/growth/GrowthConnectHeadedWatcher";
+import { GrowthConnectStream } from "@/components/admin/growth/GrowthConnectStream";
 import { useToast } from "@/components/ToastProvider";
 import type { ConnectMode, GrowthPlatform } from "@/lib/growth/types";
 import { ADMIN_BTN_SECONDARY } from "@/lib/ui/admin";
@@ -12,6 +14,7 @@ type Phase =
   | "checking_helper"
   | "helper_offline"
   | "starting"
+  | "headed"
   | "streaming"
   | "complete"
   | "error";
@@ -20,8 +23,8 @@ export function GrowthConnectPanel({ platform }: { platform: GrowthPlatform }) {
   const toast = useToast();
   const label = platform === "x" ? "X" : "LinkedIn";
   const [phase, setPhase] = useState<Phase>("idle");
-  const [viewerBase, setViewerBase] = useState("http://127.0.0.1:9234");
-  const [embedSrc, setEmbedSrc] = useState<string | null>(null);
+  const [viewerBase, setViewerBase] = useState("");
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [retrying, setRetrying] = useState(false);
   const [launching, setLaunching] = useState(false);
@@ -56,35 +59,16 @@ export function GrowthConnectPanel({ platform }: { platform: GrowthPlatform }) {
     })();
   }, []);
 
-  const pollSessionActive = useCallback(async () => {
-    const res = await fetch("/api/admin/growth/sessions");
-    if (!res.ok) return false;
-    const json = (await res.json()) as {
-      platforms: { platform: GrowthPlatform; sessionStatus: string }[];
-    };
-    const row = json.platforms.find((p) => p.platform === platform);
-    return row?.sessionStatus === "active";
-  }, [platform]);
+  const onConnectComplete = useCallback(() => {
+    setPhase("complete");
+    toast.success(`${label} session saved`);
+  }, [label, toast]);
 
-  useEffect(() => {
-    function onMessage(event: MessageEvent) {
-      if (event.data?.type === "growth-connect-complete") {
-        setPhase("complete");
-        toast.success(`${label} session saved`);
-        void pollSessionActive();
-      }
-      if (event.data?.type === "growth-connect-error") {
-        setErrorMessage(
-          typeof event.data.message === "string"
-            ? event.data.message
-            : "Connection failed",
-        );
-        setPhase("error");
-      }
-    }
-    window.addEventListener("message", onMessage);
-    return () => window.removeEventListener("message", onMessage);
-  }, [label, pollSessionActive, toast]);
+  const onConnectError = useCallback((message: string) => {
+    setErrorMessage(message);
+    setPhase("error");
+    toast.error(message);
+  }, [toast]);
 
   async function beginConnect() {
     setErrorMessage(null);
@@ -126,9 +110,10 @@ export function GrowthConnectPanel({ platform }: { platform: GrowthPlatform }) {
         throw new Error(sessionJson.error ?? "Could not open browser");
       }
 
-      const sessionId = sessionJson.sessionId as string;
-      setEmbedSrc(`${base}/v1/embed?session=${sessionId}`);
-      setPhase("streaming");
+      const id = sessionJson.sessionId as string;
+      const interaction = sessionJson.interaction as "headed" | "stream" | undefined;
+      setSessionId(id);
+      setPhase(interaction === "headed" ? "headed" : "streaming");
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Connect failed");
       setPhase("error");
@@ -158,9 +143,7 @@ export function GrowthConnectPanel({ platform }: { platform: GrowthPlatform }) {
       {phase === "idle" && (
         <>
           <p className="text-sm text-muted">
-            Opens a live browser panel below so you can sign in to {label}. Cookies are
-            encrypted and stored on Stackwise when login succeeds. Your password never
-            leaves the platform.
+            Connect {label} so we can store an encrypted session cookie (not your password).
           </p>
           <AdminActionButton
             variant="primary"
@@ -172,8 +155,8 @@ export function GrowthConnectPanel({ platform }: { platform: GrowthPlatform }) {
           </AdminActionButton>
           <p className="text-xs text-muted">
             {connectMode === "local"
-              ? "Sign in in the panel below — no extra terminal or scripts."
-              : "Runs on Stackwise — sign in in the panel below."}
+              ? "Opens a Chromium window on your computer for sign-in."
+              : "Sign in using the live view below (hosted browser)."}
           </p>
         </>
       )}
@@ -191,8 +174,8 @@ export function GrowthConnectPanel({ platform }: { platform: GrowthPlatform }) {
             {connectMode === "local"
               ? "Could not start the in-app browser. Install Playwright once, then retry."
               : connectMode === "relay"
-                ? "Remote connect service is unreachable. Check GROWTH_CONNECT_VIEWER_BASE and the Fly/Render app."
-                : "Cloudflare Browser Rendering is not available. Enable the browser binding on your Worker and redeploy."}
+                ? "Remote connect service is unreachable."
+                : "Cloudflare Browser Rendering is not available on this deployment."}
           </p>
           {connectMode === "local" ? (
             <pre className="overflow-x-auto rounded-lg bg-black/50 p-3 text-xs">
@@ -216,18 +199,24 @@ export function GrowthConnectPanel({ platform }: { platform: GrowthPlatform }) {
         </p>
       )}
 
-      {phase === "streaming" && embedSrc ? (
-        <div className="space-y-3">
-          <p className="text-sm text-muted">
-            Sign in below. When finished, this panel will show success automatically.
-          </p>
-          <iframe
-            title={`${label} login`}
-            src={embedSrc}
-            className="h-[min(72vh,740px)] w-full rounded-lg border border-white/10 bg-black"
-            allow="clipboard-read; clipboard-write"
-          />
-        </div>
+      {phase === "headed" && sessionId && viewerBase ? (
+        <GrowthConnectHeadedWatcher
+          sessionId={sessionId}
+          viewerBase={viewerBase}
+          label={label}
+          onComplete={onConnectComplete}
+          onError={onConnectError}
+        />
+      ) : null}
+
+      {phase === "streaming" && sessionId && viewerBase ? (
+        <GrowthConnectStream
+          sessionId={sessionId}
+          viewerBase={viewerBase}
+          label={label}
+          onComplete={onConnectComplete}
+          onError={onConnectError}
+        />
       ) : null}
 
       {phase === "complete" && (
@@ -248,7 +237,10 @@ export function GrowthConnectPanel({ platform }: { platform: GrowthPlatform }) {
         </div>
       )}
 
-      {(phase === "streaming" || phase === "complete" || phase === "error") && (
+      {(phase === "headed" ||
+        phase === "streaming" ||
+        phase === "complete" ||
+        phase === "error") && (
         <div className="flex flex-wrap gap-2 border-t border-line pt-4">
           <Link href="/admin/growth/settings" className={ADMIN_BTN_SECONDARY}>
             Settings

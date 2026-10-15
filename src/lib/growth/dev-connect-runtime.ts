@@ -119,25 +119,6 @@ async function detectAccountLabel(page: Page, platform: GrowthPlatform) {
   return null;
 }
 
-async function startScreencast(session: DevConnectSession) {
-  const client = await session.context.newCDPSession(session.page);
-  await client.send("Page.startScreencast", {
-    format: "jpeg",
-    quality: 72,
-    everyNthFrame: 1,
-  });
-  client.on("Page.screencastFrame", async (frame: { data: string; sessionId: number }) => {
-    session.lastFrame = Buffer.from(frame.data, "base64");
-    try {
-      await client.send("Page.screencastFrameAck", {
-        sessionId: frame.sessionId,
-      });
-    } catch {
-      /* closed */
-    }
-  });
-}
-
 async function runLoginWatcher(session: DevConnectSession) {
   const { platform } = session;
   try {
@@ -209,14 +190,15 @@ async function runLoginWatcher(session: DevConnectSession) {
 
 export async function startDevConnectSession(
   platform: GrowthPlatform,
-): Promise<{ sessionId: string }> {
+): Promise<{ sessionId: string; interaction: "headed" | "stream" }> {
   if (!isDevConnectRuntimeEnabled()) {
     throw new Error("Dev connect is not enabled in this environment");
   }
 
   const chromium = await loadChromium();
   const browser = await chromium.launch({
-    headless: true,
+    headless: false,
+    slowMo: 40,
     args: ["--disable-blink-features=AutomationControlled"],
   });
   const context = await browser.newContext({ viewport: VIEWPORT });
@@ -236,9 +218,9 @@ export async function startDevConnectSession(
   };
   getStore().sessions.set(id, session);
 
-  void startScreencast(session).then(() => runLoginWatcher(session));
+  void runLoginWatcher(session);
 
-  return { sessionId: id };
+  return { sessionId: id, interaction: "headed" };
 }
 
 export function getDevConnectStatus(sessionId: string) {
@@ -251,8 +233,18 @@ export function getDevConnectStatus(sessionId: string) {
   };
 }
 
-export function getDevConnectFrame(sessionId: string): Buffer | null {
-  return getStore().sessions.get(sessionId)?.lastFrame ?? null;
+export async function getDevConnectFrame(
+  sessionId: string,
+): Promise<Buffer | null> {
+  const session = getStore().sessions.get(sessionId);
+  if (!session) return null;
+  if (session.lastFrame) return session.lastFrame;
+  try {
+    const buf = await session.page.screenshot({ type: "jpeg", quality: 72 });
+    return Buffer.from(buf);
+  } catch {
+    return null;
+  }
 }
 
 export async function sendDevConnectInput(

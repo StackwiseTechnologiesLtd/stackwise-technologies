@@ -40,6 +40,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       sessionId,
+      interaction: "stream",
       embedUrl: `/api/admin/growth/connect/browser/v1/embed?session=${sessionId}`,
     });
   } catch (error) {
