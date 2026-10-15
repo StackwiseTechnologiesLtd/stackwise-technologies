@@ -17,8 +17,9 @@ describe("buildPersonalizedReplyDraft", () => {
     });
 
     expect(result.usedAi).toBe(false);
-    expect(result.body).toContain("Jane");
-    expect(result.body).toContain("production");
+    expect(result.body.length).toBeLessThanOrEqual(280);
+    expect(result.body).toContain("cal.com");
+    expect(result.body.toLowerCase()).not.toContain("hi jane");
 
     if (prev) process.env.OPENROUTER_API_KEY = prev;
   });

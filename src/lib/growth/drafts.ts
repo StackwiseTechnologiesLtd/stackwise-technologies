@@ -1,4 +1,6 @@
 import { bookingUrl } from "@/lib/booking";
+import { fitXReply, shortBookingUrlForX } from "@/lib/growth/x-reply-format";
+import type { GrowthPlatform } from "@/lib/growth/types";
 
 export function firstName(fullName: string): string {
   const part = fullName.trim().split(/\s+/)[0];
@@ -12,13 +14,21 @@ function topicFromPost(bodyText: string): string {
       .split(/\n/)
       .map((l) => l.trim())
       .find((l) => l.length >= 12) ?? bodyText.trim();
-  return line.slice(0, 140).replace(/\s+/g, " ");
+  return line.slice(0, 120).replace(/\s+/g, " ");
 }
 
 export function buildReplyDraft(input: {
   authorName: string;
   bodyText: string;
+  platform?: GrowthPlatform;
 }): string {
+  if (input.platform === "x") {
+    const topic = topicFromPost(input.bodyText);
+    const booking = shortBookingUrlForX();
+    const body = `On ${topic.slice(0, 90)} — we help founders take MVPs to production without throwing away what's already built. Open to chat if useful.`;
+    return fitXReply(`${body}\n${booking}`);
+  }
+
   const name = firstName(input.authorName);
   const topic = topicFromPost(input.bodyText);
 
