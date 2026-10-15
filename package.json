@@ -18,7 +18,10 @@
     "db:migrate:prod": "MIGRATE_ENV=prod node scripts/migrate.mjs",
     "db:reset:prod-payments": "MIGRATE_ENV=prod node scripts/db-reset-prod-payments.mjs",
     "cf:whoami": "wrangler whoami",
-    "cf:status": "wrangler deployments status --name stackwise-technologies"
+    "cf:status": "wrangler deployments status --name stackwise-technologies",
+    "growth:push": "node scripts/growth-connector.mjs push",
+    "growth:cookies:upload": "node scripts/growth-connector.mjs upload-cookies",
+    "growth:cookies:pull": "node scripts/growth-connector.mjs pull-cookies"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",

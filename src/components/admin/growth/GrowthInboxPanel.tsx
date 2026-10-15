@@ -44,6 +44,21 @@ export function GrowthInboxPanel() {
     void load();
   }, [load]);
 
+  async function markLeadNotFit(leadId: string) {
+    const res = await fetch(`/api/admin/growth/leads/${leadId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        pipelineStatus: "not_a_fit",
+        feedbackNote: "Marked not a fit from inbox",
+      }),
+    });
+    if (!res.ok) {
+      const json = (await res.json()) as { error?: string };
+      throw new Error(json.error ?? "Could not update lead");
+    }
+  }
+
   async function patchDraft(
     id: string,
     patch: {
@@ -224,6 +239,28 @@ export function GrowthInboxPanel() {
                   >
                     Reject
                   </button>
+                  {lead ? (
+                    <button
+                      type="button"
+                      className="rounded-lg px-3 py-2 text-sm text-muted hover:bg-white/5 hover:text-foreground"
+                      onClick={() => {
+                        void (async () => {
+                          try {
+                            await markLeadNotFit(lead.id);
+                            await patchDraft(draft.id, { status: "rejected" });
+                            toast.success("Lead marked not a fit");
+                            await load();
+                          } catch (error) {
+                            toast.error(
+                              error instanceof Error ? error.message : "Failed",
+                            );
+                          }
+                        })();
+                      }}
+                    >
+                      Not a fit
+                    </button>
+                  ) : null}
                 </div>
               </li>
             );

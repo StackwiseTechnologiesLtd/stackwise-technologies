@@ -427,14 +427,18 @@ export async function listCredentialStatus(): Promise<PlatformCredentialStatus[]
   });
 }
 
-export async function getPlatformCookies(
+export async function getPlatformSession(
   platform: GrowthPlatform,
-): Promise<unknown | null> {
+): Promise<{ cookies: unknown; userAgent: string | null } | null> {
   await ready();
   const sql = getSql();
-  const rows = asRows<{ cookie_ciphertext: string; cookie_iv: string }>(
+  const rows = asRows<{
+    cookie_ciphertext: string;
+    cookie_iv: string;
+    user_agent: string | null;
+  }>(
     await sql`
-      SELECT cookie_ciphertext, cookie_iv
+      SELECT cookie_ciphertext, cookie_iv, user_agent
       FROM growth_platform_credentials
       WHERE platform = ${platform}
       LIMIT 1
@@ -442,7 +446,17 @@ export async function getPlatformCookies(
   );
   const row = rows[0];
   if (!row) return null;
-  return decryptJson(row.cookie_ciphertext, row.cookie_iv);
+  return {
+    cookies: await decryptJson(row.cookie_ciphertext, row.cookie_iv),
+    userAgent: row.user_agent,
+  };
+}
+
+export async function getPlatformCookies(
+  platform: GrowthPlatform,
+): Promise<unknown | null> {
+  const session = await getPlatformSession(platform);
+  return session?.cookies ?? null;
 }
 
 export async function touchCredentialSync(platform: GrowthPlatform): Promise<void> {

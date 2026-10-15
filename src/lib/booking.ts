@@ -1,7 +1,7 @@
 /** Default Cal.com event URL (override with NEXT_PUBLIC_CAL_COM_BOOKING_URL). */
 const CAL_COM_BOOKING_BASE =
   process.env.NEXT_PUBLIC_CAL_COM_BOOKING_URL ??
-  "https://cal.com/stackwisetechnologies-info/30min";
+  "https://cal.com/stackwise-technologies/30min";
 
 /** Always included as a guest on discovery bookings. */
 export const MEETING_ALWAYS_INVITEE = "tshikombadaniel@gmail.com";
