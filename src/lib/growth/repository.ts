@@ -9,6 +9,7 @@ import { scoreLead } from "@/lib/growth/scoring";
 import type { Cookie } from "playwright";
 import type {
   GrowthDraft,
+  GrowthInboxItem,
   GrowthLead,
   GrowthPlatform,
   GrowthSignal,
@@ -171,13 +172,12 @@ export async function saveIcpConfig(config: IcpConfig): Promise<void> {
 
 export async function ingestSignal(
   input: IngestSignalInput,
-): Promise<{ signal: GrowthSignal; lead: GrowthLead; draft: GrowthDraft }> {
+): Promise<{ signal: GrowthSignal; lead: GrowthLead; draft: GrowthDraft | null }> {
   await ready();
   const sql = getSql();
   const config = await getIcpConfig();
   const signalId = crypto.randomUUID();
   const leadId = crypto.randomUUID();
-  const draftId = crypto.randomUUID();
   const now = new Date().toISOString();
 
   const scored = scoreLead({
@@ -188,19 +188,6 @@ export async function ingestSignal(
   });
 
   const profileSummary = input.profileContext?.trim() || null;
-
-  const { body: draftBody } = await buildPersonalizedReplyDraft({
-    platform: input.platform,
-    authorName: input.authorName,
-    roleTitle: input.roleTitle,
-    companyName: input.companyName,
-    bodyText: input.bodyText,
-    contextSummary: input.contextSummary,
-    profileSummary,
-    compositeScore: scored.compositeScore,
-    scoreReasons: scored.reasons,
-    config,
-  });
 
   await sql`
     INSERT INTO growth_signals (
@@ -247,44 +234,120 @@ export async function ingestSignal(
     )
   `;
 
-  await sql`
-    INSERT INTO growth_drafts (
-      id, lead_id, signal_id, platform, draft_kind, body_text, status, created_at, updated_at
-    ) VALUES (
-      ${draftId}::uuid,
-      ${leadId}::uuid,
-      ${signalId}::uuid,
-      ${input.platform},
-      'reply',
-      ${draftBody},
-      'pending_review',
-      ${now}::timestamptz,
-      ${now}::timestamptz
-    )
-  `;
-
   const signalRows = asRows<SignalRow>(
     await sql`SELECT * FROM growth_signals WHERE id = ${signalId}::uuid`,
   );
   const leadRows = asRows<LeadRow>(
     await sql`SELECT * FROM growth_leads WHERE id = ${leadId}::uuid`,
   );
-  const draftRows = asRows<DraftRow>(
-    await sql`SELECT * FROM growth_drafts WHERE id = ${draftId}::uuid`,
-  );
 
-  let draft = mapDraft(draftRows[0]);
+  return {
+    signal: mapSignal(signalRows[0]),
+    lead: mapLead(leadRows[0]),
+    draft: null,
+  };
+}
+
+async function loadLeadSignalContext(leadId: string): Promise<{
+  lead: LeadRow;
+  signal: SignalRow;
+} | null> {
+  await ready();
+  const sql = getSql();
+  const leadRows = asRows<LeadRow>(
+    await sql`SELECT * FROM growth_leads WHERE id = ${leadId}::uuid LIMIT 1`,
+  );
+  const lead = leadRows[0];
+  if (!lead?.signal_id) return null;
+  const signalRows = asRows<SignalRow>(
+    await sql`SELECT * FROM growth_signals WHERE id = ${lead.signal_id}::uuid LIMIT 1`,
+  );
+  const signal = signalRows[0];
+  if (!signal) return null;
+  return { lead, signal };
+}
+
+export async function generateDraftForLead(
+  leadId: string,
+): Promise<{
+  draft: GrowthDraft;
+  usedAi: boolean;
+  aiError?: string;
+} | null> {
+  const ctx = await loadLeadSignalContext(leadId);
+  if (!ctx) return null;
+
+  const sql = getSql();
+  const config = await getIcpConfig();
+  const { lead, signal } = ctx;
+
+  const { body, usedAi, aiError } = await buildPersonalizedReplyDraft({
+    platform: (lead.platform ?? signal.platform) as GrowthPlatform,
+    authorName: lead.full_name,
+    roleTitle: lead.role_title,
+    companyName: lead.company_name,
+    bodyText: signal.body_text,
+    contextSummary: signal.context_summary,
+    profileSummary: lead.profile_summary,
+    compositeScore: lead.composite_score,
+    scoreReasons: parseReasons(lead.score_reasons),
+    config,
+  });
+
+  const existingRows = asRows<DraftRow>(
+    await sql`
+      SELECT * FROM growth_drafts
+      WHERE lead_id = ${leadId}::uuid
+        AND status IN ('pending_review', 'approved', 'failed')
+      ORDER BY created_at DESC
+      LIMIT 1
+    `,
+  );
+  const existing = existingRows[0];
+  const now = new Date().toISOString();
+
+  let draft: GrowthDraft;
+  if (existing) {
+    const updated = await updateDraft(existing.id, {
+      bodyText: body,
+      status: "pending_review",
+      publishError: null,
+    });
+    if (!updated) return null;
+    draft = updated;
+  } else {
+    const draftId = crypto.randomUUID();
+    await sql`
+      INSERT INTO growth_drafts (
+        id, lead_id, signal_id, platform, draft_kind, body_text, status, created_at, updated_at
+      ) VALUES (
+        ${draftId}::uuid,
+        ${leadId}::uuid,
+        ${lead.signal_id}::uuid,
+        ${(lead.platform ?? signal.platform) as string},
+        'reply',
+        ${body},
+        'pending_review',
+        ${now}::timestamptz,
+        ${now}::timestamptz
+      )
+    `;
+    const draftRows = asRows<DraftRow>(
+      await sql`SELECT * FROM growth_drafts WHERE id = ${draftId}::uuid`,
+    );
+    draft = mapDraft(draftRows[0]);
+  }
 
   if (
     process.env.GROWTH_AUTO_PUBLISH_X === "1" &&
-    input.platform === "x" &&
-    input.sourceUrl?.includes("/status/")
+    draft.platform === "x" &&
+    signal.source_url?.includes("/status/")
   ) {
     try {
-      draft = await publishDraftReply(draftId, draftBody);
+      draft = await publishDraftReply(draft.id, body);
     } catch (error) {
       const message = error instanceof Error ? error.message : "Auto-post failed";
-      const failed = await updateDraft(draftId, {
+      const failed = await updateDraft(draft.id, {
         publishError: message,
         status: "failed",
       });
@@ -292,55 +355,45 @@ export async function ingestSignal(
     }
   }
 
-  return {
-    signal: mapSignal(signalRows[0]),
-    lead: mapLead(leadRows[0]),
-    draft,
-  };
+  return { draft, usedAi, aiError };
 }
 
 export async function listInbox(options?: {
   minScore?: number;
-}): Promise<{
-  drafts: GrowthDraft[];
-  leads: GrowthLead[];
-  signals: GrowthSignal[];
-}> {
+  platform?: GrowthPlatform | null;
+  limit?: number;
+}): Promise<{ items: GrowthInboxItem[] }> {
   await ready();
   const sql = getSql();
   const minScore = options?.minScore ?? 0;
-  const draftRows = asRows<DraftRow>(
-    minScore > 0
+  const limit = options?.limit ?? 50;
+  const platform = options?.platform ?? null;
+
+  const leadRows = asRows<LeadRow>(
+    platform
       ? await sql`
-          SELECT d.* FROM growth_drafts d
-          INNER JOIN growth_leads l ON l.id = d.lead_id
-          WHERE d.status IN ('pending_review', 'approved')
-            AND l.composite_score >= ${minScore}
-          ORDER BY l.composite_score DESC, d.created_at DESC
-          LIMIT 50
+          SELECT * FROM growth_leads
+          WHERE composite_score >= ${minScore}
+            AND platform = ${platform}
+            AND pipeline_status <> 'not_a_fit'
+          ORDER BY composite_score DESC, created_at DESC
+          LIMIT ${limit}
         `
       : await sql`
-          SELECT d.* FROM growth_drafts d
-          LEFT JOIN growth_leads l ON l.id = d.lead_id
-          WHERE d.status IN ('pending_review', 'approved')
-          ORDER BY l.composite_score DESC NULLS LAST, d.created_at DESC
-          LIMIT 50
+          SELECT * FROM growth_leads
+          WHERE composite_score >= ${minScore}
+            AND pipeline_status <> 'not_a_fit'
+          ORDER BY composite_score DESC, created_at DESC
+          LIMIT ${limit}
         `,
   );
-  const leadIds = draftRows.map((d) => d.lead_id).filter(Boolean) as string[];
-  const signalIds = draftRows.map((d) => d.signal_id).filter(Boolean) as string[];
 
-  const relatedLeadRows =
-    leadIds.length > 0
-      ? asRows<LeadRow>(
-          await sql`
-            SELECT * FROM growth_leads
-            WHERE id = ANY(${leadIds}::uuid[])
-          `,
-        )
-      : [];
+  const leadIds = leadRows.map((l) => l.id);
+  const signalIds = leadRows
+    .map((l) => l.signal_id)
+    .filter(Boolean) as string[];
 
-  const relatedSignalRows =
+  const signalRows =
     signalIds.length > 0
       ? asRows<SignalRow>(
           await sql`
@@ -350,11 +403,33 @@ export async function listInbox(options?: {
         )
       : [];
 
-  return {
-    drafts: draftRows.map(mapDraft),
-    leads: relatedLeadRows.map(mapLead),
-    signals: relatedSignalRows.map(mapSignal),
-  };
+  const draftRows =
+    leadIds.length > 0
+      ? asRows<DraftRow>(
+          await sql`
+            SELECT DISTINCT ON (lead_id) d.*
+            FROM growth_drafts d
+            WHERE d.lead_id = ANY(${leadIds}::uuid[])
+            ORDER BY d.lead_id, d.created_at DESC
+          `,
+        )
+      : [];
+
+  const signalById = new Map(signalRows.map((s) => [s.id, mapSignal(s)]));
+  const draftByLeadId = new Map(
+    draftRows.map((d) => [d.lead_id, mapDraft(d)] as const),
+  );
+
+  const items: GrowthInboxItem[] = leadRows.map((row) => {
+    const lead = mapLead(row);
+    const signal = row.signal_id
+      ? signalById.get(row.signal_id) ?? null
+      : null;
+    const draft = draftByLeadId.get(row.id) ?? null;
+    return { lead, signal, draft };
+  });
+
+  return { items };
 }
 
 export async function regenerateDraftWithAi(
@@ -484,21 +559,32 @@ export async function listLeads(options?: {
   limit?: number;
   minScore?: number;
   maxScore?: number;
+  platform?: GrowthPlatform | null;
 }): Promise<GrowthLead[]> {
   await ready();
   const sql = getSql();
   const limit = options?.limit ?? 100;
   const minScore = options?.minScore ?? 0;
   const maxScore = options?.maxScore ?? 100;
+  const platform = options?.platform ?? null;
 
   const rows = asRows<LeadRow>(
-    await sql`
-      SELECT * FROM growth_leads
-      WHERE composite_score >= ${minScore}
-        AND composite_score <= ${maxScore}
-      ORDER BY composite_score DESC, created_at DESC
-      LIMIT ${limit}
-    `,
+    platform
+      ? await sql`
+          SELECT * FROM growth_leads
+          WHERE composite_score >= ${minScore}
+            AND composite_score <= ${maxScore}
+            AND platform = ${platform}
+          ORDER BY composite_score DESC, created_at DESC
+          LIMIT ${limit}
+        `
+      : await sql`
+          SELECT * FROM growth_leads
+          WHERE composite_score >= ${minScore}
+            AND composite_score <= ${maxScore}
+          ORDER BY composite_score DESC, created_at DESC
+          LIMIT ${limit}
+        `,
   );
   return rows.map(mapLead);
 }

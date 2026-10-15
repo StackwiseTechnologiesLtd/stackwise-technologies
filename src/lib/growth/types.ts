@@ -82,6 +82,12 @@ export type GrowthDraft = {
   publishError: string | null;
 };
 
+export type GrowthInboxItem = {
+  lead: GrowthLead;
+  signal: GrowthSignal | null;
+  draft: GrowthDraft | null;
+};
+
 export type IngestSignalInput = {
   platform: GrowthPlatform;
   sourceUrl?: string;
