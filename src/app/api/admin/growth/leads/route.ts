@@ -8,7 +8,13 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   try {
-    const leads = await listLeads();
+    const { searchParams } = new URL(request.url);
+    const minScore = Number.parseInt(searchParams.get("minScore") ?? "", 10);
+    const maxScore = Number.parseInt(searchParams.get("maxScore") ?? "", 10);
+    const leads = await listLeads({
+      minScore: Number.isFinite(minScore) ? minScore : 0,
+      maxScore: Number.isFinite(maxScore) ? maxScore : 100,
+    });
     return NextResponse.json({ leads });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to list leads";

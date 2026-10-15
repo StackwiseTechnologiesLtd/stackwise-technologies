@@ -61,6 +61,7 @@ export type GrowthLead = {
   scoreReasons: string[];
   pipelineStatus: PipelineStatus;
   feedbackNote: string | null;
+  profileSummary: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -92,6 +93,7 @@ export type IngestSignalInput = {
   bodyText: string;
   contextSummary?: string;
   email?: string;
+  profileContext?: string;
   rawPayload?: Record<string, unknown>;
 };
 

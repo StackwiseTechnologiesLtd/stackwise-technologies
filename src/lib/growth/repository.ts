@@ -1,7 +1,7 @@
 import { ensureSchema } from "@/lib/db/ensure-schema";
 import { asRows, getSql, isDatabaseConfigured } from "@/lib/db/postgres";
 import { decryptJson, encryptJson } from "@/lib/growth/crypto";
-import { buildReplyDraft } from "@/lib/growth/drafts";
+import { buildPersonalizedReplyDraft } from "@/lib/growth/personalized-draft";
 import { DEFAULT_ICP_CONFIG } from "@/lib/growth/icp-default";
 import { scoreLead } from "@/lib/growth/scoring";
 import type {
@@ -52,6 +52,7 @@ type LeadRow = {
   score_reasons: string[] | string;
   pipeline_status: string;
   feedback_note: string | null;
+  profile_summary: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -114,6 +115,7 @@ function mapLead(row: LeadRow): GrowthLead {
     scoreReasons: parseReasons(row.score_reasons),
     pipelineStatus: row.pipeline_status as PipelineStatus,
     feedbackNote: row.feedback_note,
+    profileSummary: row.profile_summary,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -182,10 +184,19 @@ export async function ingestSignal(
     config,
   });
 
-  const draftBody = buildReplyDraft({
+  const profileSummary = input.profileContext?.trim() || null;
+
+  const { body: draftBody } = await buildPersonalizedReplyDraft({
+    platform: input.platform,
     authorName: input.authorName,
+    roleTitle: input.roleTitle,
+    companyName: input.companyName,
     bodyText: input.bodyText,
     contextSummary: input.contextSummary,
+    profileSummary,
+    compositeScore: scored.compositeScore,
+    scoreReasons: scored.reasons,
+    config,
   });
 
   await sql`
@@ -212,7 +223,7 @@ export async function ingestSignal(
     INSERT INTO growth_leads (
       id, signal_id, full_name, role_title, company_name, profile_url, email, platform,
       icp_score, intent_score, composite_score, score_reasons, pipeline_status,
-      created_at, updated_at
+      profile_summary, created_at, updated_at
     ) VALUES (
       ${leadId}::uuid,
       ${signalId}::uuid,
@@ -227,6 +238,7 @@ export async function ingestSignal(
       ${scored.compositeScore},
       ${JSON.stringify(scored.reasons)}::jsonb,
       'new',
+      ${profileSummary},
       ${now}::timestamptz,
       ${now}::timestamptz
     )
@@ -265,27 +277,46 @@ export async function ingestSignal(
   };
 }
 
-export async function listInbox(): Promise<{
+export async function listInbox(options?: {
+  minScore?: number;
+}): Promise<{
   drafts: GrowthDraft[];
   leads: GrowthLead[];
   signals: GrowthSignal[];
 }> {
   await ready();
   const sql = getSql();
+  const minScore = options?.minScore ?? 0;
   const draftRows = asRows<DraftRow>(
-    await sql`
-      SELECT * FROM growth_drafts
-      WHERE status IN ('pending_review', 'approved')
-      ORDER BY created_at DESC
-      LIMIT 50
-    `,
+    minScore > 0
+      ? await sql`
+          SELECT d.* FROM growth_drafts d
+          INNER JOIN growth_leads l ON l.id = d.lead_id
+          WHERE d.status IN ('pending_review', 'approved')
+            AND l.composite_score >= ${minScore}
+          ORDER BY d.created_at DESC
+          LIMIT 50
+        `
+      : await sql`
+          SELECT * FROM growth_drafts
+          WHERE status IN ('pending_review', 'approved')
+          ORDER BY created_at DESC
+          LIMIT 50
+        `,
   );
   const leadRows = asRows<LeadRow>(
-    await sql`
-      SELECT * FROM growth_leads
-      ORDER BY created_at DESC
-      LIMIT 50
-    `,
+    minScore > 0
+      ? await sql`
+          SELECT * FROM growth_leads
+          WHERE composite_score >= ${minScore}
+          ORDER BY created_at DESC
+          LIMIT 50
+        `
+      : await sql`
+          SELECT * FROM growth_leads
+          ORDER BY created_at DESC
+          LIMIT 50
+        `,
   );
   const signalRows = asRows<SignalRow>(
     await sql`
@@ -301,12 +332,22 @@ export async function listInbox(): Promise<{
   };
 }
 
-export async function listLeads(limit = 100): Promise<GrowthLead[]> {
+export async function listLeads(options?: {
+  limit?: number;
+  minScore?: number;
+  maxScore?: number;
+}): Promise<GrowthLead[]> {
   await ready();
   const sql = getSql();
+  const limit = options?.limit ?? 100;
+  const minScore = options?.minScore ?? 0;
+  const maxScore = options?.maxScore ?? 100;
+
   const rows = asRows<LeadRow>(
     await sql`
       SELECT * FROM growth_leads
+      WHERE composite_score >= ${minScore}
+        AND composite_score <= ${maxScore}
       ORDER BY composite_score DESC, created_at DESC
       LIMIT ${limit}
     `,

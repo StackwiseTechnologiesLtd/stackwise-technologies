@@ -32,6 +32,26 @@ export function scoreLead(input: ScoreInput): ScoreResult {
     }
   }
 
+  const leaderSignals = [
+    "founder",
+    "co-founder",
+    "ceo",
+    "cto",
+    "chief",
+    "president",
+    "vp ",
+    "head of",
+    "industry leader",
+    "serial entrepreneur",
+  ];
+  for (const signal of leaderSignals) {
+    if (haystack.includes(signal)) {
+      icp += 8;
+      reasons.push(`Decision-maker signal: "${signal.trim()}"`);
+      break;
+    }
+  }
+
   let titleHits = 0;
   for (const keyword of input.config.titleKeywords) {
     if (haystack.includes(normalize(keyword))) {

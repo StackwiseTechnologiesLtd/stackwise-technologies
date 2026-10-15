@@ -13,6 +13,11 @@ import {
   dedupeSignals,
   platformSearchUrl,
 } from "@/lib/growth/harvest-search";
+import {
+  enrichProfileFromPage,
+  profileUrlFromPost,
+  type BrowserPage,
+} from "@/lib/growth/profile-enrich";
 import { isDevConnectRuntimeEnabled } from "@/lib/growth/dev-connect-runtime";
 import {
   getHostedWorkerBrowser,
@@ -63,6 +68,52 @@ function normalizeCookies(cookies: unknown): Cookie[] {
   return cookies as Cookie[];
 }
 
+async function enrichSignalsWithProfiles(
+  page: BrowserPage,
+  platform: GrowthPlatform,
+  signals: IngestSignalInput[],
+  report?: HarvestReporter,
+): Promise<IngestSignalInput[]> {
+  const out = signals.map((s) => ({ ...s }));
+  const visited = new Set<string>();
+
+  for (let i = 0; i < out.length; i++) {
+    const signal = out[i];
+    const url = profileUrlFromPost(
+      platform,
+      signal.authorProfileUrl,
+      signal.authorHandle,
+    );
+    if (!url || visited.has(url)) continue;
+    visited.add(url);
+
+    await report?.(
+      "extract",
+      `Researching profile ${visited.size}: ${url.replace(/^https?:\/\//, "").slice(0, 55)}…`,
+    );
+    const profile = await enrichProfileFromPage(page, url, platform);
+    if (!profile) continue;
+
+    for (let j = 0; j < out.length; j++) {
+      const otherUrl = profileUrlFromPost(
+        platform,
+        out[j].authorProfileUrl,
+        out[j].authorHandle,
+      );
+      if (otherUrl !== url) continue;
+      out[j] = {
+        ...out[j],
+        authorProfileUrl: url,
+        roleTitle: out[j].roleTitle ?? profile.roleTitle ?? undefined,
+        companyName: out[j].companyName ?? profile.companyName ?? undefined,
+        profileContext: profile.summary,
+      };
+    }
+  }
+
+  return out;
+}
+
 async function ingestSignals(
   signals: IngestSignalInput[],
   report?: HarvestReporter,
@@ -73,7 +124,7 @@ async function ingestSignals(
     if (!signal.authorName?.trim() || !signal.bodyText?.trim()) continue;
     await report?.(
       "score",
-      `Scoring lead ${ingested + 1} of ${signals.length}…`,
+      `Scoring & drafting ${ingested + 1} of ${signals.length} (${signal.authorName.trim()})…`,
     );
     await ingestSignal({
       ...signal,
@@ -177,7 +228,13 @@ async function harvestSearchesWithPlaywright(
       await humanDelay(1500, 3000);
     }
 
-    return dedupeSignals(collected);
+    const withProfiles = await enrichSignalsWithProfiles(
+      page as BrowserPage,
+      platform,
+      collected,
+      report,
+    );
+    return dedupeSignals(withProfiles);
   } finally {
     await browser.close();
   }
@@ -336,7 +393,13 @@ async function harvestSearchesWithHostedBrowser(
       await sleep(2000);
     }
 
-    return dedupeSignals(collected);
+    const withProfiles = await enrichSignalsWithProfiles(
+      page as BrowserPage,
+      platform,
+      collected,
+      report,
+    );
+    return dedupeSignals(withProfiles);
   } finally {
     await browser.disconnect();
   }

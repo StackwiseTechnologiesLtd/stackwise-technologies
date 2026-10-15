@@ -13,6 +13,9 @@ export type InPageRawPost = {
   bodyText: string;
   sourceUrl: string | null;
   authorName: string;
+  authorHandle: string | null;
+  authorProfileUrl: string | null;
+  roleTitle: string | null;
 };
 
 export function growthHarvestExtractInPage(
@@ -25,6 +28,9 @@ export function growthHarvestExtractInPage(
     bodyText: string,
     sourceUrl: string | null,
     authorName: string,
+    authorHandle: string | null,
+    authorProfileUrl: string | null,
+    roleTitle: string | null,
   ) => {
     const text = bodyText.trim();
     if (text.length < 15) return;
@@ -35,6 +41,9 @@ export function growthHarvestExtractInPage(
       bodyText: text.slice(0, 4000),
       sourceUrl,
       authorName: authorName.slice(0, 120) || "Post author",
+      authorHandle,
+      authorProfileUrl,
+      roleTitle,
     });
   };
 
@@ -58,11 +67,31 @@ export function growthHarvestExtractInPage(
           : `https://x.com${href}`
         : null;
       const userEl = article?.querySelector('[data-testid="User-Name"]');
+      const userText = userEl?.textContent ?? "";
       const authorName =
-        userEl?.textContent?.split("\n")[0]?.trim() ||
+        userText.split("\n")[0]?.trim() ||
         text.split("\n")[0]?.trim() ||
         "Post author";
-      push(text, sourceUrl, authorName);
+      const profileLink = userEl?.querySelector(
+        'a[href^="/"]',
+      ) as HTMLAnchorElement | null;
+      const profileHref = profileLink?.getAttribute("href") ?? null;
+      const authorProfileUrl = profileHref
+        ? profileHref.startsWith("http")
+          ? profileHref
+          : `https://x.com${profileHref}`
+        : null;
+      const handleMatch = profileHref?.match(/^\/([^/]+)/);
+      const authorHandle = handleMatch ? `@${handleMatch[1]}` : null;
+      const roleTitle = userText.split("\n")[1]?.trim()?.slice(0, 200) || null;
+      push(
+        text,
+        sourceUrl,
+        authorName,
+        authorHandle,
+        authorProfileUrl,
+        roleTitle,
+      );
     });
 
     if (posts.length === 0) {
@@ -77,7 +106,14 @@ export function growthHarvestExtractInPage(
             ? href
             : `https://x.com${href}`
           : null;
-        push(text, sourceUrl, text.split("\n")[0]?.trim() || "Post author");
+        push(
+          text,
+          sourceUrl,
+          text.split("\n")[0]?.trim() || "Post author",
+          null,
+          null,
+          null,
+        );
       });
     }
 
@@ -91,7 +127,14 @@ export function growthHarvestExtractInPage(
         const sourceUrl = href.startsWith("http")
           ? href
           : `https://x.com${href}`;
-        push(text, sourceUrl, text.split("\n")[0]?.trim() || "Post author");
+        push(
+          text,
+          sourceUrl,
+          text.split("\n")[0]?.trim() || "Post author",
+          null,
+          null,
+          null,
+        );
       });
     }
 
@@ -124,11 +167,27 @@ export function growthHarvestExtractInPage(
         ? href
         : `https://www.linkedin.com${href}`
       : null;
-    push(text, sourceUrl, text.split("\n")[0]?.trim() || "Post author");
-  });
+      const actorLink = block.querySelector(
+        'a[href*="/in/"]',
+      ) as HTMLAnchorElement | null;
+      const inHref = actorLink?.getAttribute("href") ?? null;
+      const authorProfileUrl = inHref
+        ? inHref.startsWith("http")
+          ? inHref
+          : `https://www.linkedin.com${inHref}`
+        : null;
+      push(
+        text,
+        sourceUrl,
+        text.split("\n")[0]?.trim() || "Post author",
+        null,
+        authorProfileUrl,
+        text.split("\n")[1]?.trim()?.slice(0, 200) || null,
+      );
+    });
 
-  if (posts.length === 0) {
-    updateTexts.forEach((node) => {
+    if (posts.length === 0) {
+      updateTexts.forEach((node) => {
       const text = (node as HTMLElement).innerText?.trim() ?? "";
       const container = node.closest("div[data-urn], .feed-shared-update-v2");
       const linkEl = container?.querySelector(
@@ -140,14 +199,14 @@ export function growthHarvestExtractInPage(
           ? href
           : `https://www.linkedin.com${href}`
         : null;
-      push(text, sourceUrl, "Post author");
-    });
-  }
+        push(text, sourceUrl, "Post author", null, null, null);
+      });
+    }
 
-  return {
-    posts,
-    debug: {
-      platform: "linkedin",
+    return {
+      posts,
+      debug: {
+        platform: "linkedin",
       tweetTextNodes: 0,
       articleNodes: 0,
       statusLinks: 0,

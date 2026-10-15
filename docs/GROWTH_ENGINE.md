@@ -37,18 +37,31 @@ GROWTH_CONNECTOR_SECRET=your-long-random-secret-here
 
 Uses the same encryption root as other app secrets (`KPAY_WEBHOOK_SECRET` / `KPAY_SECRET_KEY` via `getAppSecret()`).
 
-5. Playwright (local only):
+5. **OpenRouter** (personalized reply drafts after harvest / capture):
+
+```bash
+OPENROUTER_API_KEY=sk-or-…
+OPENROUTER_MODEL=openrouter/auto   # or a specific model from openrouter.ai/models
+# Optional: only call the LLM when composite fit >= this (default 42)
+GROWTH_MIN_DRAFT_SCORE=50
+```
+
+Harvest visits each lead’s public profile (when a profile URL is available) and stores a short **profile research** blurb on the lead. Drafts are generated via OpenRouter using the post, profile context, and ICP score — with a template fallback if the API is missing or fails.
+
+**Do not commit API keys.** If a key was pasted into chat or committed, rotate it in the OpenRouter dashboard.
+
+6. Playwright (local only):
 
 ```bash
 npm install -D playwright
 npx playwright install chromium
 ```
 
-6. **Production connect (no terminal)** — enable [Browser Rendering](https://developers.cloudflare.com/browser-run/) on your Cloudflare account. This repo’s `wrangler.jsonc` includes a `browser` binding. After deploy, **Connect** in admin uses Cloudflare-hosted Chromium in the embedded panel.
+7. **Production connect (no terminal)** — enable [Browser Rendering](https://developers.cloudflare.com/browser-run/) on your Cloudflare account. This repo’s `wrangler.jsonc` includes a `browser` binding. After deploy, **Connect** in admin uses Cloudflare-hosted Chromium in the embedded panel.
 
    Optional fallback: deploy `deploy/growth-connect` to Fly/Render and set `GROWTH_CONNECT_VIEWER_BASE` on the Worker (admin proxies via `/api/admin/growth/connect/relay`).
 
-7. **Local dev** — Connect runs inside `npm run dev` (in-process Playwright). One-time setup:
+8. **Local dev** — Connect runs inside `npm run dev` (in-process Playwright). One-time setup:
 
 ```bash
 npx playwright install chromium
@@ -60,9 +73,9 @@ Optional: `npm run growth:connect-server` is a legacy standalone helper. `GROWTH
 
 1. **Connect** — Settings → **Connect** (or connect page). Production uses Cloudflare Browser Rendering; local dev opens Chromium on your machine.
 2. **Harvest** — `/admin/growth` → **Harvest** (runs up to 4 ICP intent-phrase searches on X/LinkedIn, then scores and drafts). Tune phrases in Settings → ICP JSON (`intentPhrases`).
-3. **Review** — `/admin/growth`: approve drafts, copy to platform, mark posted.
-4. **Pipeline** — `/admin/growth/leads`: update status.
-5. **Tune scoring** — `/admin/growth/settings`: edit ICP JSON.
+3. **Review** — **Inbox** in the Growth sidebar: filter by minimum fit score, approve drafts, copy to platform, mark posted.
+4. **Pipeline** — **Leads**: filter by score, update pipeline status.
+5. **Tune scoring** — **Settings**: edit ICP JSON and connect platforms.
 
 If the UI shows **Session expired** or **Login or verification needed**, run `growth-connect` again for that platform.
 
@@ -112,7 +125,8 @@ Auth: admin session cookie **or** `Authorization: Bearer $GROWTH_CONNECTOR_SECRE
 | `/api/admin/growth/sessions` | GET | **Admin** — platform session status |
 | `/api/admin/growth/sessions/health` | POST | **Connector** — report active/expired/challenge |
 | `/api/admin/growth/connector/credentials?platform=` | GET | **Connector secret only** — decrypt for local automation |
-| `/api/admin/growth/inbox` | GET | Drafts + leads for UI |
+| `/api/admin/growth/inbox` | GET | Drafts + leads (`?minScore=60`) |
+| `/api/admin/growth/leads` | GET | Leads list (`?minScore=&maxScore=`) |
 
 ## Data model
 
@@ -124,6 +138,6 @@ Auth: admin session cookie **or** `Authorization: Bearer $GROWTH_CONNECTOR_SECRE
 
 ## Roadmap
 
-- Optional LLM draft rewrite when `OPENAI_API_KEY` is set
+- Regenerate draft from inbox with fresh profile pull
 - Publish worker on VPS: post only **approved** drafts, rate-limited
 - systemd timer for `growth-harvest` on a dedicated connector VM

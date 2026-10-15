@@ -225,6 +225,11 @@ ALTER TABLE growth_platform_credentials
   ADD COLUMN IF NOT EXISTS connected_account_label TEXT;
 `;
 
+const GROWTH_LEAD_PROFILE_SQL = `
+ALTER TABLE growth_leads
+  ADD COLUMN IF NOT EXISTS profile_summary TEXT;
+`;
+
 const GROWTH_CONNECT_BROWSER_SESSIONS_SQL = `
 CREATE TABLE IF NOT EXISTS growth_connect_browser_sessions (
   id UUID PRIMARY KEY,
@@ -250,5 +255,6 @@ export const MIGRATION_STATEMENTS = [
   ...splitStatements(MAINTENANCE_SUBSCRIPTIONS_SQL),
   ...splitStatements(GROWTH_ENGINE_SQL),
   ...splitStatements(GROWTH_SESSION_HEALTH_SQL),
+  ...splitStatements(GROWTH_LEAD_PROFILE_SQL),
   ...splitStatements(GROWTH_CONNECT_BROWSER_SESSIONS_SQL),
 ];

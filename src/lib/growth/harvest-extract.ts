@@ -21,12 +21,22 @@ export function formatExtractDebug(debug: ExtractDebug): string {
 
 export function rawPostsToSignals(
   platform: GrowthPlatform,
-  posts: { bodyText: string; sourceUrl: string | null; authorName: string }[],
+  posts: {
+    bodyText: string;
+    sourceUrl: string | null;
+    authorName: string;
+    authorHandle?: string | null;
+    authorProfileUrl?: string | null;
+    roleTitle?: string | null;
+  }[],
 ): IngestSignalInput[] {
   return posts.map((p) => ({
     platform,
     sourceUrl: p.sourceUrl ?? undefined,
     authorName: authorFromBlockText(p.authorName || p.bodyText),
+    authorHandle: p.authorHandle ?? undefined,
+    authorProfileUrl: p.authorProfileUrl ?? undefined,
+    roleTitle: p.roleTitle ?? undefined,
     bodyText: p.bodyText,
   }));
 }

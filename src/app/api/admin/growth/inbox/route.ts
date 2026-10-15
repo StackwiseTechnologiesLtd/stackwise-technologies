@@ -8,7 +8,11 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   try {
-    const inbox = await listInbox();
+    const { searchParams } = new URL(request.url);
+    const minScore = Number.parseInt(searchParams.get("minScore") ?? "", 10);
+    const inbox = await listInbox({
+      minScore: Number.isFinite(minScore) ? minScore : 0,
+    });
     return NextResponse.json(inbox);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to load inbox";

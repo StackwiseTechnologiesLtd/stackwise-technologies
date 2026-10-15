@@ -2,6 +2,10 @@
 
 import { AdminActionButton } from "@/components/admin/AdminActionButton";
 import { useToast } from "@/components/ToastProvider";
+import {
+  GrowthScoreFilter,
+  scoreBadgeClass,
+} from "@/components/admin/growth/GrowthScoreFilter";
 import type {
   GrowthDraft,
   GrowthLead,
@@ -22,27 +26,32 @@ export function GrowthInboxPanel() {
   const [refreshing, setRefreshing] = useState(false);
   const [editing, setEditing] = useState<Record<string, string>>({});
   const [busyKey, setBusyKey] = useState<string | null>(null);
+  const [minScore, setMinScore] = useState(0);
 
-  const load = useCallback(async (opts?: { silent?: boolean }) => {
-    if (!opts?.silent) setLoading(true);
-    else setRefreshing(true);
-    try {
-      const res = await fetch("/api/admin/growth/inbox");
-      if (!res.ok) throw new Error("Could not load inbox");
-      const json = (await res.json()) as InboxPayload;
-      setData(json);
-      const next: Record<string, string> = {};
-      for (const draft of json.drafts) {
-        next[draft.id] = draft.bodyText;
+  const load = useCallback(
+    async (opts?: { silent?: boolean }) => {
+      if (!opts?.silent) setLoading(true);
+      else setRefreshing(true);
+      try {
+        const qs = minScore > 0 ? `?minScore=${minScore}` : "";
+        const res = await fetch(`/api/admin/growth/inbox${qs}`);
+        if (!res.ok) throw new Error("Could not load inbox");
+        const json = (await res.json()) as InboxPayload;
+        setData(json);
+        const next: Record<string, string> = {};
+        for (const draft of json.drafts) {
+          next[draft.id] = draft.bodyText;
+        }
+        setEditing(next);
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Load failed");
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
       }
-      setEditing(next);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Load failed");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [toast]);
+    },
+    [toast, minScore],
+  );
 
   useEffect(() => {
     void load();
@@ -115,167 +124,232 @@ export function GrowthInboxPanel() {
     data?.drafts.filter((d) => d.status === "pending_review") ?? [];
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-muted">
-          {pending.length} draft{pending.length === 1 ? "" : "s"} waiting for review
-        </p>
-        <AdminActionButton
-          busy={refreshing}
-          busyLabel="Refreshing…"
-          onClick={() => void load({ silent: true })}
-        >
-          Refresh
-        </AdminActionButton>
+    <section className="space-y-5">
+      <div className="flex flex-col gap-4 rounded-2xl border border-line bg-gradient-to-br from-panel/90 to-black/40 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-lg font-semibold tracking-tight">Review queue</p>
+          <p className="text-sm text-muted">
+            {pending.length} personalized draft{pending.length === 1 ? "" : "s"} ready
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <GrowthScoreFilter minScore={minScore} onChange={setMinScore} />
+          <AdminActionButton
+            busy={refreshing}
+            busyLabel="Refreshing…"
+            onClick={() => void load({ silent: true })}
+          >
+            Refresh
+          </AdminActionButton>
+        </div>
       </div>
 
       {pending.length === 0 ? (
-        <div className="rounded-xl border border-line bg-panel p-8 text-center text-sm text-muted">
-          No drafts in the queue. Add a signal from the capture form or run the local connector.
+        <div className="rounded-2xl border border-dashed border-line bg-panel/40 p-12 text-center">
+          <p className="text-sm text-muted">
+            No drafts in the queue. Run harvest or capture a signal from settings.
+          </p>
         </div>
       ) : (
-        <ul className="space-y-4">
+        <ul className="space-y-5">
           {pending.map((draft) => {
             const lead = leadForDraft(draft);
             const signal = signalForDraft(draft);
             const draftBusy = busyKey?.startsWith(`${draft.id}:`) ?? false;
+            const score = lead?.compositeScore ?? 0;
+
             return (
               <li
                 key={draft.id}
-                className="rounded-xl border border-line bg-panel p-5 sm:p-6"
+                className="overflow-hidden rounded-2xl border border-line bg-panel/60 shadow-sm shadow-black/20"
               >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-wide text-muted">
-                      {draft.platform} · reply
-                      {lead ? ` · ${lead.compositeScore}% fit` : ""}
-                    </p>
-                    <p className="mt-1 text-lg font-semibold tracking-tight">
-                      {lead?.fullName ?? "Unknown lead"}
-                    </p>
-                    {lead?.roleTitle ? (
-                      <p className="text-sm text-muted">{lead.roleTitle}</p>
+                <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
+                  <div className="border-b border-line p-5 lg:border-b-0 lg:border-r">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-xs font-medium uppercase tracking-wide text-muted">
+                            {draft.platform}
+                          </span>
+                          {lead ? (
+                            <span
+                              className={`rounded-full px-2 py-0.5 font-mono text-[11px] font-semibold ring-1 ${scoreBadgeClass(score)}`}
+                            >
+                              {score}% fit
+                            </span>
+                          ) : null}
+                        </div>
+                        <p className="mt-2 text-xl font-semibold tracking-tight">
+                          {lead?.fullName ?? "Unknown lead"}
+                        </p>
+                        {lead?.roleTitle || lead?.companyName ? (
+                          <p className="text-sm text-muted">
+                            {[lead?.roleTitle, lead?.companyName]
+                              .filter(Boolean)
+                              .join(" · ")}
+                          </p>
+                        ) : null}
+                      </div>
+                      <div className="flex flex-col items-end gap-1 text-right text-xs">
+                        {lead?.profileUrl ? (
+                          <a
+                            href={lead.profileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-accent hover:underline"
+                          >
+                            Profile
+                          </a>
+                        ) : null}
+                        {signal?.sourceUrl ? (
+                          <a
+                            href={signal.sourceUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-accent hover:underline"
+                          >
+                            Original post
+                          </a>
+                        ) : null}
+                      </div>
+                    </div>
+
+                    {lead?.profileSummary ? (
+                      <div className="mt-4 rounded-xl bg-black/35 p-3 ring-1 ring-white/5">
+                        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">
+                          Profile research
+                        </p>
+                        <p className="mt-1 text-xs leading-relaxed text-muted">
+                          {lead.profileSummary.slice(0, 500)}
+                          {lead.profileSummary.length > 500 ? "…" : ""}
+                        </p>
+                      </div>
+                    ) : null}
+
+                    {signal?.bodyText ? (
+                      <blockquote className="mt-4 rounded-xl border border-white/6 bg-black/30 p-3 text-sm leading-relaxed text-muted">
+                        {signal.bodyText.slice(0, 420)}
+                        {signal.bodyText.length > 420 ? "…" : ""}
+                      </blockquote>
+                    ) : null}
+
+                    {lead?.scoreReasons.length ? (
+                      <ul className="mt-3 flex flex-wrap gap-1.5">
+                        {lead.scoreReasons.slice(0, 5).map((reason) => (
+                          <li
+                            key={reason}
+                            className="rounded-md bg-black/40 px-2 py-0.5 text-[10px] text-muted ring-1 ring-line"
+                          >
+                            {reason}
+                          </li>
+                        ))}
+                      </ul>
                     ) : null}
                   </div>
-                  {signal?.sourceUrl ? (
-                    <a
-                      href={signal.sourceUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-accent hover:underline"
-                    >
-                      View post
-                    </a>
-                  ) : null}
-                </div>
 
-                {lead?.scoreReasons.length ? (
-                  <ul className="mt-3 list-disc space-y-1 pl-5 text-xs text-muted">
-                    {lead.scoreReasons.slice(0, 4).map((reason) => (
-                      <li key={reason}>{reason}</li>
-                    ))}
-                  </ul>
-                ) : null}
-
-                {signal?.bodyText ? (
-                  <blockquote className="mt-4 rounded-lg border border-white/8 bg-black/40 p-3 text-sm text-muted">
-                    {signal.bodyText.slice(0, 400)}
-                    {signal.bodyText.length > 400 ? "…" : ""}
-                  </blockquote>
-                ) : null}
-
-                <textarea
-                  className="mt-4 min-h-32 w-full rounded-lg border border-line bg-black/50 px-3 py-2 text-sm text-foreground"
-                  value={editing[draft.id] ?? draft.bodyText}
-                  onChange={(e) =>
-                    setEditing((prev) => ({ ...prev, [draft.id]: e.target.value }))
-                  }
-                  disabled={draftBusy}
-                />
-
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <AdminActionButton
-                    variant="primary"
-                    busy={busyKey === `${draft.id}:approve`}
-                    busyLabel="Approving…"
-                    disabled={draftBusy && busyKey !== `${draft.id}:approve`}
-                    onClick={() =>
-                      void runAction(`${draft.id}:approve`, async () => {
-                        await patchDraft(draft.id, {
-                          bodyText: editing[draft.id],
-                          status: "approved",
-                        });
-                        toast.success("Draft approved");
-                      })
-                    }
-                  >
-                    Approve
-                  </AdminActionButton>
-                  <AdminActionButton
-                    busy={busyKey === `${draft.id}:copy`}
-                    busyLabel="Copied"
-                    disabled={draftBusy && busyKey !== `${draft.id}:copy`}
-                    onClick={() =>
-                      void runAction(`${draft.id}:copy`, async () => {
-                        await navigator.clipboard.writeText(editing[draft.id] ?? "");
-                        toast.success("Copied to clipboard");
-                      })
-                    }
-                  >
-                    Copy for {draft.platform}
-                  </AdminActionButton>
-                  <AdminActionButton
-                    busy={busyKey === `${draft.id}:posted`}
-                    busyLabel="Saving…"
-                    disabled={draftBusy && busyKey !== `${draft.id}:posted`}
-                    onClick={() =>
-                      void runAction(`${draft.id}:posted`, async () => {
-                        await patchDraft(draft.id, {
-                          bodyText: editing[draft.id],
-                          status: "published",
-                          markPublished: true,
-                        });
-                        toast.success("Marked as published (manual post)");
-                      })
-                    }
-                  >
-                    Mark posted
-                  </AdminActionButton>
-                  <AdminActionButton
-                    busy={busyKey === `${draft.id}:reject`}
-                    busyLabel="Rejecting…"
-                    disabled={draftBusy && busyKey !== `${draft.id}:reject`}
-                    onClick={() =>
-                      void runAction(`${draft.id}:reject`, async () => {
-                        await patchDraft(draft.id, { status: "rejected" });
-                        toast.toast("Draft rejected");
-                      })
-                    }
-                  >
-                    Reject
-                  </AdminActionButton>
-                  {lead ? (
-                    <AdminActionButton
-                      busy={busyKey === `${draft.id}:notfit`}
-                      busyLabel="Updating…"
-                      disabled={draftBusy && busyKey !== `${draft.id}:notfit`}
-                      onClick={() =>
-                        void runAction(`${draft.id}:notfit`, async () => {
-                          await markLeadNotFit(lead.id);
-                          await patchDraft(draft.id, { status: "rejected" });
-                          toast.success("Lead marked not a fit");
-                        })
+                  <div className="flex flex-col p-5">
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">
+                      Draft reply
+                    </p>
+                    <textarea
+                      className="mt-2 min-h-[11rem] flex-1 w-full rounded-xl border border-line bg-black/45 px-3 py-2.5 text-sm leading-relaxed text-foreground"
+                      value={editing[draft.id] ?? draft.bodyText}
+                      onChange={(e) =>
+                        setEditing((prev) => ({
+                          ...prev,
+                          [draft.id]: e.target.value,
+                        }))
                       }
-                    >
-                      Not a fit
-                    </AdminActionButton>
-                  ) : null}
+                      disabled={draftBusy}
+                    />
+
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <AdminActionButton
+                        variant="primary"
+                        busy={busyKey === `${draft.id}:approve`}
+                        busyLabel="Approving…"
+                        disabled={draftBusy && busyKey !== `${draft.id}:approve`}
+                        onClick={() =>
+                          void runAction(`${draft.id}:approve`, async () => {
+                            await patchDraft(draft.id, {
+                              bodyText: editing[draft.id],
+                              status: "approved",
+                            });
+                            toast.success("Draft approved");
+                          })
+                        }
+                      >
+                        Approve
+                      </AdminActionButton>
+                      <AdminActionButton
+                        busy={busyKey === `${draft.id}:copy`}
+                        busyLabel="Copied"
+                        disabled={draftBusy && busyKey !== `${draft.id}:copy`}
+                        onClick={() =>
+                          void runAction(`${draft.id}:copy`, async () => {
+                            await navigator.clipboard.writeText(
+                              editing[draft.id] ?? "",
+                            );
+                            toast.success("Copied to clipboard");
+                          })
+                        }
+                      >
+                        Copy
+                      </AdminActionButton>
+                      <AdminActionButton
+                        busy={busyKey === `${draft.id}:posted`}
+                        busyLabel="Saving…"
+                        disabled={draftBusy && busyKey !== `${draft.id}:posted`}
+                        onClick={() =>
+                          void runAction(`${draft.id}:posted`, async () => {
+                            await patchDraft(draft.id, {
+                              bodyText: editing[draft.id],
+                              status: "published",
+                              markPublished: true,
+                            });
+                            toast.success("Marked as published");
+                          })
+                        }
+                      >
+                        Mark posted
+                      </AdminActionButton>
+                      <AdminActionButton
+                        busy={busyKey === `${draft.id}:reject`}
+                        busyLabel="Rejecting…"
+                        disabled={draftBusy && busyKey !== `${draft.id}:reject`}
+                        onClick={() =>
+                          void runAction(`${draft.id}:reject`, async () => {
+                            await patchDraft(draft.id, { status: "rejected" });
+                            toast.toast("Draft rejected");
+                          })
+                        }
+                      >
+                        Reject
+                      </AdminActionButton>
+                      {lead ? (
+                        <AdminActionButton
+                          busy={busyKey === `${draft.id}:notfit`}
+                          busyLabel="Updating…"
+                          disabled={draftBusy && busyKey !== `${draft.id}:notfit`}
+                          onClick={() =>
+                            void runAction(`${draft.id}:notfit`, async () => {
+                              await markLeadNotFit(lead.id);
+                              await patchDraft(draft.id, { status: "rejected" });
+                              toast.success("Lead marked not a fit");
+                            })
+                          }
+                        >
+                          Not a fit
+                        </AdminActionButton>
+                      ) : null}
+                    </div>
+                  </div>
                 </div>
               </li>
             );
           })}
         </ul>
       )}
-    </div>
+    </section>
   );
 }

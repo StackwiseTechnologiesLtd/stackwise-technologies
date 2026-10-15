@@ -12,12 +12,14 @@ export default function GrowthInboxPage() {
   return (
     <div className="space-y-8">
       <AdminPageHeader
-        title="Growth inbox"
-        description="Review scored leads and reply drafts before anything goes to LinkedIn or X."
+        title="Inbox"
+        description="Personalized reply drafts for founders and decision makers — review before posting."
       />
-      <GrowthHarvestPanel onHarvested={() => setInboxKey((k) => k + 1)} />
-      <GrowthCaptureForm onCreated={() => setInboxKey((k) => k + 1)} />
       <GrowthInboxPanel key={inboxKey} />
+      <div className="grid gap-6 lg:grid-cols-2">
+        <GrowthHarvestPanel onHarvested={() => setInboxKey((k) => k + 1)} />
+        <GrowthCaptureForm onCreated={() => setInboxKey((k) => k + 1)} />
+      </div>
     </div>
   );
 }
