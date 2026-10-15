@@ -5,9 +5,11 @@ import { AdminUserAvatar } from "@/components/admin/AdminUserAvatar";
 import Mark from "@/components/Mark";
 import { useToast } from "@/components/ToastProvider";
 import {
+  adminGrowthNavChildren,
   adminNavPrimary,
   adminPageTitle,
   isNavActive,
+  isNavChildActive,
 } from "@/lib/admin/nav-meta";
 import { SITE_NAME } from "@/lib/content";
 import { ADMIN_BTN_SECONDARY, ADMIN_NAV_LINK } from "@/lib/ui/admin";
@@ -68,30 +70,56 @@ function SidebarNav({
         <p className="sr-only">Billing</p>
       )} */}
       {adminNavPrimary.map((item) => {
+        const growthChildren =
+          item.href === "/admin/growth" ? adminGrowthNavChildren : null;
         const active = isNavActive(pathname, item);
         return (
-          <Link
-            key={item.href}
-            href={item.href}
-            title={collapsed ? item.label : undefined}
-            onClick={onNavigate}
-            className={`${ADMIN_NAV_LINK} ${collapsed ? "justify-center px-2" : ""
-              } ${active
-                ? collapsed
-                  ? "bg-[var(--admin-nav-active)] font-medium text-foreground"
-                  : "border-l-2 border-[var(--admin-nav-active-border)] bg-[var(--admin-nav-active)] font-medium text-foreground"
-                : collapsed
-                  ? "text-muted hover:bg-[var(--admin-nav-hover)] hover:text-foreground"
-                  : "border-l-2 border-transparent text-muted hover:bg-[var(--admin-nav-hover)] hover:text-foreground"
-              }`}
-          >
-            <AdminNavIcon
-              name={item.icon}
-              className={`size-4 shrink-0 ${active ? "text-accent" : "opacity-80"}`}
-            />
-            {!collapsed ? <span className="truncate">{item.label}</span> : null}
-            {collapsed ? <span className="sr-only">{item.label}</span> : null}
-          </Link>
+          <div key={item.href} className="flex flex-col gap-0.5">
+            <Link
+              href={item.href}
+              title={collapsed ? item.label : undefined}
+              onClick={onNavigate}
+              className={`${ADMIN_NAV_LINK} ${collapsed ? "justify-center px-2" : ""
+                } ${active
+                  ? collapsed
+                    ? "bg-[var(--admin-nav-active)] font-medium text-foreground"
+                    : "border-l-2 border-[var(--admin-nav-active-border)] bg-[var(--admin-nav-active)] font-medium text-foreground"
+                  : collapsed
+                    ? "text-muted hover:bg-[var(--admin-nav-hover)] hover:text-foreground"
+                    : "border-l-2 border-transparent text-muted hover:bg-[var(--admin-nav-hover)] hover:text-foreground"
+                }`}
+            >
+              <AdminNavIcon
+                name={item.icon}
+                className={`size-4 shrink-0 ${active ? "text-accent" : "opacity-80"}`}
+              />
+              {!collapsed ? <span className="truncate">{item.label}</span> : null}
+              {collapsed ? <span className="sr-only">{item.label}</span> : null}
+            </Link>
+            {growthChildren && !collapsed ? (
+              <div
+                className="ml-4 flex flex-col gap-0.5 border-l border-[var(--admin-border)] pl-2"
+                aria-label="Growth"
+              >
+                {growthChildren.map((child) => {
+                  const childActive = isNavChildActive(pathname, child);
+                  return (
+                    <Link
+                      key={child.href}
+                      href={child.href}
+                      onClick={onNavigate}
+                      className={`rounded-md px-2.5 py-1.5 text-[13px] ${childActive
+                        ? "bg-[var(--admin-nav-active)] font-medium text-foreground"
+                        : "text-muted hover:bg-[var(--admin-nav-hover)] hover:text-foreground"
+                        }`}
+                    >
+                      {child.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            ) : null}
+          </div>
         );
       })}
     </nav>

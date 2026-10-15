@@ -5,6 +5,18 @@ export type AdminNavItem = {
   match?: "exact" | "prefix";
 };
 
+export type AdminNavChild = {
+  href: string;
+  label: string;
+  match?: "exact" | "prefix";
+};
+
+export const adminGrowthNavChildren: AdminNavChild[] = [
+  { href: "/admin/growth", label: "Inbox", match: "exact" },
+  { href: "/admin/growth/leads", label: "Leads", match: "prefix" },
+  { href: "/admin/growth/settings", label: "Settings", match: "prefix" },
+];
+
 export const adminNavPrimary: AdminNavItem[] = [
   { href: "/admin", label: "Payment links", icon: "links", match: "exact" },
   {
@@ -17,7 +29,7 @@ export const adminNavPrimary: AdminNavItem[] = [
   { href: "/admin/audit-logs", label: "Access logs", icon: "logs", match: "prefix" },
   {
     href: "/admin/growth",
-    label: "Growth inbox",
+    label: "Growth",
     icon: "growth",
     match: "prefix",
   },
@@ -32,13 +44,23 @@ export function adminPageTitle(pathname: string): string {
   if (pathname === "/admin/subscriptions") return "Maintenance subscriptions";
   if (pathname === "/admin/withdraw") return "Withdraw funds";
   if (pathname === "/admin/audit-logs") return "Payment access logs";
-  if (pathname === "/admin/growth") return "Growth inbox";
+  if (pathname === "/admin/growth") return "Inbox";
   if (pathname.startsWith("/admin/growth/leads")) return "Leads";
-  if (pathname.startsWith("/admin/growth/settings")) return "Growth settings";
+  if (pathname.startsWith("/admin/growth/settings")) return "Settings";
+  if (pathname.startsWith("/admin/growth/connect")) return "Connect";
   return "Admin";
 }
 
 export function isNavActive(pathname: string, item: AdminNavItem): boolean {
   if (item.match === "exact") return pathname === item.href;
   return pathname === item.href || pathname.startsWith(`${item.href}/`);
+}
+
+export function isNavChildActive(pathname: string, child: AdminNavChild): boolean {
+  if (child.match === "exact") return pathname === child.href;
+  return pathname === child.href || pathname.startsWith(`${child.href}/`);
+}
+
+export function isGrowthSection(pathname: string): boolean {
+  return pathname === "/admin/growth" || pathname.startsWith("/admin/growth/");
 }
