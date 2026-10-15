@@ -42,6 +42,10 @@ Uses the same encryption root as other app secrets (`KPAY_WEBHOOK_SECRET` / `KPA
 ```bash
 OPENROUTER_API_KEY=sk-or-…
 OPENROUTER_MODEL=openrouter/auto   # or a specific model from openrouter.ai/models
+OPENROUTER_FALLBACK_MODEL=google/gemini-2.5-flash   # non-reasoning model when primary fails
+GROWTH_OPENROUTER_MAX_TOKENS=1200
+# Set to 1 only if your model requires reasoning (most growth drafts should leave this off)
+GROWTH_OPENROUTER_REASONING=0
 # Optional: only call the LLM when composite fit >= this (default 42)
 GROWTH_MIN_DRAFT_SCORE=50
 # Log prompts + OpenRouter completions in the dev server terminal (on by default in npm run dev)

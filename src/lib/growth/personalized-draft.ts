@@ -82,7 +82,11 @@ Rules:
 - One soft CTA: offer a short call and include the booking link exactly once at the end.
 - Do not invent facts about the person or company not supported by the context below.
 - Never mention ICP, keyword search, "vibe coded", or how we found the post — only what they actually wrote.
-- Platform tone: ${input.platform === "linkedin" ? "LinkedIn — professional, concise" : "X — direct, slightly casual"}`.trim();
+- Platform tone: ${input.platform === "linkedin" ? "LinkedIn — professional, concise" : "X — direct, slightly casual"}
+
+OUTPUT FORMAT (critical):
+- Reply with ONLY the message text the prospect will read on ${input.platform === "linkedin" ? "LinkedIn" : "X"}.
+- No planning, no "Let me…", no restating these rules, no numbered constraint lists, no analysis.`.trim();
 
   const user = `Lead fit score: ${input.compositeScore}/100
 Score signals: ${input.scoreReasons.slice(0, 6).join("; ") || "n/a"}
@@ -102,7 +106,7 @@ ${
     : ""
 }
 
-Write a reply addressed to ${name}. End with the booking link on its own line: ${booking}`;
+Write the outbound reply to ${name} now (message text only). End with the booking link on its own line: ${booking}`;
 
   growthAiLogMultiline("Prompt → user message", user);
 
