@@ -1,14 +1,25 @@
 import {
-  platformHome,
+  platformSessionCheck,
   sessionCookieName,
 } from "@/lib/growth/connect-platform";
-import { extractFeedSignals } from "@/lib/growth/harvest-extract";
+import {
+  extractFeedSignals,
+  formatExtractDebug,
+  rawPostsToSignals,
+} from "@/lib/growth/harvest-extract";
+import { growthHarvestExtractInPage } from "@/lib/growth/harvest-extract-in-page";
+import {
+  buildSearchQueriesFromIcp,
+  dedupeSignals,
+  platformSearchUrl,
+} from "@/lib/growth/harvest-search";
 import { isDevConnectRuntimeEnabled } from "@/lib/growth/dev-connect-runtime";
 import {
   getHostedWorkerBrowser,
 } from "@/lib/growth/hosted-connect";
 import {
   ingestSignal,
+  getIcpConfig,
   getPlatformSession,
   reportSessionHealth,
   touchCredentialSync,
@@ -74,10 +85,21 @@ async function ingestSignals(
   return ingested;
 }
 
-async function harvestWithPlaywright(
+async function scrollResults(page: Page, passes: number, report?: HarvestReporter) {
+  for (let i = 0; i < passes; i++) {
+    await report?.("scroll", `Scrolling results (${i + 1} of ${passes})…`);
+    const delta = 280 + Math.floor(Math.random() * 520);
+    await page.mouse.wheel(0, delta);
+    await humanDelay(1200, 3400);
+  }
+  await humanDelay(1500, 3500);
+}
+
+async function harvestSearchesWithPlaywright(
   platform: GrowthPlatform,
   cookies: Cookie[],
   userAgent: string | null,
+  queries: string[],
   report?: HarvestReporter,
 ): Promise<IngestSignalInput[]> {
   await report?.("browser", "Starting browser (read-only)…");
@@ -86,6 +108,8 @@ async function harvestWithPlaywright(
     headless: true,
     args: ["--disable-blink-features=AutomationControlled"],
   });
+  const collected: IngestSignalInput[] = [];
+
   try {
     const context = await browser.newContext({
       userAgent: userAgent ?? undefined,
@@ -93,37 +117,67 @@ async function harvestWithPlaywright(
     await context.addCookies(cookies);
     const page = await context.newPage();
     await applyStealth(page);
-    await report?.("feed", `Opening ${platform} home feed…`);
-    await page.goto(platformHome[platform], {
+
+    await report?.("verify", "Checking session…");
+    await page.goto(platformSessionCheck[platform], {
       waitUntil: "domcontentloaded",
       timeout: 120_000,
     });
-    await humanDelay(3000, 6000);
-
-    await report?.("verify", "Checking session is still valid…");
-    const check = validatePageUrl(page.url());
-    if (!check.ok) {
+    await humanDelay(2000, 4000);
+    const sessionCheck = validatePageUrl(page.url());
+    if (!sessionCheck.ok) {
       await reportSessionHealth({
         platform,
         sessionStatus: "expired",
-        lastError: check.error,
+        lastError: sessionCheck.error,
       });
-      throw new Error(check.error ?? "Session not active");
+      throw new Error(sessionCheck.error ?? "Session not active");
     }
 
-    const passes = 2 + Math.floor(Math.random() * 3);
-    for (let i = 0; i < passes; i++) {
+    await report?.(
+      "search",
+      `Running ${queries.length} ICP search${queries.length === 1 ? "" : "es"} on ${platform}…`,
+    );
+
+    for (let q = 0; q < queries.length; q++) {
+      const query = queries[q];
       await report?.(
-        "scroll",
-        `Scrolling feed (${i + 1} of ${passes})…`,
+        "search",
+        `Search ${q + 1}/${queries.length}: “${query}”`,
       );
-      const delta = 280 + Math.floor(Math.random() * 520);
-      await page.mouse.wheel(0, delta);
-      await humanDelay(1200, 3400);
+      await page.goto(platformSearchUrl(platform, query), {
+        waitUntil: "domcontentloaded",
+        timeout: 120_000,
+      });
+      await page.waitForLoadState("networkidle", { timeout: 15_000 }).catch(() => undefined);
+      await humanDelay(2500, 5000);
+
+      const urlCheck = validatePageUrl(page.url());
+      if (!urlCheck.ok) {
+        throw new Error(urlCheck.error ?? "Session lost during search");
+      }
+
+      await scrollResults(page, 2 + Math.floor(Math.random() * 2), report);
+      await report?.("extract", `Reading posts for “${query}”…`);
+      const { signals: batch, debug } = await extractFeedSignals(page, platform);
+      await report?.("extract", formatExtractDebug(debug));
+      if (debug.parsed === 0) {
+        const hint = await page.title();
+        await report?.(
+          "extract",
+          `Page title: “${hint.slice(0, 80)}” — if this is a login or error screen, reconnect ${platform}.`,
+        );
+      }
+      for (const signal of batch) {
+        collected.push({
+          ...signal,
+          contextSummary: `ICP search: ${query}`,
+        });
+      }
+      await humanDelay(1500, 3000);
     }
-    await humanDelay(1500, 3500);
-    await report?.("extract", "Reading posts from the page…");
-    return await extractFeedSignals(page, platform);
+
+    return dedupeSignals(collected);
   } finally {
     await browser.close();
   }
@@ -145,24 +199,39 @@ export async function runPlatformHarvest(
     throw new Error(`Stored session missing ${cookieName}. Reconnect ${platform}.`);
   }
 
+  await report?.("icp", "Loading ICP search phrases from settings…");
+  const icp = await getIcpConfig();
+  const queries = buildSearchQueriesFromIcp(icp);
+  if (queries.length === 0) {
+    throw new Error(
+      "No search phrases in ICP settings. Add intent phrases under Growth → Settings.",
+    );
+  }
+  await report?.(
+    "icp",
+    `Queries: ${queries.map((q) => `“${q}”`).join(", ")}`,
+  );
+
   const canUseLocalPlaywright =
     isDevConnectRuntimeEnabled() || process.env.GROWTH_HARVEST_PLAYWRIGHT === "1";
   const hosted = await getHostedWorkerBrowser();
 
   let signals: IngestSignalInput[];
   if (canUseLocalPlaywright) {
-    signals = await harvestWithPlaywright(
+    signals = await harvestSearchesWithPlaywright(
       platform,
       cookies,
       session.userAgent,
+      queries,
       report,
     );
   } else if (hosted) {
-    signals = await harvestWithHostedBrowser(
+    signals = await harvestSearchesWithHostedBrowser(
       hosted.env,
       platform,
       cookies,
       session.userAgent,
+      queries,
       report,
     );
   } else {
@@ -173,13 +242,13 @@ export async function runPlatformHarvest(
 
   await report?.(
     "extract",
-    `Found ${signals.length} post${signals.length === 1 ? "" : "s"} on the feed.`,
+    `Found ${signals.length} unique post${signals.length === 1 ? "" : "s"} across searches.`,
   );
 
   if (signals.length === 0) {
     await report?.(
       "score",
-      "No posts matched — X/LinkedIn may have changed layout or the feed was empty.",
+      "No posts matched — try different intent phrases in ICP settings or reconnect.",
     );
   } else {
     await report?.("score", "Scoring against ICP and drafting replies…");
@@ -203,18 +272,21 @@ export async function runPlatformHarvest(
   return { captured: signals.length, ingested };
 }
 
-async function harvestWithHostedBrowser(
+async function harvestSearchesWithHostedBrowser(
   env: { BROWSER: import("@cloudflare/puppeteer").BrowserWorker },
   platform: GrowthPlatform,
   cookies: Cookie[],
   userAgent: string | null,
+  queries: string[],
   report?: HarvestReporter,
 ): Promise<IngestSignalInput[]> {
   await report?.("browser", "Starting Cloudflare browser…");
   const puppeteer = await import("@cloudflare/puppeteer");
   const browser = await puppeteer.default.launch(env.BROWSER, {
-    keep_alive: 120_000,
+    keep_alive: 300_000,
   });
+  const collected: IngestSignalInput[] = [];
+
   try {
     const page = await browser.newPage();
     if (userAgent) await page.setUserAgent(userAgent);
@@ -230,34 +302,41 @@ async function harvestWithHostedBrowser(
         sameSite: cookie.sameSite as "Strict" | "Lax" | "None" | undefined,
       });
     }
-    await report?.("feed", `Opening ${platform} home feed…`);
-    await page.goto(platformHome[platform], {
+
+    await page.goto(platformSessionCheck[platform], {
       waitUntil: "domcontentloaded",
       timeout: 120_000,
     });
-    await sleep(3000);
-
-    await report?.("verify", "Checking session…");
+    await sleep(2000);
     const check = validatePageUrl(page.url());
     if (!check.ok) throw new Error(check.error);
 
-    await report?.("extract", "Reading posts from the page…");
-    // Puppeteer page doesn't use our Playwright extractors — use evaluate for minimal text
-    const texts = await page.evaluate(() => {
-      const nodes = document.querySelectorAll(
-        'article[data-testid="tweet"], article[role="article"]',
-      );
-      return Array.from(nodes)
-        .slice(0, 10)
-        .map((n) => (n as HTMLElement).innerText?.trim() ?? "")
-        .filter((t) => t.length > 20);
-    });
+    for (let q = 0; q < queries.length; q++) {
+      const query = queries[q];
+      await report?.("search", `Search ${q + 1}/${queries.length}: “${query}”`);
+      await page.goto(platformSearchUrl(platform, query), {
+        waitUntil: "domcontentloaded",
+        timeout: 120_000,
+      });
+      await sleep(3000);
+      await report?.("extract", `Reading posts for “${query}”…`);
 
-    return texts.map((bodyText) => ({
-      platform,
-      authorName: bodyText.split("\n").find((l) => l.trim())?.slice(0, 120) ?? "Feed author",
-      bodyText: bodyText.slice(0, 4000),
-    }));
+      const { posts, debug } = await page.evaluate(
+        growthHarvestExtractInPage,
+        platform,
+      );
+      await report?.("extract", formatExtractDebug(debug));
+      const batch = rawPostsToSignals(platform, posts);
+      for (const signal of batch) {
+        collected.push({
+          ...signal,
+          contextSummary: `ICP search: ${query}`,
+        });
+      }
+      await sleep(2000);
+    }
+
+    return dedupeSignals(collected);
   } finally {
     await browser.disconnect();
   }

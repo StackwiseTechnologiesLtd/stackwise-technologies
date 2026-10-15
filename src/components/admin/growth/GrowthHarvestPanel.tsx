@@ -153,8 +153,8 @@ export function GrowthHarvestPanel({ onHarvested }: { onHarvested?: () => void }
         <div>
           <h3 className="text-base font-semibold tracking-tight">Lead generation</h3>
           <p className="mt-1 max-w-xl text-sm text-muted">
-            Pull recent posts from your connected feed, score them against your ICP, and
-            create reply drafts in the inbox below.
+            Runs keyword searches from your ICP settings (intent phrases), scores
+            matching posts, and creates reply drafts in the inbox below.
           </p>
           {leadCount !== null ? (
             <p className="mt-2 text-sm text-foreground">

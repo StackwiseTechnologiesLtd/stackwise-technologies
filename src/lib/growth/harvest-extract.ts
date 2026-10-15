@@ -1,84 +1,74 @@
+import {
+  growthHarvestExtractInPage,
+  type InPageExtractDebug,
+} from "@/lib/growth/harvest-extract-in-page";
 import type { GrowthPlatform, IngestSignalInput } from "@/lib/growth/types";
 import type { Page } from "playwright";
 
+export type ExtractDebug = InPageExtractDebug;
+
 function authorFromBlockText(text: string): string {
   const line = text.split("\n").map((l) => l.trim()).find(Boolean);
-  return line && line.length <= 120 ? line : "Feed author";
+  return line && line.length <= 120 ? line : "Post author";
 }
 
-export async function extractLinkedInSignals(
-  page: Page,
-): Promise<IngestSignalInput[]> {
-  const articles = page.locator("div.feed-shared-update-v2");
-  const count = Math.min(await articles.count(), 10);
-  const signals: IngestSignalInput[] = [];
-  for (let i = 0; i < count; i++) {
-    const block = articles.nth(i);
-    const text = (await block.innerText().catch(() => "")).trim();
-    if (text.length < 40) continue;
-    const link = await block
-      .locator('a[href*="/feed/update"]')
-      .first()
-      .getAttribute("href")
-      .catch(() => null);
-    signals.push({
-      platform: "linkedin",
-      sourceUrl: link
-        ? link.startsWith("http")
-          ? link
-          : `https://www.linkedin.com${link}`
-        : undefined,
-      authorName: authorFromBlockText(text),
-      bodyText: text.slice(0, 4000),
-    });
+export function formatExtractDebug(debug: ExtractDebug): string {
+  if (debug.platform === "x") {
+    return `DOM: ${debug.tweetTextNodes} tweet text nodes, ${debug.articleNodes} articles, ${debug.statusLinks} status links → ${debug.parsed} posts parsed`;
   }
-  return signals;
+  return `DOM: ${debug.linkedInBlocks} LinkedIn blocks → ${debug.parsed} posts parsed`;
 }
 
-export async function extractXSignals(page: Page): Promise<IngestSignalInput[]> {
-  const selectors = [
-    'article[data-testid="tweet"]',
-    'article[role="article"]',
-    '[data-testid="primaryColumn"] article',
-  ];
-  let articles = page.locator(selectors[0]);
-  if ((await articles.count()) === 0) {
-    articles = page.locator(selectors[1]);
-  }
-  if ((await articles.count()) === 0) {
-    articles = page.locator(selectors[2]);
-  }
+export function rawPostsToSignals(
+  platform: GrowthPlatform,
+  posts: { bodyText: string; sourceUrl: string | null; authorName: string }[],
+): IngestSignalInput[] {
+  return posts.map((p) => ({
+    platform,
+    sourceUrl: p.sourceUrl ?? undefined,
+    authorName: authorFromBlockText(p.authorName || p.bodyText),
+    bodyText: p.bodyText,
+  }));
+}
 
-  const count = Math.min(await articles.count(), 10);
-  const signals: IngestSignalInput[] = [];
-  for (let i = 0; i < count; i++) {
-    const block = articles.nth(i);
-    const text = (await block.innerText().catch(() => "")).trim();
-    if (text.length < 20) continue;
-    const link = await block
-      .locator('a[href*="/status/"]')
-      .first()
-      .getAttribute("href")
-      .catch(() => null);
-    signals.push({
-      platform: "x",
-      sourceUrl: link
-        ? link.startsWith("http")
-          ? link
-          : `https://x.com${link}`
-        : undefined,
-      authorName: authorFromBlockText(text),
-      bodyText: text.slice(0, 4000),
-    });
+async function waitForPosts(page: Page, platform: GrowthPlatform) {
+  const selectors =
+    platform === "x"
+      ? [
+          '[data-testid="tweetText"]',
+          'article[data-testid="tweet"]',
+          'a[href*="/status/"]',
+        ]
+      : [
+          "div.feed-shared-update-v2",
+          "div[data-urn*='activity']",
+          ".update-components-text",
+          "li.reusable-search__result-container",
+        ];
+
+  for (const sel of selectors) {
+    try {
+      await page.waitForSelector(sel, { timeout: 12_000 });
+      return;
+    } catch {
+      /* try next */
+    }
   }
-  return signals;
+  await page.waitForTimeout(2000);
 }
 
 export async function extractFeedSignals(
   page: Page,
   platform: GrowthPlatform,
-): Promise<IngestSignalInput[]> {
-  return platform === "linkedin"
-    ? extractLinkedInSignals(page)
-    : extractXSignals(page);
+): Promise<{ signals: IngestSignalInput[]; debug: ExtractDebug }> {
+  await waitForPosts(page, platform);
+  const { posts, debug } = await page.evaluate(
+    growthHarvestExtractInPage,
+    platform,
+  );
+
+  return {
+    signals: rawPostsToSignals(platform, posts),
+    debug,
+  };
 }
