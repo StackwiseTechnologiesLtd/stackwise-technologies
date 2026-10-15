@@ -11,6 +11,8 @@ import type {
   GrowthLead,
   GrowthSignal,
 } from "@/lib/growth/types";
+import { growthFetch } from "@/lib/growth/growth-fetch";
+import { normalizeDiscoveryKeyword } from "@/lib/growth/personalized-draft";
 import { useCallback, useEffect, useState } from "react";
 
 type InboxPayload = {
@@ -34,7 +36,7 @@ export function GrowthInboxPanel() {
       else setRefreshing(true);
       try {
         const qs = minScore > 0 ? `?minScore=${minScore}` : "";
-        const res = await fetch(`/api/admin/growth/inbox${qs}`);
+        const res = await growthFetch(`/api/admin/growth/inbox${qs}`);
         if (!res.ok) throw new Error("Could not load inbox");
         const json = (await res.json()) as InboxPayload;
         setData(json);
@@ -58,7 +60,7 @@ export function GrowthInboxPanel() {
   }, [load]);
 
   async function markLeadNotFit(leadId: string) {
-    const res = await fetch(`/api/admin/growth/leads/${leadId}`, {
+    const res = await growthFetch(`/api/admin/growth/leads/${leadId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -80,7 +82,7 @@ export function GrowthInboxPanel() {
       markPublished?: boolean;
     },
   ) {
-    const res = await fetch(`/api/admin/growth/drafts/${id}`, {
+    const res = await growthFetch(`/api/admin/growth/drafts/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(patch),
@@ -233,6 +235,16 @@ export function GrowthInboxPanel() {
                       </blockquote>
                     ) : null}
 
+                    {signal?.contextSummary &&
+                    normalizeDiscoveryKeyword(signal.contextSummary) ? (
+                      <p className="mt-2 text-[10px] text-muted">
+                        Matched keyword:{" "}
+                        <span className="text-foreground/80">
+                          {normalizeDiscoveryKeyword(signal.contextSummary)}
+                        </span>
+                      </p>
+                    ) : null}
+
                     {lead?.scoreReasons.length ? (
                       <ul className="mt-3 flex flex-wrap gap-1.5">
                         {lead.scoreReasons.slice(0, 5).map((reason) => (
@@ -280,6 +292,44 @@ export function GrowthInboxPanel() {
                         }
                       >
                         Approve
+                      </AdminActionButton>
+                      <AdminActionButton
+                        busy={busyKey === `${draft.id}:regen`}
+                        busyLabel="Regenerating…"
+                        disabled={draftBusy && busyKey !== `${draft.id}:regen`}
+                        onClick={() =>
+                          void runAction(`${draft.id}:regen`, async () => {
+                            const res = await growthFetch(
+                              `/api/admin/growth/drafts/${draft.id}/regenerate`,
+                              { method: "POST" },
+                            );
+                            const json = (await res.json()) as {
+                              draft?: GrowthDraft;
+                              usedAi?: boolean;
+                              aiError?: string;
+                              error?: string;
+                            };
+                            if (!res.ok) {
+                              throw new Error(json.error ?? "Regenerate failed");
+                            }
+                            if (json.draft) {
+                              setEditing((prev) => ({
+                                ...prev,
+                                [draft.id]: json.draft!.bodyText,
+                              }));
+                            }
+                            if (json.aiError) {
+                              toast.error(`OpenRouter: ${json.aiError}`);
+                            } else if (json.usedAi) {
+                              toast.success("Draft regenerated with AI");
+                            } else {
+                              toast.toast("Regenerated with template (low score or no API key)");
+                            }
+                            await load({ silent: true });
+                          })
+                        }
+                      >
+                        Regenerate AI
                       </AdminActionButton>
                       <AdminActionButton
                         busy={busyKey === `${draft.id}:copy`}

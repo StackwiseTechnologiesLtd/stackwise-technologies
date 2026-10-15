@@ -4,6 +4,7 @@ import { AdminActionButton } from "@/components/admin/AdminActionButton";
 import { useToast } from "@/components/ToastProvider";
 import type { HarvestProgressEvent } from "@/lib/growth/harvest-progress";
 import type { GrowthPlatform, PlatformCredentialStatus } from "@/lib/growth/types";
+import { growthFetch } from "@/lib/growth/growth-fetch";
 import { useCallback, useEffect, useState } from "react";
 
 function formatLogTime(iso: string): string {
@@ -31,8 +32,8 @@ export function GrowthHarvestPanel({ onHarvested }: { onHarvested?: () => void }
     setLoading(true);
     try {
       const [sessionsRes, leadsRes] = await Promise.all([
-        fetch("/api/admin/growth/sessions"),
-        fetch("/api/admin/growth/leads"),
+        growthFetch("/api/admin/growth/sessions"),
+        growthFetch("/api/admin/growth/leads"),
       ]);
       if (sessionsRes.ok) {
         const json = (await sessionsRes.json()) as {

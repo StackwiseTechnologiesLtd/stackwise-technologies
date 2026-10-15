@@ -5,15 +5,22 @@ export function firstName(fullName: string): string {
   return part || "there";
 }
 
+function topicFromPost(bodyText: string): string {
+  const line =
+    bodyText
+      .trim()
+      .split(/\n/)
+      .map((l) => l.trim())
+      .find((l) => l.length >= 12) ?? bodyText.trim();
+  return line.slice(0, 140).replace(/\s+/g, " ");
+}
+
 export function buildReplyDraft(input: {
   authorName: string;
   bodyText: string;
-  contextSummary?: string | null;
 }): string {
   const name = firstName(input.authorName);
-  const topic =
-    input.contextSummary?.trim() ||
-    input.bodyText.trim().slice(0, 120).replace(/\s+/g, " ");
+  const topic = topicFromPost(input.bodyText);
 
   return `Hi ${name}, I saw your post about ${topic}.
 

@@ -222,7 +222,7 @@ async function harvestSearchesWithPlaywright(
       for (const signal of batch) {
         collected.push({
           ...signal,
-          contextSummary: `ICP search: ${query}`,
+          contextSummary: query,
         });
       }
       await humanDelay(1500, 3000);
@@ -387,7 +387,7 @@ async function harvestSearchesWithHostedBrowser(
       for (const signal of batch) {
         collected.push({
           ...signal,
-          contextSummary: `ICP search: ${query}`,
+          contextSummary: query,
         });
       }
       await sleep(2000);

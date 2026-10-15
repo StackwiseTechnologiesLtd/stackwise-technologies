@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { authorizeGrowthApi } from "@/lib/growth/auth";
 import { listInbox } from "@/lib/growth/repository";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: Request) {
   const auth = await authorizeGrowthApi(request);
   if (!auth.authorized) {

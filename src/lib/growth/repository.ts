@@ -304,32 +304,80 @@ export async function listInbox(options?: {
           LIMIT 50
         `,
   );
-  const leadRows = asRows<LeadRow>(
-    minScore > 0
-      ? await sql`
-          SELECT * FROM growth_leads
-          WHERE composite_score >= ${minScore}
-          ORDER BY created_at DESC
-          LIMIT 50
-        `
-      : await sql`
-          SELECT * FROM growth_leads
-          ORDER BY created_at DESC
-          LIMIT 50
-        `,
-  );
-  const signalRows = asRows<SignalRow>(
-    await sql`
-      SELECT * FROM growth_signals
-      ORDER BY ingested_at DESC
-      LIMIT 50
-    `,
-  );
+  const leadIds = draftRows.map((d) => d.lead_id).filter(Boolean) as string[];
+  const signalIds = draftRows.map((d) => d.signal_id).filter(Boolean) as string[];
+
+  const relatedLeadRows =
+    leadIds.length > 0
+      ? asRows<LeadRow>(
+          await sql`
+            SELECT * FROM growth_leads
+            WHERE id = ANY(${leadIds}::uuid[])
+          `,
+        )
+      : [];
+
+  const relatedSignalRows =
+    signalIds.length > 0
+      ? asRows<SignalRow>(
+          await sql`
+            SELECT * FROM growth_signals
+            WHERE id = ANY(${signalIds}::uuid[])
+          `,
+        )
+      : [];
+
   return {
     drafts: draftRows.map(mapDraft),
-    leads: leadRows.map(mapLead),
-    signals: signalRows.map(mapSignal),
+    leads: relatedLeadRows.map(mapLead),
+    signals: relatedSignalRows.map(mapSignal),
   };
+}
+
+export async function regenerateDraftWithAi(
+  draftId: string,
+): Promise<{
+  draft: GrowthDraft;
+  usedAi: boolean;
+  aiError?: string;
+} | null> {
+  await ready();
+  const sql = getSql();
+  const config = await getIcpConfig();
+
+  const draftRows = asRows<DraftRow>(
+    await sql`SELECT * FROM growth_drafts WHERE id = ${draftId}::uuid LIMIT 1`,
+  );
+  const draftRow = draftRows[0];
+  if (!draftRow?.lead_id || !draftRow.signal_id) return null;
+
+  const leadRows = asRows<LeadRow>(
+    await sql`SELECT * FROM growth_leads WHERE id = ${draftRow.lead_id}::uuid`,
+  );
+  const signalRows = asRows<SignalRow>(
+    await sql`SELECT * FROM growth_signals WHERE id = ${draftRow.signal_id}::uuid`,
+  );
+  const lead = leadRows[0];
+  const signal = signalRows[0];
+  if (!lead || !signal) return null;
+
+  const { body, usedAi, aiError } = await buildPersonalizedReplyDraft({
+    platform: draftRow.platform as GrowthPlatform,
+    authorName: lead.full_name,
+    roleTitle: lead.role_title,
+    companyName: lead.company_name,
+    bodyText: signal.body_text,
+    contextSummary: signal.context_summary,
+    profileSummary: lead.profile_summary,
+    compositeScore: lead.composite_score,
+    scoreReasons: parseReasons(lead.score_reasons),
+    config,
+  });
+
+  const updated = await updateDraft(draftId, { bodyText: body });
+  if (!updated) return null;
+
+  return { draft: updated, usedAi, aiError };
 }
 
 export async function listLeads(options?: {

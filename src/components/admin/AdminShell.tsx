@@ -12,7 +12,7 @@ import {
   isNavChildActive,
 } from "@/lib/admin/nav-meta";
 import { SITE_NAME } from "@/lib/content";
-import { ADMIN_BTN_SECONDARY, ADMIN_NAV_LINK } from "@/lib/ui/admin";
+import { ADMIN_NAV_LINK } from "@/lib/ui/admin";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect, useState, type ReactNode } from "react";
@@ -128,31 +128,18 @@ function SidebarNav({
 
 function SidebarFooter({
   collapsed,
-  onLogout,
   onToggleCollapse,
 }: {
   collapsed: boolean;
-  onLogout: () => void;
   onToggleCollapse: () => void;
 }) {
   return (
     <div
-      className="shrink-0 space-y-1 border-t border-[var(--admin-border)] p-2"
+      className="shrink-0 border-t border-[var(--admin-border)] p-2"
       style={{
         paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))",
       }}
     >
-      <button
-        type="button"
-        onClick={onLogout}
-        title={collapsed ? "Sign out" : undefined}
-        className={`${ADMIN_NAV_LINK} w-full text-muted hover:bg-[var(--admin-nav-hover)] hover:text-foreground ${collapsed ? "justify-center px-2" : ""
-          }`}
-      >
-        <AdminNavIcon name="logout" className="size-4 shrink-0" />
-        {!collapsed ? <span>Sign out</span> : null}
-        {collapsed ? <span className="sr-only">Sign out</span> : null}
-      </button>
       <button
         type="button"
         onClick={onToggleCollapse}
@@ -174,12 +161,10 @@ function DesktopSidebar({
   pathname,
   collapsed,
   onToggleCollapse,
-  onLogout,
 }: {
   pathname: string;
   collapsed: boolean;
   onToggleCollapse: () => void;
-  onLogout: () => void;
 }) {
   return (
     <aside
@@ -194,7 +179,6 @@ function DesktopSidebar({
       </div>
       <SidebarFooter
         collapsed={collapsed}
-        onLogout={onLogout}
         onToggleCollapse={onToggleCollapse}
       />
     </aside>
@@ -284,7 +268,6 @@ export function AdminShell({
         pathname={pathname}
         collapsed={sidebarCollapsed}
         onToggleCollapse={toggleSidebar}
-        onLogout={() => void logout()}
       />
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
@@ -331,15 +314,12 @@ export function AdminShell({
             </nav>
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <button
-              type="button"
-              onClick={() => void logout()}
-              className={`${ADMIN_BTN_SECONDARY} px-2.5 text-xs sm:px-3.5 sm:text-sm lg:hidden`}
-            >
-              Sign out
-            </button>
             {user ? (
-              <AdminUserAvatar email={user.email} avatarUrl={user.avatarUrl} />
+              <AdminUserAvatar
+                email={user.email}
+                avatarUrl={user.avatarUrl}
+                onSignOut={() => void logout()}
+              />
             ) : null}
           </div>
         </header>
@@ -366,24 +346,6 @@ export function AdminShell({
                   collapsed={false}
                   onNavigate={() => setMenuOpen(false)}
                 />
-              </div>
-              <div
-                className="shrink-0 border-t border-[var(--admin-border)] p-2"
-                style={{
-                  paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))",
-                }}
-              >
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    void logout();
-                  }}
-                  className={`${ADMIN_NAV_LINK} w-full text-muted hover:bg-[var(--admin-nav-hover)] hover:text-foreground`}
-                >
-                  <AdminNavIcon name="logout" className="size-4" />
-                  Sign out
-                </button>
               </div>
             </aside>
           </>

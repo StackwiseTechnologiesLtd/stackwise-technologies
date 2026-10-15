@@ -16,6 +16,19 @@ export type PersonalizedDraftInput = {
   config: IcpConfig;
 };
 
+/** Admin-only metadata (e.g. harvest keyword). Never surface in reply copy. */
+export function normalizeDiscoveryKeyword(
+  contextSummary?: string | null,
+): string | null {
+  if (!contextSummary?.trim()) return null;
+  let text = contextSummary.trim();
+  const lower = text.toLowerCase();
+  if (lower.startsWith("icp search:")) {
+    text = text.slice("icp search:".length).trim();
+  }
+  return text || null;
+}
+
 function minScoreForAiDraft(): number {
   const raw = process.env.GROWTH_MIN_DRAFT_SCORE?.trim();
   const n = raw ? Number.parseInt(raw, 10) : 42;
@@ -28,8 +41,9 @@ export async function buildPersonalizedReplyDraft(
   const fallback = buildReplyDraft({
     authorName: input.authorName,
     bodyText: input.bodyText,
-    contextSummary: input.contextSummary,
   });
+
+  const discoveryKeyword = normalizeDiscoveryKeyword(input.contextSummary);
 
   if (input.compositeScore < minScoreForAiDraft()) {
     return { body: fallback, usedAi: false };
@@ -50,6 +64,7 @@ Rules:
 - 2–4 short paragraphs max; plain language; no hashtags; no "Hope this finds you well".
 - One soft CTA: offer a short call and include the booking link exactly once at the end.
 - Do not invent facts about the person or company not supported by the context below.
+- Never mention ICP, keyword search, "vibe coded", or how we found the post — only what they actually wrote.
 - Platform tone: ${input.platform === "linkedin" ? "LinkedIn — professional, concise" : "X — direct, slightly casual"}`.trim();
 
   const user = `Lead fit score: ${input.compositeScore}/100
@@ -62,10 +77,13 @@ Company: ${input.companyName ?? "unknown"}
 Profile research (from their public profile page):
 ${input.profileSummary?.trim() || "No profile page captured — use only the post."}
 
-Their post / signal:
+Their post (quote or paraphrase from this only):
 ${input.bodyText.slice(0, 2000)}
-
-Search / context: ${input.contextSummary ?? "n/a"}
+${
+  discoveryKeyword
+    ? `\n(Internal — do not mention in the reply: we surfaced this via keyword "${discoveryKeyword}".)`
+    : ""
+}
 
 Write a reply addressed to ${name}. End with the booking link on its own line: ${booking}`;
 

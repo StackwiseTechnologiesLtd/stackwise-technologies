@@ -7,6 +7,7 @@ import {
   GrowthScoreFilter,
   scoreBadgeClass,
 } from "@/components/admin/growth/GrowthScoreFilter";
+import { growthFetch } from "@/lib/growth/growth-fetch";
 import { useCallback, useEffect, useState } from "react";
 
 const statuses: PipelineStatus[] = [
@@ -34,7 +35,7 @@ export function GrowthLeadsTable() {
       else setRefreshing(true);
       try {
         const qs = minScore > 0 ? `?minScore=${minScore}` : "";
-        const res = await fetch(`/api/admin/growth/leads${qs}`);
+        const res = await growthFetch(`/api/admin/growth/leads${qs}`);
         if (!res.ok) throw new Error("Failed to load leads");
         const json = (await res.json()) as { leads: GrowthLead[] };
         setLeads(json.leads);
@@ -55,7 +56,7 @@ export function GrowthLeadsTable() {
   async function setStatus(id: string, pipelineStatus: PipelineStatus) {
     setUpdatingId(id);
     try {
-      const res = await fetch(`/api/admin/growth/leads/${id}`, {
+      const res = await growthFetch(`/api/admin/growth/leads/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pipelineStatus }),
