@@ -52,7 +52,9 @@ GROWTH_MIN_DRAFT_SCORE=50
 GROWTH_AI_DEBUG=1
 ```
 
-Harvest visits each lead’s public profile (when a profile URL is available) and stores a short **profile research** blurb on the lead. Drafts are generated via OpenRouter using the post, profile context, and ICP score — with a template fallback if the API is missing or fails.
+Harvest visits each lead’s public profile (when a profile URL is available) and stores a short **profile research** blurb on the lead. **Replies are not auto-generated on harvest** — open a lead in **Inbox**, expand it, and click **Generate reply** (OpenRouter + template fallback).
+
+Inbox and Leads support **Source** filters: All / X / LinkedIn.
 
 **Do not commit API keys.** If a key was pasted into chat or committed, rotate it in the OpenRouter dashboard.
 
@@ -78,8 +80,8 @@ Optional: `npm run growth:connect-server` is a legacy standalone helper. `GROWTH
 ## Daily workflow
 
 1. **Connect** — Settings → **Connect** (or connect page). Production uses Cloudflare Browser Rendering; local dev opens Chromium on your machine.
-2. **Harvest** — `/admin/growth` → **Harvest** (runs up to 4 ICP intent-phrase searches on X/LinkedIn, then scores and drafts). Tune phrases in Settings → ICP JSON (`intentPhrases`).
-3. **Review** — **Inbox** in the Growth sidebar: filter by minimum fit score, approve drafts, copy to platform, mark posted.
+2. **Harvest** — `/admin/growth` → **Harvest** (runs up to 4 ICP intent-phrase searches on X/LinkedIn, then scores and saves leads). Tune phrases in Settings → ICP JSON (`intentPhrases`). If LinkedIn search returns 0 posts, check the activity log for DOM counts; try `GROWTH_HARVEST_HEADED=1` in `.env.local` and reconnect LinkedIn.
+3. **Review** — **Inbox**: filter by **Source** (X / LinkedIn) and fit score, expand a lead, **Generate reply**, then approve / post / copy.
 4. **Pipeline** — **Leads**: filter by score, update pipeline status.
 5. **Tune scoring** — **Settings**: edit ICP JSON and connect platforms.
 

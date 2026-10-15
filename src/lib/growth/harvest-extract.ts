@@ -16,7 +16,13 @@ export function formatExtractDebug(debug: ExtractDebug): string {
   if (debug.platform === "x") {
     return `DOM: ${debug.tweetTextNodes} tweet text nodes, ${debug.articleNodes} articles, ${debug.statusLinks} status links → ${debug.parsed} posts parsed`;
   }
-  return `DOM: ${debug.linkedInBlocks} LinkedIn blocks → ${debug.parsed} posts parsed`;
+  const parts = [
+    `${debug.linkedInBlocks} post roots`,
+    `${debug.linkedInListItems} list items`,
+    `${debug.linkedInExpandableText} expandable text`,
+    `${debug.linkedInComponentKeyFeeds} feed componentkeys`,
+  ];
+  return `DOM: ${parts.join(", ")} → ${debug.parsed} posts parsed`;
 }
 
 export function rawPostsToSignals(
@@ -50,6 +56,9 @@ async function waitForPosts(page: Page, platform: GrowthPlatform) {
           'a[href*="/status/"]',
         ]
       : [
+          '[data-testid="expandable-text-box"]',
+          '[componentkey*="FeedType"]',
+          'div[role="listitem"]',
           "div.feed-shared-update-v2",
           "div[data-urn*='activity']",
           ".update-components-text",
@@ -67,10 +76,33 @@ async function waitForPosts(page: Page, platform: GrowthPlatform) {
   await page.waitForTimeout(2000);
 }
 
+export async function prepareLinkedInSearchPage(page: Page): Promise<void> {
+  await page.waitForSelector('main, [role="main"]', { timeout: 20_000 }).catch(
+    () => undefined,
+  );
+  await page.evaluate(() => {
+    document
+      .querySelectorAll(
+        'button[data-testid="expandable-text-button"], button[aria-expanded="false"][aria-label*="more"]',
+      )
+      .forEach((btn) => {
+        try {
+          (btn as HTMLButtonElement).click();
+        } catch {
+          /* ignore */
+        }
+      });
+  });
+  await page.waitForTimeout(1200);
+}
+
 export async function extractFeedSignals(
   page: Page,
   platform: GrowthPlatform,
 ): Promise<{ signals: IngestSignalInput[]; debug: ExtractDebug }> {
+  if (platform === "linkedin") {
+    await prepareLinkedInSearchPage(page);
+  }
   await waitForPosts(page, platform);
   const { posts, debug } = await page.evaluate(
     growthHarvestExtractInPage,

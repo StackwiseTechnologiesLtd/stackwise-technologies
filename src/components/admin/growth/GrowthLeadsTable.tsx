@@ -4,6 +4,10 @@ import { useToast } from "@/components/ToastProvider";
 import type { GrowthLead, PipelineStatus } from "@/lib/growth/types";
 import { AdminActionButton } from "@/components/admin/AdminActionButton";
 import {
+  GrowthPlatformFilter,
+  type PlatformFilter,
+} from "@/components/admin/growth/GrowthPlatformFilter";
+import {
   GrowthScoreFilter,
   scoreBadgeClass,
 } from "@/components/admin/growth/GrowthScoreFilter";
@@ -22,6 +26,14 @@ const statuses: PipelineStatus[] = [
   "not_a_fit",
 ];
 
+function leadsQuery(minScore: number, platform: PlatformFilter): string {
+  const params = new URLSearchParams();
+  if (minScore > 0) params.set("minScore", String(minScore));
+  if (platform !== "all") params.set("platform", platform);
+  const qs = params.toString();
+  return qs ? `?${qs}` : "";
+}
+
 export function GrowthLeadsTable() {
   const toast = useToast();
   const [leads, setLeads] = useState<GrowthLead[]>([]);
@@ -29,14 +41,17 @@ export function GrowthLeadsTable() {
   const [refreshing, setRefreshing] = useState(false);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [minScore, setMinScore] = useState(0);
+  const [platform, setPlatform] = useState<PlatformFilter>("all");
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   const load = useCallback(
     async (opts?: { silent?: boolean }) => {
       if (!opts?.silent) setLoading(true);
       else setRefreshing(true);
       try {
-        const qs = minScore > 0 ? `?minScore=${minScore}` : "";
-        const res = await growthFetch(`/api/admin/growth/leads${qs}`);
+        const res = await growthFetch(
+          `/api/admin/growth/leads${leadsQuery(minScore, platform)}`,
+        );
         if (!res.ok) throw new Error("Failed to load leads");
         const json = (await res.json()) as { leads: GrowthLead[] };
         setLeads(sortLeadsByCompositeScore(json.leads));
@@ -47,7 +62,7 @@ export function GrowthLeadsTable() {
         setRefreshing(false);
       }
     },
-    [toast, minScore],
+    [toast, minScore, platform],
   );
 
   useEffect(() => {
@@ -72,106 +87,122 @@ export function GrowthLeadsTable() {
     }
   }
 
+  function toggleExpanded(id: string) {
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
   if (loading) {
     return <p className="text-sm text-muted">Loading leads…</p>;
   }
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex flex-col gap-2">
-          <GrowthScoreFilter minScore={minScore} onChange={setMinScore} />
-          <p className="text-[11px] text-muted">Sorted by highest fit score first</p>
+      <div className="flex flex-col gap-4">
+        <GrowthPlatformFilter value={platform} onChange={setPlatform} />
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="flex flex-col gap-2">
+            <GrowthScoreFilter minScore={minScore} onChange={setMinScore} />
+            <p className="text-[11px] text-muted">Sorted by highest fit score first</p>
+          </div>
+          <AdminActionButton
+            busy={refreshing}
+            busyLabel="Refreshing…"
+            onClick={() => void load({ silent: true })}
+          >
+            Refresh
+          </AdminActionButton>
         </div>
-        <AdminActionButton
-          busy={refreshing}
-          busyLabel="Refreshing…"
-          onClick={() => void load({ silent: true })}
-        >
-          Refresh
-        </AdminActionButton>
       </div>
 
       {leads.length === 0 ? (
         <div className="rounded-2xl border border-line bg-panel/80 p-10 text-center text-sm text-muted">
-          No leads match this score filter.
+          No leads match this filter.
         </div>
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-line bg-panel/50">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px] text-left text-sm">
-              <thead className="border-b border-line bg-black/30 text-muted">
-                <tr>
-                  <th className="px-4 py-3 font-medium">Fit</th>
-                  <th className="px-4 py-3 font-medium">Lead</th>
-                  <th className="px-4 py-3 font-medium">Platform</th>
-                  <th className="px-4 py-3 font-medium">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {leads.map((lead) => (
-                  <tr
-                    key={lead.id}
-                    className="border-b border-line/60 last:border-0 hover:bg-black/20"
+        <ul className="space-y-2">
+          {leads.map((lead) => {
+            const isOpen = expanded.has(lead.id);
+            return (
+              <li
+                key={lead.id}
+                className="overflow-hidden rounded-2xl border border-line bg-panel/50"
+              >
+                <button
+                  type="button"
+                  className="flex w-full items-center gap-4 p-4 text-left hover:bg-black/20"
+                  onClick={() => toggleExpanded(lead.id)}
+                  aria-expanded={isOpen}
+                >
+                  <span
+                    className={`inline-flex shrink-0 rounded-full px-2.5 py-0.5 font-mono text-xs font-semibold ring-1 ${scoreBadgeClass(lead.compositeScore)}`}
                   >
-                    <td className="px-4 py-4 align-top">
-                      <span
-                        className={`inline-flex rounded-full px-2.5 py-0.5 font-mono text-xs font-semibold ring-1 ${scoreBadgeClass(lead.compositeScore)}`}
+                    {lead.compositeScore}%
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-foreground">{lead.fullName}</p>
+                    <p className="truncate text-xs text-muted">
+                      {[lead.roleTitle, lead.companyName]
+                        .filter(Boolean)
+                        .join(" · ") || "—"}
+                    </p>
+                  </div>
+                  <span className="shrink-0 text-xs capitalize text-muted">
+                    {lead.platform ?? "n/a"}
+                  </span>
+                  <span className="shrink-0 text-muted" aria-hidden>
+                    {isOpen ? "▾" : "▸"}
+                  </span>
+                </button>
+                {isOpen ? (
+                  <div className="border-t border-line px-4 pb-4 pt-3">
+                    <p className="text-[10px] text-muted">
+                      ICP {lead.icpScore} · intent {lead.intentScore}
+                    </p>
+                    {lead.profileUrl ? (
+                      <a
+                        href={lead.profileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-2 inline-block text-xs text-accent hover:underline"
                       >
-                        {lead.compositeScore}%
-                      </span>
-                      <p className="mt-1 text-[10px] text-muted">
-                        ICP {lead.icpScore} · intent {lead.intentScore}
+                        Profile
+                      </a>
+                    ) : null}
+                    {lead.profileSummary ? (
+                      <p className="mt-2 text-xs leading-relaxed text-muted">
+                        {lead.profileSummary.slice(0, 320)}
+                        {lead.profileSummary.length > 320 ? "…" : ""}
                       </p>
-                    </td>
-                    <td className="px-4 py-4 align-top">
-                      <p className="font-medium text-foreground">{lead.fullName}</p>
-                      {lead.roleTitle ? (
-                        <p className="text-xs text-muted">{lead.roleTitle}</p>
-                      ) : null}
-                      {lead.companyName ? (
-                        <p className="text-xs text-muted">{lead.companyName}</p>
-                      ) : null}
-                      {lead.profileUrl ? (
-                        <a
-                          href={lead.profileUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="mt-1 inline-block text-xs text-accent hover:underline"
-                        >
-                          Profile
-                        </a>
-                      ) : null}
-                      {lead.profileSummary ? (
-                        <p className="mt-2 line-clamp-2 text-xs text-muted">
-                          {lead.profileSummary.slice(0, 160)}
-                          {lead.profileSummary.length > 160 ? "…" : ""}
-                        </p>
-                      ) : null}
-                    </td>
-                    <td className="px-4 py-4 align-top capitalize text-muted">
-                      {lead.platform ?? "n/a"}
-                    </td>
-                    <td className="px-4 py-4 align-top">
+                    ) : null}
+                    <div className="mt-3">
+                      <label className="text-[10px] font-medium uppercase text-muted">
+                        Pipeline status
+                      </label>
                       <select
-                        className="rounded-lg border border-line bg-black/50 px-2 py-1.5 text-xs disabled:opacity-60"
+                        className="mt-1 block w-full max-w-xs rounded-lg border border-line bg-black/50 px-2 py-1.5 text-xs disabled:opacity-60"
                         value={lead.pipelineStatus}
                         disabled={updatingId === lead.id}
                         onChange={(e) =>
                           void setStatus(lead.id, e.target.value as PipelineStatus)
                         }
+                        onClick={(e) => e.stopPropagation()}
                       >
                         {statuses.map((s) => (
                           <option key={s} value={s}>{s}</option>
                         ))}
                       </select>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+                    </div>
+                  </div>
+                ) : null}
+              </li>
+            );
+          })}
+        </ul>
       )}
     </div>
   );

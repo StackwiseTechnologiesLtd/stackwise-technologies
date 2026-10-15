@@ -125,7 +125,7 @@ async function ingestSignals(
     if (!signal.authorName?.trim() || !signal.bodyText?.trim()) continue;
     await report?.(
       "score",
-      `Scoring & drafting ${ingested + 1} of ${signals.length} (${signal.authorName.trim()})…`,
+      `Scoring lead ${ingested + 1} of ${signals.length} (${signal.authorName.trim()})…`,
     );
     await ingestSignal({
       ...signal,
@@ -156,8 +156,9 @@ async function harvestSearchesWithPlaywright(
 ): Promise<IngestSignalInput[]> {
   await report?.("browser", "Starting browser (read-only)…");
   const { chromium } = await import("playwright");
+  const harvestHeaded = process.env.GROWTH_HARVEST_HEADED === "1";
   const browser = await chromium.launch({
-    headless: true,
+    headless: !harvestHeaded,
     args: ["--disable-blink-features=AutomationControlled"],
   });
   const collected: IngestSignalInput[] = [];
@@ -220,7 +221,9 @@ async function harvestSearchesWithPlaywright(
         throw new Error(urlCheck.error ?? "Session lost during search");
       }
 
-      await scrollResults(page, 2 + Math.floor(Math.random() * 2), report);
+      const scrollPasses =
+        platform === "linkedin" ? 4 + Math.floor(Math.random() * 2) : 2 + Math.floor(Math.random() * 2);
+      await scrollResults(page, scrollPasses, report);
       await report?.("extract", `Reading posts for “${query}”…`);
       const { signals: batch, debug } = await extractFeedSignals(page, platform);
       await report?.("extract", formatExtractDebug(debug));
@@ -320,7 +323,7 @@ export async function runPlatformHarvest(
       "No posts matched — try different intent phrases in ICP settings or reconnect.",
     );
   } else {
-    await report?.("score", "Scoring against ICP and drafting replies…");
+    await report?.("score", "Scoring against ICP and saving leads…");
   }
 
   const ingested = await ingestSignals(signals, report);
@@ -402,6 +405,33 @@ async function harvestSearchesWithHostedBrowser(
         timeout: 120_000,
       });
       await sleep(3000);
+      if (platform === "linkedin") {
+        const scrollPasses = 4;
+        for (let i = 0; i < scrollPasses; i++) {
+          await report?.(
+            "scroll",
+            `Scrolling results (${i + 1} of ${scrollPasses})…`,
+          );
+          await page.evaluate(() => {
+            window.scrollBy(0, 320 + Math.floor(Math.random() * 480));
+          });
+          await sleep(1200 + Math.floor(Math.random() * 2000));
+        }
+        await page.evaluate(() => {
+          document
+            .querySelectorAll(
+              'button[data-testid="expandable-text-button"], button[aria-expanded="false"][aria-label*="more"]',
+            )
+            .forEach((btn) => {
+              try {
+                (btn as HTMLButtonElement).click();
+              } catch {
+                /* ignore */
+              }
+            });
+        });
+        await sleep(1200);
+      }
       await report?.("extract", `Reading posts for “${query}”…`);
 
       const { posts, debug } = await page.evaluate(
@@ -419,13 +449,13 @@ async function harvestSearchesWithHostedBrowser(
       await sleep(2000);
     }
 
-    const withProfiles = await enrichSignalsWithProfiles(
+    const withProfilesHosted = await enrichSignalsWithProfiles(
       page as BrowserPage,
       platform,
       collected,
       report,
     );
-    return dedupeSignals(withProfiles);
+    return dedupeSignals(withProfilesHosted);
   } finally {
     await browser.disconnect();
   }
