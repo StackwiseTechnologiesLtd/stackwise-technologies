@@ -41,6 +41,10 @@ describe("content catalogs", () => {
     expect(en.cost.rows).toHaveLength(fr.cost.rows.length);
     expect(en.architecture.steps).toHaveLength(fr.architecture.steps.length);
     expect(en.faq.items).toHaveLength(fr.faq.items.length);
+    expect(en.trust.beforeItems).toHaveLength(fr.trust.beforeItems.length);
+    expect(en.trust.afterItems).toHaveLength(fr.trust.afterItems.length);
+    expect(en.process.steps).toHaveLength(fr.process.steps.length);
+    expect(en.process.steps.length).toBe(2);
     expect(en.hero.callouts).toHaveLength(fr.hero.callouts.length);
     expect(en.hero.callouts.length).toBe(4);
     expect(launcherItemsFor("en")).toHaveLength(5);
