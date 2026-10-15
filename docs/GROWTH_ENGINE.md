@@ -121,7 +121,8 @@ Env toggles:
 
 Drafts in the admin inbox are **not** X.com draft-folder items — they are review queue entries in your database.
 
-- **Post reply on X** (Inbox): uses your connected X session + Playwright locally (`npm run dev`) to open the source tweet and submit the reply.
+- **Post reply on X** (Inbox): uses your connected X session + Playwright locally (`npm run dev`) to open the source tweet and submit the reply. Tries the inline reply box, the Reply button, then `x.com/intent/tweet?in_reply_to=…` as fallback.
+- Debug posting UI: `GROWTH_PUBLISH_HEADED=1` opens a visible Chromium window while posting.
 - Replies must be **≤ 280 characters**.
 - Optional auto-post after harvest/capture (no review):
 
