@@ -3,10 +3,11 @@ import CopyCommand from "@/components/CopyCommand";
 import FaqList from "@/components/FaqList";
 import HeroMock from "@/components/HeroMock";
 import Mark from "@/components/Mark";
+import Portfolio from "@/components/Portfolio";
 import ProviderTabs from "@/components/ProviderTabs";
 import WorkVisual from "@/components/WorkVisual";
 import {
-  CALENDLY_URL,
+  bookingUrl,
   EMAIL,
   type Locale,
   type SiteCopy,
@@ -71,18 +72,20 @@ function Hero({ locale, copy }: { locale: Locale; copy: SiteCopy }) {
           </div>
           <h1 className="text-4xl font-bold tracking-tight text-balance sm:text-5xl lg:text-[3.25rem] lg:leading-[1.08]">
             {hero.headline}
+            <span className="mt-1 block text-accent">
+              {hero.headlineEmphasis}
+            </span>
           </h1>
           <p className="mt-5 max-w-lg text-[15px] leading-relaxed text-muted sm:text-base">
             {hero.subtitle}
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <PrimaryButton href={CALENDLY_URL}>{hero.primaryCta}</PrimaryButton>
+            <PrimaryButton href={bookingUrl()}>{hero.primaryCta}</PrimaryButton>
             <SecondaryButton href={`mailto:${EMAIL}`}>
               {hero.secondaryCta}
             </SecondaryButton>
           </div>
-          <p className="mt-5 text-sm text-yellow-200/90">
-            <span className="mr-1">✦</span>
+          <p className="mt-5 text-sm text-muted">
             {hero.offer}
           </p>
           <p className="mt-1.5 text-sm text-muted">{hero.requirement}</p>
@@ -100,6 +103,117 @@ function Hero({ locale, copy }: { locale: Locale; copy: SiteCopy }) {
         <div className="relative z-10 lg:pl-4">
           <HeroMock locale={locale} copy={hero} />
         </div>
+      </div>
+    </section>
+  );
+}
+
+function Trust({ copy }: { copy: SiteCopy["trust"] }) {
+  return (
+    <section
+      id="trust"
+      className="mx-auto max-w-6xl scroll-mt-24 px-4 py-20 sm:px-6"
+    >
+      <SectionLabel>{copy.label}</SectionLabel>
+      <h2 className="max-w-3xl text-3xl font-semibold tracking-tight text-balance sm:text-5xl">
+        {copy.title}
+      </h2>
+      <div className="mt-6 max-w-3xl space-y-4 text-[15px] leading-relaxed text-muted sm:text-base">
+        {copy.paragraphs.map((paragraph) => (
+          <p key={paragraph.slice(0, 40)}>{paragraph}</p>
+        ))}
+      </div>
+
+      <div className="mt-12 grid gap-4 md:grid-cols-2">
+        <article
+          className="rounded-2xl border border-dashed border-white/14 bg-[#080808] p-6 sm:p-8"
+        >
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted">
+            {copy.beforeLabel}
+          </p>
+          <ul className="mt-5 space-y-3.5">
+            {copy.beforeItems.map((item) => (
+              <li
+                key={item}
+                className="flex gap-3 text-[15px] leading-relaxed text-muted"
+              >
+                <span
+                  className="mt-2 size-1.5 shrink-0 rounded-full bg-white/25"
+                  aria-hidden
+                />
+                {item}
+              </li>
+            ))}
+          </ul>
+        </article>
+        <article className="rounded-2xl border border-accent/30 bg-panel p-6 sm:p-8">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">
+            {copy.afterLabel}
+          </p>
+          <ul className="mt-5 space-y-3.5">
+            {copy.afterItems.map((item) => (
+              <li
+                key={item}
+                className="flex gap-3 text-[15px] leading-relaxed text-foreground"
+              >
+                <span
+                  className="mt-2 size-1.5 shrink-0 rounded-full bg-accent"
+                  aria-hidden
+                />
+                {item}
+              </li>
+            ))}
+          </ul>
+        </article>
+      </div>
+      <p className="mt-10 max-w-2xl text-lg font-medium tracking-tight text-foreground">
+        {copy.closer}
+      </p>
+    </section>
+  );
+}
+
+function Process({ copy }: { copy: SiteCopy["process"] }) {
+  const [first, second] = copy.steps;
+  return (
+    <section
+      id="process"
+      className="scroll-mt-24 border-y border-white/8 bg-[#050505] px-4 py-20 sm:px-6"
+    >
+      <div className="mx-auto max-w-6xl">
+        <SectionLabel>{copy.label}</SectionLabel>
+        <h2 className="max-w-2xl text-3xl font-semibold tracking-tight sm:text-5xl">
+          {copy.title}
+        </h2>
+        <p className="mt-4 max-w-2xl text-muted sm:text-lg">{copy.subtitle}</p>
+
+        <ol className="mt-12 space-y-0 border-t border-white/10">
+          {first ? (
+            <li className="border-b border-white/10 py-10">
+              <h3 className="text-2xl font-semibold tracking-tight">
+                {first.title}
+              </h3>
+              <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-muted">
+                {first.body}
+              </p>
+              <p className="mt-4 text-sm text-foreground/90">{first.detail}</p>
+            </li>
+          ) : null}
+          {second ? (
+            <li className="py-10">
+              <h3 className="text-2xl font-semibold tracking-tight">
+                {second.title}
+              </h3>
+              <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-muted">
+                {second.body}
+              </p>
+              <p className="mt-4 text-sm text-foreground/90">{second.detail}</p>
+            </li>
+          ) : null}
+        </ol>
+        <p className="max-w-3xl text-sm leading-relaxed text-muted">
+          {copy.timelineNote}
+        </p>
       </div>
     </section>
   );
@@ -276,7 +390,10 @@ function CompareTable({
 
 function Architecture({ copy }: { copy: SiteCopy["architecture"] }) {
   return (
-    <section id="process" className="mx-auto max-w-6xl scroll-mt-24 px-4 py-20 sm:px-6">
+    <section
+      id="delivery"
+      className="mx-auto max-w-6xl scroll-mt-24 px-4 py-20 sm:px-6"
+    >
       <SectionLabel>{copy.label}</SectionLabel>
       <h2 className="max-w-2xl text-3xl font-semibold tracking-tight sm:text-5xl">
         {copy.title}
@@ -294,9 +411,8 @@ function Architecture({ copy }: { copy: SiteCopy["architecture"] }) {
       </div>
       <div className="mt-12 grid gap-10 md:grid-cols-3">
         {copy.steps.map((step) => (
-          <article key={step.n}>
-            <p className="font-mono text-sm text-muted">{step.n}</p>
-            <h3 className="mt-3 text-xl font-semibold tracking-tight">
+          <article key={step.title}>
+            <h3 className="text-xl font-semibold tracking-tight">
               {step.title}
             </h3>
             <p className="mt-2 text-[15px] leading-relaxed text-muted">
@@ -340,15 +456,12 @@ function Cta({ copy }: { copy: SiteCopy }) {
 
           <div>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <PrimaryButton href={CALENDLY_URL}>{hero.primaryCta}</PrimaryButton>
+              <PrimaryButton href={bookingUrl()}>{hero.primaryCta}</PrimaryButton>
               <SecondaryButton href={`mailto:${EMAIL}`}>
                 {hero.secondaryCta}
               </SecondaryButton>
             </div>
-            <p className="mt-5 text-sm text-yellow-200/90">
-              <span className="mr-1">✦</span>
-              {cta.offer}
-            </p>
+            <p className="mt-5 text-sm text-muted">{cta.offer}</p>
             <p className="mt-1.5 text-sm text-muted">{cta.requirement}</p>
             <div className="mt-8">
               <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted">
@@ -363,7 +476,7 @@ function Cta({ copy }: { copy: SiteCopy }) {
             <p className="mt-4 text-sm text-muted">
               {cta.enterpriseBefore}{" "}
               <a
-                href={CALENDLY_URL}
+                href={bookingUrl()}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-foreground underline decoration-white/25 underline-offset-4 hover:decoration-accent"
@@ -388,7 +501,10 @@ export default function Landing({
   return (
     <main>
       <Hero locale={locale} copy={copy} />
+      <Trust copy={copy.trust} />
+      <Process copy={copy.process} />
       <Features copy={copy.features} />
+      <Portfolio copy={copy.portfolio} />
       <Work locale={locale} copy={copy.work} />
       <Providers copy={copy.providers} />
       <CompareTable id="compare" copy={copy.compare} />

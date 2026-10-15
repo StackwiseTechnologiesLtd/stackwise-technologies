@@ -1,5 +1,4 @@
-export const CALENDLY_URL =
-  "https://calendly.com/stackwisetechnologies-info/30min";
+export { bookingUrl, MEETING_ALWAYS_INVITEE } from "@/lib/booking";
 export const EMAIL = "info@stackwisetechnologies.com";
 export const TWITTER_URL = "https://x.com/StackwiseTech";
 export const SITE_NAME = "Stackwise Technologies Limited";
@@ -28,6 +27,7 @@ export type SiteCopy = {
   hero: {
     brand: string;
     headline: string;
+    headlineEmphasis: string;
     subtitle: string;
     primaryCta: string;
     secondaryCta: string;
@@ -43,6 +43,23 @@ export type SiteCopy = {
     copiedLabel: string;
     callouts: { title: string; body: string }[];
   };
+  trust: {
+    label: string;
+    title: string;
+    paragraphs: string[];
+    beforeLabel: string;
+    afterLabel: string;
+    beforeItems: string[];
+    afterItems: string[];
+    closer: string;
+  };
+  process: {
+    label: string;
+    title: string;
+    subtitle: string;
+    steps: { n: string; title: string; body: string; detail: string }[];
+    timelineNote: string;
+  };
   features: {
     label: string;
     title: string;
@@ -52,6 +69,19 @@ export type SiteCopy = {
     featuredHint: string;
     featuredBody: string;
     cards: { kicker: string; value: string; hint: string; body: string }[];
+  };
+  portfolio: {
+    label: string;
+    title: string;
+    subtitle: string;
+    visitLabel: string;
+    items: {
+      title: string;
+      body: string;
+      href: string;
+      image: string;
+      imageAlt: string;
+    }[];
   };
   work: {
     label: string;
@@ -127,12 +157,13 @@ export const en: SiteCopy = {
   meta: {
     title: "Stackwise Technologies Limited",
     description:
-      "Engineering scalable software for modern businesses. Custom platforms, AI systems, cloud infrastructure, and dedicated product teams.",
+      "Engineering partner for fast-shipped products: custom software, cloud, UX, and the production work that earns user trust.",
   },
   nav: {
     links: [
-      { href: "#work", label: "See it work" },
-      { href: "#features", label: "Features" },
+      { href: "#trust", label: "Why Stackwise" },
+      { href: "#process", label: "Process" },
+      { href: "#portfolio", label: "Portfolio" },
       { href: "#compare", label: "Compare" },
       { href: "#faq", label: "FAQ" },
     ],
@@ -145,9 +176,10 @@ export const en: SiteCopy = {
   },
   hero: {
     brand: "Stackwise Technologies",
-    headline: "Engineering software at the speed of your business.",
+    headline: "Ship fast.",
+    headlineEmphasis: "We make it production-ready.",
     subtitle:
-      "Custom platforms, AI systems, cloud infrastructure, dedicated teams, and the unglamorous work that keeps a company shipping — one engineering partner.",
+      "One engineering partner for code, cloud, and UX after the demo.",
     primaryCta: "Book a call",
     secondaryCta: "Email us",
     offer: "International team · African roots · Built for scale",
@@ -156,7 +188,7 @@ export const en: SiteCopy = {
     enterpriseBefore: "Enterprise?",
     enterpriseLink: "Book a call with the team",
     searchPlaceholder: "Search apps, systems, and capabilities…",
-    mockTitle: "stackwise — delivery",
+    mockTitle: "stackwise / delivery",
     pinnedLabel: "Pinned",
     copyLabel: "Copy",
     copiedLabel: "Copied",
@@ -167,7 +199,7 @@ export const en: SiteCopy = {
       },
       {
         title: "Product + platform",
-        body: "SaaS, portals, and APIs designed to ship together — not thrown over a wall.",
+        body: "SaaS, portals, and APIs designed to ship together, not thrown over a wall.",
       },
       {
         title: "Cloud that stays up",
@@ -175,15 +207,63 @@ export const en: SiteCopy = {
       },
       {
         title: "A named team",
-        body: "Senior engineers on a shared backlog — not a staffing board.",
+        body: "Senior engineers on a shared backlog, not a staffing board.",
       },
     ],
+  },
+  trust: {
+    label: "The gap",
+    title: "It works. It still does not feel ready.",
+    paragraphs: [
+      "AI and no-code made building cheap. Users did not get more patient. They decide in seconds whether your product feels credible.",
+      "Underneath, the same problems remain: brittle auth, missing observability, payments that almost work, and UI that reads like a template. Stackwise is the engineering layer that closes that gap without throwing away what you already shipped.",
+    ],
+    beforeLabel: "Before",
+    afterLabel: "After Stackwise",
+    beforeItems: [
+      "Features exist, but flows feel confusing or unfinished",
+      "Infra is “fine on my laptop,” fragile in production",
+      "Design and engineering live in different tools and timelines",
+      "Every new customer surfaces a bug you did not plan for",
+    ],
+    afterItems: [
+      "Cohesive product UX with engineering in the same loop",
+      "Cloud, CI, and monitoring you can actually operate",
+      "Payments, auth, and APIs built for your market",
+      "A named team that ships iteratively, not a one-off handoff",
+    ],
+    closer:
+      "You keep the speed you had building. We add the depth that makes people stay.",
+  },
+  process: {
+    label: "How we start",
+    title: "Discovery, then delivery.",
+    subtitle:
+      "A short discovery, then iterative delivery with visible progress. Same rhythm whether we are hardening an AI MVP or building from scratch.",
+    steps: [
+      {
+        n: "01",
+        title: "Discovery call",
+        body:
+          "We align on what you shipped, what is blocking trust or scale, and whether we are the right partner. You leave with a clear next step, not a 40-page deck.",
+        detail: "30 minutes · remote · no obligation",
+      },
+      {
+        n: "02",
+        title: "Iterate and ship",
+        body:
+          "We work in tight loops: design where it matters, engineering every week, and the unglamorous production work (tests, deploys, fixes) as part of the same backlog.",
+        detail: "Typical first engagement: 3–8 weeks depending on scope",
+      },
+    ],
+    timelineNote:
+      "Larger platforms and dedicated pods scale from the same model: discovery first, then a shared backlog with your team.",
   },
   features: {
     label: "Feature set",
     title: "Built as a real product team.",
     subtitle:
-      "Custom software, dedicated engineers, and AI systems — the tools you actually ship with, without the agency theatre.",
+      "Custom software, dedicated engineers, and AI systems: the tools you actually ship with, without the agency theatre.",
     featuredKicker: "Delivery model",
     featuredValue: "End-to-end",
     featuredHint: "idea → production",
@@ -194,7 +274,7 @@ export const en: SiteCopy = {
         kicker: "Engineering",
         value: "Custom-built",
         hint: "No templates",
-        body: "Platforms and APIs designed around your workflows — not a theme with a logo on it.",
+        body: "Platforms and APIs designed around your workflows, not a theme with a logo on it.",
       },
       {
         kicker: "Staffing",
@@ -216,15 +296,55 @@ export const en: SiteCopy = {
       },
     ],
   },
+  portfolio: {
+    label: "Selected work",
+    title: "Client projects in production.",
+    subtitle:
+      "A sample of platforms we have designed, built, and maintain: marketing sites,, e-commerce, dashboards, and consultancy brands.",
+    visitLabel: "Visit live site",
+    items: [
+      {
+        title: "Alemnet",
+        body:
+          "ISP marketing site with multilingual packages, speed test, and subscriber-focused flows.",
+        href: "https://alemnet.net/",
+        image: "/images/portfolio/alemnet.png",
+        imageAlt: "Screenshot of the Alemnet internet provider website",
+      },
+      {
+        title: "Alem Techno Shop",
+        body: "E-commerce storefront for devices and internet packages in the Alemnet ecosystem.",
+        href: "https://alemtechnoshop.com/",
+        image: "/images/portfolio/alem-technoshop.png",
+        imageAlt: "Screenshot of the Alem Techno Shop online store",
+      },
+      {
+        title: "TEMPS International",
+        body:
+          "Bilingual consultancy site for public health, nutrition, and infrastructure programs.",
+        href: "https://www.temps-international.org/en",
+        image: "/images/portfolio/temps.png",
+        imageAlt: "Screenshot of the TEMPS International website",
+      },
+      {
+        title: "OPEN SARL",
+        body:
+          "Infrastructure advisory platform for public-sector programs in DRC and Central Africa.",
+        href: "https://open-sarl.vercel.app/",
+        image: "/images/portfolio/open.png",
+        imageAlt: "Screenshot of the OPEN SARL advisory website",
+      },
+    ],
+  },
   work: {
     label: "In practice",
     title: "See what we actually ship.",
     subtitle:
-      "Every one of these is work we do today. No waitlist, no slideware — product, platform, and the systems that keep a company moving.",
+      "Every one of these is work we do today. No waitlist, no slideware. Product, platform, and the systems that keep a company moving.",
     items: [
       {
         title: "Your systems at a glance",
-        body: "Dashboards, ops consoles, and internal tools that show what is actually running — not a graveyard of exported CSVs.",
+        body: "Dashboards, ops consoles, and internal tools that show what is actually running, not a graveyard of exported CSVs.",
       },
       {
         title: "Design it, then mark it up",
@@ -236,7 +356,7 @@ export const en: SiteCopy = {
       },
       {
         title: "A real product surface",
-        body: "SaaS, customer portals, and admin — full products with history, search, and the unglamorous flows in between.",
+        body: "SaaS, customer portals, and admin: full products with history, search, and the unglamorous flows in between.",
       },
       {
         title: "Agents that finish the job",
@@ -248,7 +368,7 @@ export const en: SiteCopy = {
       },
       {
         title: "Fix it where you work",
-        body: "We improve what you already have in place — stabilize, refactor, or migrate when the current stack is the bottleneck.",
+        body: "We improve what you already have in place: stabilize, refactor, or migrate when the current stack is the bottleneck.",
       },
       {
         title: "Reach us without a new process",
@@ -265,7 +385,7 @@ export const en: SiteCopy = {
     aside:
       "Or keep it boring: proven tools, production defaults, no fashion projects.",
     usage:
-      "The same team carries the stack across product, platform, AI, and cloud — not a specialist parachuted in for one sprint.",
+      "The same team carries the stack across product, platform, AI, and cloud, not a specialist parachuted in for one sprint.",
     note: "We pick the language and cloud that match the job. Availability depends on your constraints, not our slide deck.",
     tabs: [
       { id: "product", label: "Product" },
@@ -401,16 +521,16 @@ export const en: SiteCopy = {
       "You still pay for the work. You stop paying to coordinate four companies that do not share a backlog.",
   },
   architecture: {
-    label: "Architecture",
+    label: "Delivery loop",
     title: "Not a factory wearing a product coat.",
     subtitle:
-      "Discovery, systems, and delivery in one loop — with the people who will still be here after launch.",
+      "Discovery, systems, and delivery in one loop, with the people who will still be here after launch.",
     pills: ["Next.js", "TypeScript", "Node", "Python", "Go", "Postgres", "AWS"],
     steps: [
       {
         n: "01",
         title: "Discovery first",
-        body: "We map the business, the workflows, and the constraints. You leave with an architecture and a plan — not a slide that says “agile.”",
+        body: "We map the business, the workflows, and the constraints. You leave with an architecture and a plan, not a slide that says “agile.”",
       },
       {
         n: "02",
@@ -452,11 +572,15 @@ export const en: SiteCopy = {
       },
       {
         q: "Do you take over existing codebases?",
-        a: "Often. We audit what you have, stabilize what is on fire, and then improve it in place — or plan a migration when the current stack is the bottleneck. We do not insist on a rewrite for its own sake.",
+        a: "Often. We audit what you have, stabilize what is on fire, and then improve it in place, or plan a migration when the current stack is the bottleneck. We do not insist on a rewrite for its own sake.",
       },
       {
         q: "How do we get started?",
         a: "Book a 30-minute call or email info@stackwisetechnologies.com with what you are trying to ship. We will tell you quickly whether we are the right partner and what a first engagement would look like.",
+      },
+      {
+        q: "We already built an MVP with AI. Is that too early, or too late?",
+        a: "It is usually the right moment. We stabilize what you have, improve UX and infra in place, and extend features without a rewrite unless the stack is the real bottleneck. You keep momentum; we remove the parts that make users bounce.",
       },
     ],
   },
@@ -464,7 +588,7 @@ export const en: SiteCopy = {
     kicker: "Ready when you are",
     title: "Let’s build with Stackwise.",
     subtitle:
-      "The engineering partner for people who live in products, pipelines, and production.",
+      "Turn a working prototype into software people trust: product, platform, and production in one team.",
     offer: "International team · African roots · Built for scale",
     requirement: "Remote-first · worldwide",
     installLabel: "Or reach us by email",
@@ -483,12 +607,13 @@ export const fr: SiteCopy = {
   meta: {
     title: "Stackwise Technologies Limited",
     description:
-      "Des logiciels évolutifs pour les entreprises modernes. Plateformes sur mesure, systèmes d’IA, infrastructure cloud et équipes produit dédiées.",
+      "Partenaire ingénierie pour produits livrés vite ou construits avec l’IA : logiciel sur mesure, cloud, UX et mise en production qui inspire confiance.",
   },
   nav: {
     links: [
-      { href: "#work", label: "Voir en action" },
-      { href: "#features", label: "Fonctionnalités" },
+      { href: "#trust", label: "Pourquoi Stackwise" },
+      { href: "#process", label: "Processus" },
+      { href: "#portfolio", label: "Portfolio" },
       { href: "#compare", label: "Comparer" },
       { href: "#faq", label: "FAQ" },
     ],
@@ -501,9 +626,10 @@ export const fr: SiteCopy = {
   },
   hero: {
     brand: "Stackwise Technologies",
-    headline: "Des logiciels à la vitesse de votre métier.",
+    headline: "Livrez vite.",
+    headlineEmphasis: "On le met en production.",
     subtitle:
-      "Plateformes sur mesure, systèmes d’IA, infrastructure cloud, équipes dédiées et le travail peu glamour qui fait livrer une entreprise — un seul partenaire ingénierie.",
+      "Un partenaire ingénierie pour le code, le cloud et l’UX après la démo.",
     primaryCta: "Réserver un appel",
     secondaryCta: "Nous écrire",
     offer: "Équipe internationale · Racines africaines · Pensé pour evoluer",
@@ -512,7 +638,7 @@ export const fr: SiteCopy = {
     enterpriseBefore: "Pour votre entreprise ?",
     enterpriseLink: "Réserver un appel avec l’équipe",
     searchPlaceholder: "Rechercher apps, systèmes et capacités…",
-    mockTitle: "stackwise — livraison",
+    mockTitle: "stackwise / livraison",
     pinnedLabel: "Épinglé",
     copyLabel: "Copier",
     copiedLabel: "Copié",
@@ -523,7 +649,7 @@ export const fr: SiteCopy = {
       },
       {
         title: "Produit + plateforme",
-        body: "SaaS, portails et API conçus pour livrer ensemble — pas jetés par-dessus le mur.",
+        body: "SaaS, portails et API conçus pour livrer ensemble, pas jetés par-dessus le mur.",
       },
       {
         title: "Un cloud qui tient",
@@ -531,15 +657,63 @@ export const fr: SiteCopy = {
       },
       {
         title: "Une équipe nommée",
-        body: "Des seniors sur un backlog partagé — pas un tableau de staffing.",
+        body: "Des seniors sur un backlog partagé, pas un tableau de staffing.",
       },
     ],
+  },
+  trust: {
+    label: "Le fossé",
+    title: "Ça marche. Ça ne semble pas prêt.",
+    paragraphs: [
+      "L’IA et le no-code ont rendu la construction bon marché. Les utilisateurs n’ont pas gagné en patience. Ils jugent en quelques secondes si votre produit semble crédible.",
+      "En dessous, les mêmes problèmes : auth fragile, pas d’observabilité, paiements presque OK, UI qui ressemble à un template. Stackwise est la couche ingénierie qui comble ce fossé sans jeter ce que vous avez déjà livré.",
+    ],
+    beforeLabel: "Avant",
+    afterLabel: "Après Stackwise",
+    beforeItems: [
+      "Les fonctionnalités existent, mais les parcours semblent confus ou inachevés",
+      "L’infra va « sur mon laptop », fragile en production",
+      "Design et ingénierie dans des outils et calendriers différents",
+      "Chaque nouveau client révèle un bug non prévu",
+    ],
+    afterItems: [
+      "UX produit cohérente, ingénierie dans la même boucle",
+      "Cloud, CI et monitoring que vous pouvez exploiter",
+      "Paiements, auth et API pensés pour votre marché",
+      "Une équipe nommée qui livre par itérations, pas un handoff unique",
+    ],
+    closer:
+      "Vous gardez la vitesse de construction. Nous ajoutons la profondeur qui fait rester les gens.",
+  },
+  process: {
+    label: "Comment on démarre",
+    title: "Découverte, puis livraison.",
+    subtitle:
+      "Une courte découverte, puis une livraison itérative avec des progrès visibles. Même rythme pour durcir un MVP IA ou construire from scratch.",
+    steps: [
+      {
+        n: "01",
+        title: "Appel de découverte",
+        body:
+          "On aligne ce que vous avez livré, ce qui bloque la confiance ou l’échelle, et si nous sommes le bon partenaire. Vous repartez avec une prochaine étape claire, pas un deck de 40 pages.",
+        detail: "30 minutes · remote · sans engagement",
+      },
+      {
+        n: "02",
+        title: "Itérer et livrer",
+        body:
+          "Des boucles courtes : design quand il faut, ingénierie chaque semaine, et le travail de prod peu glamour (tests, déploiements, correctifs) dans le même backlog.",
+        detail: "Premier engagement typique : 3 à 8 semaines selon le périmètre",
+      },
+    ],
+    timelineNote:
+      "Les plateformes plus larges et les pods dédiés partent du même modèle : découverte d’abord, puis un backlog partagé avec votre équipe.",
   },
   features: {
     label: "Ensemble de fonctionnalités",
     title: "Construits comme une vraie équipe produit.",
     subtitle:
-      "Logiciels sur mesure, ingénieurs dédiés et systèmes d’IA — les outils avec lesquels vous livrez vraiment, sans le théâtre d’agence.",
+      "Logiciels sur mesure, ingénieurs dédiés et systèmes d’IA : les outils avec lesquels vous livrez vraiment, sans le théâtre d’agence.",
     featuredKicker: "Modèle de livraison",
     featuredValue: "De bout en bout",
     featuredHint: "idée → production",
@@ -550,7 +724,7 @@ export const fr: SiteCopy = {
         kicker: "Ingénierie",
         value: "Sur mesure",
         hint: "Sans templates",
-        body: "Plateformes et API conçues autour de vos flux — pas un thème avec un logo dessus.",
+        body: "Plateformes et API conçues autour de vos flux, pas un thème avec un logo dessus.",
       },
       {
         kicker: "Équipe",
@@ -572,15 +746,56 @@ export const fr: SiteCopy = {
       },
     ],
   },
+  portfolio: {
+    label: "Réalisations",
+    title: "Projets clients en production.",
+    subtitle:
+      "Un échantillon de plateformes que nous avons conçues, construites et maintenons : sites marketing,, e-commerce, tableaux de bord et marques de conseil.",
+    visitLabel: "Voir le site",
+    items: [
+      {
+        title: "Alemnet",
+        body:
+          "Site marketing FAI multilingue : forfaits, test de débit et parcours abonnés.",
+        href: "https://alemnet.net/",
+        image: "/images/portfolio/alemnet.png",
+        imageAlt: "Capture d’écran du site Alemnet",
+      },
+      {
+        title: "Alem Techno Shop",
+        body:
+          "Boutique en ligne pour appareils et forfaits internet dans l’écosystème Alemnet.",
+        href: "https://alemtechnoshop.com/",
+        image: "/images/portfolio/alem-technoshop.png",
+        imageAlt: "Capture d’écran de la boutique Alem Techno Shop",
+      },
+      {
+        title: "TEMPS International",
+        body:
+          "Site bilingue pour la santé publique, la nutrition et les programmes d’infrastructure.",
+        href: "https://www.temps-international.org/en",
+        image: "/images/portfolio/temps.png",
+        imageAlt: "Capture d’écran du site TEMPS International",
+      },
+      {
+        title: "OPEN SARL",
+        body:
+          "Plateforme de conseil en infrastructures pour le secteur public en RDC et en Afrique centrale.",
+        href: "https://open-sarl.vercel.app/",
+        image: "/images/portfolio/open.png",
+        imageAlt: "Capture d’écran du site OPEN SARL",
+      },
+    ],
+  },
   work: {
     label: "En pratique",
     title: "Découvrez ce que nous livrons vraiment.",
     subtitle:
-      "Chacun de ces sujets est du travail que nous faisons aujourd’hui. Pas de liste d’attente, pas de slides — produit, plateforme et les systèmes qui font avancer une entreprise.",
+      "Chacun de ces sujets est du travail que nous faisons aujourd’hui. Pas de liste d’attente, pas de slides. Produit, plateforme et les systèmes qui font avancer une entreprise.",
     items: [
       {
         title: "Vos systèmes en un coup d’œil",
-        body: "Tableaux de bord, consoles d’ops et outils internes qui montrent ce qui tourne vraiment — pas un cimetière de CSV exportés.",
+        body: "Tableaux de bord, consoles d’ops et outils internes qui montrent ce qui tourne vraiment, pas un cimetière de CSV exportés.",
       },
       {
         title: "Concevoir, puis annoter",
@@ -592,7 +807,7 @@ export const fr: SiteCopy = {
       },
       {
         title: "Une vraie surface produit",
-        body: "SaaS, portails clients et admin — des produits complets avec historique, recherche et les flux peu glamour entre les deux.",
+        body: "SaaS, portails clients et admin : des produits complets avec historique, recherche et les flux peu glamour entre les deux.",
       },
       {
         title: "Des agents qui vont au bout",
@@ -604,7 +819,7 @@ export const fr: SiteCopy = {
       },
       {
         title: "Corriger là où vous travaillez",
-        body: "Nous améliorons ce que vous avez déjà — stabiliser, refactorer ou migrer quand la stack actuelle est le goulot.",
+        body: "Nous améliorons ce que vous avez déjà : stabiliser, refactorer ou migrer quand la stack actuelle est le goulot.",
       },
       {
         title: "Nous joindre sans nouveau process",
@@ -621,7 +836,7 @@ export const fr: SiteCopy = {
     aside:
       "Ou restez raisonnables : outils éprouvés, défauts de production, pas de projets de mode.",
     usage:
-      "La même équipe porte la stack sur le produit, la plateforme, l’IA et le cloud — pas un spécialiste parachuté pour un sprint.",
+      "La même équipe porte la stack sur le produit, la plateforme, l’IA et le cloud, pas un spécialiste parachuté pour un sprint.",
     note: "Nous choisissons le langage et le cloud qui correspondent au travail. La disponibilité dépend de vos contraintes, pas de notre slide deck.",
     tabs: [
       { id: "product", label: "Produit" },
@@ -769,16 +984,16 @@ export const fr: SiteCopy = {
       "Vous payez toujours le travail. Vous arrêtez de payer pour coordonner quatre sociétés qui ne partagent pas un backlog.",
   },
   architecture: {
-    label: "Architecture",
+    label: "Boucle de livraison",
     title: "Pas une usine déguisée en produit.",
     subtitle:
-      "Découverte, systèmes et livraison dans une seule boucle — avec les gens qui seront encore là après le lancement.",
+      "Découverte, systèmes et livraison dans une seule boucle, avec les gens qui seront encore là après le lancement.",
     pills: ["Next.js", "TypeScript", "Node", "Python", "Go", "Postgres", "AWS"],
     steps: [
       {
         n: "01",
         title: "La découverte d’abord",
-        body: "Nous cartographions le métier, les flux et les contraintes. Vous repartez avec une architecture et un plan — pas une slide qui dit « agile ».",
+        body: "Nous cartographions le métier, les flux et les contraintes. Vous repartez avec une architecture et un plan, pas une slide qui dit « agile ».",
       },
       {
         n: "02",
@@ -820,11 +1035,15 @@ export const fr: SiteCopy = {
       },
       {
         q: "Reprenez-vous des codebases existantes ?",
-        a: "Souvent. Nous auditons ce que vous avez, stabilisons ce qui brûle, puis améliorons sur place — ou planifions une migration quand la stack actuelle est le goulot. Nous n’insistons pas sur un rewrite pour le plaisir.",
+        a: "Souvent. Nous auditons ce que vous avez, stabilisons ce qui brûle, puis améliorons sur place, ou planifions une migration quand la stack actuelle est le goulot. Nous n’insistons pas sur un rewrite pour le plaisir.",
       },
       {
         q: "Comment démarrer ?",
         a: "Réservez un appel de 30 minutes ou écrivez à info@stackwisetechnologies.com avec ce que vous voulez livrer. Nous vous dirons rapidement si nous sommes le bon partenaire et à quoi ressemblerait un premier engagement.",
+      },
+      {
+        q: "Nous avons déjà un MVP avec l’IA. Trop tôt, ou trop tard ?",
+        a: "C’est souvent le bon moment. Nous stabilisons ce que vous avez, améliorons UX et infra sur place, et étendons les fonctionnalités sans rewrite sauf si la stack est le vrai goulot. Vous gardez l’élan ; nous retirons ce qui fait fuir les utilisateurs.",
       },
     ],
   },
@@ -832,7 +1051,7 @@ export const fr: SiteCopy = {
     kicker: "Quand vous êtes prêts",
     title: "Lancez vous avec Stackwise.",
     subtitle:
-      "Le partenaire en ingénierie pour le developement de produits. Nous travaillons avec ceux qui gères les produits, les pipelines et la production.",
+      "Transformez un prototype qui marche en logiciel de confiance : produit, plateforme et production dans une seule équipe.",
     offer: "Équipe internationale · Racines africaines · Pensé pour evoluer",
     requirement: "Remote-first · mondial",
     installLabel: "Ou contactez-nous par e-mail",

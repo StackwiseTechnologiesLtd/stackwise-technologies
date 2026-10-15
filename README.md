@@ -1,16 +1,55 @@
-# Hey, we're Stackwise 👋
+<div align="center">
+  <img src="docs/images/mark.svg" alt="Stackwise mark" width="88" />
+  <h1>Stackwise Technologies</h1>
+  <p>
+    International software engineering with African roots — AI systems, cloud infrastructure,
+    and digital products that are secure, scalable, and beautifully designed.
+  </p>
+  <p>
+    <a href="https://stackwisetechnologies.com"><img alt="Website" src="https://img.shields.io/badge/website-stackwisetechnologies.com-541111?style=flat-square" /></a>
+    <a href="https://github.com/stackwise-technologies"><img alt="GitHub" src="https://img.shields.io/badge/GitHub-stackwise--technologies-181717?style=flat-square&logo=github" /></a>
+  </p>
+  <p>
+    <img width="1983" height="793" alt="Stackwise Banner" src="https://github.com/user-attachments/assets/4a7f3e2c-aa94-42b7-af0d-0cfe5fc7a8e9" />
+  </p>
+</div>
+
+<details>
+  <summary>Table of Contents</summary>
+
+- [About](#-about)
+- [What we build](#-what-we-build)
+- [Tech stack](#️-our-tech-stack)
+- [Website (this repo)](#️-website-this-repo)
+- [Open source](#️-open-source-commitment)
+- [Let's build together](#-lets-build-together)
+</details>
+
+---
+
+## 🌍 About
 
 <p align="center">
-  <img width="1983" height="793" alt="Stackwise Banner" src="https://github.com/user-attachments/assets/4a7f3e2c-aa94-42b7-af0d-0cfe5fc7a8e9" />
+  <img src="docs/images/readme-about.jpg" alt="Stackwise — engineering at the speed of your business" width="100%" />
 </p>
 
-We're an international software engineering company with African roots, building scalable software, AI systems, cloud infrastructure, and digital products for businesses worldwide. Our mission is to accelerate business growth by delivering world-class technology solutions that are secure, scalable, and beautifully designed.
+We're an international software engineering company with African roots. We don't just write code; we solve business problems — from AI-powered workflows to production payments, cloud platforms, and product delivery for teams worldwide.
+
+**Website:** [stackwisetechnologies.com](https://stackwisetechnologies.com)
+
+<p align="right"><a href="#stackwise-technologies">(back to top)</a></p>
 
 ---
 
 ## 🌍 What we build
 
-At Stackwise, we take a strategic approach to software engineering. We don't just write code; we solve business problems.
+<details open>
+  <summary><strong>Quick overview</strong></summary>
+  <br />
+  <p align="center">
+    <img src="docs/images/readme-stack.jpg" alt="AI · Cloud · Apps — built for scale" width="100%" />
+  </p>
+</details>
 
 ### 🤖 AI & Automation
 We integrate intelligent systems into your workflows. From AI-powered assistants and predictive analytics to automated operational tooling, we help companies reduce manual work and scale efficiently.
@@ -27,6 +66,15 @@ We develop secure RESTful and GraphQL APIs that power everything from mobile app
 ### 🧩 Developer Tools
 We build utilities and open-source packages that help other engineers work faster, smarter, and with fewer friction points.
 
+### 💳 Payments & subscriptions
+<p align="center">
+  <img src="docs/images/readme-payments.jpg" alt="Secure payments — Paystack, KPay, receipts" width="100%" />
+</p>
+
+This repo also powers Stackwise’s client payment flows: one-time invoices (Paystack card + KPay Mobile Money), printable receipts, and Paystack recurring maintenance subscriptions.
+
+<p align="right"><a href="#stackwise-technologies">(back to top)</a></p>
+
 ---
 
 ## 🛠️ Our Tech Stack
@@ -38,6 +86,7 @@ We utilize a modern, battle-tested technology stack to ensure our products are r
 - **Database:** PostgreSQL, MongoDB, Redis, Firebase
 - **Cloud & DevOps:** AWS, Google Cloud, Docker, Kubernetes, CI/CD
 - **AI/ML:** OpenAI, LangChain, TensorFlow
+- **Payments:** Paystack, KPay, Neon Postgres
 
 ---
 
@@ -66,26 +115,96 @@ Locales:
 | `npm run lint` | ESLint |
 | `npm test` | Unit tests (Vitest) |
 | `npm run typecheck` | TypeScript (`tsc --noEmit`) |
+| `npm run db:migrate` | Apply SQL migrations to Neon (uses `.env.local` → `.env.prod` → `.env`) |
+| `npm run db:migrate:prod` | Apply migrations to **production** Neon (`MIGRATE_ENV=prod`, reads `.env.prod` only) |
+| `npm run db:reset:prod-payments` | Dry-run cleanup of sandbox rows in prod Neon; pass `--confirm` to apply |
 | `npm run preview` | Build OpenNext worker and preview in `workerd` via Wrangler |
 | `npm run build:worker` | Build the Cloudflare Worker bundle only |
 | `npm run deploy` | Build + deploy to Cloudflare Workers |
-| `npm run deploy:live` | Build + deploy current branch/commit as the **live** production Worker (tagged) |
+| `npm run deploy:live` | Full production deploy — see [Deploy to production](#deploy-to-production) |
+| `npm run cf:secrets` | Upload Worker secrets from `.env.prod` without redeploying |
 | `npm run cf:whoami` | Show Cloudflare auth account |
 | `npm run cf:status` | Show the live Workers deployment status |
 
-### Deploy from your machine
+### Environment files
+
+| File | Purpose |
+| --- | --- |
+| `.env.local` | Local development (gitignored). Copy from `.env.example`. |
+| `.env.prod` | Production secrets and config (gitignored). Used by deploy and prod migrations. |
+| `.env.example` | Template with placeholder keys — safe to commit. |
+
+Never commit `.env.local` or `.env.prod`.
+
+### Database migrations
+
+Migrations live in `migrations/*.sql` and are applied in filename order.
+
+```bash
+# Local / dev Neon
+npm run db:migrate
+
+# Production Neon (uses DATABASE_URL from .env.prod)
+npm run db:migrate:prod
+```
+
+The app also runs `ensureSchema()` on first DB access, which applies any pending migration files automatically.
+
+### Deploy to production
 
 You do not need GitHub Actions or the Cloudflare dashboard to ship:
 
 ```bash
-# one-time: log in if needed
+# One-time: log in to Cloudflare
 npx wrangler login
 
-# ship the current branch as production
+# Create .env.prod with production values (see .env.example)
+# Then ship:
 npm run deploy:live
 ```
 
-`deploy:live` tags the Worker version with the current git branch and short SHA (and marks `-dirty` if you have uncommitted changes), then rolls it out to 100% production traffic.
+#### What `npm run deploy:live` does
+
+Runs `scripts/deploy-live.sh`, which:
+
+1. **Checks auth** — exits if `wrangler whoami` fails.
+2. **Build env** — copies `.env.prod` → `.env.production.local` so `NEXT_PUBLIC_*` (e.g. site URL) is baked into the Next.js build, not localhost from `.env.local`.
+3. **Sync secrets** — calls `scripts/sync-cloudflare-env.mjs` to upload every key in `.env.prod` to the `stackwise-technologies` Worker via `wrangler secret bulk`.
+4. **Build** — runs `npm run build:worker` (OpenNext + Next.js production build).
+5. **Deploy** — publishes to Cloudflare Workers at 100% traffic, tagged with git branch + short SHA (e.g. `main@abc1234`).
+
+#### Sync secrets only (no redeploy)
+
+After editing `.env.prod`, push new secrets without rebuilding:
+
+```bash
+npm run cf:secrets
+# equivalent to: node scripts/sync-cloudflare-env.mjs .env.prod
+```
+
+Requires `wrangler` login. Uploads all non-comment `KEY=value` lines from the file as encrypted Worker secrets.
+
+#### Script reference (`scripts/`)
+
+| File | Invoked by | Description |
+| --- | --- | --- |
+| `scripts/deploy-live.sh` | `npm run deploy:live` | End-to-end production deploy: env, secrets, build, publish. |
+| `scripts/sync-cloudflare-env.mjs` | `npm run cf:secrets`, `deploy-live.sh` | Parses an env file and runs `wrangler secret bulk` for Worker `stackwise-technologies`. Optional arg: path to env file (default `.env.prod`). |
+| `scripts/migrate.mjs` | `npm run db:migrate`, `npm run db:migrate:prod` | Loads env files, connects to Neon, runs all `migrations/*.sql` in order. Set `MIGRATE_ENV=prod` to force `.env.prod`. |
+| `scripts/db-reset-prod-payments.mjs` | `npm run db:reset:prod-payments` | Removes test/sandbox payment links from production Neon and marks remaining drafts as live (`kpay_is_test = false`). Dry-run by default; `--confirm` to apply. |
+
+### Admin & payments (local)
+
+- Admin dashboard: [http://localhost:3000/admin](http://localhost:3000/admin)
+- Payment admin uses Neon Postgres, Paystack (card), KPay (Mobile Money), and SMTP — configure in `.env.local`.
+- For local payment E2E, set `NEXT_PUBLIC_SITE_URL=http://localhost:3000` in `.env.local`.
+- See [docs/PAYMENTS.md](docs/PAYMENTS.md) for payment flow, receipts, and legal notices.
+
+### Payments legal & compliance
+
+Customer payment pages (`/pay/*`) include a legal notice linking to [Payment processing & data](/pay/legal). See [docs/PAYMENTS.md](docs/PAYMENTS.md) for how payments, receipts, and personal data are handled.
+
+<p align="right"><a href="#stackwise-technologies">(back to top)</a></p>
 
 ---
 
@@ -104,7 +223,7 @@ We're always excited to discuss new ideas, solve complex problems, and build the
 📫 **Get in touch:**
 - **Website:** [https://stackwisetechnologies.com](https://stackwisetechnologies.com)
 - **Email:** info@stackwisetechnologies.com
-- **Book a Call:** [Schedule a 30-min discovery call](https://calendly.com/stackwisetechnologies-info/30min)
+- **Book a call:** Cal.com discovery link (see `NEXT_PUBLIC_CAL_COM_BOOKING_URL` in env; guest `tshikombadaniel@gmail.com` is always prefilled)
 
 <p align="center">
   <i>Building the future, one line of code at a time.</i>

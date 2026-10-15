@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useToast } from "@/components/ToastProvider";
+import { BTN_PRESS } from "@/lib/ui/buttons";
 
 export default function CopyCommand({
   value,
@@ -13,6 +15,7 @@ export default function CopyCommand({
   copiedLabel: string;
   className?: string;
 }) {
+  const toast = useToast();
   const [copied, setCopied] = useState(false);
 
   async function copy() {
@@ -22,6 +25,7 @@ export default function CopyCommand({
       window.setTimeout(() => setCopied(false), 1600);
     } catch {
       setCopied(false);
+      toast.error("Could not copy to clipboard.");
     }
   }
 
@@ -29,7 +33,7 @@ export default function CopyCommand({
     <button
       type="button"
       onClick={copy}
-      className={`flex w-full items-center gap-3 rounded-xl border border-white/10 bg-[#121212] px-4 py-3 text-left font-mono text-sm text-muted transition-colors hover:bg-white/5 ${className}`}
+      className={`flex w-full items-center gap-3 rounded-xl border border-white/10 bg-[#121212] px-4 py-3 text-left font-mono text-sm text-muted hover:bg-white/5 ${BTN_PRESS} ${className}`}
       aria-label={copied ? copiedLabel : copyLabel}
     >
       <span className="text-muted/70">$</span>

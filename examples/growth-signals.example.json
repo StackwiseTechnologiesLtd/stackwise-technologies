@@ -1,0 +1,18 @@
+{
+  "signals": [
+    {
+      "platform": "linkedin",
+      "sourceUrl": "https://www.linkedin.com/posts/example",
+      "authorName": "Jane Doe",
+      "roleTitle": "Founder",
+      "bodyText": "We shipped an AI MVP fast but need help hardening it for production and payments."
+    },
+    {
+      "platform": "x",
+      "sourceUrl": "https://x.com/example/status/1",
+      "authorName": "Alex Kim",
+      "roleTitle": "CEO",
+      "bodyText": "Looking for a senior engineering partner to own our backend after the vibe-coded launch."
+    }
+  ]
+}

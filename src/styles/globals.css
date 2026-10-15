@@ -61,3 +61,47 @@ body {
   background-clip: text;
   color: transparent;
 }
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.toast-enter {
+  animation: toast-in 0.2s ease-out;
+}
+
+/* Admin dashboard — Stackwise branding */
+.admin-shell {
+  --admin-sidebar-width: 15rem;
+  --admin-sidebar-width-collapsed: 3.75rem;
+  --admin-sidebar: #0b0b0b;
+  --admin-canvas: #000000;
+  --admin-surface: #0f0f0f;
+  --admin-surface-hover: #141414;
+  --admin-border: #1f1f1f;
+  --admin-nav-hover: rgba(255, 255, 255, 0.04);
+  --admin-nav-active: color-mix(in srgb, var(--accent) 14%, transparent);
+  --admin-nav-active-border: var(--accent);
+  --admin-focus: var(--accent);
+}
+
+.admin-shell.admin-sidebar-collapsed {
+  --admin-sidebar-width: var(--admin-sidebar-width-collapsed);
+}
+
+.admin-shell .admin-btn-primary {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--accent) 28%, transparent);
+}
+
+.admin-shell .admin-btn-primary:hover {
+  background: var(--accent-hover);
+}

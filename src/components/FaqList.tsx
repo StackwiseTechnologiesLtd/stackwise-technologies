@@ -10,7 +10,6 @@ export default function FaqList({ items }: { items: readonly FaqItem[] }) {
     <div className="divide-y divide-white/8 border-y border-white/8">
       {items.map((item, index) => {
         const isOpen = open === index;
-        const n = String(index + 1).padStart(2, "0");
         return (
           <div key={item.q}>
             <button
@@ -19,9 +18,6 @@ export default function FaqList({ items }: { items: readonly FaqItem[] }) {
               aria-expanded={isOpen}
               onClick={() => setOpen(isOpen ? -1 : index)}
             >
-              <span className="w-8 shrink-0 font-mono text-sm text-muted">
-                {n}
-              </span>
               <span className="flex-1 text-lg font-medium tracking-tight sm:text-xl">
                 {item.q}
               </span>
@@ -39,7 +35,7 @@ export default function FaqList({ items }: { items: readonly FaqItem[] }) {
               </svg>
             </button>
             {isOpen ? (
-              <div className="pb-6 pl-12 pr-8 text-[15px] leading-relaxed text-muted sm:pl-14">
+              <div className="pb-6 pr-8 text-[15px] leading-relaxed text-muted">
                 <p>{item.a}</p>
                 {item.points ? (
                   <ul className="mt-3 list-disc space-y-1 pl-5">

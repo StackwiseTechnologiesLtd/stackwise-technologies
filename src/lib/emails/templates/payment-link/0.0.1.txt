@@ -1,0 +1,11 @@
+{{headline}}
+
+{{body}}
+
+Amount: {{amountUsd}} USD ({{amountLocal}})
+
+Pay here: {{paymentUrl}}
+
+Invoice: {{invoiceNumber}}
+
+— Stackwise Technologies

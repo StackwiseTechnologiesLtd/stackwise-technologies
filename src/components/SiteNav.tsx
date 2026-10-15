@@ -2,7 +2,7 @@
 
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import Mark from "@/components/Mark";
-import { CALENDLY_URL, type Locale, type SiteCopy } from "@/lib/content";
+import { bookingUrl, type Locale, type SiteCopy } from "@/lib/content";
 import { useState } from "react";
 
 export default function SiteNav({
@@ -51,7 +51,7 @@ export default function SiteNav({
             {copy.email}
           </a> */}
           <a
-            href={CALENDLY_URL}
+            href={bookingUrl()}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex rounded-lg bg-white px-3 py-1.5 text-sm font-semibold text-black transition-opacity hover:opacity-90"
@@ -60,7 +60,7 @@ export default function SiteNav({
           </a>
           <button
             type="button"
-            className="inline-flex size-9 items-center justify-center rounded-lg border border-white/12 text-foreground lg:hidden"
+            className="inline-flex min-h-11 min-w-11 shrink-0 touch-manipulation items-center justify-center rounded-lg border border-white/12 text-foreground lg:hidden"
             aria-expanded={open}
             aria-controls="mobile-nav"
             onClick={() => setOpen((value) => !value)}
@@ -88,7 +88,7 @@ export default function SiteNav({
       {open ? (
         <nav
           id="mobile-nav"
-          className="mx-auto mt-2 max-w-6xl rounded-2xl border border-white/10 bg-black/95 p-2 backdrop-blur-xl lg:hidden"
+          className="relative z-10 mx-auto mt-2 max-w-6xl rounded-2xl border border-white/10 bg-black/95 p-2 backdrop-blur-xl lg:hidden"
         >
           {copy.links.map((link) => (
             <a

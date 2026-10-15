@@ -1,0 +1,1 @@
+ALTER TABLE payment_links ADD COLUMN IF NOT EXISTS allowed_payment_methods VARCHAR(20) NOT NULL DEFAULT 'BOTH';

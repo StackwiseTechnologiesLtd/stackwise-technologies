@@ -1,0 +1,39 @@
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+
+  html,
+  body {
+    background: white !important;
+    color: #0f172a !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .receipt-print-root {
+    max-width: 190mm;
+    margin: 0 auto;
+    padding: 0 !important;
+  }
+
+  .receipt-print-document {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .receipt-print-document table {
+    font-size: 11px;
+  }
+
+  .receipt-print-document .line-clamp-2 {
+    -webkit-line-clamp: unset;
+    line-clamp: unset;
+    display: block;
+    overflow: visible;
+  }
+}
