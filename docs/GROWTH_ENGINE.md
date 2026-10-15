@@ -117,7 +117,21 @@ Env toggles:
 - `GROWTH_IGNORE_BUSINESS_HOURS=1` — allow harvest outside 08:00–20:00
 - `GROWTH_HEADLESS=1` — headless harvest (less human-like; use only on a trusted VPS)
 
-Posting stays manual or behind **approved** drafts only.
+### Posting replies (X)
+
+Drafts in the admin inbox are **not** X.com draft-folder items — they are review queue entries in your database.
+
+- **Post reply on X** (Inbox): uses your connected X session + Playwright locally (`npm run dev`) to open the source tweet and submit the reply.
+- Replies must be **≤ 280 characters**.
+- Optional auto-post after harvest/capture (no review):
+
+```bash
+GROWTH_AUTO_PUBLISH_X=1
+```
+
+Use with care — posts go live immediately when a tweet URL is present.
+
+LinkedIn auto-post is not supported yet; use **Copy** and post manually.
 
 ## HTTP API
 

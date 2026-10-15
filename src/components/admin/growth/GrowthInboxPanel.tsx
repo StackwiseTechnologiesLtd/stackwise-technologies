@@ -125,7 +125,9 @@ export function GrowthInboxPanel() {
 
   const pending = data
     ? sortDraftsByLeadScore(
-        data.drafts.filter((d) => d.status === "pending_review"),
+        data.drafts.filter((d) =>
+          d.status === "pending_review" || d.status === "failed",
+        ),
         data.leads,
       )
     : [];
@@ -138,6 +140,10 @@ export function GrowthInboxPanel() {
           <p className="text-sm text-muted">
             {pending.length} personalized draft{pending.length === 1 ? "" : "s"}{" "}
             ready · highest fit first
+          </p>
+          <p className="mt-1 max-w-xl text-xs text-muted">
+            Drafts live here for review — they are not saved in X&apos;s Drafts folder
+            until you post a reply.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -281,9 +287,57 @@ export function GrowthInboxPanel() {
                       disabled={draftBusy}
                     />
 
+                    {draft.publishError ? (
+                      <p className="mt-2 text-xs text-amber-200/90">
+                        Last post error: {draft.publishError}
+                      </p>
+                    ) : null}
+
+                    {draft.platform === "x" &&
+                    (editing[draft.id] ?? draft.bodyText).length > 280 ? (
+                      <p className="mt-2 text-xs text-amber-200/90">
+                        {(editing[draft.id] ?? draft.bodyText).length}/280 characters
+                        — shorten before posting to X
+                      </p>
+                    ) : null}
+
                     <div className="mt-4 flex flex-wrap gap-2">
+                      {draft.platform === "x" && signal?.sourceUrl ? (
+                        <AdminActionButton
+                          variant="primary"
+                          busy={busyKey === `${draft.id}:publish`}
+                          busyLabel="Posting…"
+                          disabled={
+                            (draftBusy && busyKey !== `${draft.id}:publish`) ||
+                            (editing[draft.id] ?? draft.bodyText).length > 280
+                          }
+                          onClick={() =>
+                            void runAction(`${draft.id}:publish`, async () => {
+                              const res = await growthFetch(
+                                `/api/admin/growth/drafts/${draft.id}/publish`,
+                                {
+                                  method: "POST",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({
+                                    bodyText: editing[draft.id] ?? draft.bodyText,
+                                  }),
+                                },
+                              );
+                              const json = (await res.json()) as {
+                                error?: string;
+                              };
+                              if (!res.ok) {
+                                throw new Error(json.error ?? "Post failed");
+                              }
+                              toast.success("Reply posted on X");
+                              await load({ silent: true });
+                            })
+                          }
+                        >
+                          Post reply on X
+                        </AdminActionButton>
+                      ) : null}
                       <AdminActionButton
-                        variant="primary"
                         busy={busyKey === `${draft.id}:approve`}
                         busyLabel="Approving…"
                         disabled={draftBusy && busyKey !== `${draft.id}:approve`}
