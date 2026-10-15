@@ -4,6 +4,7 @@ import {
   platformLogin,
   sessionCookieName,
 } from "@/lib/growth/connect-platform";
+import { detectAccountLabelOnPage } from "@/lib/growth/detect-account-label";
 import {
   reportSessionHealth,
   savePlatformCredentials,
@@ -128,15 +129,18 @@ async function watchHostedLogin(
           healthError = "Verification required";
         }
 
+        const accountLabel = await detectAccountLabelOnPage(page, platform);
         await savePlatformCredentials({
           platform,
           cookies: allCookies,
           userAgent,
+          displayLabel: accountLabel ?? undefined,
         });
         await reportSessionHealth({
           platform,
           sessionStatus: healthStatus,
           lastError: healthError,
+          connectedAccountLabel: accountLabel,
         });
 
         await updateConnectBrowserSession(sessionId, {

@@ -4,6 +4,10 @@ import { AdminActionButton } from "@/components/admin/AdminActionButton";
 import { useToast } from "@/components/ToastProvider";
 import type { HarvestProgressEvent } from "@/lib/growth/harvest-progress";
 import type { GrowthPlatform, PlatformCredentialStatus } from "@/lib/growth/types";
+import {
+  platformAccountDisplay,
+  platformDisplayName,
+} from "@/lib/growth/detect-account-label";
 import { growthFetch } from "@/lib/growth/growth-fetch";
 import { useCallback, useEffect, useState } from "react";
 
@@ -175,19 +179,28 @@ export function GrowthHarvestPanel({ onHarvested }: { onHarvested?: () => void }
         </p>
       ) : (
         <ul className="mt-4 flex flex-wrap gap-2">
-          {connected.map((p) => (
-            <li key={p.platform}>
-              <AdminActionButton
-                variant="primary"
-                busy={harvesting === p.platform}
-                busyLabel="Harvesting…"
-                disabled={harvesting !== null && harvesting !== p.platform}
-                onClick={() => void harvest(p.platform)}
-              >
-                Harvest {p.platform === "x" ? "X" : "LinkedIn"} feed
-              </AdminActionButton>
-            </li>
-          ))}
+          {connected.map((p) => {
+            const account = platformAccountDisplay(p);
+            return (
+              <li key={p.platform} className="flex flex-col gap-1">
+                <AdminActionButton
+                  variant="primary"
+                  busy={harvesting === p.platform}
+                  busyLabel="Harvesting…"
+                  disabled={harvesting !== null && harvesting !== p.platform}
+                  onClick={() => void harvest(p.platform)}
+                >
+                  Harvest {platformDisplayName(p.platform)}
+                  {account ? ` (${account})` : ""}
+                </AdminActionButton>
+                {account ? (
+                  <span className="text-center text-[10px] text-muted">
+                    Using {platformDisplayName(p.platform)} account {account}
+                  </span>
+                ) : null}
+              </li>
+            );
+          })}
         </ul>
       )}
 

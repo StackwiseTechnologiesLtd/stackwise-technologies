@@ -471,16 +471,18 @@ export async function savePlatformCredentials(input: {
   const { ciphertext, iv } = await encryptJson(input.cookies);
   const sql = getSql();
   const now = new Date().toISOString();
+  const accountLabel = input.displayLabel?.trim() || null;
   await sql`
     INSERT INTO growth_platform_credentials (
       platform, cookie_ciphertext, cookie_iv, user_agent, display_label,
-      updated_at, session_status, last_health_check_at, last_error
+      connected_account_label, updated_at, session_status, last_health_check_at, last_error
     ) VALUES (
       ${input.platform},
       ${ciphertext},
       ${iv},
       ${input.userAgent ?? null},
-      ${input.displayLabel ?? null},
+      ${accountLabel},
+      ${accountLabel},
       ${now}::timestamptz,
       'active',
       ${now}::timestamptz,
@@ -491,6 +493,10 @@ export async function savePlatformCredentials(input: {
       cookie_iv = EXCLUDED.cookie_iv,
       user_agent = COALESCE(EXCLUDED.user_agent, growth_platform_credentials.user_agent),
       display_label = COALESCE(EXCLUDED.display_label, growth_platform_credentials.display_label),
+      connected_account_label = COALESCE(
+        EXCLUDED.connected_account_label,
+        growth_platform_credentials.connected_account_label
+      ),
       updated_at = EXCLUDED.updated_at,
       session_status = 'active',
       last_health_check_at = EXCLUDED.last_health_check_at,

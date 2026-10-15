@@ -13,6 +13,7 @@ import {
   dedupeSignals,
   platformSearchUrl,
 } from "@/lib/growth/harvest-search";
+import { detectAccountLabelOnPage } from "@/lib/growth/detect-account-label";
 import {
   enrichProfileFromPage,
   profileUrlFromPost,
@@ -183,6 +184,17 @@ async function harvestSearchesWithPlaywright(
         lastError: sessionCheck.error,
       });
       throw new Error(sessionCheck.error ?? "Session not active");
+    }
+
+    const accountLabel = await detectAccountLabelOnPage(page, platform);
+    if (accountLabel) {
+      await reportSessionHealth({
+        platform,
+        sessionStatus: "active",
+        lastError: null,
+        connectedAccountLabel: accountLabel,
+      });
+      await report?.("verify", `Session active as ${accountLabel}`);
     }
 
     await report?.(
@@ -367,6 +379,20 @@ async function harvestSearchesWithHostedBrowser(
     await sleep(2000);
     const check = validatePageUrl(page.url());
     if (!check.ok) throw new Error(check.error);
+
+    const hostedAccountLabel = await detectAccountLabelOnPage(
+      page as BrowserPage,
+      platform,
+    );
+    if (hostedAccountLabel) {
+      await reportSessionHealth({
+        platform,
+        sessionStatus: "active",
+        lastError: null,
+        connectedAccountLabel: hostedAccountLabel,
+      });
+      await report?.("verify", `Session active as ${hostedAccountLabel}`);
+    }
 
     for (let q = 0; q < queries.length; q++) {
       const query = queries[q];

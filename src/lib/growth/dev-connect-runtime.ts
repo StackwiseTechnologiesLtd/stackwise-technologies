@@ -3,6 +3,7 @@ import {
   platformLogin,
   sessionCookieName,
 } from "@/lib/growth/connect-platform";
+import { detectAccountLabelOnPage } from "@/lib/growth/detect-account-label";
 import {
   reportSessionHealth,
   savePlatformCredentials,
@@ -101,24 +102,6 @@ async function waitForSessionCookie(
   return false;
 }
 
-async function detectAccountLabel(page: Page, platform: GrowthPlatform) {
-  try {
-    if (platform === "linkedin") {
-      const el = page
-        .locator("button.global-nav__primary-link-me-menu-trigger")
-        .first();
-      if (await el.count()) return (await el.getAttribute("aria-label")) ?? null;
-    }
-    if (platform === "x") {
-      const el = page.locator('[data-testid="SideNav_AccountSwitcher_Button"]').first();
-      if (await el.count()) return (await el.innerText()).trim() || null;
-    }
-  } catch {
-    /* optional */
-  }
-  return null;
-}
-
 async function runLoginWatcher(session: DevConnectSession) {
   const { platform } = session;
   try {
@@ -145,7 +128,7 @@ async function runLoginWatcher(session: DevConnectSession) {
 
     const cookies = await session.context.cookies();
     const userAgent = await session.page.evaluate(() => navigator.userAgent);
-    const label = await detectAccountLabel(session.page, platform);
+    const label = await detectAccountLabelOnPage(session.page, platform);
     const url = session.page.url();
 
     let healthStatus: "active" | "expired" | "challenge" = "active";

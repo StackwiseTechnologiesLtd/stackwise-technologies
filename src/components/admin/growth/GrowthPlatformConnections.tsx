@@ -2,6 +2,11 @@
 
 import { AdminActionButton } from "@/components/admin/AdminActionButton";
 import { useToast } from "@/components/ToastProvider";
+import {
+  platformAccountDisplay,
+  platformDisplayName,
+} from "@/lib/growth/detect-account-label";
+import { growthFetch } from "@/lib/growth/growth-fetch";
 import type { GrowthPlatform, PlatformCredentialStatus, SessionStatus } from "@/lib/growth/types";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
@@ -34,7 +39,7 @@ export function GrowthPlatformConnections() {
     if (!opts?.silent) setLoading(true);
     else setRefreshing(true);
     try {
-      const res = await fetch("/api/admin/growth/sessions");
+      const res = await growthFetch("/api/admin/growth/sessions");
       if (!res.ok) throw new Error("Could not load sessions");
       const json = (await res.json()) as { platforms: PlatformCredentialStatus[] };
       setPlatforms(json.platforms);
@@ -84,35 +89,47 @@ export function GrowthPlatformConnections() {
       </div>
 
       <ul className="mt-6 space-y-4">
-        {platforms.map((p) => (
-          <li
-            key={p.platform}
-            className="flex flex-col gap-2 rounded-lg border border-white/8 bg-black/40 p-4 sm:flex-row sm:items-center sm:justify-between"
-          >
-            <div>
-              <p className="font-medium capitalize">{p.platform}</p>
-              <p className={`text-sm ${statusClass[p.sessionStatus]}`}>
-                {statusLabel[p.sessionStatus]}
-                {p.connectedAccountLabel ? ` · ${p.connectedAccountLabel}` : ""}
-              </p>
-              {p.lastHealthCheckAt ? (
-                <p className="text-xs text-muted">
-                  Last check: {new Date(p.lastHealthCheckAt).toLocaleString()}
-                </p>
-              ) : null}
-              {p.lastError ? (
-                <p className="mt-1 text-xs text-amber-200/90">{p.lastError}</p>
-              ) : null}
-            </div>
-            <AdminActionButton
-              busy={connecting === p.platform}
-              busyLabel="Opening…"
-              onClick={() => openConnect(p.platform)}
+        {platforms.map((p) => {
+          const account = platformAccountDisplay(p);
+          return (
+            <li
+              key={p.platform}
+              className="flex flex-col gap-2 rounded-lg border border-white/8 bg-black/40 p-4 sm:flex-row sm:items-center sm:justify-between"
             >
-              {p.sessionStatus === "active" ? "Reconnect" : "Connect"}
-            </AdminActionButton>
-          </li>
-        ))}
+              <div>
+                <p className="font-medium">{platformDisplayName(p.platform)}</p>
+                <p className={`text-sm ${statusClass[p.sessionStatus]}`}>
+                  {statusLabel[p.sessionStatus]}
+                </p>
+                {p.sessionStatus === "active" && account ? (
+                  <p className="mt-1 text-sm text-foreground">
+                    Signed in as{" "}
+                    <span className="font-medium text-accent">{account}</span>
+                  </p>
+                ) : p.sessionStatus === "active" && !account ? (
+                  <p className="mt-1 text-xs text-muted">
+                    Connected — run harvest or reconnect to detect account handle
+                  </p>
+                ) : null}
+                {p.lastHealthCheckAt ? (
+                  <p className="text-xs text-muted">
+                    Last check: {new Date(p.lastHealthCheckAt).toLocaleString()}
+                  </p>
+                ) : null}
+                {p.lastError ? (
+                  <p className="mt-1 text-xs text-amber-200/90">{p.lastError}</p>
+                ) : null}
+              </div>
+              <AdminActionButton
+                busy={connecting === p.platform}
+                busyLabel="Opening…"
+                onClick={() => openConnect(p.platform)}
+              >
+                {p.sessionStatus === "active" ? "Reconnect" : "Connect"}
+              </AdminActionButton>
+            </li>
+          );
+        })}
       </ul>
     </section>
   );
