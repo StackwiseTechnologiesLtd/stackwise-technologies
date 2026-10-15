@@ -1,9 +1,9 @@
 "use client";
 
-import Link from "next/link";
+import { AdminActionButton } from "@/components/admin/AdminActionButton";
 import { useToast } from "@/components/ToastProvider";
-import type { PlatformCredentialStatus, SessionStatus } from "@/lib/growth/types";
-import { ADMIN_BTN_SECONDARY } from "@/lib/ui/admin";
+import type { GrowthPlatform, PlatformCredentialStatus, SessionStatus } from "@/lib/growth/types";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 const statusLabel: Record<SessionStatus, string> = {
@@ -24,11 +24,15 @@ const statusClass: Record<SessionStatus, string> = {
 
 export function GrowthPlatformConnections() {
   const toast = useToast();
+  const router = useRouter();
   const [platforms, setPlatforms] = useState<PlatformCredentialStatus[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [connecting, setConnecting] = useState<GrowthPlatform | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async (opts?: { silent?: boolean }) => {
+    if (!opts?.silent) setLoading(true);
+    else setRefreshing(true);
     try {
       const res = await fetch("/api/admin/growth/sessions");
       if (!res.ok) throw new Error("Could not load sessions");
@@ -38,6 +42,7 @@ export function GrowthPlatformConnections() {
       toast.error(error instanceof Error ? error.message : "Load failed");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, [toast]);
 
@@ -45,8 +50,18 @@ export function GrowthPlatformConnections() {
     void load();
   }, [load]);
 
+  function openConnect(platform: GrowthPlatform) {
+    setConnecting(platform);
+    router.push(`/admin/growth/connect?platform=${platform}`);
+  }
+
   if (loading) {
-    return <p className="text-sm text-muted">Checking platform sessions…</p>;
+    return (
+      <p className="flex items-center gap-2 text-sm text-muted">
+        <span className="inline-block size-3.5 animate-spin rounded-full border-2 border-muted border-t-transparent" />
+        Checking platform sessions…
+      </p>
+    );
   }
 
   return (
@@ -55,14 +70,18 @@ export function GrowthPlatformConnections() {
         <div>
           <h3 className="text-base font-semibold tracking-tight">Platform login</h3>
           <p className="mt-1 max-w-xl text-sm text-muted">
-            LinkedIn and X sessions are captured in a real browser on your machine, then
-            stored encrypted on Stackwise. Cloudflare hosts the app and inbox only;
-            Playwright runs locally or on a small worker VM, not on Workers.
+            Click Connect to sign in inside the admin panel. Run{" "}
+            <code className="text-foreground">npm run growth:connect-server</code> once on
+            this machine first.
           </p>
         </div>
-        <button type="button" className={ADMIN_BTN_SECONDARY} onClick={() => void load()}>
+        <AdminActionButton
+          busy={refreshing}
+          busyLabel="Refreshing…"
+          onClick={() => void load({ silent: true })}
+        >
           Refresh status
-        </button>
+        </AdminActionButton>
       </div>
 
       <ul className="mt-6 space-y-4">
@@ -86,12 +105,13 @@ export function GrowthPlatformConnections() {
                 <p className="mt-1 text-xs text-amber-200/90">{p.lastError}</p>
               ) : null}
             </div>
-            <Link
-              href={`/admin/growth/connect?platform=${p.platform}`}
-              className={ADMIN_BTN_SECONDARY}
+            <AdminActionButton
+              busy={connecting === p.platform}
+              busyLabel="Opening…"
+              onClick={() => openConnect(p.platform)}
             >
               {p.sessionStatus === "active" ? "Reconnect" : "Connect"}
-            </Link>
+            </AdminActionButton>
           </li>
         ))}
       </ul>

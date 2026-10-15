@@ -1,9 +1,9 @@
 "use client";
 
 import { useToast } from "@/components/ToastProvider";
+import { AdminActionButton } from "@/components/admin/AdminActionButton";
 import { GrowthPlatformConnections } from "@/components/admin/growth/GrowthPlatformConnections";
 import type { IcpConfig } from "@/lib/growth/types";
-import { ADMIN_BTN_PRIMARY, ADMIN_BTN_SECONDARY } from "@/lib/ui/admin";
 import { useCallback, useEffect, useState } from "react";
 
 export function GrowthSettingsPanel() {
@@ -12,6 +12,8 @@ export function GrowthSettingsPanel() {
   const [cookieJson, setCookieJson] = useState("");
   const [cookiePlatform, setCookiePlatform] = useState<"linkedin" | "x">("linkedin");
   const [loading, setLoading] = useState(true);
+  const [savingIcp, setSavingIcp] = useState(false);
+  const [uploadingCookies, setUploadingCookies] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -32,6 +34,7 @@ export function GrowthSettingsPanel() {
   }, [load]);
 
   async function saveIcp() {
+    setSavingIcp(true);
     try {
       const config = JSON.parse(configText) as IcpConfig;
       const res = await fetch("/api/admin/growth/icp", {
@@ -43,10 +46,13 @@ export function GrowthSettingsPanel() {
       toast.success("ICP rules saved");
     } catch {
       toast.error("Invalid JSON or save failed");
+    } finally {
+      setSavingIcp(false);
     }
   }
 
   async function saveCookies() {
+    setUploadingCookies(true);
     try {
       const cookies = JSON.parse(cookieJson) as unknown;
       const res = await fetch("/api/admin/growth/credentials", {
@@ -63,6 +69,8 @@ export function GrowthSettingsPanel() {
       await load();
     } catch {
       toast.error("Invalid cookie JSON or upload failed");
+    } finally {
+      setUploadingCookies(false);
     }
   }
 
@@ -84,9 +92,15 @@ export function GrowthSettingsPanel() {
           value={configText}
           onChange={(e) => setConfigText(e.target.value)}
         />
-        <button type="button" className={`${ADMIN_BTN_PRIMARY} mt-4`} onClick={() => void saveIcp()}>
+        <AdminActionButton
+          variant="primary"
+          className="mt-4"
+          busy={savingIcp}
+          busyLabel="Saving…"
+          onClick={() => void saveIcp()}
+        >
           Save ICP
-        </button>
+        </AdminActionButton>
       </section>
 
       <section className="rounded-xl border border-line bg-panel p-5 sm:p-6">
@@ -116,13 +130,14 @@ export function GrowthSettingsPanel() {
           value={cookieJson}
           onChange={(e) => setCookieJson(e.target.value)}
         />
-        <button
-          type="button"
-          className={`${ADMIN_BTN_SECONDARY} mt-3`}
+        <AdminActionButton
+          className="mt-3"
+          busy={uploadingCookies}
+          busyLabel="Uploading…"
           onClick={() => void saveCookies()}
         >
           Upload cookies
-        </button>
+        </AdminActionButton>
         <p className="mt-3 text-xs text-muted">
           Set <code className="text-foreground">GROWTH_CONNECTOR_SECRET</code> (32+ chars) for
           headless ingest from your machine. See docs/GROWTH_ENGINE.md.

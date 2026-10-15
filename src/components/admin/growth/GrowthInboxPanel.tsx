@@ -1,12 +1,12 @@
 "use client";
 
+import { AdminActionButton } from "@/components/admin/AdminActionButton";
 import { useToast } from "@/components/ToastProvider";
 import type {
   GrowthDraft,
   GrowthLead,
   GrowthSignal,
 } from "@/lib/growth/types";
-import { ADMIN_BTN_PRIMARY, ADMIN_BTN_SECONDARY } from "@/lib/ui/admin";
 import { useCallback, useEffect, useState } from "react";
 
 type InboxPayload = {
@@ -19,10 +19,13 @@ export function GrowthInboxPanel() {
   const toast = useToast();
   const [data, setData] = useState<InboxPayload | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [editing, setEditing] = useState<Record<string, string>>({});
+  const [busyKey, setBusyKey] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async (opts?: { silent?: boolean }) => {
+    if (!opts?.silent) setLoading(true);
+    else setRefreshing(true);
     try {
       const res = await fetch("/api/admin/growth/inbox");
       if (!res.ok) throw new Error("Could not load inbox");
@@ -37,6 +40,7 @@ export function GrowthInboxPanel() {
       toast.error(error instanceof Error ? error.message : "Load failed");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, [toast]);
 
@@ -76,7 +80,18 @@ export function GrowthInboxPanel() {
       const json = (await res.json()) as { error?: string };
       throw new Error(json.error ?? "Update failed");
     }
-    await load();
+    await load({ silent: true });
+  }
+
+  async function runAction(key: string, fn: () => Promise<void>) {
+    setBusyKey(key);
+    try {
+      await fn();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed");
+    } finally {
+      setBusyKey(null);
+    }
   }
 
   function leadForDraft(draft: GrowthDraft): GrowthLead | undefined {
@@ -88,7 +103,12 @@ export function GrowthInboxPanel() {
   }
 
   if (loading && !data) {
-    return <p className="text-sm text-muted">Loading inbox…</p>;
+    return (
+      <p className="flex items-center gap-2 text-sm text-muted">
+        <span className="inline-block size-3.5 animate-spin rounded-full border-2 border-muted border-t-transparent" />
+        Loading inbox…
+      </p>
+    );
   }
 
   const pending =
@@ -100,9 +120,13 @@ export function GrowthInboxPanel() {
         <p className="text-sm text-muted">
           {pending.length} draft{pending.length === 1 ? "" : "s"} waiting for review
         </p>
-        <button type="button" className={ADMIN_BTN_SECONDARY} onClick={() => void load()}>
+        <AdminActionButton
+          busy={refreshing}
+          busyLabel="Refreshing…"
+          onClick={() => void load({ silent: true })}
+        >
           Refresh
-        </button>
+        </AdminActionButton>
       </div>
 
       {pending.length === 0 ? (
@@ -114,6 +138,7 @@ export function GrowthInboxPanel() {
           {pending.map((draft) => {
             const lead = leadForDraft(draft);
             const signal = signalForDraft(draft);
+            const draftBusy = busyKey?.startsWith(`${draft.id}:`) ?? false;
             return (
               <li
                 key={draft.id}
@@ -165,101 +190,85 @@ export function GrowthInboxPanel() {
                   onChange={(e) =>
                     setEditing((prev) => ({ ...prev, [draft.id]: e.target.value }))
                   }
+                  disabled={draftBusy}
                 />
 
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    className={ADMIN_BTN_PRIMARY}
-                    onClick={() => {
-                      void (async () => {
-                        try {
-                          await patchDraft(draft.id, {
-                            bodyText: editing[draft.id],
-                            status: "approved",
-                          });
-                          toast.success("Draft approved");
-                        } catch (error) {
-                          toast.error(
-                            error instanceof Error ? error.message : "Failed",
-                          );
-                        }
-                      })();
-                    }}
+                  <AdminActionButton
+                    variant="primary"
+                    busy={busyKey === `${draft.id}:approve`}
+                    busyLabel="Approving…"
+                    disabled={draftBusy && busyKey !== `${draft.id}:approve`}
+                    onClick={() =>
+                      void runAction(`${draft.id}:approve`, async () => {
+                        await patchDraft(draft.id, {
+                          bodyText: editing[draft.id],
+                          status: "approved",
+                        });
+                        toast.success("Draft approved");
+                      })
+                    }
                   >
                     Approve
-                  </button>
-                  <button
-                    type="button"
-                    className={ADMIN_BTN_SECONDARY}
-                    onClick={() => {
-                      void navigator.clipboard.writeText(editing[draft.id] ?? "");
-                      toast.success("Copied to clipboard");
-                    }}
+                  </AdminActionButton>
+                  <AdminActionButton
+                    busy={busyKey === `${draft.id}:copy`}
+                    busyLabel="Copied"
+                    disabled={draftBusy && busyKey !== `${draft.id}:copy`}
+                    onClick={() =>
+                      void runAction(`${draft.id}:copy`, async () => {
+                        await navigator.clipboard.writeText(editing[draft.id] ?? "");
+                        toast.success("Copied to clipboard");
+                      })
+                    }
                   >
                     Copy for {draft.platform}
-                  </button>
-                  <button
-                    type="button"
-                    className={ADMIN_BTN_SECONDARY}
-                    onClick={() => {
-                      void (async () => {
-                        try {
-                          await patchDraft(draft.id, {
-                            bodyText: editing[draft.id],
-                            status: "published",
-                            markPublished: true,
-                          });
-                          toast.success("Marked as published (manual post)");
-                        } catch (error) {
-                          toast.error(
-                            error instanceof Error ? error.message : "Failed",
-                          );
-                        }
-                      })();
-                    }}
+                  </AdminActionButton>
+                  <AdminActionButton
+                    busy={busyKey === `${draft.id}:posted`}
+                    busyLabel="Saving…"
+                    disabled={draftBusy && busyKey !== `${draft.id}:posted`}
+                    onClick={() =>
+                      void runAction(`${draft.id}:posted`, async () => {
+                        await patchDraft(draft.id, {
+                          bodyText: editing[draft.id],
+                          status: "published",
+                          markPublished: true,
+                        });
+                        toast.success("Marked as published (manual post)");
+                      })
+                    }
                   >
                     Mark posted
-                  </button>
-                  <button
-                    type="button"
-                    className="rounded-lg px-3 py-2 text-sm text-muted hover:bg-white/5 hover:text-foreground"
-                    onClick={() => {
-                      void (async () => {
-                        try {
-                          await patchDraft(draft.id, { status: "rejected" });
-                          toast.toast("Draft rejected");
-                        } catch (error) {
-                          toast.error(
-                            error instanceof Error ? error.message : "Failed",
-                          );
-                        }
-                      })();
-                    }}
+                  </AdminActionButton>
+                  <AdminActionButton
+                    busy={busyKey === `${draft.id}:reject`}
+                    busyLabel="Rejecting…"
+                    disabled={draftBusy && busyKey !== `${draft.id}:reject`}
+                    onClick={() =>
+                      void runAction(`${draft.id}:reject`, async () => {
+                        await patchDraft(draft.id, { status: "rejected" });
+                        toast.toast("Draft rejected");
+                      })
+                    }
                   >
                     Reject
-                  </button>
+                  </AdminActionButton>
                   {lead ? (
-                    <button
-                      type="button"
-                      className="rounded-lg px-3 py-2 text-sm text-muted hover:bg-white/5 hover:text-foreground"
-                      onClick={() => {
-                        void (async () => {
-                          try {
-                            await markLeadNotFit(lead.id);
-                            await patchDraft(draft.id, { status: "rejected" });
-                            toast.success("Lead marked not a fit");
-                            await load();
-                          } catch (error) {
-                            toast.error(
-                              error instanceof Error ? error.message : "Failed",
-                            );
-                          }
-                        })();
-                      }}
+                    <AdminActionButton
+                      busy={busyKey === `${draft.id}:notfit`}
+                      busyLabel="Updating…"
+                      disabled={draftBusy && busyKey !== `${draft.id}:notfit`}
+                      onClick={() =>
+                        void runAction(`${draft.id}:notfit`, async () => {
+                          await markLeadNotFit(lead.id);
+                          await patchDraft(draft.id, { status: "rejected" });
+                          toast.success("Lead marked not a fit");
+                        })
+                      }
                     >
                       Not a fit
-                    </button>
+                    </AdminActionButton>
                   ) : null}
                 </div>
               </li>

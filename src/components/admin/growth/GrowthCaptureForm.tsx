@@ -2,7 +2,7 @@
 
 import { useToast } from "@/components/ToastProvider";
 import type { GrowthPlatform } from "@/lib/growth/types";
-import { ADMIN_BTN_PRIMARY } from "@/lib/ui/admin";
+import { AdminActionButton } from "@/components/admin/AdminActionButton";
 import { useState } from "react";
 
 export function GrowthCaptureForm({ onCreated }: { onCreated?: () => void }) {
@@ -108,9 +108,15 @@ export function GrowthCaptureForm({ onCreated }: { onCreated?: () => void }) {
         </label>
       </div>
 
-      <button type="submit" className={ADMIN_BTN_PRIMARY} disabled={busy}>
-        {busy ? "Working…" : "Score and draft reply"}
-      </button>
+      <AdminActionButton
+        type="submit"
+        variant="primary"
+        busy={busy}
+        busyLabel="Scoring…"
+        disabled={busy}
+      >
+        Score and draft reply
+      </AdminActionButton>
     </form>
   );
 }

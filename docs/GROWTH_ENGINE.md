@@ -44,9 +44,15 @@ npm install -D playwright
 npx playwright install chromium
 ```
 
+6. Connect helper (keep running while you use **Connect** in admin):
+
+```bash
+npm run growth:connect-server
+```
+
 ## Daily workflow
 
-1. **Connect** — `/admin/growth/settings` or `/admin/growth/connect?platform=linkedin` → run `node scripts/growth-connect.mjs linkedin` (or `x`).
+1. **Connect** — `/admin/growth/settings` → **Connect** → sign in inside the embedded browser panel (requires `npm run growth:connect-server` on the same machine). CLI fallback: `node scripts/growth-connect.mjs linkedin`.
 2. **Harvest** — `node scripts/growth-harvest.mjs linkedin` (business hours 08:00–20:00 local by default).
 3. **Review** — `/admin/growth`: approve drafts, copy to platform, mark posted.
 4. **Pipeline** — `/admin/growth/leads`: update status.

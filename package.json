@@ -23,7 +23,8 @@
     "growth:cookies:upload": "node scripts/growth-connector.mjs upload-cookies",
     "growth:cookies:pull": "node scripts/growth-connector.mjs pull-cookies",
     "growth:connect": "node scripts/growth-connect.mjs",
-    "growth:harvest": "node scripts/growth-harvest.mjs"
+    "growth:harvest": "node scripts/growth-harvest.mjs",
+    "growth:connect-server": "node scripts/growth-connect-server.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",

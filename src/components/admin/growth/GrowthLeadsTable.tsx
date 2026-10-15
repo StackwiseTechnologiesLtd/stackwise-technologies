@@ -2,7 +2,7 @@
 
 import { useToast } from "@/components/ToastProvider";
 import type { GrowthLead, PipelineStatus } from "@/lib/growth/types";
-import { ADMIN_BTN_SECONDARY } from "@/lib/ui/admin";
+import { AdminActionButton } from "@/components/admin/AdminActionButton";
 import { useCallback, useEffect, useState } from "react";
 
 const statuses: PipelineStatus[] = [
@@ -20,9 +20,12 @@ export function GrowthLeadsTable() {
   const toast = useToast();
   const [leads, setLeads] = useState<GrowthLead[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async (opts?: { silent?: boolean }) => {
+    if (!opts?.silent) setLoading(true);
+    else setRefreshing(true);
     try {
       const res = await fetch("/api/admin/growth/leads");
       if (!res.ok) throw new Error("Failed to load leads");
@@ -32,6 +35,7 @@ export function GrowthLeadsTable() {
       toast.error(error instanceof Error ? error.message : "Load failed");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, [toast]);
 
@@ -40,16 +44,21 @@ export function GrowthLeadsTable() {
   }, [load]);
 
   async function setStatus(id: string, pipelineStatus: PipelineStatus) {
-    const res = await fetch(`/api/admin/growth/leads/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ pipelineStatus }),
-    });
-    if (!res.ok) {
-      toast.error("Could not update lead");
-      return;
+    setUpdatingId(id);
+    try {
+      const res = await fetch(`/api/admin/growth/leads/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pipelineStatus }),
+      });
+      if (!res.ok) {
+        toast.error("Could not update lead");
+        return;
+      }
+      await load({ silent: true });
+    } finally {
+      setUpdatingId(null);
     }
-    await load();
   }
 
   if (loading) {
@@ -58,9 +67,13 @@ export function GrowthLeadsTable() {
 
   return (
     <div className="space-y-4">
-      <button type="button" className={ADMIN_BTN_SECONDARY} onClick={() => void load()}>
+      <AdminActionButton
+        busy={refreshing}
+        busyLabel="Refreshing…"
+        onClick={() => void load({ silent: true })}
+      >
         Refresh
-      </button>
+      </AdminActionButton>
       <div className="overflow-x-auto rounded-xl border border-line">
         <table className="w-full min-w-[640px] text-left text-sm">
           <thead className="border-b border-line text-muted">
@@ -83,8 +96,9 @@ export function GrowthLeadsTable() {
                 <td className="px-4 py-3 capitalize">{lead.platform ?? "n/a"}</td>
                 <td className="px-4 py-3">
                   <select
-                    className="rounded-md border border-line bg-black/50 px-2 py-1 text-xs"
+                    className="rounded-md border border-line bg-black/50 px-2 py-1 text-xs disabled:opacity-60"
                     value={lead.pipelineStatus}
+                    disabled={updatingId === lead.id}
                     onChange={(e) =>
                       void setStatus(lead.id, e.target.value as PipelineStatus)
                     }
