@@ -21,7 +21,9 @@
     "cf:status": "wrangler deployments status --name stackwise-technologies",
     "growth:push": "node scripts/growth-connector.mjs push",
     "growth:cookies:upload": "node scripts/growth-connector.mjs upload-cookies",
-    "growth:cookies:pull": "node scripts/growth-connector.mjs pull-cookies"
+    "growth:cookies:pull": "node scripts/growth-connector.mjs pull-cookies",
+    "growth:connect": "node scripts/growth-connect.mjs",
+    "growth:harvest": "node scripts/growth-harvest.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.2",

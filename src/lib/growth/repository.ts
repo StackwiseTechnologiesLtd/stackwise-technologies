@@ -13,6 +13,7 @@ import type {
   IngestSignalInput,
   PlatformCredentialStatus,
   PipelineStatus,
+  SessionStatus,
 } from "@/lib/growth/types";
 
 async function ready() {
@@ -382,21 +383,51 @@ export async function savePlatformCredentials(input: {
   const now = new Date().toISOString();
   await sql`
     INSERT INTO growth_platform_credentials (
-      platform, cookie_ciphertext, cookie_iv, user_agent, display_label, updated_at
+      platform, cookie_ciphertext, cookie_iv, user_agent, display_label,
+      updated_at, session_status, last_health_check_at, last_error
     ) VALUES (
       ${input.platform},
       ${ciphertext},
       ${iv},
       ${input.userAgent ?? null},
       ${input.displayLabel ?? null},
-      ${now}::timestamptz
+      ${now}::timestamptz,
+      'active',
+      ${now}::timestamptz,
+      NULL
     )
     ON CONFLICT (platform) DO UPDATE SET
       cookie_ciphertext = EXCLUDED.cookie_ciphertext,
       cookie_iv = EXCLUDED.cookie_iv,
       user_agent = COALESCE(EXCLUDED.user_agent, growth_platform_credentials.user_agent),
       display_label = COALESCE(EXCLUDED.display_label, growth_platform_credentials.display_label),
-      updated_at = EXCLUDED.updated_at
+      updated_at = EXCLUDED.updated_at,
+      session_status = 'active',
+      last_health_check_at = EXCLUDED.last_health_check_at,
+      last_error = NULL
+  `;
+}
+
+export async function reportSessionHealth(input: {
+  platform: GrowthPlatform;
+  sessionStatus: SessionStatus;
+  lastError?: string | null;
+  connectedAccountLabel?: string | null;
+}): Promise<void> {
+  await ready();
+  const sql = getSql();
+  const now = new Date().toISOString();
+  await sql`
+    UPDATE growth_platform_credentials
+    SET
+      session_status = ${input.sessionStatus},
+      last_health_check_at = ${now}::timestamptz,
+      last_error = ${input.lastError ?? null},
+      connected_account_label = COALESCE(
+        ${input.connectedAccountLabel ?? null},
+        connected_account_label
+      )
+    WHERE platform = ${input.platform}
   `;
 }
 
@@ -408,9 +439,14 @@ export async function listCredentialStatus(): Promise<PlatformCredentialStatus[]
     updated_at: string;
     last_sync_at: string | null;
     display_label: string | null;
+    session_status: string;
+    last_health_check_at: string | null;
+    last_error: string | null;
+    connected_account_label: string | null;
   }>(
     await sql`
-      SELECT platform, updated_at, last_sync_at, display_label
+      SELECT platform, updated_at, last_sync_at, display_label,
+        session_status, last_health_check_at, last_error, connected_account_label
       FROM growth_platform_credentials
     `,
   );
@@ -423,6 +459,10 @@ export async function listCredentialStatus(): Promise<PlatformCredentialStatus[]
       updatedAt: row?.updated_at ?? null,
       lastSyncAt: row?.last_sync_at ?? null,
       displayLabel: row?.display_label ?? null,
+      sessionStatus: (row?.session_status as SessionStatus) ?? "disconnected",
+      lastHealthCheckAt: row?.last_health_check_at ?? null,
+      lastError: row?.last_error ?? null,
+      connectedAccountLabel: row?.connected_account_label ?? null,
     };
   });
 }

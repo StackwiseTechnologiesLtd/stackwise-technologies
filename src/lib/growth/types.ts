@@ -92,10 +92,23 @@ export type IngestSignalInput = {
   rawPayload?: Record<string, unknown>;
 };
 
+export const sessionStatuses = [
+  "active",
+  "expired",
+  "challenge",
+  "unknown",
+  "disconnected",
+] as const;
+export type SessionStatus = (typeof sessionStatuses)[number];
+
 export type PlatformCredentialStatus = {
   platform: GrowthPlatform;
   connected: boolean;
   updatedAt: string | null;
   lastSyncAt: string | null;
   displayLabel: string | null;
+  sessionStatus: SessionStatus;
+  lastHealthCheckAt: string | null;
+  lastError: string | null;
+  connectedAccountLabel: string | null;
 };

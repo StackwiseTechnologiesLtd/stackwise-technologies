@@ -214,6 +214,17 @@ CREATE TABLE IF NOT EXISTS growth_drafts (
 CREATE INDEX IF NOT EXISTS idx_growth_drafts_status ON growth_drafts (status);
 `;
 
+const GROWTH_SESSION_HEALTH_SQL = `
+ALTER TABLE growth_platform_credentials
+  ADD COLUMN IF NOT EXISTS session_status VARCHAR(24) NOT NULL DEFAULT 'unknown';
+ALTER TABLE growth_platform_credentials
+  ADD COLUMN IF NOT EXISTS last_health_check_at TIMESTAMPTZ;
+ALTER TABLE growth_platform_credentials
+  ADD COLUMN IF NOT EXISTS last_error TEXT;
+ALTER TABLE growth_platform_credentials
+  ADD COLUMN IF NOT EXISTS connected_account_label TEXT;
+`;
+
 export const MIGRATION_STATEMENTS = [
   ...splitStatements(INIT_SQL),
   ...splitStatements(KPAY_IS_TEST_SQL),
@@ -224,4 +235,5 @@ export const MIGRATION_STATEMENTS = [
   ...splitStatements(PAYSTACK_REFERENCE_SQL),
   ...splitStatements(MAINTENANCE_SUBSCRIPTIONS_SQL),
   ...splitStatements(GROWTH_ENGINE_SQL),
+  ...splitStatements(GROWTH_SESSION_HEALTH_SQL),
 ];

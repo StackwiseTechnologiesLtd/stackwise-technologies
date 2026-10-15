@@ -1,14 +1,14 @@
 "use client";
 
 import { useToast } from "@/components/ToastProvider";
-import type { IcpConfig, PlatformCredentialStatus } from "@/lib/growth/types";
+import { GrowthPlatformConnections } from "@/components/admin/growth/GrowthPlatformConnections";
+import type { IcpConfig } from "@/lib/growth/types";
 import { ADMIN_BTN_PRIMARY, ADMIN_BTN_SECONDARY } from "@/lib/ui/admin";
 import { useCallback, useEffect, useState } from "react";
 
 export function GrowthSettingsPanel() {
   const toast = useToast();
   const [configText, setConfigText] = useState("");
-  const [platforms, setPlatforms] = useState<PlatformCredentialStatus[]>([]);
   const [cookieJson, setCookieJson] = useState("");
   const [cookiePlatform, setCookiePlatform] = useState<"linkedin" | "x">("linkedin");
   const [loading, setLoading] = useState(true);
@@ -16,15 +16,10 @@ export function GrowthSettingsPanel() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [icpRes, credRes] = await Promise.all([
-        fetch("/api/admin/growth/icp"),
-        fetch("/api/admin/growth/credentials"),
-      ]);
-      if (!icpRes.ok || !credRes.ok) throw new Error("Failed to load settings");
+      const icpRes = await fetch("/api/admin/growth/icp");
+      if (!icpRes.ok) throw new Error("Failed to load settings");
       const icp = (await icpRes.json()) as { config: IcpConfig };
-      const cred = (await credRes.json()) as { platforms: PlatformCredentialStatus[] };
       setConfigText(JSON.stringify(icp.config, null, 2));
-      setPlatforms(cred.platforms);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Load failed");
     } finally {
@@ -77,6 +72,8 @@ export function GrowthSettingsPanel() {
 
   return (
     <div className="space-y-8">
+      <GrowthPlatformConnections />
+
       <section className="rounded-xl border border-line bg-panel p-5 sm:p-6">
         <h3 className="text-base font-semibold tracking-tight">ICP and intent rules</h3>
         <p className="mt-1 text-sm text-muted">
@@ -93,22 +90,10 @@ export function GrowthSettingsPanel() {
       </section>
 
       <section className="rounded-xl border border-line bg-panel p-5 sm:p-6">
-        <h3 className="text-base font-semibold tracking-tight">Platform sessions</h3>
+        <h3 className="text-base font-semibold tracking-tight">Manual cookie upload</h3>
         <p className="mt-1 text-sm text-muted">
-          Encrypted cookie jars for your local connector (LinkedIn and X). Never shared in API responses.
+          Fallback if you already export cookies from another tool. Prefer Connect above.
         </p>
-        <ul className="mt-4 space-y-2 text-sm">
-          {platforms.map((p) => (
-            <li key={p.platform} className="flex justify-between gap-4">
-              <span className="font-medium capitalize">{p.platform}</span>
-              <span className="text-muted">
-                {p.connected
-                  ? `Connected · updated ${p.updatedAt ? new Date(p.updatedAt).toLocaleDateString() : ""}`
-                  : "Not connected"}
-              </span>
-            </li>
-          ))}
-        </ul>
 
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <label className="block text-sm">
