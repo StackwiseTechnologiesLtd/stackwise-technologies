@@ -48,11 +48,13 @@ npx playwright install chromium
 
    Optional fallback: deploy `deploy/growth-connect` to Fly/Render and set `GROWTH_CONNECT_VIEWER_BASE` on the Worker (admin proxies via `/api/admin/growth/connect/relay`).
 
-7. **Local dev only** — connect helper:
+7. **Local dev** — `npm run dev` uses **local** connect mode (`http://127.0.0.1:9234`), not Miniflare’s browser binding (it often errors with a corrupt Chromium zip). Run:
 
 ```bash
 npm run growth:connect-server
 ```
+
+Optional: `GROWTH_CONNECT_USE_HOSTED_LOCAL=1` to try hosted browser under `next dev`. `GROWTH_CONNECT_FORCE_LOCAL=1` forces local mode in any environment.
 
 ## Daily workflow
 

@@ -43,7 +43,14 @@ export async function POST(request: Request) {
       embedUrl: `/api/admin/growth/connect/browser/v1/embed?session=${sessionId}`,
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Session failed";
+    const raw = error instanceof Error ? error.message : "Session failed";
+    const localHint =
+      process.env.NODE_ENV === "development"
+        ? " For local dev, run npm run growth:connect-server (Miniflare browser launch is not supported)."
+        : "";
+    const message = raw.includes("miniflare") || raw.includes("central directory")
+      ? `Cloudflare browser launch failed.${localHint}`
+      : `${raw}${localHint}`;
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

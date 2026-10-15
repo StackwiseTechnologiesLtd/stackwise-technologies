@@ -10,6 +10,13 @@ export function siteOrigin(request: Request): string {
   return new URL(request.url).origin;
 }
 
+/** Miniflare’s browser binding in `next dev` often fails (broken Chromium zip). Use local connect server instead. */
+export function preferLocalConnectServer(): boolean {
+  if (process.env.GROWTH_CONNECT_FORCE_LOCAL === "1") return true;
+  if (process.env.GROWTH_CONNECT_USE_HOSTED_LOCAL === "1") return false;
+  return process.env.NODE_ENV === "development";
+}
+
 export async function resolveGrowthConnect(
   request: Request,
 ): Promise<{ mode: ConnectMode; viewerBaseUrl: string }> {
@@ -20,6 +27,13 @@ export async function resolveGrowthConnect(
     return {
       mode: "relay",
       viewerBaseUrl: `${origin}/api/admin/growth/connect/relay`,
+    };
+  }
+
+  if (preferLocalConnectServer()) {
+    return {
+      mode: "local",
+      viewerBaseUrl: "http://127.0.0.1:9234",
     };
   }
 
