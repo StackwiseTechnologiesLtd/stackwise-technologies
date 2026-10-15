@@ -170,18 +170,11 @@ export function GrowthConnectPanel({ platform }: { platform: GrowthPlatform }) {
           >
             Connect {label}
           </AdminActionButton>
-          {connectMode === "local" ? (
-            <p className="text-xs text-muted">
-              Local dev: run{" "}
-              <code className="text-foreground">npm run growth:connect-server</code> on
-              this machine first.
-            </p>
-          ) : (
-            <p className="text-xs text-muted">
-              Runs on Stackwise infrastructure — no terminal needed. Sign in in the panel
-              below.
-            </p>
-          )}
+          <p className="text-xs text-muted">
+            {connectMode === "local"
+              ? "Sign in in the panel below — no extra terminal or scripts."
+              : "Runs on Stackwise — sign in in the panel below."}
+          </p>
         </>
       )}
 
@@ -196,14 +189,14 @@ export function GrowthConnectPanel({ platform }: { platform: GrowthPlatform }) {
         <div className="space-y-3 text-sm">
           <p className="text-amber-200/90">
             {connectMode === "local"
-              ? "Connect helper is not running on this computer. Start it, then try again."
+              ? "Could not start the in-app browser. Install Playwright once, then retry."
               : connectMode === "relay"
                 ? "Remote connect service is unreachable. Check GROWTH_CONNECT_VIEWER_BASE and the Fly/Render app."
                 : "Cloudflare Browser Rendering is not available. Enable the browser binding on your Worker and redeploy."}
           </p>
           {connectMode === "local" ? (
             <pre className="overflow-x-auto rounded-lg bg-black/50 p-3 text-xs">
-              npm run growth:connect-server
+              npx playwright install chromium
             </pre>
           ) : null}
           <AdminActionButton

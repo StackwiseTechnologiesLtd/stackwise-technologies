@@ -70,8 +70,8 @@ export function GrowthPlatformConnections() {
         <div>
           <h3 className="text-base font-semibold tracking-tight">Platform login</h3>
           <p className="mt-1 max-w-xl text-sm text-muted">
-            Click Connect to sign in inside the admin panel. On production this uses
-            Cloudflare Browser Rendering — no local terminal.
+            Click Connect to sign in inside the admin panel — no separate scripts or
+            terminals.
           </p>
         </div>
         <AdminActionButton
