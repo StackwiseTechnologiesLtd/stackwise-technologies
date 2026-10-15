@@ -2,7 +2,7 @@
 
 import { AdminActionButton } from "@/components/admin/AdminActionButton";
 import { useToast } from "@/components/ToastProvider";
-import type { GrowthPlatform } from "@/lib/growth/types";
+import type { ConnectMode, GrowthPlatform } from "@/lib/growth/types";
 import { ADMIN_BTN_SECONDARY } from "@/lib/ui/admin";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
@@ -25,14 +25,35 @@ export function GrowthConnectPanel({ platform }: { platform: GrowthPlatform }) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [retrying, setRetrying] = useState(false);
   const [launching, setLaunching] = useState(false);
+  const [connectMode, setConnectMode] = useState<ConnectMode>("local");
 
   const checkHelper = useCallback(async (base: string) => {
     try {
-      const res = await fetch(`${base}/health`, { method: "GET", mode: "cors" });
+      const res = await fetch(`${base}/health`, {
+        method: "GET",
+        credentials: "include",
+      });
       return res.ok;
     } catch {
       return false;
     }
+  }, []);
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const res = await fetch("/api/admin/growth/connect/config");
+        if (!res.ok) return;
+        const json = (await res.json()) as {
+          mode: ConnectMode;
+          viewerBaseUrl: string;
+        };
+        setConnectMode(json.mode);
+        setViewerBase(json.viewerBaseUrl.replace(/\/$/, ""));
+      } catch {
+        /* ignore */
+      }
+    })();
   }, []);
 
   const pollSessionActive = useCallback(async () => {
@@ -81,9 +102,11 @@ export function GrowthConnectPanel({ platform }: { platform: GrowthPlatform }) {
       const handshake = (await handshakeRes.json()) as {
         token: string;
         viewerBaseUrl: string;
+        connectMode?: ConnectMode;
       };
       const base = handshake.viewerBaseUrl.replace(/\/$/, "");
       setViewerBase(base);
+      if (handshake.connectMode) setConnectMode(handshake.connectMode);
 
       const helperUp = await checkHelper(base);
       if (!helperUp) {
@@ -94,6 +117,7 @@ export function GrowthConnectPanel({ platform }: { platform: GrowthPlatform }) {
       setPhase("starting");
       const sessionRes = await fetch(`${base}/v1/sessions`, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token: handshake.token }),
       });
@@ -146,11 +170,18 @@ export function GrowthConnectPanel({ platform }: { platform: GrowthPlatform }) {
           >
             Connect {label}
           </AdminActionButton>
-          <p className="text-xs text-muted">
-            Requires the local helper:{" "}
-            <code className="text-foreground">npm run growth:connect-server</code> in a
-            terminal (same machine as this browser tab).
-          </p>
+          {connectMode === "local" ? (
+            <p className="text-xs text-muted">
+              Local dev: run{" "}
+              <code className="text-foreground">npm run growth:connect-server</code> on
+              this machine first.
+            </p>
+          ) : (
+            <p className="text-xs text-muted">
+              Runs on Stackwise infrastructure — no terminal needed. Sign in in the panel
+              below.
+            </p>
+          )}
         </>
       )}
 
@@ -164,11 +195,17 @@ export function GrowthConnectPanel({ platform }: { platform: GrowthPlatform }) {
       {phase === "helper_offline" && (
         <div className="space-y-3 text-sm">
           <p className="text-amber-200/90">
-            Connect helper is not running on this computer. Start it, then try again.
+            {connectMode === "local"
+              ? "Connect helper is not running on this computer. Start it, then try again."
+              : connectMode === "relay"
+                ? "Remote connect service is unreachable. Check GROWTH_CONNECT_VIEWER_BASE and the Fly/Render app."
+                : "Cloudflare Browser Rendering is not available. Enable the browser binding on your Worker and redeploy."}
           </p>
-          <pre className="overflow-x-auto rounded-lg bg-black/50 p-3 text-xs">
-            npm run growth:connect-server
-          </pre>
+          {connectMode === "local" ? (
+            <pre className="overflow-x-auto rounded-lg bg-black/50 p-3 text-xs">
+              npm run growth:connect-server
+            </pre>
+          ) : null}
           <AdminActionButton
             busy={retrying}
             busyLabel="Checking…"

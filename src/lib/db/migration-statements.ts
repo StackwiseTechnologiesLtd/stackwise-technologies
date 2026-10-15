@@ -225,6 +225,20 @@ ALTER TABLE growth_platform_credentials
   ADD COLUMN IF NOT EXISTS connected_account_label TEXT;
 `;
 
+const GROWTH_CONNECT_BROWSER_SESSIONS_SQL = `
+CREATE TABLE IF NOT EXISTS growth_connect_browser_sessions (
+  id UUID PRIMARY KEY,
+  platform VARCHAR(16) NOT NULL,
+  puppeteer_session_id TEXT NOT NULL,
+  status VARCHAR(24) NOT NULL DEFAULT 'login',
+  last_error TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_growth_connect_browser_status
+  ON growth_connect_browser_sessions (status, updated_at DESC);
+`;
+
 export const MIGRATION_STATEMENTS = [
   ...splitStatements(INIT_SQL),
   ...splitStatements(KPAY_IS_TEST_SQL),
@@ -236,4 +250,5 @@ export const MIGRATION_STATEMENTS = [
   ...splitStatements(MAINTENANCE_SUBSCRIPTIONS_SQL),
   ...splitStatements(GROWTH_ENGINE_SQL),
   ...splitStatements(GROWTH_SESSION_HEALTH_SQL),
+  ...splitStatements(GROWTH_CONNECT_BROWSER_SESSIONS_SQL),
 ];

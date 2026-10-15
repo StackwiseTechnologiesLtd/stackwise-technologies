@@ -70,9 +70,8 @@ export function GrowthPlatformConnections() {
         <div>
           <h3 className="text-base font-semibold tracking-tight">Platform login</h3>
           <p className="mt-1 max-w-xl text-sm text-muted">
-            Click Connect to sign in inside the admin panel. Run{" "}
-            <code className="text-foreground">npm run growth:connect-server</code> once on
-            this machine first.
+            Click Connect to sign in inside the admin panel. On production this uses
+            Cloudflare Browser Rendering — no local terminal.
           </p>
         </div>
         <AdminActionButton

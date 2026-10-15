@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth/session";
 import { mintGrowthConnectToken } from "@/lib/growth/connect-token";
+import { resolveGrowthConnect } from "@/lib/growth/connect-routing";
 import { growthPlatforms, type GrowthPlatform } from "@/lib/growth/types";
 
 export async function POST(request: Request) {
@@ -16,13 +17,13 @@ export async function POST(request: Request) {
     }
 
     const { token, expiresAt } = await mintGrowthConnectToken(body.platform);
-    const viewerBaseUrl =
-      process.env.GROWTH_CONNECT_VIEWER_BASE ?? "http://127.0.0.1:9234";
+    const { mode, viewerBaseUrl } = await resolveGrowthConnect(request);
 
     return NextResponse.json({
       token,
       expiresAt,
       viewerBaseUrl,
+      connectMode: mode,
       platform: body.platform,
     });
   } catch (error) {

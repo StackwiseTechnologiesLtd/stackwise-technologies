@@ -1,6 +1,9 @@
 export const growthPlatforms = ["linkedin", "x"] as const;
 export type GrowthPlatform = (typeof growthPlatforms)[number];
 
+export const connectModes = ["hosted", "relay", "local"] as const;
+export type ConnectMode = (typeof connectModes)[number];
+
 export const pipelineStatuses = [
   "new",
   "reviewed",

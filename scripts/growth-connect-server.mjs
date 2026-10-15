@@ -166,12 +166,6 @@ async function startSession(platform, token) {
   return id;
 }
 
-function cors(res) {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-}
-
 function readJson(req) {
   return new Promise((resolve, reject) => {
     let body = "";
@@ -286,8 +280,23 @@ const EMBED_HTML = `<!DOCTYPE html>
 </body>
 </html>`;
 
+function applyCors(req, res) {
+  const allowed = (process.env.GROWTH_CONNECT_ALLOWED_ORIGINS ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const origin = req.headers.origin;
+  if (!allowed.length) {
+    res.setHeader("Access-Control-Allow-Origin", origin ?? "*");
+  } else if (origin && allowed.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+}
+
 const server = http.createServer(async (req, res) => {
-  cors(res);
+  applyCors(req, res);
   if (req.method === "OPTIONS") {
     res.writeHead(204);
     res.end();
@@ -387,7 +396,10 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-server.listen(port, "127.0.0.1", () => {
-  console.log(`Growth connect server listening on http://127.0.0.1:${port}`);
-  console.log("Keep this running while you use Connect in the admin UI.");
+const host = process.env.GROWTH_CONNECT_HOST ?? "127.0.0.1";
+server.listen(port, host, () => {
+  console.log(`Growth connect server listening on http://${host}:${port}`);
+  if (host === "127.0.0.1") {
+    console.log("Keep this running while you use Connect in the admin UI.");
+  }
 });

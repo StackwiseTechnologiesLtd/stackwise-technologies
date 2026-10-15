@@ -44,7 +44,11 @@ npm install -D playwright
 npx playwright install chromium
 ```
 
-6. Connect helper (keep running while you use **Connect** in admin):
+6. **Production connect (no terminal)** — enable [Browser Rendering](https://developers.cloudflare.com/browser-run/) on your Cloudflare account. This repo’s `wrangler.jsonc` includes a `browser` binding. After deploy, **Connect** in admin uses Cloudflare-hosted Chromium in the embedded panel.
+
+   Optional fallback: deploy `deploy/growth-connect` to Fly/Render and set `GROWTH_CONNECT_VIEWER_BASE` on the Worker (admin proxies via `/api/admin/growth/connect/relay`).
+
+7. **Local dev only** — connect helper:
 
 ```bash
 npm run growth:connect-server
