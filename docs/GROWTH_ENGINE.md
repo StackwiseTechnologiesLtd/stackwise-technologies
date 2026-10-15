@@ -58,8 +58,8 @@ Optional: `npm run growth:connect-server` is a legacy standalone helper. `GROWTH
 
 ## Daily workflow
 
-1. **Connect** — `/admin/growth/settings` → **Connect** → sign in inside the embedded browser panel (requires `npm run growth:connect-server` on the same machine). CLI fallback: `node scripts/growth-connect.mjs linkedin`.
-2. **Harvest** — `node scripts/growth-harvest.mjs linkedin` (business hours 08:00–20:00 local by default).
+1. **Connect** — Settings → **Connect** (or connect page). Production uses Cloudflare Browser Rendering; local dev opens Chromium on your machine.
+2. **Harvest** — `/admin/growth` → **Harvest X / LinkedIn feed** (scores posts and creates inbox drafts). CLI: `node scripts/growth-harvest.mjs x`.
 3. **Review** — `/admin/growth`: approve drafts, copy to platform, mark posted.
 4. **Pipeline** — `/admin/growth/leads`: update status.
 5. **Tune scoring** — `/admin/growth/settings`: edit ICP JSON.
