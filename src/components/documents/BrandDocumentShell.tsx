@@ -19,15 +19,32 @@ export function BrandDocumentShell({
   documentLabel?: string;
   compact?: boolean;
   markId?: string;
-  /** Optimized for A4 print (no card chrome). */
   printSurface?: boolean;
-  /** Locked print layout inside {@link DocumentA4Preview}. */
   a4Fixed?: boolean;
   children: ReactNode;
   footerExtra?: ReactNode;
   className?: string;
 }) {
   const [companyName] = companyFooterLines;
+
+  const footer = (
+    <footer className={`brand-doc-footer ${a4Fixed ? "brand-doc-page-footer" : ""}`}>
+      <p className="font-semibold" style={{ color: BRAND_BURGUNDY }}>
+        {companyName}
+      </p>
+      <p className="mt-1">{companyDocumentContacts.join(" · ")}</p>
+      {footerExtra}
+    </footer>
+  );
+
+  const letterhead = (
+    <BrandDocumentLetterhead
+      documentLabel={documentLabel}
+      compact={compact}
+      markId={markId}
+      a4Fixed={a4Fixed}
+    />
+  );
 
   return (
     <article
@@ -38,27 +55,25 @@ export function BrandDocumentShell({
       <div className="brand-doc-accent" style={{ backgroundColor: BRAND_BURGUNDY }} aria-hidden />
       <div className="brand-doc-watermark" aria-hidden />
 
-      <div
-        className={`brand-doc-inner relative ${
-          a4Fixed ? "" : compact ? "px-4 py-4" : "px-5 py-5 sm:px-7 sm:py-6"
-        }`}
-      >
-        <BrandDocumentLetterhead
-          documentLabel={documentLabel}
-          compact={compact}
-          markId={markId}
-          a4Fixed={a4Fixed}
-        />
-        <div className="brand-doc-body">{children}</div>
-      </div>
-
-      <footer className="brand-doc-footer">
-        <p className="font-semibold" style={{ color: BRAND_BURGUNDY }}>
-          {companyName}
-        </p>
-        <p className="mt-1">{companyDocumentContacts.join(" · ")}</p>
-        {footerExtra}
-      </footer>
+      {a4Fixed ? (
+        <div className="brand-doc-a4-frame">
+          <header className="brand-doc-page-header">{letterhead}</header>
+          <main className="brand-doc-page-main">{children}</main>
+          {footer}
+        </div>
+      ) : (
+        <>
+          <div
+            className={`brand-doc-inner relative ${
+              compact ? "px-4 py-4" : "px-5 py-5 sm:px-7 sm:py-6"
+            }`}
+          >
+            {letterhead}
+            <div className="brand-doc-body">{children}</div>
+          </div>
+          {footer}
+        </>
+      )}
     </article>
   );
 }

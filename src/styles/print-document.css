@@ -113,6 +113,8 @@
 }
 
 .document-a4-sheet .brand-doc--a4-fixed {
+  display: flex;
+  flex-direction: column;
   width: 100%;
   min-height: 297mm;
   box-sizing: border-box;
@@ -121,9 +123,30 @@
   border: 1px solid #e2e8f0;
 }
 
-.document-a4-sheet .brand-doc--a4-fixed .brand-doc-inner {
-  padding: 20mm;
+.brand-doc--a4-fixed .brand-doc-a4-frame {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
   box-sizing: border-box;
+  min-height: calc(297mm - 3px);
+  padding: 20mm;
+}
+
+.brand-doc--a4-fixed .brand-doc-page-header {
+  flex-shrink: 0;
+}
+
+.brand-doc--a4-fixed .brand-doc-page-main {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.brand-doc--a4-fixed .brand-doc-page-footer {
+  flex-shrink: 0;
+  margin-top: auto;
+  padding-top: 0.75rem;
+  border-top: 1px solid #eef2f6;
+  background: transparent;
 }
 
 .document-a4-sheet .brand-doc--a4-fixed .brand-doc-type-label {
@@ -153,7 +176,13 @@
     border: none !important;
   }
 
-  .document-a4-sheet .brand-doc--a4-fixed .brand-doc-inner {
+  .brand-doc--a4-fixed .brand-doc-a4-frame {
+    min-height: 0 !important;
     padding: 0 !important;
+    display: block !important;
+  }
+
+  .brand-doc--a4-fixed .brand-doc-page-footer {
+    margin-top: 1.5rem !important;
   }
 }
