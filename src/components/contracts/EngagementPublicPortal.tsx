@@ -12,6 +12,7 @@ import {
   type ContractEngagement,
 } from "@/lib/contracts/types";
 import type { PaymentLink } from "@/lib/payments/types";
+import { PrintButton } from "@/components/payments/PrintButton";
 import { formatMoney } from "@/lib/currency";
 
 type Tab = "agreement" | "progress" | "billing";
@@ -54,7 +55,7 @@ export function EngagementPublicPortal({
 
   return (
     <div className="space-y-6">
-      <header className="space-y-1">
+      <header className="space-y-1 print:hidden">
         <p className="text-xs font-semibold uppercase tracking-wide text-[#64748b]">
           Stackwise engagement
         </p>
@@ -64,7 +65,7 @@ export function EngagementPublicPortal({
         )}
       </header>
 
-      <nav className="flex flex-wrap gap-2 border-b border-[#e2e8f0] pb-2">
+      <nav className="flex flex-wrap gap-2 border-b border-[#e2e8f0] pb-2 print:hidden">
         {tabs.map((t) => (
           <button
             key={t.id}
@@ -84,19 +85,30 @@ export function EngagementPublicPortal({
 
       {tab === "agreement" && (
         <div className="space-y-6">
-          <ContractDocumentView engagement={engagement} variant="client" />
-          {canAccept && <ContractAcceptForm slug={engagement.slug} />}
-          {alreadyAccepted && (
-            <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-              Accepted
-              {engagement.acceptedByName ? ` by ${engagement.acceptedByName}` : ""}
-              {engagement.acceptedAt
-                ? ` on ${new Date(engagement.acceptedAt).toLocaleDateString()}`
-                : ""}
-              .
-            </p>
-          )}
-          <ContractFeedbackForm slug={engagement.slug} />
+          <div className="document-print-root space-y-3">
+            <div className="flex justify-end print:hidden">
+              <PrintButton />
+            </div>
+            <ContractDocumentView
+              engagement={engagement}
+              variant="client"
+              printSurface
+            />
+          </div>
+          <div className="space-y-6 print:hidden">
+            {canAccept && <ContractAcceptForm slug={engagement.slug} />}
+            {alreadyAccepted && (
+              <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+                Accepted
+                {engagement.acceptedByName ? ` by ${engagement.acceptedByName}` : ""}
+                {engagement.acceptedAt
+                  ? ` on ${new Date(engagement.acceptedAt).toLocaleDateString()}`
+                  : ""}
+                .
+              </p>
+            )}
+            <ContractFeedbackForm slug={engagement.slug} />
+          </div>
         </div>
       )}
 

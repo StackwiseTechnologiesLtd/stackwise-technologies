@@ -4,6 +4,7 @@ import { ContractDocumentView } from "@/components/contracts/ContractDocumentVie
 import { ContractMarkdownEditor } from "@/components/contracts/ContractMarkdownEditor";
 import { useToast } from "@/components/ToastProvider";
 import type { ContractEngagement } from "@/lib/contracts/types";
+import { PrintButton } from "@/components/payments/PrintButton";
 import { BTN_PRIMARY, BTN_SECONDARY } from "@/lib/ui/buttons";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -166,11 +167,22 @@ export function ContractReviewPanel({
         </section>
 
         <section className="space-y-3 xl:sticky xl:top-4">
-          <div>
-            <h2 className="text-sm font-semibold">Client view</h2>
-            <p className="mt-1 text-xs text-muted">Live layout for the shared link.</p>
+          <div className="flex flex-wrap items-start justify-between gap-2 print:hidden">
+            <div>
+              <h2 className="text-sm font-semibold">Client view</h2>
+              <p className="mt-1 text-xs text-muted">
+                A4 layout · 12pt body · matches print.
+              </p>
+            </div>
+            <PrintButton />
           </div>
-          <ContractDocumentView engagement={draftEngagement} variant="admin" />
+          <div className="document-print-root">
+            <ContractDocumentView
+              engagement={draftEngagement}
+              variant="admin"
+              printSurface
+            />
+          </div>
         </section>
       </div>
     </div>

@@ -5,7 +5,7 @@ import { ClientProviders } from "@/components/ClientProviders";
 import { SITE_NAME } from "@/lib/content";
 import "../../../styles/globals.css";
 import "../../../styles/brand-document.css";
-import "../../../styles/print-receipt.css";
+import "../../../styles/print-document.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,7 +32,7 @@ export default function PayCheckoutLayout({ children }: { children: ReactNode })
     >
       <body className="min-h-full font-sans">
         <ClientProviders>
-          <div className="mx-auto max-w-3xl px-4 py-10">{children}</div>
+          <div className="mx-auto w-full max-w-[210mm] px-4 py-10">{children}</div>
         </ClientProviders>
       </body>
     </html>

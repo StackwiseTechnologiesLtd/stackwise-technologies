@@ -10,6 +10,7 @@ export function BrandDocumentShell({
   documentLabel,
   compact = false,
   markId,
+  printSurface = false,
   children,
   footerExtra,
   className = "",
@@ -17,6 +18,8 @@ export function BrandDocumentShell({
   documentLabel?: string;
   compact?: boolean;
   markId?: string;
+  /** Optimized for A4 print (no card chrome). */
+  printSurface?: boolean;
   children: ReactNode;
   footerExtra?: ReactNode;
   className?: string;
@@ -25,7 +28,9 @@ export function BrandDocumentShell({
 
   return (
     <article
-      className={`brand-doc relative overflow-hidden bg-white text-[#0f172a] ${className}`}
+      className={`brand-doc relative overflow-hidden bg-white text-[#0f172a] ${
+        printSurface ? "brand-doc-print-surface" : ""
+      } ${className}`}
     >
       <div className="brand-doc-accent" style={{ backgroundColor: BRAND_BURGUNDY }} aria-hidden />
       <div className="brand-doc-watermark" aria-hidden />

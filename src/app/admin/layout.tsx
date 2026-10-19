@@ -7,6 +7,7 @@ import { gravatarUrl } from "@/lib/gravatar";
 import { createPageMetadata } from "@/lib/metadata";
 import "../../styles/globals.css";
 import "../../styles/brand-document.css";
+import "../../styles/print-document.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

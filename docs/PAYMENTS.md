@@ -8,7 +8,7 @@ Public routes under `/pay/[slug]`:
 | --- | --- |
 | `/pay/[slug]` | Invoice + pay (card via Paystack when configured, Mobile Money via KPay) |
 | `/pay/[slug]/return` | Paystack and KPay return handler |
-| `/pay/[slug]/receipt` | **Paid only** — printable receipt (A4) |
+| `/pay/[slug]/receipt` | **Paid only** — printable receipt (A4, 12pt body, 20mm margins) |
 | `/pay/legal` | Payment processing & data notice |
 
 Every pay page includes a **PaymentLegalNotice** footer linking to `/pay/legal`.

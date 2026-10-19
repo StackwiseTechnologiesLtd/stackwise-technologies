@@ -1,0 +1,94 @@
+/**
+ * A4 print + on-screen page width for invoices, receipts, and agreements.
+ * Body typography follows common business default: 12pt with 1.5 line-height.
+ */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 20mm;
+  }
+
+  html,
+  body {
+    background: white !important;
+    color: #0f172a !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .document-print-root,
+  .receipt-print-root {
+    max-width: none !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .brand-doc-print-surface,
+  .receipt-print-document {
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .brand-doc-print-surface .brand-doc-accent,
+  .receipt-print-document .brand-doc-accent {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .brand-doc {
+    font-size: 12pt !important;
+    line-height: 1.5 !important;
+  }
+
+  .brand-doc-inner {
+    padding: 0 !important;
+  }
+
+  .prose-contract {
+    font-size: 12pt !important;
+  }
+
+  .prose-contract h2 {
+    font-size: 13pt !important;
+  }
+
+  .prose-contract h3 {
+    font-size: 12pt !important;
+  }
+
+  .brand-doc-table {
+    font-size: 11pt !important;
+  }
+
+  .brand-doc-table thead th {
+    font-size: 9pt !important;
+  }
+
+  .brand-doc-footer {
+    font-size: 9pt !important;
+  }
+
+  .brand-doc-contact-row {
+    font-size: 10pt !important;
+  }
+
+  .line-clamp-2 {
+    -webkit-line-clamp: unset;
+    line-clamp: unset;
+    display: block;
+    overflow: visible;
+  }
+}
+
+/* On screen: match printable content width (A4 sheet). */
+.document-print-root,
+.receipt-print-root {
+  width: 100%;
+  max-width: 210mm;
+  margin-left: auto;
+  margin-right: auto;
+}

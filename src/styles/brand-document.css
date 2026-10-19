@@ -1,13 +1,14 @@
-/* Client-facing invoices, receipts, and agreements */
+/* Client-facing invoices, receipts, and agreements (12pt business body) */
 
 .brand-doc {
+  --brand-doc-body: 12pt;
   border-radius: 0.25rem;
   border: 1px solid #e8ecf1;
   box-shadow:
     0 1px 2px rgba(15, 23, 42, 0.04),
     0 12px 40px rgba(15, 23, 42, 0.06);
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: var(--brand-doc-body);
+  line-height: 1.5;
   color: #0f172a;
 }
 
@@ -43,18 +44,11 @@
 }
 
 .brand-doc-type-label {
-  font-size: 0.625rem;
+  font-size: 0.75em;
   font-weight: 700;
   letter-spacing: 0.16em;
   line-height: 1.25;
   word-break: break-word;
-}
-
-@media (min-width: 640px) {
-  .brand-doc-type-label {
-    font-size: 0.65rem;
-    letter-spacing: 0.2em;
-  }
 }
 
 .brand-doc-contact-row {
@@ -65,15 +59,9 @@
   margin: 0.65rem 0 0;
   padding: 0;
   list-style: none;
-  font-size: 10px;
+  font-size: 0.833em;
   line-height: 1.45;
   color: #64748b;
-}
-
-@media (min-width: 640px) {
-  .brand-doc-contact-row {
-    font-size: 11px;
-  }
 }
 
 .brand-doc-contact-row li {
@@ -100,7 +88,7 @@
 }
 
 .brand-doc-to-label {
-  font-size: 0.625rem;
+  font-size: 0.75em;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -109,14 +97,29 @@
 
 .brand-doc-to-name {
   margin-top: 0.25rem;
-  font-size: 0.9rem;
+  font-size: 1.083em;
   font-weight: 700;
   line-height: 1.3;
   color: #0f172a;
 }
 
+.brand-doc-doc-title {
+  font-size: 1.125em;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: #0f172a;
+}
+
+.brand-doc-doc-ref {
+  margin-top: 0.25rem;
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.833em;
+  color: #94a3b8;
+}
+
 .brand-doc-meta-label {
-  font-size: 0.625rem;
+  font-size: 0.75em;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -125,26 +128,26 @@
 
 .brand-doc-meta-value {
   margin-top: 0.2rem;
-  font-size: 0.8125rem;
+  font-size: 0.917em;
   font-weight: 600;
   color: #0f172a;
 }
 
 .brand-doc-meta-value--accent {
   font-family: var(--font-geist-mono), ui-monospace, monospace;
-  font-size: 0.875rem;
+  font-size: 1em;
   color: #541111;
 }
 
 .brand-doc-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.8125rem;
+  font-size: 0.917em;
 }
 
 .brand-doc-table thead th {
   padding: 0.5rem 0;
-  font-size: 0.625rem;
+  font-size: 0.75em;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -170,7 +173,7 @@
   max-width: 18rem;
   border-top: 2px solid #541111;
   padding-top: 0.65rem;
-  font-size: 0.8125rem;
+  font-size: 0.917em;
 }
 
 .brand-doc-footer {
@@ -178,16 +181,9 @@
   background: linear-gradient(to bottom, #fafbfc, #fff);
   padding: 0.65rem 1rem;
   text-align: center;
-  font-size: 10px;
+  font-size: 0.833em;
   line-height: 1.5;
   color: #64748b;
-}
-
-@media (min-width: 640px) {
-  .brand-doc-footer {
-    font-size: 11px;
-    padding: 0.75rem 1.25rem;
-  }
 }
 
 @media print {

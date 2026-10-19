@@ -42,6 +42,7 @@ export function InvoiceView({
       documentLabel={documentLabel}
       compact={compact}
       markId="sw-invoice-mark"
+      printSurface={printMode}
       className={printMode ? "receipt-print-document !shadow-none !border-0" : ""}
       footerExtra={
         <p className="mt-2 text-[#94a3b8]">

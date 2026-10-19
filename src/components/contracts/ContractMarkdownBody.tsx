@@ -11,7 +11,7 @@ export function ContractMarkdownBody({
 
   return (
     <div
-      className={`contract-body prose-contract text-[13px] leading-relaxed text-[#334155] sm:text-sm ${className}`}
+      className={`contract-body prose-contract text-[#334155] ${className}`}
       dangerouslySetInnerHTML={{ __html: bodyHtml }}
     />
   );

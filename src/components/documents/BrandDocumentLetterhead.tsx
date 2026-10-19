@@ -24,12 +24,12 @@ export function BrandDocumentLetterhead({
         <div className="flex min-w-0 items-start justify-between gap-2">
           <div className="min-w-0">
             <p
-              className="text-[13px] font-bold leading-snug tracking-tight sm:text-sm"
+              className="text-[1em] font-bold leading-snug tracking-tight"
               style={{ color: BRAND_BURGUNDY }}
             >
               {SITE_NAME}
             </p>
-            <p className="mt-0.5 text-[10px] leading-snug text-[#64748b] sm:text-[11px]">
+            <p className="mt-0.5 text-[0.833em] leading-snug text-[#64748b]">
               {COMPANY_TAGLINE}
             </p>
           </div>
