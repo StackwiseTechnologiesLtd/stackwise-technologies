@@ -1,0 +1,36 @@
+.prose-contract h2 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.prose-contract h3 {
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.prose-contract p {
+  margin-bottom: 0.75rem;
+}
+
+.prose-contract ul.contract-list,
+.prose-contract ol.contract-list {
+  margin: 0.5rem 0 1rem 1.25rem;
+}
+
+.prose-contract li {
+  margin-bottom: 0.35rem;
+}
+
+.prose-contract code {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.85em;
+  background: #f1f5f9;
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+}

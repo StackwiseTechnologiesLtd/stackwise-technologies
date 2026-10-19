@@ -26,6 +26,15 @@ export function AdminNavIcon({
           <path d="M14 11a5 5 0 0 1-7.07 0L5.52 9.59a5 5 0 0 1 7.07-7.07L13.65 3.58" />
         </svg>
       );
+    case "contracts":
+      return (
+        <svg {...props}>
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+          <path d="M14 2v6h6" />
+          <path d="M8 13h8" />
+          <path d="M8 17h8" />
+        </svg>
+      );
     case "subscription":
       return (
         <svg {...props}>

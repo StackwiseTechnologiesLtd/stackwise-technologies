@@ -244,6 +244,33 @@ CREATE INDEX IF NOT EXISTS idx_growth_connect_browser_status
   ON growth_connect_browser_sessions (status, updated_at DESC);
 `;
 
+const CONTRACT_ENGAGEMENTS_SQL = `
+CREATE TABLE IF NOT EXISTS contract_engagements (
+  id UUID PRIMARY KEY,
+  slug VARCHAR(32) NOT NULL UNIQUE,
+  reference VARCHAR(24) NOT NULL UNIQUE,
+  title TEXT NOT NULL DEFAULT '',
+  document_kind VARCHAR(24) NOT NULL,
+  customer_name TEXT NOT NULL,
+  customer_email TEXT NOT NULL,
+  company_name TEXT,
+  lead_id UUID REFERENCES growth_leads(id) ON DELETE SET NULL,
+  services_brief TEXT NOT NULL,
+  commercial_notes TEXT,
+  body_markdown TEXT NOT NULL DEFAULT '',
+  status VARCHAR(32) NOT NULL DEFAULT 'GENERATING',
+  generation_error TEXT,
+  client_feedback TEXT,
+  client_feedback_at TIMESTAMPTZ,
+  sent_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_contract_engagements_status ON contract_engagements (status);
+CREATE INDEX IF NOT EXISTS idx_contract_engagements_created ON contract_engagements (created_at DESC);
+`;
+
 export const MIGRATION_STATEMENTS = [
   ...splitStatements(INIT_SQL),
   ...splitStatements(KPAY_IS_TEST_SQL),
@@ -257,4 +284,5 @@ export const MIGRATION_STATEMENTS = [
   ...splitStatements(GROWTH_SESSION_HEALTH_SQL),
   ...splitStatements(GROWTH_LEAD_PROFILE_SQL),
   ...splitStatements(GROWTH_CONNECT_BROWSER_SESSIONS_SQL),
+  ...splitStatements(CONTRACT_ENGAGEMENTS_SQL),
 ];

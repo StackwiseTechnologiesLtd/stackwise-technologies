@@ -121,10 +121,111 @@ View & print your receipt (A4): {{receiptUrl}}
 </html>`,
 };
 
+const contractAdminReview001: EmailTemplateParts = {
+  subject: "Review draft agreement {{reference}} — Stackwise",
+  txt: `{{headline}}
+
+{{body}}
+
+Reference: {{reference}}
+Client: {{customerName}}
+Title: {{documentTitle}}
+
+Review and approve: {{reviewUrl}}
+
+— Stackwise Technologies`,
+  html: `<!DOCTYPE html>
+<html>
+  <body style="margin:0;padding:24px;background:#f8fafc;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#334155;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:400px;margin:0 auto;">
+      <tr>
+        <td style="background:#ffffff;border-radius:16px;padding:32px 24px;">
+          <div style="border-bottom:1px solid #f1f5f9;padding-bottom:24px;margin-bottom:20px;">
+            <div style="font-size:20px;font-weight:700;color:#541111;">Stackwise</div>
+            <div style="font-size:12px;color:#64748b;margin-top:4px;">Agreements</div>
+          </div>
+          <div style="font-size:14px;font-weight:700;color:#541111;">{{headline}}</div>
+          <div style="font-size:12px;margin:12px 0;line-height:18px;">{{body}}</div>
+          <div style="font-size:12px;color:#64748b;margin:8px 0;">{{reference}} · {{customerName}}</div>
+          <a href="{{reviewUrl}}" style="display:block;text-align:center;background:#541111;color:#ffffff;text-decoration:none;font-weight:700;border-radius:6px;padding:16px 24px;margin:16px 0;">Review draft</a>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:12px 2px;font-size:12px;color:#64748b;">Stackwise Technologies Limited · RC: 9398438</td>
+      </tr>
+    </table>
+  </body>
+</html>`,
+};
+
+const contractClient001: EmailTemplateParts = {
+  subject: "{{headline}} — Stackwise",
+  txt: `{{headline}}
+
+{{body}}
+
+Reference: {{reference}}
+
+Review agreement: {{contractUrl}}
+
+— Stackwise Technologies`,
+  html: `<!DOCTYPE html>
+<html>
+  <body style="margin:0;padding:24px;background:#f8fafc;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#334155;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:400px;margin:0 auto;">
+      <tr>
+        <td style="background:#ffffff;border-radius:16px;padding:32px 24px;">
+          <div style="border-bottom:1px solid #f1f5f9;padding-bottom:24px;margin-bottom:20px;">
+            <div style="font-size:20px;font-weight:700;color:#541111;">Stackwise</div>
+          </div>
+          <div style="font-size:14px;font-weight:700;color:#541111;">{{headline}}</div>
+          <div style="font-size:12px;margin:12px 0;line-height:18px;">{{body}}</div>
+          <div style="font-size:12px;color:#64748b;">Reference {{reference}}</div>
+          <a href="{{contractUrl}}" style="display:block;text-align:center;background:#541111;color:#ffffff;text-decoration:none;font-weight:700;border-radius:6px;padding:16px 24px;margin:16px 0;">{{ctaLabel}}</a>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:12px 2px;font-size:12px;color:#64748b;">Stackwise Technologies Limited · RC: 9398438</td>
+      </tr>
+    </table>
+  </body>
+</html>`,
+};
+
+const contractFeedback001: EmailTemplateParts = {
+  subject: "Client feedback on {{reference}} — Stackwise",
+  txt: `{{headline}}
+
+{{body}}
+
+Feedback preview:
+{{feedbackPreview}}
+
+Open: {{reviewUrl}}`,
+  html: `<!DOCTYPE html>
+<html>
+  <body style="margin:0;padding:24px;background:#f8fafc;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#334155;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:400px;margin:0 auto;">
+      <tr>
+        <td style="background:#ffffff;border-radius:16px;padding:32px 24px;">
+          <div style="font-size:14px;font-weight:700;color:#541111;">{{headline}}</div>
+          <div style="font-size:12px;margin:12px 0;">{{body}}</div>
+          <div style="font-size:12px;color:#64748b;background:#f8fafc;border-radius:8px;padding:12px;margin:12px 0;white-space:pre-wrap;">{{feedbackPreview}}</div>
+          <a href="{{reviewUrl}}" style="display:block;text-align:center;background:#541111;color:#ffffff;text-decoration:none;font-weight:700;border-radius:6px;padding:16px 24px;">View in admin</a>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`,
+};
+
 const TEMPLATES: Record<string, Record<string, EmailTemplateParts>> = {
   "login-otp": { "0.0.1": loginOtp001 },
   "payment-link": { "0.0.1": paymentLink001 },
   "payment-receipt": { "0.0.1": paymentReceipt001 },
+  "contract-admin-review": { "0.0.1": contractAdminReview001 },
+  "contract-client": { "0.0.1": contractClient001 },
+  "contract-feedback": { "0.0.1": contractFeedback001 },
 };
 
 export function getEmailTemplate(

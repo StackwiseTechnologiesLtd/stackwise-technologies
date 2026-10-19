@@ -13,6 +13,7 @@ import {
 } from "@/components/admin/growth/GrowthScoreFilter";
 import { growthFetch } from "@/lib/growth/growth-fetch";
 import { sortLeadsByCompositeScore } from "@/lib/growth/lead-sort";
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 const statuses: PipelineStatus[] = [
@@ -179,6 +180,22 @@ export function GrowthLeadsTable() {
                         {lead.profileSummary.length > 320 ? "…" : ""}
                       </p>
                     ) : null}
+                    <Link
+                      href={{
+                        pathname: "/admin/contracts/new",
+                        query: {
+                          name: lead.fullName,
+                          email: lead.email ?? "",
+                          company: lead.companyName ?? "",
+                          brief: lead.profileSummary ?? "",
+                          leadId: lead.id,
+                        },
+                      }}
+                      className="mt-3 inline-block text-xs font-medium text-accent hover:underline"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      Draft agreement with AI →
+                    </Link>
                     <div className="mt-3">
                       <label className="text-[10px] font-medium uppercase text-muted">
                         Pipeline status
