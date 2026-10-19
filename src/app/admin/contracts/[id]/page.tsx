@@ -1,7 +1,7 @@
 import { ContractEngagementOpsPanel } from "@/components/admin/ContractEngagementOpsPanel";
 import { ContractReviewPanel } from "@/components/admin/ContractReviewPanel";
 import { ContractStatusBadge } from "@/components/admin/ContractStatusBadge";
-import { ContractDocumentView } from "@/components/contracts/ContractDocumentView";
+import { ClientContractDocumentPreview } from "@/components/contracts/ClientContractDocumentPreview";
 import { getAdminSession } from "@/lib/auth/session";
 import { contractClientUrl } from "@/lib/contracts/urls";
 import { getContractEngagementById } from "@/lib/db/contracts";
@@ -62,13 +62,13 @@ export default async function AdminContractDetailPage({
 
       {inReview && <ContractReviewPanel engagement={engagement} />}
 
-      {readOnlySent && <ContractDocumentView engagement={engagement} variant="admin" />}
+      {readOnlySent && <ClientContractDocumentPreview engagement={engagement} />}
 
       {(engagement.status === "ACCEPTED" ||
         engagement.status === "IN_PROGRESS" ||
         engagement.status === "COMPLETED") && (
-          <ContractDocumentView engagement={engagement} variant="admin" />
-        )}
+        <ClientContractDocumentPreview engagement={engagement} />
+      )}
     </div>
   );
 }

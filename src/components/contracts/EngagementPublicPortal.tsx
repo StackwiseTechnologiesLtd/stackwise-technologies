@@ -12,6 +12,7 @@ import {
   type ContractEngagement,
 } from "@/lib/contracts/types";
 import type { PaymentLink } from "@/lib/payments/types";
+import { DocumentA4Preview } from "@/components/documents/DocumentA4Preview";
 import { PrintButton } from "@/components/payments/PrintButton";
 import { formatMoney } from "@/lib/currency";
 
@@ -85,15 +86,13 @@ export function EngagementPublicPortal({
 
       {tab === "agreement" && (
         <div className="space-y-6">
-          <div className="document-print-root space-y-3">
+          <div className="space-y-3">
             <div className="flex justify-end print:hidden">
               <PrintButton />
             </div>
-            <ContractDocumentView
-              engagement={engagement}
-              variant="client"
-              printSurface
-            />
+            <DocumentA4Preview>
+              <ContractDocumentView engagement={engagement} variant="client" a4Fixed />
+            </DocumentA4Preview>
           </div>
           <div className="space-y-6 print:hidden">
             {canAccept && <ContractAcceptForm slug={engagement.slug} />}

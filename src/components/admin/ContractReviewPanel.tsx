@@ -1,6 +1,7 @@
 "use client";
 
 import { ContractDocumentView } from "@/components/contracts/ContractDocumentView";
+import { DocumentA4Preview } from "@/components/documents/DocumentA4Preview";
 import { ContractMarkdownEditor } from "@/components/contracts/ContractMarkdownEditor";
 import { useToast } from "@/components/ToastProvider";
 import type { ContractEngagement } from "@/lib/contracts/types";
@@ -166,23 +167,23 @@ export function ContractReviewPanel({
           )}
         </section>
 
-        <section className="space-y-3 xl:sticky xl:top-4">
+        <section className="min-w-0 space-y-3 xl:sticky xl:top-4">
           <div className="flex flex-wrap items-start justify-between gap-2 print:hidden">
             <div>
               <h2 className="text-sm font-semibold">Client view</h2>
               <p className="mt-1 text-xs text-muted">
-                A4 layout · 12pt body · matches print.
+                Fixed A4 (210×297mm) · 12pt · scroll sideways if needed.
               </p>
             </div>
             <PrintButton />
           </div>
-          <div className="document-print-root">
+          <DocumentA4Preview>
             <ContractDocumentView
               engagement={draftEngagement}
               variant="admin"
-              printSurface
+              a4Fixed
             />
-          </div>
+          </DocumentA4Preview>
         </section>
       </div>
     </div>

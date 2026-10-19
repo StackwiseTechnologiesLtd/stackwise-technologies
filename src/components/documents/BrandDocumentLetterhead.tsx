@@ -8,14 +8,16 @@ import { SITE_NAME } from "@/lib/content";
 export function BrandDocumentLetterhead({
   documentLabel,
   compact = false,
+  a4Fixed = false,
   markId = "sw-brand-doc-mark",
 }: {
   /** e.g. INVOICE, RECEIPT, SOW */
   documentLabel?: string;
   compact?: boolean;
+  a4Fixed?: boolean;
   markId?: string;
 }) {
-  const markSize = compact ? "h-8 w-8" : "h-9 w-9";
+  const markSize = a4Fixed ? "h-9 w-9" : compact ? "h-8 w-8" : "h-9 w-9";
 
   return (
     <header className="brand-doc-letterhead">
@@ -35,7 +37,7 @@ export function BrandDocumentLetterhead({
           </div>
           {documentLabel ? (
             <p
-              className="brand-doc-type-label max-w-[5.5rem] shrink-0 text-right sm:max-w-none"
+              className={`brand-doc-type-label shrink-0 text-right ${a4Fixed ? "" : "max-w-[5.5rem] sm:max-w-none"}`}
               style={{ color: BRAND_BURGUNDY }}
               title={documentLabel}
             >

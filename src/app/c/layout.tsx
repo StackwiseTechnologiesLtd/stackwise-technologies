@@ -33,7 +33,7 @@ export default function ContractPublicLayout({ children }: { children: ReactNode
     >
       <body className="min-h-full font-sans">
         <ClientProviders>
-          <div className="mx-auto w-full max-w-[210mm] px-4 py-10">{children}</div>
+          <div className="mx-auto w-full max-w-4xl px-4 py-10">{children}</div>
         </ClientProviders>
       </body>
     </html>

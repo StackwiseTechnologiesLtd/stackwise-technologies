@@ -84,11 +84,76 @@
   }
 }
 
-/* On screen: match printable content width (A4 sheet). */
-.document-print-root,
+/* On screen: fluid cap for pay/receipt flows (not fixed WYSIWYG). */
+.document-print-root:not(:has(.document-a4-sheet)),
 .receipt-print-root {
   width: 100%;
   max-width: 210mm;
   margin-left: auto;
   margin-right: auto;
+}
+
+/* Fixed A4 sheet — never shrinks with viewport. */
+.document-a4-preview {
+  overflow-x: auto;
+  overflow-y: visible;
+  padding: 0.5rem 0 1rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.document-a4-sheet {
+  box-sizing: border-box;
+  width: 210mm;
+  min-width: 210mm;
+  max-width: 210mm;
+  min-height: 297mm;
+  margin-left: auto;
+  margin-right: auto;
+  flex-shrink: 0;
+}
+
+.document-a4-sheet .brand-doc--a4-fixed {
+  width: 100%;
+  min-height: 297mm;
+  box-sizing: border-box;
+  border-radius: 0;
+  box-shadow: none;
+  border: 1px solid #e2e8f0;
+}
+
+.document-a4-sheet .brand-doc--a4-fixed .brand-doc-inner {
+  padding: 20mm;
+  box-sizing: border-box;
+}
+
+.document-a4-sheet .brand-doc--a4-fixed .brand-doc-type-label {
+  max-width: none;
+}
+
+.document-a4-sheet .brand-doc--a4-fixed .brand-doc-contact--end li {
+  justify-content: flex-end;
+}
+
+@media print {
+  .document-a4-preview {
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+
+  .document-a4-sheet {
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+  }
+
+  .document-a4-sheet .brand-doc--a4-fixed {
+    min-height: 0 !important;
+    border: none !important;
+  }
+
+  .document-a4-sheet .brand-doc--a4-fixed .brand-doc-inner {
+    padding: 0 !important;
+  }
 }

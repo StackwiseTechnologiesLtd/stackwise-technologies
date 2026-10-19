@@ -11,6 +11,7 @@ export function BrandDocumentShell({
   compact = false,
   markId,
   printSurface = false,
+  a4Fixed = false,
   children,
   footerExtra,
   className = "",
@@ -20,6 +21,8 @@ export function BrandDocumentShell({
   markId?: string;
   /** Optimized for A4 print (no card chrome). */
   printSurface?: boolean;
+  /** Locked print layout inside {@link DocumentA4Preview}. */
+  a4Fixed?: boolean;
   children: ReactNode;
   footerExtra?: ReactNode;
   className?: string;
@@ -30,18 +33,21 @@ export function BrandDocumentShell({
     <article
       className={`brand-doc relative overflow-hidden bg-white text-[#0f172a] ${
         printSurface ? "brand-doc-print-surface" : ""
-      } ${className}`}
+      } ${a4Fixed ? "brand-doc--a4-fixed" : ""} ${className}`}
     >
       <div className="brand-doc-accent" style={{ backgroundColor: BRAND_BURGUNDY }} aria-hidden />
       <div className="brand-doc-watermark" aria-hidden />
 
       <div
-        className={`brand-doc-inner relative ${compact ? "px-4 py-4" : "px-5 py-5 sm:px-7 sm:py-6"}`}
+        className={`brand-doc-inner relative ${
+          a4Fixed ? "" : compact ? "px-4 py-4" : "px-5 py-5 sm:px-7 sm:py-6"
+        }`}
       >
         <BrandDocumentLetterhead
           documentLabel={documentLabel}
           compact={compact}
           markId={markId}
+          a4Fixed={a4Fixed}
         />
         <div className="brand-doc-body">{children}</div>
       </div>
