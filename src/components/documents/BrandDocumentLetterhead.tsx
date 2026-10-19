@@ -1,9 +1,7 @@
 import Mark from "@/components/Mark";
 import {
   BRAND_BURGUNDY,
-  COMPANY_TAGLINE,
-  companyDocumentContacts,
-  COMPANY_WEBSITE_URL,
+  COMPANY_TAGLINE
 } from "@/lib/company";
 import { SITE_NAME } from "@/lib/content";
 
@@ -47,7 +45,7 @@ export function BrandDocumentLetterhead({
         </div>
       </div>
 
-      <ul className="brand-doc-contact-row" aria-label="Company contact">
+      {/* <ul className="brand-doc-contact-row" aria-label="Company contact">
         {companyDocumentContacts.map((line, index) => {
           const isEmail = line.includes("@");
           const isWeb = line.includes(".") && !line.startsWith("RC");
@@ -71,7 +69,7 @@ export function BrandDocumentLetterhead({
             </li>
           );
         })}
-      </ul>
+      </ul> */}
 
       <div className="brand-doc-rule" aria-hidden />
     </header>

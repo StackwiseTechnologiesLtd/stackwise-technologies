@@ -1,12 +1,12 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { ContractDocumentView } from "@/components/contracts/ContractDocumentView";
 import { ContractMarkdownEditor } from "@/components/contracts/ContractMarkdownEditor";
 import { useToast } from "@/components/ToastProvider";
 import type { ContractEngagement } from "@/lib/contracts/types";
 import { BTN_PRIMARY, BTN_SECONDARY } from "@/lib/ui/buttons";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export function ContractReviewPanel({
   engagement: initial,

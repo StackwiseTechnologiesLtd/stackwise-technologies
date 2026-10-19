@@ -1,5 +1,3 @@
-import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
 import { ContractEngagementOpsPanel } from "@/components/admin/ContractEngagementOpsPanel";
 import { ContractReviewPanel } from "@/components/admin/ContractReviewPanel";
 import { ContractStatusBadge } from "@/components/admin/ContractStatusBadge";
@@ -8,6 +6,7 @@ import { getAdminSession } from "@/lib/auth/session";
 import { contractClientUrl } from "@/lib/contracts/urls";
 import { getContractEngagementById } from "@/lib/db/contracts";
 import { listPaymentLinksForEngagement } from "@/lib/db/payment-links";
+import { notFound, redirect } from "next/navigation";
 
 export default async function AdminContractDetailPage({
   params,
@@ -35,9 +34,6 @@ export default async function AdminContractDetailPage({
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <Link href="/admin/contracts" className="text-sm text-muted hover:text-foreground">
-            ← Agreements
-          </Link>
           <h1 className="mt-2 text-2xl font-semibold">{engagement.reference}</h1>
           <div className="mt-2 flex flex-wrap items-center gap-2">
             <ContractStatusBadge status={engagement.status} />
@@ -71,8 +67,8 @@ export default async function AdminContractDetailPage({
       {(engagement.status === "ACCEPTED" ||
         engagement.status === "IN_PROGRESS" ||
         engagement.status === "COMPLETED") && (
-        <ContractDocumentView engagement={engagement} variant="admin" />
-      )}
+          <ContractDocumentView engagement={engagement} variant="admin" />
+        )}
     </div>
   );
 }

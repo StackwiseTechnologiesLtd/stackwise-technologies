@@ -1,5 +1,5 @@
-import { BrandDocumentShell } from "@/components/documents/BrandDocumentShell";
 import { ContractMarkdownBody } from "@/components/contracts/ContractMarkdownBody";
+import { BrandDocumentShell } from "@/components/documents/BrandDocumentShell";
 import { InvoiceStamp } from "@/components/payments/InvoiceStamp";
 import { BRAND_BURGUNDY } from "@/lib/company";
 import {
@@ -50,10 +50,12 @@ export function ContractDocumentView({
       <div className="mt-5 grid gap-5 sm:grid-cols-2 sm:gap-6">
         <div>
           <p className="brand-doc-to-label">To</p>
-          <p className="brand-doc-to-name">{engagement.customerName}</p>
-          {engagement.companyName && (
-            <p className="mt-0.5 text-xs text-[#64748b]">{engagement.companyName}</p>
-          )}
+          <data className="flex flex-row items-start justify-start gap-1">
+            <p className="brand-doc-to-name">{engagement.customerName}</p>
+            {engagement.companyName && (
+              <p className="brand-doc-to-name text-[#64748b]">- {engagement.companyName}</p>
+            )}
+          </data>
           <p className="mt-1 break-all text-xs text-[#475569]">{engagement.customerEmail}</p>
         </div>
         <div className="sm:text-right">
