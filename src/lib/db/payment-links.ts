@@ -44,6 +44,7 @@ function paymentLinkToRow(link: PaymentLink): PaymentLinkRow {
     collected_at: link.collectedAt ? new Date(link.collectedAt).toISOString() : null,
     payment_reference: link.paymentReference,
     payment_notes: link.paymentNotes,
+    contract_engagement_id: link.contractEngagementId,
     created_at: new Date(link.createdAt).toISOString(),
     updated_at: new Date(link.updatedAt).toISOString(),
   };
@@ -65,7 +66,7 @@ async function upsertRow(row: PaymentLinkRow): Promise<void> {
         notes, kpay_payment_id, kpay_reference, kpay_is_test, paystack_reference, gateway_url,
         allowed_payment_methods, invoice_number, sent_at, paid_at, receipt_sent_at,
         payment_source, payment_method, amount_received_usd, amount_received_local,
-        collected_at, payment_reference, payment_notes,
+        collected_at, payment_reference, payment_notes, contract_engagement_id,
         created_at, updated_at
       ) VALUES (
         ${row.id}::uuid,
@@ -96,6 +97,7 @@ async function upsertRow(row: PaymentLinkRow): Promise<void> {
         ${row.collected_at},
         ${row.payment_reference},
         ${row.payment_notes},
+        ${row.contract_engagement_id},
         ${row.created_at},
         ${row.updated_at}
       )
@@ -127,6 +129,7 @@ async function upsertRow(row: PaymentLinkRow): Promise<void> {
         collected_at = EXCLUDED.collected_at,
         payment_reference = EXCLUDED.payment_reference,
         payment_notes = EXCLUDED.payment_notes,
+        contract_engagement_id = EXCLUDED.contract_engagement_id,
         updated_at = EXCLUDED.updated_at
     `;
     return;
@@ -246,6 +249,26 @@ export async function getPaymentLinkByPaystackReference(
     if (row.paystack_reference === reference) return rowToPaymentLink(row);
   }
   return null;
+}
+
+export async function listPaymentLinksForEngagement(
+  contractEngagementId: string,
+): Promise<PaymentLink[]> {
+  if (isDatabaseConfigured()) {
+    await dbReady();
+    const sql = getSql();
+    const rows = asRows<PaymentLinkRow>(await sql`
+      SELECT * FROM payment_links
+      WHERE contract_engagement_id = ${contractEngagementId}::uuid
+      ORDER BY created_at DESC
+    `);
+    return rows.map(rowToPaymentLink);
+  }
+
+  return Array.from(memoryStore.values())
+    .filter((row) => row.contract_engagement_id === contractEngagementId)
+    .map(rowToPaymentLink)
+    .sort((a, b) => b.createdAt - a.createdAt);
 }
 
 export async function savePaymentLink(link: PaymentLink): Promise<PaymentLink> {

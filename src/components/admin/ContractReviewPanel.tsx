@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ContractDocumentView } from "@/components/contracts/ContractDocumentView";
+import { ContractMarkdownEditor } from "@/components/contracts/ContractMarkdownEditor";
 import { useToast } from "@/components/ToastProvider";
 import type { ContractEngagement } from "@/lib/contracts/types";
 import { BTN_PRIMARY, BTN_SECONDARY } from "@/lib/ui/buttons";
@@ -16,7 +17,6 @@ export function ContractReviewPanel({
   const toast = useToast();
   const [title, setTitle] = useState(initial.title);
   const [bodyMarkdown, setBodyMarkdown] = useState(initial.bodyMarkdown);
-  const [preview, setPreview] = useState<ContractEngagement>(initial);
   const [saving, setSaving] = useState(false);
   const [sending, setSending] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
@@ -25,8 +25,12 @@ export function ContractReviewPanel({
     initial.status === "PENDING_REVIEW" ||
     initial.status === "FEEDBACK_RECEIVED" ||
     initial.status === "GENERATION_FAILED";
-  const canSend =
-    canEdit || initial.status === "FEEDBACK_RECEIVED";
+
+  const draftEngagement: ContractEngagement = {
+    ...initial,
+    title,
+    bodyMarkdown,
+  };
 
   async function saveDraft() {
     setSaving(true);
@@ -36,9 +40,8 @@ export function ContractReviewPanel({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title, bodyMarkdown }),
       });
-      const data = (await res.json()) as { error?: string; engagement?: ContractEngagement };
+      const data = (await res.json()) as { error?: string };
       if (!res.ok) throw new Error(data.error ?? "Save failed");
-      setPreview(data.engagement!);
       toast.success("Draft saved.");
       router.refresh();
     } catch (err) {
@@ -60,7 +63,6 @@ export function ContractReviewPanel({
       const e = data.engagement!;
       setTitle(e.title);
       setBodyMarkdown(e.bodyMarkdown);
-      setPreview(e);
       toast.success("New draft generated.");
       router.refresh();
     } catch (err) {
@@ -94,12 +96,6 @@ export function ContractReviewPanel({
     }
   }
 
-  const previewEngagement: ContractEngagement = {
-    ...preview,
-    title,
-    bodyMarkdown,
-  };
-
   return (
     <div className="space-y-6">
       {initial.clientFeedback && (
@@ -115,61 +111,67 @@ export function ContractReviewPanel({
         <p className="text-sm text-amber-400">AI note: {initial.generationError}</p>
       )}
 
-      {canEdit && (
-        <div className="space-y-4 rounded-xl border border-line bg-panel p-4">
-          <label className="block text-sm">
-            <span className="text-muted">Title</span>
-            <input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-line bg-background px-3 py-2"
-            />
-          </label>
-          <label className="block text-sm">
-            <span className="text-muted">Body (markdown)</span>
-            <textarea
-              rows={16}
-              value={bodyMarkdown}
-              onChange={(e) => setBodyMarkdown(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-line bg-background px-3 py-2 font-mono text-xs leading-relaxed"
-            />
-          </label>
-          <div className="flex flex-wrap gap-3">
-            <button
-              type="button"
-              onClick={saveDraft}
-              disabled={saving}
-              className={BTN_SECONDARY}
-            >
-              {saving ? "Saving…" : "Save edits"}
-            </button>
-            <button
-              type="button"
-              onClick={regenerate}
-              disabled={regenerating}
-              className={BTN_SECONDARY}
-            >
-              {regenerating ? "Regenerating…" : "Regenerate with AI"}
-            </button>
-            {(canSend || initial.status === "PENDING_REVIEW") && (
-              <button
-                type="button"
-                onClick={approveAndSend}
-                disabled={sending || !bodyMarkdown.trim()}
-                className={BTN_PRIMARY}
-              >
-                {sending ? "Sending…" : "Approve & email client"}
-              </button>
-            )}
+      <div className="grid gap-6 xl:grid-cols-2 xl:items-start">
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-sm font-semibold">Draft</h2>
+            <p className="mt-1 text-xs text-muted">
+              Edit in preview mode or switch to source. Client sees the formatted document on
+              the right.
+            </p>
           </div>
-        </div>
-      )}
 
-      <div>
-        <h2 className="mb-3 text-lg font-semibold">Preview</h2>
-        <div className="overflow-hidden rounded-xl border border-line bg-[#eef2f6] p-3 sm:p-4">
-          <ContractDocumentView engagement={previewEngagement} compact />
-        </div>
+          {canEdit && (
+            <>
+              <label className="block text-sm">
+                <span className="text-muted">Title</span>
+                <input
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-line bg-background px-3 py-2"
+                />
+              </label>
+              <ContractMarkdownEditor
+                value={bodyMarkdown}
+                onChange={setBodyMarkdown}
+              />
+              <div className="flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={saveDraft}
+                  disabled={saving}
+                  className={BTN_SECONDARY}
+                >
+                  {saving ? "Saving…" : "Save edits"}
+                </button>
+                <button
+                  type="button"
+                  onClick={regenerate}
+                  disabled={regenerating}
+                  className={BTN_SECONDARY}
+                >
+                  {regenerating ? "Regenerating…" : "Regenerate with AI"}
+                </button>
+                <button
+                  type="button"
+                  onClick={approveAndSend}
+                  disabled={sending || !bodyMarkdown.trim()}
+                  className={BTN_PRIMARY}
+                >
+                  {sending ? "Sending…" : "Approve & email client"}
+                </button>
+              </div>
+            </>
+          )}
+        </section>
+
+        <section className="space-y-3 xl:sticky xl:top-4">
+          <div>
+            <h2 className="text-sm font-semibold">Client view</h2>
+            <p className="mt-1 text-xs text-muted">Live layout for the shared link.</p>
+          </div>
+          <ContractDocumentView engagement={draftEngagement} variant="admin" />
+        </section>
       </div>
     </div>
   );

@@ -57,6 +57,29 @@ export async function sendContractClientEmail(
   });
 }
 
+export async function sendContractAcceptedNotifyEmail(
+  engagement: ContractEngagement,
+): Promise<void> {
+  const adminEmails = parseNotifyEmails();
+  if (!adminEmails.length) return;
+
+  const reviewUrl = contractAdminReviewUrl(engagement);
+
+  await sendEmail({
+    to: adminEmails[0]!,
+    bcc: adminEmails.length > 1 ? adminEmails.slice(1) : undefined,
+    template: "contract-accepted",
+    version: VERSION,
+    metadata: {
+      headline: `${engagement.reference} accepted`,
+      body: `${engagement.acceptedByName ?? engagement.customerName} accepted the agreement. You can start delivery tracking and send invoices from the admin engagement page.`,
+      customerName: engagement.customerName,
+      reference: engagement.reference,
+      reviewUrl,
+    },
+  });
+}
+
 export async function sendContractFeedbackNotifyEmail(
   engagement: ContractEngagement,
 ): Promise<void> {

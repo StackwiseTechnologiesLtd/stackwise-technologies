@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
-import { ContractDocumentView } from "@/components/contracts/ContractDocumentView";
-import { ContractFeedbackForm } from "@/components/contracts/ContractFeedbackForm";
+import { EngagementPublicPortal } from "@/components/contracts/EngagementPublicPortal";
 import { getContractEngagementBySlug } from "@/lib/db/contracts";
+import { listPaymentLinksForEngagement } from "@/lib/db/payment-links";
+import { isContractPortalPublic } from "@/lib/contracts/types";
 
 export default async function PublicContractPage({
   params,
@@ -11,16 +12,11 @@ export default async function PublicContractPage({
   const { slug } = await params;
   const engagement = await getContractEngagementBySlug(slug);
 
-  if (!engagement) notFound();
-
-  if (engagement.status !== "SENT" && engagement.status !== "FEEDBACK_RECEIVED") {
+  if (!engagement || !isContractPortalPublic(engagement.status)) {
     notFound();
   }
 
-  return (
-    <div>
-      <ContractDocumentView engagement={engagement} />
-      <ContractFeedbackForm slug={slug} />
-    </div>
-  );
+  const paymentLinks = await listPaymentLinksForEngagement(engagement.id);
+
+  return <EngagementPublicPortal engagement={engagement} paymentLinks={paymentLinks} />;
 }

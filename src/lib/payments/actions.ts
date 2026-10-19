@@ -50,6 +50,7 @@ export type CreatePaymentLinkInput = {
   notes?: string;
   sendEmail?: boolean;
   allowedPaymentMethods?: PaymentMethodsOption;
+  contractEngagementId?: string | null;
 };
 
 export async function createPaymentLink(
@@ -104,6 +105,7 @@ export async function createPaymentLink(
     collectedAt: null,
     paymentReference: null,
     paymentNotes: null,
+    contractEngagementId: input.contractEngagementId ?? null,
     createdAt: now,
     updatedAt: now,
   };

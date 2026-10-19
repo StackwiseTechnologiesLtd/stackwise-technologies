@@ -32,6 +32,7 @@ function link(partial: Partial<PaymentLink>): PaymentLink {
     collectedAt: null,
     paymentReference: null,
     paymentNotes: null,
+    contractEngagementId: null,
     createdAt: Date.now(),
     updatedAt: Date.now(),
     ...partial,

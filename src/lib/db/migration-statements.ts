@@ -271,6 +271,26 @@ CREATE INDEX IF NOT EXISTS idx_contract_engagements_status ON contract_engagemen
 CREATE INDEX IF NOT EXISTS idx_contract_engagements_created ON contract_engagements (created_at DESC);
 `;
 
+const CONTRACT_ENGAGEMENTS_V2_SQL = `
+ALTER TABLE contract_engagements
+  ADD COLUMN IF NOT EXISTS accepted_at TIMESTAMPTZ;
+ALTER TABLE contract_engagements
+  ADD COLUMN IF NOT EXISTS accepted_by_name TEXT;
+ALTER TABLE contract_engagements
+  ADD COLUMN IF NOT EXISTS delivery_phase VARCHAR(16) NOT NULL DEFAULT 'agreement';
+ALTER TABLE contract_engagements
+  ADD COLUMN IF NOT EXISTS progress_headline TEXT;
+ALTER TABLE contract_engagements
+  ADD COLUMN IF NOT EXISTS progress_detail TEXT;
+ALTER TABLE contract_engagements
+  ADD COLUMN IF NOT EXISTS milestones JSONB NOT NULL DEFAULT '[]'::jsonb;
+
+ALTER TABLE payment_links
+  ADD COLUMN IF NOT EXISTS contract_engagement_id UUID REFERENCES contract_engagements(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_payment_links_contract_engagement
+  ON payment_links (contract_engagement_id);
+`;
+
 export const MIGRATION_STATEMENTS = [
   ...splitStatements(INIT_SQL),
   ...splitStatements(KPAY_IS_TEST_SQL),
@@ -285,4 +305,5 @@ export const MIGRATION_STATEMENTS = [
   ...splitStatements(GROWTH_LEAD_PROFILE_SQL),
   ...splitStatements(GROWTH_CONNECT_BROWSER_SESSIONS_SQL),
   ...splitStatements(CONTRACT_ENGAGEMENTS_SQL),
+  ...splitStatements(CONTRACT_ENGAGEMENTS_V2_SQL),
 ];

@@ -1,3 +1,8 @@
+import {
+  parseMilestones,
+  type ContractMilestone,
+} from "@/lib/contracts/milestones";
+
 export const CONTRACT_DOCUMENT_KINDS = [
   "sow",
   "msa",
@@ -14,9 +19,16 @@ export const CONTRACT_STATUSES = [
   "PENDING_REVIEW",
   "SENT",
   "FEEDBACK_RECEIVED",
+  "ACCEPTED",
+  "IN_PROGRESS",
+  "COMPLETED",
 ] as const;
 
 export type ContractStatus = (typeof CONTRACT_STATUSES)[number];
+
+export const CONTRACT_DELIVERY_PHASES = ["agreement", "active", "complete"] as const;
+export type ContractDeliveryPhase = (typeof CONTRACT_DELIVERY_PHASES)[number];
+
 
 export type ContractEngagement = {
   id: string;
@@ -36,9 +48,25 @@ export type ContractEngagement = {
   clientFeedback: string | null;
   clientFeedbackAt: number | null;
   sentAt: number | null;
+  acceptedAt: number | null;
+  acceptedByName: string | null;
+  deliveryPhase: ContractDeliveryPhase;
+  progressHeadline: string | null;
+  progressDetail: string | null;
+  milestones: ContractMilestone[];
   createdAt: number;
   updatedAt: number;
 };
+
+export function isContractPortalPublic(status: ContractStatus): boolean {
+  return (
+    status === "SENT" ||
+    status === "FEEDBACK_RECEIVED" ||
+    status === "ACCEPTED" ||
+    status === "IN_PROGRESS" ||
+    status === "COMPLETED"
+  );
+}
 
 export type ContractEngagementRow = {
   id: string;
@@ -58,6 +86,12 @@ export type ContractEngagementRow = {
   client_feedback: string | null;
   client_feedback_at: string | null;
   sent_at: string | null;
+  accepted_at?: string | null;
+  accepted_by_name?: string | null;
+  delivery_phase?: string | null;
+  progress_headline?: string | null;
+  progress_detail?: string | null;
+  milestones?: unknown;
   created_at: string;
   updated_at: string;
 };
@@ -85,6 +119,20 @@ export function rowToContractEngagement(
       ? new Date(row.client_feedback_at).getTime()
       : null,
     sentAt: row.sent_at ? new Date(row.sent_at).getTime() : null,
+    acceptedAt: row.accepted_at ? new Date(row.accepted_at).getTime() : null,
+    acceptedByName: row.accepted_by_name ?? null,
+    deliveryPhase: (row.delivery_phase === "active" || row.delivery_phase === "complete"
+      ? row.delivery_phase
+      : "agreement") as ContractDeliveryPhase,
+    progressHeadline: row.progress_headline ?? null,
+    progressDetail: row.progress_detail ?? null,
+    milestones: parseMilestones(
+      row.milestones == null
+        ? []
+        : typeof row.milestones === "string"
+          ? JSON.parse(row.milestones)
+          : row.milestones,
+    ),
     createdAt: new Date(row.created_at).getTime(),
     updatedAt: new Date(row.updated_at).getTime(),
   };
@@ -119,7 +167,26 @@ export function contractStatusLabel(status: ContractStatus): string {
       return "Sent to client";
     case "FEEDBACK_RECEIVED":
       return "Client feedback";
+    case "ACCEPTED":
+      return "Accepted";
+    case "IN_PROGRESS":
+      return "In progress";
+    case "COMPLETED":
+      return "Completed";
     default:
       return status;
+  }
+}
+
+export function contractDeliveryPhaseLabel(phase: ContractDeliveryPhase): string {
+  switch (phase) {
+    case "agreement":
+      return "Agreement";
+    case "active":
+      return "Delivery";
+    case "complete":
+      return "Complete";
+    default:
+      return phase;
   }
 }

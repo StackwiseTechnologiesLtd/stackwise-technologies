@@ -219,6 +219,29 @@ Open: {{reviewUrl}}`,
 </html>`,
 };
 
+const contractAccepted001: EmailTemplateParts = {
+  subject: "Agreement accepted {{reference}} — Stackwise",
+  txt: `{{headline}}
+
+{{body}}
+
+Open: {{reviewUrl}}`,
+  html: `<!DOCTYPE html>
+<html>
+  <body style="margin:0;padding:24px;background:#f8fafc;font-family:system-ui,sans-serif;color:#334155;">
+    <table role="presentation" width="100%" style="max-width:400px;margin:0 auto;">
+      <tr>
+        <td style="background:#fff;border-radius:16px;padding:24px;">
+          <div style="font-size:14px;font-weight:700;color:#541111;">{{headline}}</div>
+          <p style="font-size:12px;line-height:18px;">{{body}}</p>
+          <a href="{{reviewUrl}}" style="display:block;text-align:center;background:#541111;color:#fff;text-decoration:none;font-weight:700;border-radius:6px;padding:14px;margin-top:16px;">Open engagement</a>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`,
+};
+
 const TEMPLATES: Record<string, Record<string, EmailTemplateParts>> = {
   "login-otp": { "0.0.1": loginOtp001 },
   "payment-link": { "0.0.1": paymentLink001 },
@@ -226,6 +249,7 @@ const TEMPLATES: Record<string, Record<string, EmailTemplateParts>> = {
   "contract-admin-review": { "0.0.1": contractAdminReview001 },
   "contract-client": { "0.0.1": contractClient001 },
   "contract-feedback": { "0.0.1": contractFeedback001 },
+  "contract-accepted": { "0.0.1": contractAccepted001 },
 };
 
 export function getEmailTemplate(

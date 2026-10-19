@@ -49,6 +49,7 @@ export type PaymentLink = {
   collectedAt: number | null;
   paymentReference: string | null;
   paymentNotes: string | null;
+  contractEngagementId: string | null;
   createdAt: number;
   updatedAt: number;
 };
@@ -82,6 +83,7 @@ export type PaymentLinkRow = {
   collected_at: Date | string | null;
   payment_reference: string | null;
   payment_notes: string | null;
+  contract_engagement_id?: string | null;
   created_at: Date | string;
   updated_at: Date | string;
 };
@@ -156,6 +158,7 @@ export function rowToPaymentLink(row: PaymentLinkRow): PaymentLink {
     collectedAt: toMs(row.collected_at),
     paymentReference: row.payment_reference,
     paymentNotes: row.payment_notes,
+    contractEngagementId: row.contract_engagement_id ?? null,
     createdAt: toMs(row.created_at) ?? Date.now(),
     updatedAt: toMs(row.updated_at) ?? Date.now(),
   };

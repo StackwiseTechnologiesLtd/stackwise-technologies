@@ -49,6 +49,12 @@ function engagementToRow(e: ContractEngagement): ContractEngagementRow {
       ? new Date(e.clientFeedbackAt).toISOString()
       : null,
     sent_at: e.sentAt ? new Date(e.sentAt).toISOString() : null,
+    accepted_at: e.acceptedAt ? new Date(e.acceptedAt).toISOString() : null,
+    accepted_by_name: e.acceptedByName,
+    delivery_phase: e.deliveryPhase,
+    progress_headline: e.progressHeadline,
+    progress_detail: e.progressDetail,
+    milestones: JSON.stringify(e.milestones),
     created_at: new Date(e.createdAt).toISOString(),
     updated_at: new Date(e.updatedAt).toISOString(),
   };
@@ -64,7 +70,9 @@ async function upsertRow(row: ContractEngagementRow): Promise<void> {
         customer_name, customer_email, company_name, lead_id,
         services_brief, commercial_notes, body_markdown,
         status, generation_error, client_feedback, client_feedback_at,
-        sent_at, created_at, updated_at
+        sent_at, accepted_at, accepted_by_name, delivery_phase,
+        progress_headline, progress_detail, milestones,
+        created_at, updated_at
       ) VALUES (
         ${row.id}::uuid,
         ${row.slug},
@@ -83,6 +91,12 @@ async function upsertRow(row: ContractEngagementRow): Promise<void> {
         ${row.client_feedback},
         ${row.client_feedback_at},
         ${row.sent_at},
+        ${row.accepted_at},
+        ${row.accepted_by_name},
+        ${row.delivery_phase},
+        ${row.progress_headline},
+        ${row.progress_detail},
+        ${row.milestones}::jsonb,
         ${row.created_at},
         ${row.updated_at}
       )
@@ -103,6 +117,12 @@ async function upsertRow(row: ContractEngagementRow): Promise<void> {
         client_feedback = EXCLUDED.client_feedback,
         client_feedback_at = EXCLUDED.client_feedback_at,
         sent_at = EXCLUDED.sent_at,
+        accepted_at = EXCLUDED.accepted_at,
+        accepted_by_name = EXCLUDED.accepted_by_name,
+        delivery_phase = EXCLUDED.delivery_phase,
+        progress_headline = EXCLUDED.progress_headline,
+        progress_detail = EXCLUDED.progress_detail,
+        milestones = EXCLUDED.milestones,
         updated_at = EXCLUDED.updated_at
     `;
     return;
@@ -198,6 +218,12 @@ export function createContractEngagementSeed(
     clientFeedback: null,
     clientFeedbackAt: null,
     sentAt: null,
+    acceptedAt: null,
+    acceptedByName: null,
+    deliveryPhase: "agreement",
+    progressHeadline: null,
+    progressDetail: null,
+    milestones: [],
     createdAt: now,
     updatedAt: now,
   };

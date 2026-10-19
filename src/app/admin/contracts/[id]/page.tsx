@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { ContractEngagementOpsPanel } from "@/components/admin/ContractEngagementOpsPanel";
 import { ContractReviewPanel } from "@/components/admin/ContractReviewPanel";
 import { ContractStatusBadge } from "@/components/admin/ContractStatusBadge";
 import { ContractDocumentView } from "@/components/contracts/ContractDocumentView";
 import { getAdminSession } from "@/lib/auth/session";
 import { contractClientUrl } from "@/lib/contracts/urls";
 import { getContractEngagementById } from "@/lib/db/contracts";
+import { listPaymentLinksForEngagement } from "@/lib/db/payment-links";
 
 export default async function AdminContractDetailPage({
   params,
@@ -20,8 +22,14 @@ export default async function AdminContractDetailPage({
   if (!engagement) notFound();
 
   const clientUrl = contractClientUrl(engagement);
-  const readOnly =
-    engagement.status === "SENT" || engagement.status === "GENERATING";
+  const paymentLinks = await listPaymentLinksForEngagement(engagement.id);
+
+  const inReview =
+    engagement.status === "PENDING_REVIEW" ||
+    engagement.status === "FEEDBACK_RECEIVED" ||
+    engagement.status === "GENERATION_FAILED";
+
+  const readOnlySent = engagement.status === "SENT";
 
   return (
     <div className="space-y-6">
@@ -42,9 +50,9 @@ export default async function AdminContractDetailPage({
         <p className="text-sm text-muted">Generating draft… refresh in a moment.</p>
       )}
 
-      {(engagement.status === "SENT" || engagement.status === "FEEDBACK_RECEIVED") && (
+      {engagement.status !== "GENERATING" && engagement.status !== "PENDING_REVIEW" && (
         <div className="rounded-xl border border-line bg-background p-4">
-          <p className="text-sm text-muted">Client link</p>
+          <p className="text-sm text-muted">Client portal</p>
           <a
             href={clientUrl}
             className="mt-1 block break-all font-mono text-sm text-accent hover:underline"
@@ -54,10 +62,16 @@ export default async function AdminContractDetailPage({
         </div>
       )}
 
-      {readOnly && engagement.status !== "GENERATING" ? (
-        <ContractDocumentView engagement={engagement} />
-      ) : (
-        <ContractReviewPanel engagement={engagement} />
+      <ContractEngagementOpsPanel engagement={engagement} paymentLinks={paymentLinks} />
+
+      {inReview && <ContractReviewPanel engagement={engagement} />}
+
+      {readOnlySent && <ContractDocumentView engagement={engagement} variant="admin" />}
+
+      {(engagement.status === "ACCEPTED" ||
+        engagement.status === "IN_PROGRESS" ||
+        engagement.status === "COMPLETED") && (
+        <ContractDocumentView engagement={engagement} variant="admin" />
       )}
     </div>
   );

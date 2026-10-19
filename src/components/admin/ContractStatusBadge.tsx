@@ -7,6 +7,9 @@ const styles: Record<ContractStatus, string> = {
   PENDING_REVIEW: "bg-amber-950 text-amber-300",
   SENT: "bg-blue-950 text-blue-300",
   FEEDBACK_RECEIVED: "bg-orange-950 text-orange-300",
+  ACCEPTED: "bg-emerald-950 text-emerald-300",
+  IN_PROGRESS: "bg-sky-950 text-sky-300",
+  COMPLETED: "bg-zinc-800 text-zinc-300",
 };
 
 export function ContractStatusBadge({ status }: { status: ContractStatus }) {

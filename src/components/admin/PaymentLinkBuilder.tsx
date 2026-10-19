@@ -161,6 +161,7 @@ export function PaymentLinkBuilder({
       collectedAt: previewMode === "receipt" ? now : null,
       paymentReference: previewMode === "receipt" ? "PREVIEWREF" : null,
       paymentNotes: previewMode === "receipt" ? "Sample payment notes" : null,
+      contractEngagementId: null,
       createdAt: now,
       updatedAt: now,
     };
