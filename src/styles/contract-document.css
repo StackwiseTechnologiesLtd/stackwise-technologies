@@ -1,21 +1,26 @@
 .prose-contract h2 {
-  margin-top: 1.5rem;
-  margin-bottom: 0.75rem;
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: #0f172a;
+  margin-top: 1.75rem;
+  margin-bottom: 0.65rem;
+  padding-bottom: 0.35rem;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #541111;
+  border-bottom: 1px solid rgba(84, 17, 17, 0.12);
 }
 
 .prose-contract h3 {
-  margin-top: 1.25rem;
+  margin-top: 1.35rem;
   margin-bottom: 0.5rem;
-  font-size: 0.95rem;
-  font-weight: 600;
+  font-size: 0.9rem;
+  font-weight: 700;
   color: #1e293b;
 }
 
 .prose-contract p {
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.85rem;
+  text-align: justify;
+  hyphens: auto;
 }
 
 .prose-contract ul.contract-list,
@@ -24,13 +29,14 @@
 }
 
 .prose-contract li {
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.4rem;
 }
 
 .prose-contract code {
   font-family: var(--font-geist-mono), ui-monospace, monospace;
   font-size: 0.85em;
-  background: #f1f5f9;
-  padding: 0.1em 0.35em;
+  background: #f8fafc;
+  padding: 0.12em 0.4em;
   border-radius: 4px;
+  border: 1px solid #eef2f6;
 }

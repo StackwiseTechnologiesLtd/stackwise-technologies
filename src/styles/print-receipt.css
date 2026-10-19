@@ -21,9 +21,13 @@
   .receipt-print-document {
     box-shadow: none !important;
     border: none !important;
-    padding: 0 !important;
     page-break-inside: avoid;
     break-inside: avoid;
+  }
+
+  .receipt-print-document .brand-doc-accent {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
 
   .receipt-print-document table {

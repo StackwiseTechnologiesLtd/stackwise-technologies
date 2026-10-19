@@ -11,3 +11,10 @@ export const companyFooterLines = [
   `RC: ${COMPANY_RC}`,
   `${EMAIL}`,
 ] as const;
+
+/** Shown on invoices, receipts, and client-facing agreements. */
+export const companyDocumentContacts = [
+  EMAIL,
+  COMPANY_WEBSITE,
+  `RC ${COMPANY_RC}`,
+] as const;

@@ -4,6 +4,7 @@ import { createPageMetadata } from "@/lib/metadata";
 import { ClientProviders } from "@/components/ClientProviders";
 import { SITE_NAME } from "@/lib/content";
 import "../../styles/globals.css";
+import "../../styles/brand-document.css";
 import "../../styles/contract-document.css";
 
 const geistSans = Geist({

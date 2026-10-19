@@ -1,0 +1,177 @@
+/* Client-facing invoices, receipts, and agreements */
+
+.brand-doc {
+  border-radius: 0.25rem;
+  border: 1px solid #e8ecf1;
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 12px 40px rgba(15, 23, 42, 0.06);
+}
+
+.brand-doc-accent {
+  height: 4px;
+  width: 100%;
+}
+
+.brand-doc-watermark {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  opacity: 0.045;
+  background-image: radial-gradient(circle at center, #541111 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(ellipse 85% 70% at 100% 0%, black, transparent 55%);
+}
+
+.brand-doc-letterhead {
+  position: relative;
+}
+
+.brand-doc-rule {
+  margin-top: 1.25rem;
+  height: 2px;
+  width: 100%;
+  max-width: 4.5rem;
+  background: #541111;
+}
+
+.brand-doc-type-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+  line-height: 1.2;
+}
+
+.brand-doc-contact {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  color: #475569;
+  line-height: 1.65;
+}
+
+.brand-doc-contact li {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .brand-doc-contact--end li {
+    justify-content: flex-end;
+  }
+}
+
+.brand-doc-contact li::before {
+  content: "";
+  margin-top: 0.45em;
+  flex-shrink: 0;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #541111;
+}
+
+.brand-doc-contact-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.brand-doc-contact-link:hover {
+  color: #541111;
+  text-decoration: underline;
+}
+
+.brand-doc-to-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #541111;
+}
+
+.brand-doc-to-name {
+  margin-top: 0.35rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.brand-doc-meta-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.brand-doc-meta-value {
+  margin-top: 0.25rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.brand-doc-meta-value--accent {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.95rem;
+  color: #541111;
+}
+
+.brand-doc-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.brand-doc-table thead th {
+  padding: 0.65rem 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #334155;
+  border-bottom: 2px solid rgba(84, 17, 17, 0.2);
+  text-align: left;
+}
+
+.brand-doc-table thead th:last-child,
+.brand-doc-table tbody td:last-child {
+  text-align: right;
+}
+
+.brand-doc-table tbody td {
+  padding: 0.85rem 0;
+  vertical-align: top;
+  border-bottom: 1px solid #eef2f6;
+}
+
+.brand-doc-totals {
+  margin-left: auto;
+  width: 100%;
+  max-width: 18rem;
+  border-top: 2px solid #541111;
+  padding-top: 0.75rem;
+}
+
+.brand-doc-footer {
+  border-top: 1px solid #eef2f6;
+  background: linear-gradient(to bottom, #fafbfc, #fff);
+  padding: 1rem 1.5rem;
+  text-align: center;
+  font-size: 0.7rem;
+  line-height: 1.6;
+  color: #64748b;
+}
+
+@media print {
+  .brand-doc {
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+
+  .brand-doc-watermark {
+    opacity: 0.03;
+  }
+}
