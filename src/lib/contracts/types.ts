@@ -155,6 +155,24 @@ export function contractDocumentKindLabel(kind: ContractDocumentKind): string {
   }
 }
 
+/** Compact label for document letterhead (narrow layouts). */
+export function contractDocumentKindHeaderLabel(kind: ContractDocumentKind): string {
+  switch (kind) {
+    case "sow":
+      return "SOW";
+    case "msa":
+      return "MSA";
+    case "nda":
+      return "NDA";
+    case "maintenance":
+      return "MAINTENANCE";
+    case "combined":
+      return "MSA + SOW";
+    default:
+      return String(kind).toUpperCase();
+  }
+}
+
 export function contractStatusLabel(status: ContractStatus): string {
   switch (status) {
     case "GENERATING":

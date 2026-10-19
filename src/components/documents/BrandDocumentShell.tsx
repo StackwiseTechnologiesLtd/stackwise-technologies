@@ -30,13 +30,15 @@ export function BrandDocumentShell({
       <div className="brand-doc-accent" style={{ backgroundColor: BRAND_BURGUNDY }} aria-hidden />
       <div className="brand-doc-watermark" aria-hidden />
 
-      <div className={`relative ${compact ? "px-5 py-5" : "px-6 py-6 sm:px-10 sm:py-8"}`}>
+      <div
+        className={`brand-doc-inner relative ${compact ? "px-4 py-4" : "px-5 py-5 sm:px-7 sm:py-6"}`}
+      >
         <BrandDocumentLetterhead
           documentLabel={documentLabel}
           compact={compact}
           markId={markId}
         />
-        <div className={compact ? "mt-5" : "mt-7"}>{children}</div>
+        <div className="brand-doc-body">{children}</div>
       </div>
 
       <footer className="brand-doc-footer">

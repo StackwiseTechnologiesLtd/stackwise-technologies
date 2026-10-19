@@ -59,7 +59,7 @@ export function InvoiceView({
         <div className="flex flex-wrap items-center gap-2">
           {showStatus && link.status !== "PAID" && <StatusBadge status={link.status} />}
           {link.status === "PAID" && link.paidAt && (
-            <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-100">
+            <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-700 ring-1 ring-emerald-100 sm:text-[11px]">
               Paid {formatDate(link.paidAt)}
             </span>
           )}
@@ -67,12 +67,12 @@ export function InvoiceView({
       </div>
 
       <div
-        className={`mt-8 grid gap-8 ${compact ? "text-xs" : "sm:grid-cols-2 text-sm"}`}
+        className={`mt-5 grid gap-5 ${compact ? "text-xs" : "sm:grid-cols-2"}`}
       >
         <div>
           <p className="brand-doc-to-label">Bill to</p>
           <p className="brand-doc-to-name">{link.customerName}</p>
-          <p className="mt-2 break-all text-[#64748b]">{link.customerEmail}</p>
+          <p className="mt-1 break-all text-xs text-[#64748b]">{link.customerEmail}</p>
         </div>
         <div className={compact ? "" : "sm:text-right"}>
           <p className="brand-doc-meta-label">Date</p>
