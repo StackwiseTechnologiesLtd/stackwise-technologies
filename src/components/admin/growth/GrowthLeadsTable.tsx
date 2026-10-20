@@ -14,7 +14,8 @@ import {
 import { growthFetch } from "@/lib/growth/growth-fetch";
 import { sortLeadsByCompositeScore } from "@/lib/growth/lead-sort";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useDeferredEffect } from "@/lib/use-deferred-effect";
+import { useCallback, useState } from "react";
 
 const statuses: PipelineStatus[] = [
   "new",
@@ -66,7 +67,7 @@ export function GrowthLeadsTable() {
     [toast, minScore, platform],
   );
 
-  useEffect(() => {
+  useDeferredEffect(() => {
     void load();
   }, [load]);
 

@@ -14,10 +14,15 @@ import {
 import { SITE_NAME } from "@/lib/content";
 import { ADMIN_NAV_LINK } from "@/lib/ui/admin";
 import Link from "next/link";
+import {
+  getAdminSidebarCollapsed,
+  getAdminSidebarCollapsedServerSnapshot,
+  setAdminSidebarCollapsed,
+  subscribeAdminSidebar,
+} from "@/lib/admin/sidebar-preference";
+import { useDeferredEffect } from "@/lib/use-deferred-effect";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useLayoutEffect, useState, type ReactNode } from "react";
-
-const SIDEBAR_STORAGE_KEY = "stackwise-admin-sidebar-collapsed";
+import { useEffect, useSyncExternalStore, useState, type ReactNode } from "react";
 
 function SidebarBrand({ collapsed }: { collapsed: boolean }) {
   return (
@@ -202,32 +207,16 @@ export function AdminShell({
   const toast = useToast();
   const isLogin = pathname === "/admin/login";
   const [menuOpen, setMenuOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [sidebarReady, setSidebarReady] = useState(false);
+  const sidebarCollapsed = useSyncExternalStore(
+    subscribeAdminSidebar,
+    getAdminSidebarCollapsed,
+    getAdminSidebarCollapsedServerSnapshot,
+  );
   const pageTitle = adminPageTitle(pathname);
 
-  useEffect(() => {
+  useDeferredEffect(() => {
     setMenuOpen(false);
   }, [pathname]);
-
-  useLayoutEffect(() => {
-    try {
-      const stored = localStorage.getItem(SIDEBAR_STORAGE_KEY);
-      if (stored === "1") setSidebarCollapsed(true);
-    } catch {
-      /* ignore */
-    }
-    setSidebarReady(true);
-  }, []);
-
-  useEffect(() => {
-    if (!sidebarReady) return;
-    try {
-      localStorage.setItem(SIDEBAR_STORAGE_KEY, sidebarCollapsed ? "1" : "0");
-    } catch {
-      /* ignore */
-    }
-  }, [sidebarCollapsed, sidebarReady]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -239,7 +228,7 @@ export function AdminShell({
   }, [menuOpen]);
 
   function toggleSidebar() {
-    setSidebarCollapsed((value) => !value);
+    setAdminSidebarCollapsed(!sidebarCollapsed);
   }
 
   async function logout() {

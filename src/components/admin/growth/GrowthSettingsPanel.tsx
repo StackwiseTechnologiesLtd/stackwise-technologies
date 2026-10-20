@@ -4,7 +4,8 @@ import { useToast } from "@/components/ToastProvider";
 import { AdminActionButton } from "@/components/admin/AdminActionButton";
 import { GrowthPlatformConnections } from "@/components/admin/growth/GrowthPlatformConnections";
 import type { IcpConfig } from "@/lib/growth/types";
-import { useCallback, useEffect, useState } from "react";
+import { useDeferredEffect } from "@/lib/use-deferred-effect";
+import { useCallback, useState } from "react";
 
 export function GrowthSettingsPanel() {
   const toast = useToast();
@@ -29,7 +30,7 @@ export function GrowthSettingsPanel() {
     }
   }, [toast]);
 
-  useEffect(() => {
+  useDeferredEffect(() => {
     void load();
   }, [load]);
 

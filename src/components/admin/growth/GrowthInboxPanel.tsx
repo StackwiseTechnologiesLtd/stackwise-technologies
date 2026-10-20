@@ -14,7 +14,8 @@ import type { GrowthDraft, GrowthInboxItem } from "@/lib/growth/types";
 import { growthFetch } from "@/lib/growth/growth-fetch";
 import { sortLeadsByCompositeScore } from "@/lib/growth/lead-sort";
 import { normalizeDiscoveryKeyword } from "@/lib/growth/personalized-draft";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useDeferredEffect } from "@/lib/use-deferred-effect";
+import { useCallback, useMemo, useState } from "react";
 
 function inboxQuery(minScore: number, platform: PlatformFilter): string {
   const params = new URLSearchParams();
@@ -76,7 +77,7 @@ export function GrowthInboxPanel() {
     [toast, minScore, platform],
   );
 
-  useEffect(() => {
+  useDeferredEffect(() => {
     void load();
   }, [load]);
 

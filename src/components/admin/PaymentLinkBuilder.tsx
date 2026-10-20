@@ -34,7 +34,7 @@ export function PaymentLinkBuilder({
   const toast = useToast();
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
-  const [currency, setCurrency] = useState("KES");
+  const [currencyChoice, setCurrencyChoice] = useState("KES");
   const [allowedPaymentMethods, setAllowedPaymentMethods] =
     useState<PaymentMethodsOption>("BOTH");
   const [notes, setNotes] = useState("");
@@ -56,15 +56,6 @@ export function PaymentLinkBuilder({
     [items],
   );
 
-  const fxRequestKey = totalUsd > 0 ? `${currency}:${totalUsd}` : null;
-  const fx =
-    fxRequestKey && fxResult?.key === fxRequestKey ? fxResult : null;
-  const fxErrorMessage =
-    fxError?.key === fxRequestKey ? fxError.message : null;
-  const fxLoading = Boolean(
-    fxRequestKey && fxResult?.key !== fxRequestKey && !fxErrorMessage,
-  );
-
   const currencyOptions = useMemo(
     () =>
       selectableInvoiceCurrencies(
@@ -75,11 +66,21 @@ export function PaymentLinkBuilder({
     [allowedPaymentMethods, cardProcessor, paystackCurrencies],
   );
 
-  useEffect(() => {
-    if (!currencyOptions.some((option) => option.code === currency)) {
-      setCurrency(currencyOptions[0]?.code ?? "KES");
+  const currency = useMemo(() => {
+    if (currencyOptions.some((option) => option.code === currencyChoice)) {
+      return currencyChoice;
     }
-  }, [currency, currencyOptions]);
+    return currencyOptions[0]?.code ?? "KES";
+  }, [currencyChoice, currencyOptions]);
+
+  const fxRequestKey = totalUsd > 0 ? `${currency}:${totalUsd}` : null;
+  const fx =
+    fxRequestKey && fxResult?.key === fxRequestKey ? fxResult : null;
+  const fxErrorMessage =
+    fxError?.key === fxRequestKey ? fxError.message : null;
+  const fxLoading = Boolean(
+    fxRequestKey && fxResult?.key !== fxRequestKey && !fxErrorMessage,
+  );
 
   useEffect(() => {
     if (!fxRequestKey) return;
@@ -281,7 +282,7 @@ export function PaymentLinkBuilder({
               <span className="text-sm text-muted">Payment currency</span>
               <select
                 value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
+                onChange={(e) => setCurrencyChoice(e.target.value)}
                 className="w-full rounded-lg border border-line bg-background px-3 py-2"
               >
                 {currencyOptions.map((c) => (

@@ -9,7 +9,8 @@ import {
 import { growthFetch } from "@/lib/growth/growth-fetch";
 import type { GrowthPlatform, PlatformCredentialStatus, SessionStatus } from "@/lib/growth/types";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useDeferredEffect } from "@/lib/use-deferred-effect";
+import { useCallback, useState } from "react";
 
 const statusLabel: Record<SessionStatus, string> = {
   active: "Connected",
@@ -51,7 +52,7 @@ export function GrowthPlatformConnections() {
     }
   }, [toast]);
 
-  useEffect(() => {
+  useDeferredEffect(() => {
     void load();
   }, [load]);
 

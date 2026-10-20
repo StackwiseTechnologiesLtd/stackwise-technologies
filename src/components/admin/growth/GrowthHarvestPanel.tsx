@@ -9,7 +9,8 @@ import {
   platformDisplayName,
 } from "@/lib/growth/detect-account-label";
 import { growthFetch } from "@/lib/growth/growth-fetch";
-import { useCallback, useEffect, useState } from "react";
+import { useDeferredEffect } from "@/lib/use-deferred-effect";
+import { useCallback, useState } from "react";
 
 function formatLogTime(iso: string): string {
   try {
@@ -56,7 +57,7 @@ export function GrowthHarvestPanel({ onHarvested }: { onHarvested?: () => void }
     }
   }, [toast]);
 
-  useEffect(() => {
+  useDeferredEffect(() => {
     void load();
   }, [load]);
 
