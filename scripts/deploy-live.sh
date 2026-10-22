@@ -64,6 +64,9 @@ trap cleanup_prod_local EXIT
 echo "==> Syncing Cloudflare Worker secrets from .env.prod"
 node scripts/sync-cloudflare-env.mjs .env.prod
 
+echo "==> Applying database migrations (.env.prod)"
+npm run db:migrate:prod
+
 echo "==> Building OpenNext Cloudflare worker"
 npm run build:worker
 
