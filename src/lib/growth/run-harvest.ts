@@ -3,23 +3,18 @@ import {
   sessionCookieName,
 } from "@/lib/growth/connect-platform";
 import {
-  extractFeedSignals,
   formatExtractDebug,
   rawPostsToSignals,
 } from "@/lib/growth/harvest-extract";
 import { growthHarvestExtractInPage } from "@/lib/growth/harvest-extract-in-page";
+import { enrichSignalsWithProfiles } from "@/lib/growth/harvest-enrich-signals";
 import {
   buildSearchQueriesFromIcp,
   dedupeSignals,
   platformSearchUrl,
 } from "@/lib/growth/harvest-search";
 import { detectAccountLabelOnPage } from "@/lib/growth/detect-account-label";
-import {
-  enrichProfileFromPage,
-  profileUrlFromPost,
-  type BrowserPage,
-} from "@/lib/growth/profile-enrich";
-import { isDevConnectRuntimeEnabled } from "@/lib/growth/dev-connect-runtime";
+import type { GrowthSessionCookie } from "@/lib/growth/growth-session-cookie";
 import {
   getHostedWorkerBrowser,
 } from "@/lib/growth/hosted-connect";
@@ -32,26 +27,10 @@ import {
 } from "@/lib/growth/repository";
 import type { HarvestReporter } from "@/lib/growth/harvest-progress";
 import type { GrowthPlatform, IngestSignalInput } from "@/lib/growth/types";
-import type { Cookie, Page } from "playwright";
+import type { BrowserPage } from "@/lib/growth/profile-enrich";
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function humanDelay(minMs = 800, maxMs = 2800) {
-  const span = Math.max(0, maxMs - minMs);
-  return sleep(minMs + Math.floor(Math.random() * (span + 1)));
-}
-
-async function applyStealth(page: Page) {
-  await page.setExtraHTTPHeaders({
-    "Accept-Language": "en-US,en;q=0.9",
-  });
-  await page.addInitScript(() => {
-    Object.defineProperty(navigator, "webdriver", { get: () => false });
-    // @ts-expect-error page context
-    window.chrome = { runtime: {} };
-  });
 }
 
 function validatePageUrl(url: string): { ok: boolean; error?: string } {
@@ -64,55 +43,9 @@ function validatePageUrl(url: string): { ok: boolean; error?: string } {
   return { ok: true };
 }
 
-function normalizeCookies(cookies: unknown): Cookie[] {
+function normalizeCookies(cookies: unknown): GrowthSessionCookie[] {
   if (!Array.isArray(cookies)) return [];
-  return cookies as Cookie[];
-}
-
-async function enrichSignalsWithProfiles(
-  page: BrowserPage,
-  platform: GrowthPlatform,
-  signals: IngestSignalInput[],
-  report?: HarvestReporter,
-): Promise<IngestSignalInput[]> {
-  const out = signals.map((s) => ({ ...s }));
-  const visited = new Set<string>();
-
-  for (let i = 0; i < out.length; i++) {
-    const signal = out[i];
-    const url = profileUrlFromPost(
-      platform,
-      signal.authorProfileUrl,
-      signal.authorHandle,
-    );
-    if (!url || visited.has(url)) continue;
-    visited.add(url);
-
-    await report?.(
-      "extract",
-      `Researching profile ${visited.size}: ${url.replace(/^https?:\/\//, "").slice(0, 55)}…`,
-    );
-    const profile = await enrichProfileFromPage(page, url, platform);
-    if (!profile) continue;
-
-    for (let j = 0; j < out.length; j++) {
-      const otherUrl = profileUrlFromPost(
-        platform,
-        out[j].authorProfileUrl,
-        out[j].authorHandle,
-      );
-      if (otherUrl !== url) continue;
-      out[j] = {
-        ...out[j],
-        authorProfileUrl: url,
-        roleTitle: out[j].roleTitle ?? profile.roleTitle ?? undefined,
-        companyName: out[j].companyName ?? profile.companyName ?? undefined,
-        profileContext: profile.summary,
-      };
-    }
-  }
-
-  return out;
+  return cookies as GrowthSessionCookie[];
 }
 
 async function ingestSignals(
@@ -135,124 +68,6 @@ async function ingestSignals(
     ingested += 1;
   }
   return ingested;
-}
-
-async function scrollResults(page: Page, passes: number, report?: HarvestReporter) {
-  for (let i = 0; i < passes; i++) {
-    await report?.("scroll", `Scrolling results (${i + 1} of ${passes})…`);
-    const delta = 280 + Math.floor(Math.random() * 520);
-    await page.mouse.wheel(0, delta);
-    await humanDelay(1200, 3400);
-  }
-  await humanDelay(1500, 3500);
-}
-
-async function harvestSearchesWithPlaywright(
-  platform: GrowthPlatform,
-  cookies: Cookie[],
-  userAgent: string | null,
-  queries: string[],
-  report?: HarvestReporter,
-): Promise<IngestSignalInput[]> {
-  await report?.("browser", "Starting browser (read-only)…");
-  const { chromium } = await import("playwright");
-  const harvestHeaded = process.env.GROWTH_HARVEST_HEADED === "1";
-  const browser = await chromium.launch({
-    headless: !harvestHeaded,
-    args: ["--disable-blink-features=AutomationControlled"],
-  });
-  const collected: IngestSignalInput[] = [];
-
-  try {
-    const context = await browser.newContext({
-      userAgent: userAgent ?? undefined,
-    });
-    await context.addCookies(cookies);
-    const page = await context.newPage();
-    await applyStealth(page);
-
-    await report?.("verify", "Checking session…");
-    await page.goto(platformSessionCheck[platform], {
-      waitUntil: "domcontentloaded",
-      timeout: 120_000,
-    });
-    await humanDelay(2000, 4000);
-    const sessionCheck = validatePageUrl(page.url());
-    if (!sessionCheck.ok) {
-      await reportSessionHealth({
-        platform,
-        sessionStatus: "expired",
-        lastError: sessionCheck.error,
-      });
-      throw new Error(sessionCheck.error ?? "Session not active");
-    }
-
-    const accountLabel = await detectAccountLabelOnPage(page, platform);
-    if (accountLabel) {
-      await reportSessionHealth({
-        platform,
-        sessionStatus: "active",
-        lastError: null,
-        connectedAccountLabel: accountLabel,
-      });
-      await report?.("verify", `Session active as ${accountLabel}`);
-    }
-
-    await report?.(
-      "search",
-      `Running ${queries.length} ICP search${queries.length === 1 ? "" : "es"} on ${platform}…`,
-    );
-
-    for (let q = 0; q < queries.length; q++) {
-      const query = queries[q];
-      await report?.(
-        "search",
-        `Search ${q + 1}/${queries.length}: “${query}”`,
-      );
-      await page.goto(platformSearchUrl(platform, query), {
-        waitUntil: "domcontentloaded",
-        timeout: 120_000,
-      });
-      await page.waitForLoadState("networkidle", { timeout: 15_000 }).catch(() => undefined);
-      await humanDelay(2500, 5000);
-
-      const urlCheck = validatePageUrl(page.url());
-      if (!urlCheck.ok) {
-        throw new Error(urlCheck.error ?? "Session lost during search");
-      }
-
-      const scrollPasses =
-        platform === "linkedin" ? 4 + Math.floor(Math.random() * 2) : 2 + Math.floor(Math.random() * 2);
-      await scrollResults(page, scrollPasses, report);
-      await report?.("extract", `Reading posts for “${query}”…`);
-      const { signals: batch, debug } = await extractFeedSignals(page, platform);
-      await report?.("extract", formatExtractDebug(debug));
-      if (debug.parsed === 0) {
-        const hint = await page.title();
-        await report?.(
-          "extract",
-          `Page title: “${hint.slice(0, 80)}” — if this is a login or error screen, reconnect ${platform}.`,
-        );
-      }
-      for (const signal of batch) {
-        collected.push({
-          ...signal,
-          contextSummary: query,
-        });
-      }
-      await humanDelay(1500, 3000);
-    }
-
-    const withProfiles = await enrichSignalsWithProfiles(
-      page as BrowserPage,
-      platform,
-      collected,
-      report,
-    );
-    return dedupeSignals(withProfiles);
-  } finally {
-    await browser.close();
-  }
 }
 
 export async function runPlatformHarvest(
@@ -284,12 +99,13 @@ export async function runPlatformHarvest(
     `Queries: ${queries.map((q) => `“${q}”`).join(", ")}`,
   );
 
-  const canUseLocalPlaywright =
-    isDevConnectRuntimeEnabled() || process.env.GROWTH_HARVEST_PLAYWRIGHT === "1";
   const hosted = await getHostedWorkerBrowser();
 
   let signals: IngestSignalInput[];
-  if (canUseLocalPlaywright) {
+  if (process.env.NODE_ENV === "development") {
+    const { harvestSearchesWithPlaywright } = await import(
+      "@/lib/growth/run-harvest-playwright"
+    );
     signals = await harvestSearchesWithPlaywright(
       platform,
       cookies,
@@ -347,7 +163,7 @@ export async function runPlatformHarvest(
 async function harvestSearchesWithHostedBrowser(
   env: { BROWSER: import("@cloudflare/puppeteer").BrowserWorker },
   platform: GrowthPlatform,
-  cookies: Cookie[],
+  cookies: GrowthSessionCookie[],
   userAgent: string | null,
   queries: string[],
   report?: HarvestReporter,

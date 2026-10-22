@@ -3,7 +3,16 @@ import {
   type InPageExtractDebug,
 } from "@/lib/growth/harvest-extract-in-page";
 import type { GrowthPlatform, IngestSignalInput } from "@/lib/growth/types";
-import type { Page } from "playwright";
+
+type HarvestInteractPage = {
+  waitForSelector(
+    selector: string,
+    options?: { timeout?: number },
+  ): Promise<unknown>;
+  waitForTimeout(ms: number): Promise<void>;
+  evaluate<R>(pageFunction: () => R): Promise<R>;
+  evaluate<R, Arg>(pageFunction: (arg: Arg) => R, arg: Arg): Promise<R>;
+};
 
 export type ExtractDebug = InPageExtractDebug;
 
@@ -47,7 +56,7 @@ export function rawPostsToSignals(
   }));
 }
 
-async function waitForPosts(page: Page, platform: GrowthPlatform) {
+async function waitForPosts(page: HarvestInteractPage, platform: GrowthPlatform) {
   const selectors =
     platform === "x"
       ? [
@@ -76,7 +85,9 @@ async function waitForPosts(page: Page, platform: GrowthPlatform) {
   await page.waitForTimeout(2000);
 }
 
-export async function prepareLinkedInSearchPage(page: Page): Promise<void> {
+export async function prepareLinkedInSearchPage(
+  page: HarvestInteractPage,
+): Promise<void> {
   await page.waitForSelector('main, [role="main"]', { timeout: 20_000 }).catch(
     () => undefined,
   );
@@ -97,7 +108,7 @@ export async function prepareLinkedInSearchPage(page: Page): Promise<void> {
 }
 
 export async function extractFeedSignals(
-  page: Page,
+  page: HarvestInteractPage,
   platform: GrowthPlatform,
 ): Promise<{ signals: IngestSignalInput[]; debug: ExtractDebug }> {
   if (platform === "linkedin") {

@@ -1,16 +1,13 @@
 import { NextResponse } from "next/server";
 import { requireGrowthConnectAdmin } from "@/lib/growth/connect-admin";
 import { verifyGrowthConnectToken } from "@/lib/growth/connect-token";
-import {
-  isDevConnectRuntimeEnabled,
-  startDevConnectSession,
-} from "@/lib/growth/dev-connect-runtime";
+import { isDevConnectRuntimeEnabled } from "@/lib/growth/dev-connect-flags";
 
 export async function POST(request: Request) {
   const auth = await requireGrowthConnectAdmin();
   if (!auth.ok) return auth.response;
 
-  if (!isDevConnectRuntimeEnabled()) {
+  if (process.env.NODE_ENV !== "development" || !isDevConnectRuntimeEnabled()) {
     return NextResponse.json({ error: "Not available" }, { status: 404 });
   }
 
@@ -28,6 +25,9 @@ export async function POST(request: Request) {
       );
     }
 
+    const { startDevConnectSession } = await import(
+      "@/lib/growth/dev-connect-runtime"
+    );
     const { sessionId, interaction } = await startDevConnectSession(platform);
 
     return NextResponse.json({

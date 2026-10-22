@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireGrowthConnectAdmin } from "@/lib/growth/connect-admin";
-import {
-  getDevConnectFrame,
-  isDevConnectRuntimeEnabled,
-} from "@/lib/growth/dev-connect-runtime";
+import { isDevConnectRuntimeEnabled } from "@/lib/growth/dev-connect-flags";
 
 export async function GET(
   _request: Request,
@@ -12,10 +9,11 @@ export async function GET(
   const auth = await requireGrowthConnectAdmin();
   if (!auth.ok) return auth.response;
 
-  if (!isDevConnectRuntimeEnabled()) {
+  if (process.env.NODE_ENV !== "development" || !isDevConnectRuntimeEnabled()) {
     return new NextResponse(null, { status: 404 });
   }
 
+  const { getDevConnectFrame } = await import("@/lib/growth/dev-connect-runtime");
   const { id } = await context.params;
   const frame = await getDevConnectFrame(id);
   if (!frame) {

@@ -1,4 +1,6 @@
-import type { Cookie, Page } from "playwright";
+import type { GrowthSessionCookie } from "@/lib/growth/growth-session-cookie";
+import { loadPlaywrightModule } from "@/lib/growth/playwright-loader";
+import type { Page } from "playwright";
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -256,12 +258,12 @@ export async function postXReplyOnPage(
 }
 
 export async function publishXReplyWithPlaywright(
-  cookies: Cookie[],
+  cookies: GrowthSessionCookie[],
   userAgent: string | null,
   tweetUrl: string,
   replyText: string,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
-  const { chromium } = await import("playwright");
+  const { chromium } = await loadPlaywrightModule();
   const headed = process.env.GROWTH_PUBLISH_HEADED === "1";
   const browser = await chromium.launch({
     headless: !headed,

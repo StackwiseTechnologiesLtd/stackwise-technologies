@@ -8,6 +8,8 @@ import {
   reportSessionHealth,
   savePlatformCredentials,
 } from "@/lib/growth/repository";
+import { isDevConnectRuntimeEnabled } from "@/lib/growth/dev-connect-flags";
+import { loadPlaywrightModule } from "@/lib/growth/playwright-loader";
 import type { GrowthPlatform } from "@/lib/growth/types";
 import type { Browser, BrowserContext, Page } from "playwright";
 
@@ -47,15 +49,10 @@ function getStore(): DevConnectStore {
   return g[storeKey];
 }
 
-export function isDevConnectRuntimeEnabled(): boolean {
-  if (process.env.GROWTH_CONNECT_FORCE_LOCAL === "1") return true;
-  return process.env.NODE_ENV === "development";
-}
-
 export async function isDevConnectRuntimeReady(): Promise<boolean> {
   if (!isDevConnectRuntimeEnabled()) return false;
   try {
-    await import("playwright");
+    await loadPlaywrightModule();
     return true;
   } catch {
     return false;
@@ -72,7 +69,7 @@ function humanDelay(minMs = 800, maxMs = 2400) {
 }
 
 async function loadChromium() {
-  const { chromium } = await import("playwright");
+  const { chromium } = await loadPlaywrightModule();
   return chromium;
 }
 

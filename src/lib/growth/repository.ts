@@ -1,12 +1,10 @@
 import { ensureSchema } from "@/lib/db/ensure-schema";
 import { asRows, getSql, isDatabaseConfigured } from "@/lib/db/postgres";
 import { decryptJson, encryptJson } from "@/lib/growth/crypto";
-import { isDevConnectRuntimeEnabled } from "@/lib/growth/dev-connect-runtime";
+import type { GrowthSessionCookie } from "@/lib/growth/growth-session-cookie";
 import { buildPersonalizedReplyDraft } from "@/lib/growth/personalized-draft";
 import { DEFAULT_ICP_CONFIG } from "@/lib/growth/icp-default";
-import { publishXReplyWithPlaywright } from "@/lib/growth/publish-x-reply";
 import { scoreLead } from "@/lib/growth/scoring";
-import type { Cookie } from "playwright";
 import type {
   GrowthDraft,
   GrowthInboxItem,
@@ -338,23 +336,6 @@ export async function generateDraftForLead(
     draft = mapDraft(draftRows[0]);
   }
 
-  if (
-    process.env.GROWTH_AUTO_PUBLISH_X === "1" &&
-    draft.platform === "x" &&
-    signal.source_url?.includes("/status/")
-  ) {
-    try {
-      draft = await publishDraftReply(draft.id, body);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Auto-post failed";
-      const failed = await updateDraft(draft.id, {
-        publishError: message,
-        status: "failed",
-      });
-      if (failed) draft = failed;
-    }
-  }
-
   return { draft, usedAi, aiError };
 }
 
@@ -478,9 +459,9 @@ export async function regenerateDraftWithAi(
   return { draft: updated, usedAi, aiError };
 }
 
-function normalizeCookies(cookies: unknown): Cookie[] {
+function normalizeCookies(cookies: unknown): GrowthSessionCookie[] {
   if (!Array.isArray(cookies)) return [];
-  return cookies as Cookie[];
+  return cookies as GrowthSessionCookie[];
 }
 
 export async function publishDraftReply(
@@ -514,9 +495,7 @@ export async function publishDraftReply(
     throw new Error("No tweet URL to reply to — re-harvest or capture with a post link");
   }
 
-  const canUseLocalPlaywright =
-    isDevConnectRuntimeEnabled() || process.env.GROWTH_HARVEST_PLAYWRIGHT === "1";
-  if (!canUseLocalPlaywright) {
+  if (process.env.NODE_ENV !== "development") {
     throw new Error(
       "Posting runs via Playwright on your machine — use npm run dev locally (not production Worker-only deploy yet).",
     );
@@ -529,6 +508,9 @@ export async function publishDraftReply(
 
   const text = (bodyText.trim() || draftRow.body_text).trim();
   if (!text) throw new Error("Reply text is empty");
+  const { publishXReplyWithPlaywright } = await import(
+    "@/lib/growth/publish-x-reply"
+  );
   const result = await publishXReplyWithPlaywright(
     normalizeCookies(session.cookies),
     session.userAgent,

@@ -1,12 +1,12 @@
 import { connectEmbedHtml } from "@/lib/growth/connect-embed-html";
 import { requireGrowthConnectAdmin } from "@/lib/growth/connect-admin";
-import { isDevConnectRuntimeEnabled } from "@/lib/growth/dev-connect-runtime";
+import { isDevConnectRuntimeEnabled } from "@/lib/growth/dev-connect-flags";
 
 export async function GET() {
   const auth = await requireGrowthConnectAdmin();
   if (!auth.ok) return auth.response;
 
-  if (!isDevConnectRuntimeEnabled()) {
+  if (process.env.NODE_ENV !== "development" || !isDevConnectRuntimeEnabled()) {
     return new Response("Not found", { status: 404 });
   }
 
