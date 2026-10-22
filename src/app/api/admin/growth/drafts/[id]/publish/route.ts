@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth/session";
-import { publishDraftReply } from "@/lib/growth/repository";
+import { publishDraftReply } from "@/lib/growth/publish-draft-reply";
 
 export const dynamic = "force-dynamic";
 
