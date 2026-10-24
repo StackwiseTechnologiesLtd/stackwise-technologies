@@ -12,6 +12,7 @@ function lead(id: string, score: number): GrowthLead {
     profileUrl: null,
     email: null,
     platform: "x",
+    leadSource: "harvest",
     icpScore: score,
     intentScore: score,
     compositeScore: score,

@@ -4,6 +4,11 @@ import { AdminActionButton } from "@/components/admin/AdminActionButton";
 import { GrowthArticleLink } from "@/components/admin/growth/GrowthArticleLink";
 import { useToast } from "@/components/ToastProvider";
 import {
+  GrowthLeadSourceFilter,
+  leadSourceBadgeLabel,
+  type LeadSourceFilter,
+} from "@/components/admin/growth/GrowthLeadSourceFilter";
+import {
   GrowthPlatformFilter,
   type PlatformFilter,
 } from "@/components/admin/growth/GrowthPlatformFilter";
@@ -24,11 +29,13 @@ import { useCallback, useMemo, useState } from "react";
 function inboxQuery(
   minScore: number,
   platform: PlatformFilter,
+  leadSource: LeadSourceFilter,
   freshnessHours: number,
 ): string {
   const params = new URLSearchParams();
   if (minScore > 0) params.set("minScore", String(minScore));
   if (platform !== "all") params.set("platform", platform);
+  if (leadSource !== "all") params.set("leadSource", leadSource);
   if (freshnessHours > 0) {
     params.set("freshnessHours", String(freshnessHours));
   } else {
@@ -66,6 +73,7 @@ export function GrowthInboxPanel({ fixedPlatform }: GrowthInboxPanelProps = {}) 
   const [freshnessHours, setFreshnessHours] = useState(
     INBOX_DEFAULT_FRESHNESS_HOURS,
   );
+  const [leadSource, setLeadSource] = useState<LeadSourceFilter>("all");
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   const platformFilter: PlatformFilter = fixedPlatform ?? platform;
@@ -76,7 +84,7 @@ export function GrowthInboxPanel({ fixedPlatform }: GrowthInboxPanelProps = {}) 
       else setRefreshing(true);
       try {
         const res = await growthFetch(
-          `/api/admin/growth/inbox${inboxQuery(minScore, platformFilter, freshnessHours)}`,
+          `/api/admin/growth/inbox${inboxQuery(minScore, platformFilter, leadSource, freshnessHours)}`,
         );
         if (!res.ok) throw new Error("Could not load inbox");
         const json = (await res.json()) as { items: GrowthInboxItem[] };
@@ -94,7 +102,7 @@ export function GrowthInboxPanel({ fixedPlatform }: GrowthInboxPanelProps = {}) 
         setRefreshing(false);
       }
     },
-    [toast, minScore, platformFilter, freshnessHours],
+    [toast, minScore, platformFilter, leadSource, freshnessHours],
   );
 
   const linkedInInbox = fixedPlatform === "linkedin";
@@ -203,6 +211,7 @@ export function GrowthInboxPanel({ fixedPlatform }: GrowthInboxPanelProps = {}) 
           {fixedPlatform ? null : (
             <GrowthPlatformFilter value={platform} onChange={setPlatform} />
           )}
+          <GrowthLeadSourceFilter value={leadSource} onChange={setLeadSource} />
           <GrowthFreshnessFilter
             freshnessHours={freshnessHours}
             onChange={setFreshnessHours}
@@ -263,6 +272,11 @@ export function GrowthInboxPanel({ fixedPlatform }: GrowthInboxPanelProps = {}) 
                       <span className="text-xs font-medium uppercase tracking-wide text-muted">
                         {lead.platform ?? "unknown"}
                       </span>
+                      {lead.leadSource !== "harvest" ? (
+                        <span className="rounded-md bg-accent/10 px-2 py-0.5 text-[10px] font-medium text-accent ring-1 ring-accent/30">
+                          {leadSourceBadgeLabel(lead.leadSource)}
+                        </span>
+                      ) : null}
                       <span
                         className={`rounded-full px-2 py-0.5 font-mono text-[11px] font-semibold ring-1 ${scoreBadgeClass(score)}`}
                       >

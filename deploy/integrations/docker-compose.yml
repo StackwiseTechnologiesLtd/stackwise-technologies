@@ -1,0 +1,39 @@
+# Optional local stack for integration testing (Huginn).
+# Production webhooks target your deployed app URL, not this compose file.
+#
+# Usage:
+#   export INTEGRATIONS_INGEST_SECRET=your-secret
+#   docker compose -f deploy/integrations/docker-compose.yml up -d
+#
+# Point Huginn agents at:
+#   POST https://<your-site>/api/admin/integrations/ingest
+#   Header: Authorization: Bearer $INTEGRATIONS_INGEST_SECRET
+
+services:
+  huginn:
+    image: huginn/huginn:latest
+    ports:
+      - "3001:3000"
+    environment:
+      DATABASE_ADAPTER: postgresql
+      POSTGRES_HOST: huginn-db
+      POSTGRES_PORT: 5432
+      POSTGRES_USERNAME: huginn
+      POSTGRES_PASSWORD: huginn
+      POSTGRES_DATABASE: huginn
+      INVITATION_CODE: stackwise-local
+      FORCE_SSL: "false"
+    depends_on:
+      - huginn-db
+
+  huginn-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: huginn
+      POSTGRES_PASSWORD: huginn
+      POSTGRES_DB: huginn
+    volumes:
+      - huginn_pg:/var/lib/postgresql/data
+
+volumes:
+  huginn_pg:

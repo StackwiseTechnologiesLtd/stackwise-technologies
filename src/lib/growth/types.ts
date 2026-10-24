@@ -1,6 +1,22 @@
 export const growthPlatforms = ["linkedin", "x"] as const;
 export type GrowthPlatform = (typeof growthPlatforms)[number];
 
+/** How the lead entered the system (distinct from social platform). */
+export const leadSources = [
+  "harvest",
+  "manual",
+  "huginn",
+  "freehire",
+] as const;
+export type LeadSource = (typeof leadSources)[number];
+
+export function parseLeadSource(value: string | null | undefined): LeadSource {
+  if (value && leadSources.includes(value as LeadSource)) {
+    return value as LeadSource;
+  }
+  return "harvest";
+}
+
 export const connectModes = ["hosted", "relay", "local"] as const;
 export type ConnectMode = (typeof connectModes)[number];
 
@@ -45,6 +61,7 @@ export type GrowthSignal = {
   contextSummary: string | null;
   ingestedAt: string;
   postedAt: string | null;
+  leadSource: LeadSource;
 };
 
 export type GrowthLead = {
@@ -56,6 +73,7 @@ export type GrowthLead = {
   profileUrl: string | null;
   email: string | null;
   platform: GrowthPlatform | null;
+  leadSource: LeadSource;
   icpScore: number;
   intentScore: number;
   compositeScore: number;
@@ -93,6 +111,7 @@ export type GrowthInboxItem = {
 
 export type IngestSignalInput = {
   platform: GrowthPlatform;
+  leadSource?: LeadSource;
   sourceUrl?: string;
   authorName: string;
   authorHandle?: string;
