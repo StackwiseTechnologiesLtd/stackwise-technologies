@@ -21,8 +21,9 @@ export async function ensureSchema(): Promise<void> {
 
   schemaPromise = (async () => {
     const sql = getSql();
-    const script = MIGRATION_STATEMENTS.join(";\n");
-    await sql.query(script);
+    for (const statement of MIGRATION_STATEMENTS) {
+      await sql.query(statement);
+    }
     schemaReady = true;
   })();
 
