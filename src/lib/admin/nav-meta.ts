@@ -8,6 +8,7 @@ export type AdminNavItem = {
     | "withdraw"
     | "logs"
     | "growth"
+    | "crm"
     | "settings";
   match?: "exact" | "prefix";
 };
@@ -42,6 +43,7 @@ export const adminNavPrimary: AdminNavItem[] = [
     icon: "growth",
     match: "prefix",
   },
+  { href: "/admin/crm", label: "CRM", icon: "crm", match: "prefix" },
 ];
 
 export function adminPageTitle(pathname: string): string {
@@ -61,6 +63,8 @@ export function adminPageTitle(pathname: string): string {
   if (pathname.startsWith("/admin/growth/leads")) return "Leads";
   if (pathname.startsWith("/admin/growth/settings")) return "Settings";
   if (pathname.startsWith("/admin/growth/connect")) return "Connect";
+  if (pathname === "/admin/crm") return "CRM pipeline";
+  if (pathname.startsWith("/admin/crm/opportunities/")) return "Opportunity";
   return "Admin";
 }
 

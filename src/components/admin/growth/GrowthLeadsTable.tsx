@@ -14,6 +14,7 @@ import {
 import { growthFetch } from "@/lib/growth/growth-fetch";
 import { sortLeadsByCompositeScore } from "@/lib/growth/lead-sort";
 import { GrowthArticleLink } from "@/components/admin/growth/GrowthArticleLink";
+import { PromoteToCrmButton } from "@/components/admin/growth/PromoteToCrmButton";
 import Link from "next/link";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 import { useCallback, useState } from "react";
@@ -199,22 +200,25 @@ export function GrowthLeadsTable() {
                         {lead.profileSummary.length > 320 ? "…" : ""}
                       </p>
                     ) : null}
-                    <Link
-                      href={{
-                        pathname: "/admin/contracts/new",
-                        query: {
-                          name: lead.fullName,
-                          email: lead.email ?? "",
-                          company: lead.companyName ?? "",
-                          brief: lead.profileSummary ?? "",
-                          leadId: lead.id,
-                        },
-                      }}
-                      className="mt-3 inline-block text-xs font-medium text-accent hover:underline"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      Draft agreement with AI →
-                    </Link>
+                    <div className="mt-3 flex flex-wrap items-center gap-3">
+                      <Link
+                        href={{
+                          pathname: "/admin/contracts/new",
+                          query: {
+                            name: lead.fullName,
+                            email: lead.email ?? "",
+                            company: lead.companyName ?? "",
+                            brief: lead.profileSummary ?? "",
+                            leadId: lead.id,
+                          },
+                        }}
+                        className="text-xs font-medium text-accent hover:underline"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Draft agreement with AI →
+                      </Link>
+                      <PromoteToCrmButton leadId={lead.id} />
+                    </div>
                     <div className="mt-3">
                       <label className="text-[10px] font-medium uppercase text-muted">
                         Pipeline status
