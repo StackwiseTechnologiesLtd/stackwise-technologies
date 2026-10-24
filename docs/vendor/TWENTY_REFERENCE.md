@@ -1,8 +1,10 @@
-# Twenty reference — what Stackwise CRM borrows
+# Twenty reference — data model for Stackwise CRM
 
-We **do not** run [Twenty](https://github.com/twentyhq/twenty) as a service. This doc records the **subset** of their model we implement in Neon + `/admin/crm`.
+We **do not** run [Twenty](https://github.com/twentyhq/twenty) as a service. This doc records the **data** subset we implement in Neon + `/admin/crm`.
 
-Upstream license: check `LICENSE` in the Twenty repo before copying any code into `vendor/twenty/`.
+**UI, features, and copying policy:** [TWENTY_UI_AND_FEATURES.md](./TWENTY_UI_AND_FEATURES.md)
+
+Upstream license: **[AGPL-3.0](https://github.com/twentyhq/twenty/blob/main/LICENSE)** — check the commit when copying code into `vendor/twenty/`.
 
 ## Objects we mirror
 
@@ -35,15 +37,19 @@ Align `crm_opportunities.stage` with existing `growth_leads.pipeline_status` whe
 - `companyName` → company
 - `compositeScore` → opportunity metadata (not Twenty “amount”)
 - `sourceUrl` → opportunity `source_post_url`
-- `platform` + future `leadSource` → tags / custom fields
+- `platform` + `leadSource` → tags / badges on record UI
 
-## What we intentionally skip from Twenty
+## Backend we skip from Twenty
 
-- Email/calendar sync, workflows builder, AI agents inside Twenty
-- Multi-tenant workspace UI, permissions matrix
-- Their React front-end bundle
-- Redis / BullMQ job system
+- `twenty-server`, GraphQL API, Redis, BullMQ workers
+- Multi-tenant workspace provisioning
+- Email/calendar sync engines (Tier C in UI doc)
+
+## Frontend we reimplement (not skip)
+
+We **do** build Twenty-like **screens** in Stackwise admin — pipeline board, record pages, timeline — using our stack. See feature tiers in [TWENTY_UI_AND_FEATURES.md](./TWENTY_UI_AND_FEATURES.md).
 
 ## When to revisit upstream
 
-When adding a CRM feature, search Twenty docs/issues for the **data shape** only, then implement in `src/lib/crm/`.
+- **Schema / fields:** search Twenty docs and `packages/twenty-server` metadata.
+- **Layout / interaction:** search `packages/twenty-front` and follow the UI copy workflow in the UI doc.
