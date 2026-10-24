@@ -14,6 +14,7 @@ import {
 import type { GrowthDraft, GrowthInboxItem } from "@/lib/growth/types";
 import { growthFetch } from "@/lib/growth/growth-fetch";
 import { sortLeadsByCompositeScore } from "@/lib/growth/lead-sort";
+import { resolveGrowthPostUrl } from "@/lib/growth/post-url";
 import { normalizeDiscoveryKeyword } from "@/lib/growth/personalized-draft";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 import { useCallback, useMemo, useState } from "react";
@@ -220,7 +221,15 @@ export function GrowthInboxPanel({ fixedPlatform }: GrowthInboxPanelProps = {}) 
             const draftBusy =
               draft && busyKey?.startsWith(`${draft.id}:`) ? true : busyKey === `${lead.id}:generate`;
             const articleUrl =
-              signal?.sourceUrl?.trim() || lead.sourceUrl?.trim() || null;
+              lead.sourceUrl?.trim() ||
+              signal?.sourceUrl?.trim() ||
+              resolveGrowthPostUrl({
+                platform: lead.platform ?? signal?.platform,
+                sourceUrl: null,
+                authorProfileUrl:
+                  signal?.authorProfileUrl ?? lead.profileUrl,
+                authorHandle: signal?.authorHandle ?? null,
+              });
 
             return (
               <li
@@ -259,11 +268,15 @@ export function GrowthInboxPanel({ fixedPlatform }: GrowthInboxPanelProps = {}) 
                       <p className="mt-1.5">
                         <GrowthArticleLink
                           href={articleUrl}
-                          platform={lead.platform}
+                          platform={lead.platform ?? signal?.platform}
                           onClick={(e) => e.stopPropagation()}
                         />
                       </p>
-                    ) : null}
+                    ) : (
+                      <p className="mt-1.5 text-[11px] text-muted">
+                        No post link saved — re-harvest or add a URL when capturing.
+                      </p>
+                    )}
                   </div>
                   <span
                     className="mt-1 shrink-0 text-muted"

@@ -27,4 +27,14 @@ describe("resolveGrowthPostUrl", () => {
       }),
     ).toBe("https://www.linkedin.com/in/example/");
   });
+
+  it("falls back to X profile from handle when post URL missing", () => {
+    expect(
+      resolveGrowthPostUrl({
+        platform: "x",
+        sourceUrl: null,
+        authorHandle: "@founder",
+      }),
+    ).toBe("https://x.com/founder");
+  });
 });

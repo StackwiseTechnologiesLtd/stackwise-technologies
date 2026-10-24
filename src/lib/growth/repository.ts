@@ -84,6 +84,7 @@ function mapSignal(row: SignalRow): GrowthSignal {
       platform,
       sourceUrl: row.source_url,
       authorProfileUrl: row.author_profile_url,
+      authorHandle: row.author_handle,
     }),
     authorName: row.author_name,
     authorHandle: row.author_handle,
@@ -424,6 +425,7 @@ export async function listInbox(options?: {
         platform: leadPlatform ?? signal?.platform,
         sourceUrl: signal?.sourceUrl ?? null,
         authorProfileUrl: signal?.authorProfileUrl ?? mapped.profileUrl,
+        authorHandle: signal?.authorHandle ?? null,
       }),
     };
     const draft = draftByLeadId.get(row.id) ?? null;
@@ -520,7 +522,8 @@ export async function listLeads(options?: {
     signalIds.length > 0
       ? asRows<SignalRow>(
           await sql`
-            SELECT id, platform, source_url, author_profile_url FROM growth_signals
+            SELECT id, platform, source_url, author_profile_url, author_handle
+            FROM growth_signals
             WHERE id = ANY(${signalIds}::uuid[])
           `,
         )
@@ -542,6 +545,7 @@ export async function listLeads(options?: {
       platform: leadPlatform ?? signal?.platform,
       sourceUrl: signal?.source_url ?? null,
       authorProfileUrl: signal?.author_profile_url ?? lead.profileUrl,
+      authorHandle: signal?.author_handle ?? null,
     });
     return {
       ...lead,
