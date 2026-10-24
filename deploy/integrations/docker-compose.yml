@@ -23,6 +23,8 @@ services:
       POSTGRES_DATABASE: huginn
       INVITATION_CODE: stackwise-local
       FORCE_SSL: "false"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       - huginn-db
 

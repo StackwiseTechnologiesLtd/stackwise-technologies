@@ -111,10 +111,10 @@ export async function getIntegrationsStatus(): Promise<{
       {
         id: "crm",
         label: "CRM (in-repo)",
-        configured: false,
+        configured: true,
         lastEventAt: null,
         lastSuccessAt: null,
-        lastDetail: "Phase 2 — not wired yet",
+        lastDetail: "Promote leads from Growth",
       },
     ],
   };

@@ -21,7 +21,13 @@ docker compose -f deploy/integrations/docker-compose.yml up -d
 
 Open http://localhost:3001 and complete signup with invitation code `stackwise-local`.
 
-Configure a Webhook Agent to call your app ingest URL with the bearer token.
+Import the scenario and docs: [deploy/integrations/huginn/README.md](./huginn/README.md).
+
+Quick smoke test without Docker:
+
+```bash
+INTEGRATIONS_INGEST_SECRET=your-secret node scripts/huginn-ingest-smoke.mjs
+```
 
 ## Env vars
 
