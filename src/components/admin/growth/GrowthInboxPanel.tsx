@@ -22,6 +22,7 @@ import { INBOX_DEFAULT_FRESHNESS_HOURS } from "@/lib/growth/harvest-config";
 import { sortInboxItemsByRecency } from "@/lib/growth/lead-sort";
 import { GrowthFreshnessFilter } from "@/components/admin/growth/GrowthFreshnessFilter";
 import { PromoteToCrmButton } from "@/components/admin/growth/PromoteToCrmButton";
+import { formatShortRelativeTime } from "@/lib/format-relative-time";
 import { resolveGrowthPostUrl } from "@/lib/growth/post-url";
 import { normalizeDiscoveryKeyword } from "@/lib/growth/personalized-draft";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
@@ -256,6 +257,9 @@ export function GrowthInboxPanel({ fixedPlatform }: GrowthInboxPanelProps = {}) 
                   signal?.authorProfileUrl ?? lead.profileUrl,
                 authorHandle: signal?.authorHandle ?? null,
               });
+            const activityTime = formatShortRelativeTime(
+              signal?.postedAt ?? signal?.ingestedAt ?? lead.createdAt,
+            );
 
             return (
               <li
@@ -269,19 +273,18 @@ export function GrowthInboxPanel({ fixedPlatform }: GrowthInboxPanelProps = {}) 
                   aria-expanded={isOpen}
                 >
                   <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                      <span className="text-[10px] text-muted tabular-nums">
+                        {[
+                          activityTime,
+                          leadSourceBadgeLabel(lead.leadSource),
+                          `${score}% fit`,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </span>
                       <span className="text-xs font-medium uppercase tracking-wide text-muted">
                         {lead.platform ?? "unknown"}
-                      </span>
-                      {lead.leadSource !== "harvest" ? (
-                        <span className="rounded-md bg-accent/10 px-2 py-0.5 text-[10px] font-medium text-accent ring-1 ring-accent/30">
-                          {leadSourceBadgeLabel(lead.leadSource)}
-                        </span>
-                      ) : null}
-                      <span
-                        className={`rounded-full px-2 py-0.5 font-mono text-[11px] font-semibold ring-1 ${scoreBadgeClass(score)}`}
-                      >
-                        {score}% fit
                       </span>
                       <span className="rounded-md bg-black/40 px-2 py-0.5 text-[10px] text-muted ring-1 ring-line">
                         {draftStatusLabel(item)}
