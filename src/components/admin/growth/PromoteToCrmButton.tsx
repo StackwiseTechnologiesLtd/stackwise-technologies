@@ -63,7 +63,7 @@ export function PromoteToCrmButton({
   if (opportunityId) {
     return (
       <Link
-        href={`/admin/crm/opportunities/${opportunityId}`}
+        href={`/admin/crm?o=${encodeURIComponent(opportunityId)}`}
         className={
           className ??
           "text-xs font-medium text-accent hover:underline"
