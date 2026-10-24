@@ -1,4 +1,4 @@
-import { CrmPipelineBoard } from "@/components/admin/crm/CrmPipelineBoard";
+import { CrmWorkspace } from "@/components/admin/crm/CrmWorkspace";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 
 export default function CrmPage() {
@@ -8,7 +8,7 @@ export default function CrmPage() {
         title="CRM"
         description="Primary pipeline for qualified leads (default ≥45% fit). Inbox and harvest stay under Growth for triage and replies."
       />
-      <CrmPipelineBoard />
+      <CrmWorkspace />
     </div>
   );
 }

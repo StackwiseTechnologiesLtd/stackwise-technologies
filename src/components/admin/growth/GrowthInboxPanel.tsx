@@ -12,10 +12,7 @@ import {
   GrowthPlatformFilter,
   type PlatformFilter,
 } from "@/components/admin/growth/GrowthPlatformFilter";
-import {
-  GrowthScoreFilter,
-  scoreBadgeClass,
-} from "@/components/admin/growth/GrowthScoreFilter";
+import { GrowthScoreFilter } from "@/components/admin/growth/GrowthScoreFilter";
 import type { GrowthDraft, GrowthInboxItem, LeadSource } from "@/lib/growth/types";
 import { growthFetch } from "@/lib/growth/growth-fetch";
 import { INBOX_DEFAULT_FRESHNESS_HOURS } from "@/lib/growth/harvest-config";
