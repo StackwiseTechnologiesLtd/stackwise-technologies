@@ -70,6 +70,14 @@ export function AdminNavIcon({
           <path d="M22 2v16" />
         </svg>
       );
+    case "crm":
+      return (
+        <svg {...props}>
+          <rect x="3" y="4" width="5" height="16" rx="1" />
+          <rect x="10" y="4" width="5" height="16" rx="1" />
+          <rect x="17" y="4" width="4" height="16" rx="1" />
+        </svg>
+      );
     case "settings":
       return (
         <svg {...props}>

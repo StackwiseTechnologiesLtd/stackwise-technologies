@@ -21,6 +21,7 @@ import { growthFetch } from "@/lib/growth/growth-fetch";
 import { INBOX_DEFAULT_FRESHNESS_HOURS } from "@/lib/growth/harvest-config";
 import { sortInboxItemsByRecency } from "@/lib/growth/lead-sort";
 import { GrowthFreshnessFilter } from "@/components/admin/growth/GrowthFreshnessFilter";
+import { PromoteToCrmButton } from "@/components/admin/growth/PromoteToCrmButton";
 import { resolveGrowthPostUrl } from "@/lib/growth/post-url";
 import { normalizeDiscoveryKeyword } from "@/lib/growth/personalized-draft";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
@@ -320,7 +321,8 @@ export function GrowthInboxPanel({ fixedPlatform }: GrowthInboxPanelProps = {}) 
                   <div className="border-t border-line">
                     <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
                       <div className="border-b border-line p-5 lg:border-b-0 lg:border-r">
-                        <div className="flex flex-wrap justify-end gap-2 text-xs">
+                        <div className="flex flex-wrap items-center justify-end gap-2 text-xs">
+                          <PromoteToCrmButton leadId={lead.id} />
                           {lead.profileUrl ? (
                             <a
                               href={lead.profileUrl}

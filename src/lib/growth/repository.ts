@@ -608,6 +608,46 @@ export async function listLeads(options?: {
   });
 }
 
+export async function getLeadById(
+  id: string,
+): Promise<{ lead: GrowthLead; signal: GrowthSignal | null } | null> {
+  await ready();
+  const sql = getSql();
+  const rows = asRows<LeadRow>(
+    await sql`SELECT * FROM growth_leads WHERE id = ${id}::uuid`,
+  );
+  const row = rows[0];
+  if (!row) return null;
+
+  let signal: GrowthSignal | null = null;
+  if (row.signal_id) {
+    const signalRows = asRows<SignalRow>(
+      await sql`SELECT * FROM growth_signals WHERE id = ${row.signal_id}::uuid`,
+    );
+    signal = signalRows[0] ? mapSignal(signalRows[0]) : null;
+  }
+
+  const leadPlatform =
+    (row.platform as GrowthPlatform | null) ??
+    signal?.platform ??
+    null;
+  const sourceUrl = resolveGrowthPostUrl({
+    platform: leadPlatform ?? signal?.platform,
+    sourceUrl: signal?.sourceUrl ?? null,
+    authorProfileUrl: signal?.authorProfileUrl ?? row.profile_url,
+    authorHandle: signal?.authorHandle ?? null,
+  });
+
+  return {
+    lead: {
+      ...mapLead(row),
+      platform: leadPlatform ?? mapLead(row).platform,
+      sourceUrl,
+    },
+    signal,
+  };
+}
+
 export async function updateLead(
   id: string,
   patch: {
@@ -629,6 +669,13 @@ export async function updateLead(
       RETURNING *
     `,
   );
+  if (rows[0] && patch.pipelineStatus) {
+    await sql`
+      UPDATE crm_opportunities
+      SET stage = ${patch.pipelineStatus}, updated_at = ${now}::timestamptz
+      WHERE growth_lead_id = ${id}::uuid
+    `;
+  }
   return rows[0] ? mapLead(rows[0]) : null;
 }
 
