@@ -3,6 +3,7 @@ import { asRows, getSql, isDatabaseConfigured } from "@/lib/db/postgres";
 import { decryptJson, encryptJson } from "@/lib/growth/crypto";
 import { buildPersonalizedReplyDraft } from "@/lib/growth/personalized-draft";
 import { DEFAULT_ICP_CONFIG } from "@/lib/growth/icp-default";
+import { resolveGrowthPostUrl } from "@/lib/growth/post-url";
 import { scoreLead } from "@/lib/growth/scoring";
 import type {
   GrowthDraft,
@@ -75,10 +76,15 @@ type DraftRow = {
 };
 
 function mapSignal(row: SignalRow): GrowthSignal {
+  const platform = row.platform as GrowthPlatform;
   return {
     id: row.id,
-    platform: row.platform as GrowthPlatform,
-    sourceUrl: row.source_url,
+    platform,
+    sourceUrl: resolveGrowthPostUrl({
+      platform,
+      sourceUrl: row.source_url,
+      authorProfileUrl: row.author_profile_url,
+    }),
     authorName: row.author_name,
     authorHandle: row.author_handle,
     authorProfileUrl: row.author_profile_url,
@@ -352,11 +358,13 @@ export async function listInbox(options?: {
   const leadRows = asRows<LeadRow>(
     platform
       ? await sql`
-          SELECT * FROM growth_leads
-          WHERE composite_score >= ${minScore}
-            AND platform = ${platform}
-            AND pipeline_status <> 'not_a_fit'
-          ORDER BY composite_score DESC, created_at DESC
+          SELECT l.*
+          FROM growth_leads l
+          LEFT JOIN growth_signals s ON s.id = l.signal_id
+          WHERE l.composite_score >= ${minScore}
+            AND l.pipeline_status <> 'not_a_fit'
+            AND (l.platform = ${platform} OR s.platform = ${platform})
+          ORDER BY l.composite_score DESC, l.created_at DESC
           LIMIT ${limit}
         `
       : await sql`
@@ -404,9 +412,19 @@ export async function listInbox(options?: {
     const signal = row.signal_id
       ? signalById.get(row.signal_id) ?? null
       : null;
+    const mapped = mapLead(row);
+    const leadPlatform =
+      (row.platform as GrowthPlatform | null) ??
+      signal?.platform ??
+      mapped.platform;
     const lead = {
-      ...mapLead(row),
-      sourceUrl: signal?.sourceUrl ?? null,
+      ...mapped,
+      platform: leadPlatform,
+      sourceUrl: resolveGrowthPostUrl({
+        platform: leadPlatform ?? signal?.platform,
+        sourceUrl: signal?.sourceUrl ?? null,
+        authorProfileUrl: signal?.authorProfileUrl ?? mapped.profileUrl,
+      }),
     };
     const draft = draftByLeadId.get(row.id) ?? null;
     return { lead, signal, draft };
@@ -477,11 +495,13 @@ export async function listLeads(options?: {
   const rows = asRows<LeadRow>(
     platform
       ? await sql`
-          SELECT * FROM growth_leads
-          WHERE composite_score >= ${minScore}
-            AND composite_score <= ${maxScore}
-            AND platform = ${platform}
-          ORDER BY composite_score DESC, created_at DESC
+          SELECT l.*
+          FROM growth_leads l
+          LEFT JOIN growth_signals s ON s.id = l.signal_id
+          WHERE l.composite_score >= ${minScore}
+            AND l.composite_score <= ${maxScore}
+            AND (l.platform = ${platform} OR s.platform = ${platform})
+          ORDER BY l.composite_score DESC, l.created_at DESC
           LIMIT ${limit}
         `
       : await sql`
@@ -500,21 +520,34 @@ export async function listLeads(options?: {
     signalIds.length > 0
       ? asRows<SignalRow>(
           await sql`
-            SELECT id, source_url FROM growth_signals
+            SELECT id, platform, source_url, author_profile_url FROM growth_signals
             WHERE id = ANY(${signalIds}::uuid[])
           `,
         )
       : [];
-  const sourceUrlBySignalId = new Map(
-    signalRows.map((s) => [s.id, s.source_url] as const),
+  const signalMetaById = new Map(
+    signalRows.map((s) => [s.id, s] as const),
   );
 
   return rows.map((row) => {
     const lead = mapLead(row);
-    const sourceUrl = row.signal_id
-      ? sourceUrlBySignalId.get(row.signal_id) ?? null
-      : null;
-    return sourceUrl ? { ...lead, sourceUrl } : lead;
+    const signal = row.signal_id
+      ? signalMetaById.get(row.signal_id)
+      : undefined;
+    const leadPlatform =
+      (row.platform as GrowthPlatform | null) ??
+      (signal?.platform as GrowthPlatform | undefined) ??
+      null;
+    const sourceUrl = resolveGrowthPostUrl({
+      platform: leadPlatform ?? signal?.platform,
+      sourceUrl: signal?.source_url ?? null,
+      authorProfileUrl: signal?.author_profile_url ?? lead.profileUrl,
+    });
+    return {
+      ...lead,
+      platform: leadPlatform ?? lead.platform,
+      sourceUrl,
+    };
   });
 }
 

@@ -270,10 +270,24 @@ export function growthHarvestExtractInPage(
   };
 
   const sourceFromRoot = (root: HTMLElement): string | null => {
-    const linkEl = root.querySelector(
-      'a[href*="/feed/update/"], a[href*="/posts/"], a[href*="activity-"]',
-    ) as HTMLAnchorElement | null;
-    return absLinkedInUrl(linkEl?.getAttribute("href") ?? null);
+    const selectors = [
+      'a[href*="/feed/update/"]',
+      'a[href*="/posts/"]',
+      'a[href*="activity-"]',
+      'a[href*="linkedin.com/pulse/"]',
+    ];
+    for (const selector of selectors) {
+      const linkEl = root.querySelector(selector) as HTMLAnchorElement | null;
+      const url = absLinkedInUrl(linkEl?.getAttribute("href") ?? null);
+      if (url) return url;
+    }
+    const urn =
+      root.getAttribute("data-urn") ??
+      root.querySelector("[data-urn]")?.getAttribute("data-urn");
+    if (urn && (urn.includes("activity") || urn.includes("ugcPost"))) {
+      return `https://www.linkedin.com/feed/update/${encodeURIComponent(urn)}/`;
+    }
+    return null;
   };
 
   roots.forEach((root) => {

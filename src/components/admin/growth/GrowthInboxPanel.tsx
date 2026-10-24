@@ -206,8 +206,9 @@ export function GrowthInboxPanel({ fixedPlatform }: GrowthInboxPanelProps = {}) 
       {sortedItems.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-line bg-panel/40 p-12 text-center">
           <p className="text-sm text-muted">
-            No leads for this filter. Run harvest or loosen the score / source
-            filters.
+            {linkedInInbox
+              ? "No LinkedIn leads match this filter. Run LinkedIn harvest below, or check Inbox (All) if leads were captured before platform tagging."
+              : "No leads for this filter. Run harvest or loosen the score / source filters."}
           </p>
         </div>
       ) : (
@@ -426,8 +427,7 @@ export function GrowthInboxPanel({ fixedPlatform }: GrowthInboxPanelProps = {}) 
                             ) : null}
 
                             <div className="mt-4 flex flex-wrap gap-2">
-                              {draft.platform === "linkedin" &&
-                              signal?.sourceUrl ? (
+                              {draft.platform === "linkedin" && articleUrl ? (
                                 <AdminActionButton
                                   variant="primary"
                                   busy={busyKey === `${draft.id}:linkedin`}
@@ -446,7 +446,7 @@ export function GrowthInboxPanel({ fixedPlatform }: GrowthInboxPanelProps = {}) 
                                           text,
                                         );
                                         window.open(
-                                          signal.sourceUrl!,
+                                          articleUrl,
                                           "_blank",
                                           "noopener,noreferrer",
                                         );
