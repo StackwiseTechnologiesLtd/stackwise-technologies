@@ -11,7 +11,15 @@ import { useDeferredEffect } from "@/lib/use-deferred-effect";
 import Link from "next/link";
 import { useCallback, useState } from "react";
 
-export function CrmOpportunityDetailPanel({ opportunityId }: { opportunityId: string }) {
+export function CrmOpportunityDetailPanel({
+  opportunityId,
+  variant = "page",
+  onStageChange,
+}: {
+  opportunityId: string;
+  variant?: "page" | "modal";
+  onStageChange?: () => void;
+}) {
   const [detail, setDetail] = useState<CrmOpportunityDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [stageBusy, setStageBusy] = useState(false);
@@ -41,6 +49,7 @@ export function CrmOpportunityDetailPanel({ opportunityId }: { opportunityId: st
       });
       if (!res.ok) throw new Error("Update failed");
       setDetail((await res.json()) as CrmOpportunityDetail);
+      onStageChange?.();
     } finally {
       setStageBusy(false);
     }
@@ -60,10 +69,15 @@ export function CrmOpportunityDetailPanel({ opportunityId }: { opportunityId: st
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 max-w-full flex-1">
-          <Link href="/admin/crm" className="text-xs text-accent hover:underline">
-            ← Pipeline
-          </Link>
-          <h2 className="mt-2 break-words text-xl font-semibold tracking-tight">
+          {variant === "page" ? (
+            <Link href="/admin/crm" className="text-xs text-accent hover:underline">
+              ← Pipeline
+            </Link>
+          ) : null}
+          <h2
+            id={variant === "modal" ? "crm-opportunity-title" : undefined}
+            className={`break-words text-xl font-semibold tracking-tight ${variant === "page" ? "mt-2" : ""}`}
+          >
             {opportunity.name}
           </h2>
           <p className="break-words text-sm text-muted">
@@ -141,7 +155,10 @@ export function CrmOpportunityDetailPanel({ opportunityId }: { opportunityId: st
           <CrmActivityTimeline
             opportunityId={opportunityId}
             activities={activities}
-            onAdded={() => void load()}
+            onAdded={() => {
+              void load();
+              onStageChange?.();
+            }}
           />
         </div>
       </section>

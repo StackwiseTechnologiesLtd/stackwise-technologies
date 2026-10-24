@@ -1,14 +1,9 @@
-import { CrmOpportunityDetailPanel } from "@/components/admin/crm/CrmOpportunityDetail";
-import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { redirect } from "next/navigation";
 
 type Props = { params: Promise<{ id: string }> };
 
-export default async function CrmOpportunityPage({ params }: Props) {
+/** Deep links open the CRM workspace with the opportunity modal. */
+export default async function CrmOpportunityRedirectPage({ params }: Props) {
   const { id } = await params;
-  return (
-    <div className="space-y-6">
-      <AdminPageHeader title="Opportunity" description="Record detail and activity." />
-      <CrmOpportunityDetailPanel opportunityId={id} />
-    </div>
-  );
+  redirect(`/admin/crm?o=${encodeURIComponent(id)}`);
 }

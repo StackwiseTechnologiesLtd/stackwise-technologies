@@ -5,10 +5,13 @@ import { scoreBadgeClass } from "@/components/admin/growth/GrowthScoreFilter";
 import { crmStageLabels, type CrmOpportunity } from "@/lib/crm/types";
 import { formatShortRelativeTime } from "@/lib/format-relative-time";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
-import Link from "next/link";
 import { useCallback, useState } from "react";
 
-export function CrmRecordTable() {
+export function CrmRecordTable({
+  onSelectOpportunity,
+}: {
+  onSelectOpportunity?: (id: string) => void;
+} = {}) {
   const [items, setItems] = useState<CrmOpportunity[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -67,13 +70,14 @@ export function CrmRecordTable() {
               className="border-b border-line/60 last:border-0 hover:bg-black/20"
             >
               <td className="max-w-[16rem] px-4 py-3">
-                <Link
-                  href={`/admin/crm/opportunities/${opp.id}`}
-                  className="line-clamp-2 break-words font-medium text-accent hover:underline"
+                <button
+                  type="button"
+                  onClick={() => onSelectOpportunity?.(opp.id)}
+                  className="line-clamp-2 break-words text-left font-medium text-accent hover:underline"
                   title={opp.name}
                 >
                   {opp.name}
-                </Link>
+                </button>
               </td>
               <td className="whitespace-nowrap px-4 py-3 text-muted">
                 {crmStageLabels[opp.stage]}

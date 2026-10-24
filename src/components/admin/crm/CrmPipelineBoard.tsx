@@ -8,7 +8,6 @@ import type { PipelineStatus } from "@/lib/growth/types";
 import { leadSourceBadgeLabel } from "@/components/admin/growth/GrowthLeadSourceFilter";
 import { formatShortRelativeTime } from "@/lib/format-relative-time";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
-import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 
 const boardStages: PipelineStatus[] = [
@@ -22,7 +21,11 @@ const boardStages: PipelineStatus[] = [
   "not_a_fit",
 ];
 
-export function CrmPipelineBoard() {
+export function CrmPipelineBoard({
+  onSelectOpportunity,
+}: {
+  onSelectOpportunity?: (id: string) => void;
+} = {}) {
   const toast = useToast();
   const [items, setItems] = useState<CrmOpportunity[]>([]);
   const [loading, setLoading] = useState(true);
@@ -195,9 +198,10 @@ export function CrmPipelineBoard() {
             <ul className="flex min-h-0 max-h-[min(70vh,32rem)] flex-col gap-2 overflow-y-auto overflow-x-hidden p-2">
               {cards.map((opp) => (
                 <li key={opp.id} className="min-w-0">
-                  <Link
-                    href={`/admin/crm/opportunities/${opp.id}`}
-                    className="block min-w-0 overflow-hidden rounded-lg border border-line bg-black/35 p-2.5 text-left transition-colors hover:border-accent/40 hover:bg-black/50"
+                  <button
+                    type="button"
+                    onClick={() => onSelectOpportunity?.(opp.id)}
+                    className="block w-full min-w-0 overflow-hidden rounded-lg border border-line bg-black/35 p-2.5 text-left transition-colors hover:border-accent/40 hover:bg-black/50"
                   >
                     <p
                       className="line-clamp-3 break-words text-sm font-medium leading-snug text-foreground"
@@ -216,7 +220,7 @@ export function CrmPipelineBoard() {
                         .filter(Boolean)
                         .join(" · ")}
                     </p>
-                  </Link>
+                  </button>
                 </li>
               ))}
             </ul>
