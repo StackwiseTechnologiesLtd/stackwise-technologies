@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Footer from "@/components/Footer";
 import Landing from "@/components/Landing";
+import MarketingStructuredData from "@/components/MarketingStructuredData";
 import SiteNav from "@/components/SiteNav";
 import {
   getCopy,
@@ -44,6 +45,7 @@ export default async function LocaleHome({ params }: PageProps) {
 
   return (
     <>
+      <MarketingStructuredData />
       <SiteNav copy={copy.nav} locale={locale} />
       <Landing locale={locale} copy={copy} />
       <Footer copy={copy.footer} />
