@@ -3,8 +3,9 @@
 import { AdminActionButton } from "@/components/admin/AdminActionButton";
 import { useToast } from "@/components/ToastProvider";
 import type { CrmOpportunityDetail } from "@/lib/crm/types";
+import { useDeferredEffect } from "@/lib/use-deferred-effect";
 import Link from "next/link";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 export function PromoteToCrmButton({
   leadId,
@@ -16,6 +17,24 @@ export function PromoteToCrmButton({
   const toast = useToast();
   const [busy, setBusy] = useState(false);
   const [opportunityId, setOpportunityId] = useState<string | null>(null);
+  const [checked, setChecked] = useState(false);
+
+  const resolveLinkedOpportunity = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/admin/crm/opportunities/by-lead/${leadId}`);
+      if (!res.ok) return;
+      const json = (await res.json()) as {
+        opportunity?: { id: string } | null;
+      };
+      if (json.opportunity?.id) setOpportunityId(json.opportunity.id);
+    } finally {
+      setChecked(true);
+    }
+  }, [leadId]);
+
+  useDeferredEffect(() => {
+    void resolveLinkedOpportunity();
+  }, [resolveLinkedOpportunity]);
 
   async function promote() {
     setBusy(true);
@@ -51,19 +70,23 @@ export function PromoteToCrmButton({
         }
         onClick={(e) => e.stopPropagation()}
       >
-        View in CRM →
+        Open in CRM →
       </Link>
     );
+  }
+
+  if (!checked) {
+    return null;
   }
 
   return (
     <AdminActionButton
       className={className}
       busy={busy}
-      busyLabel="Promoting…"
+      busyLabel="Adding…"
       onClick={() => void promote()}
     >
-      Promote to CRM
+      Add to CRM
     </AdminActionButton>
   );
 }

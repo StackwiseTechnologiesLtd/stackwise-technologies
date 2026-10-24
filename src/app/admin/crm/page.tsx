@@ -6,7 +6,7 @@ export default function CrmPage() {
     <div className="space-y-6">
       <AdminPageHeader
         title="CRM"
-        description="Pipeline for promoted Growth leads. Stages stay in sync with Growth pipeline status."
+        description="Primary pipeline for all Growth leads (harvest, Huginn, manual). Inbox is for triage and replies; stages live here and in Growth Leads."
       />
       <CrmPipelineBoard />
     </div>

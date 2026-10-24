@@ -6,6 +6,7 @@ import { DEFAULT_ICP_CONFIG } from "@/lib/growth/icp-default";
 import { INBOX_DEFAULT_FRESHNESS_HOURS } from "@/lib/growth/harvest-config";
 import { freshnessCutoffIso } from "@/lib/growth/harvest-freshness";
 import { resolveGrowthPostUrl } from "@/lib/growth/post-url";
+import { syncIngestedLeadToCrm } from "@/lib/crm/sync-from-ingest";
 import { scoreLead } from "@/lib/growth/scoring";
 import {
   parseLeadSource,
@@ -288,9 +289,12 @@ export async function ingestSignal(
     await sql`SELECT * FROM growth_leads WHERE id = ${leadId}::uuid`,
   );
 
+  const lead = mapLead(leadRows[0]);
+  await syncIngestedLeadToCrm(leadId, leadSource);
+
   return {
     signal: mapSignal(signalRows[0]),
-    lead: mapLead(leadRows[0]),
+    lead,
     draft: null,
   };
 }
