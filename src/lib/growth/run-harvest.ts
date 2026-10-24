@@ -18,11 +18,14 @@ import type { GrowthSessionCookie } from "@/lib/growth/growth-session-cookie";
 import {
   getHostedWorkerBrowser,
 } from "@/lib/growth/hosted-connect";
+import { evaluateHarvestCandidate } from "@/lib/growth/harvest-quality";
+import type { IcpConfig } from "@/lib/growth/types";
 import {
   ingestSignal,
   getIcpConfig,
   getPlatformSession,
   reportSessionHealth,
+  signalAlreadyIngested,
   touchCredentialSync,
 } from "@/lib/growth/repository";
 import type { HarvestReporter } from "@/lib/growth/harvest-progress";
@@ -50,15 +53,37 @@ function normalizeCookies(cookies: unknown): GrowthSessionCookie[] {
 
 async function ingestSignals(
   signals: IngestSignalInput[],
+  icp: IcpConfig,
   report?: HarvestReporter,
 ): Promise<number> {
   let ingested = 0;
+  let skipped = 0;
   for (let i = 0; i < signals.length; i++) {
     const signal = signals[i];
     if (!signal.authorName?.trim() || !signal.bodyText?.trim()) continue;
+
+    const verdict = evaluateHarvestCandidate(signal, icp);
+    if (!verdict.ok) {
+      skipped += 1;
+      await report?.(
+        "score",
+        `Skipped (${signal.authorName.trim()}): ${verdict.reason}`,
+      );
+      continue;
+    }
+
+    if (await signalAlreadyIngested(signal)) {
+      skipped += 1;
+      await report?.(
+        "score",
+        `Skipped duplicate post from ${signal.authorName.trim()}`,
+      );
+      continue;
+    }
+
     await report?.(
       "score",
-      `Scoring lead ${ingested + 1} of ${signals.length} (${signal.authorName.trim()})…`,
+      `Saving lead ${ingested + 1} — ${signal.authorName.trim()} (${verdict.score.compositeScore}% fit)…`,
     );
     await ingestSignal({
       ...signal,
@@ -66,6 +91,12 @@ async function ingestSignals(
       bodyText: signal.bodyText.trim(),
     });
     ingested += 1;
+  }
+  if (skipped > 0) {
+    await report?.(
+      "score",
+      `Filtered out ${skipped} irrelevant, stale, or duplicate post${skipped === 1 ? "" : "s"}.`,
+    );
   }
   return ingested;
 }
@@ -142,7 +173,7 @@ export async function runPlatformHarvest(
     await report?.("score", "Scoring against ICP and saving leads…");
   }
 
-  const ingested = await ingestSignals(signals, report);
+  const ingested = await ingestSignals(signals, icp, report);
   await report?.("sync", "Updating last sync time…");
   await touchCredentialSync(platform);
   await reportSessionHealth({

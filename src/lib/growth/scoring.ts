@@ -75,6 +75,9 @@ export function scoreLead(input: ScoreInput): ScoreResult {
   }
   if (intentHits === 0) {
     reasons.push("No strong intent phrase detected");
+  } else if (intentHits >= 2) {
+    intent += 8;
+    reasons.push("Multiple intent signals");
   }
 
   icp = Math.max(0, Math.min(100, icp));

@@ -1,4 +1,22 @@
-import type { GrowthDraft, GrowthLead } from "@/lib/growth/types";
+import type { GrowthDraft, GrowthInboxItem, GrowthLead } from "@/lib/growth/types";
+
+function inboxItemActivityTime(item: GrowthInboxItem): number {
+  const posted = item.signal?.postedAt;
+  const ingested = item.signal?.ingestedAt;
+  const leadCreated = item.lead.createdAt;
+  const iso = posted ?? ingested ?? leadCreated;
+  const t = Date.parse(iso);
+  return Number.isNaN(t) ? 0 : t;
+}
+
+/** Preserve API order: newest posts first, then fit score. */
+export function sortInboxItemsByRecency(items: GrowthInboxItem[]): GrowthInboxItem[] {
+  return [...items].sort(
+    (a, b) =>
+      inboxItemActivityTime(b) - inboxItemActivityTime(a) ||
+      b.lead.compositeScore - a.lead.compositeScore,
+  );
+}
 
 export function sortLeadsByCompositeScore(leads: GrowthLead[]): GrowthLead[] {
   return [...leads].sort(

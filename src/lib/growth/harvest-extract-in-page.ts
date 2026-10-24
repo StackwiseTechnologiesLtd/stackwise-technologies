@@ -19,6 +19,7 @@ export type InPageRawPost = {
   authorHandle: string | null;
   authorProfileUrl: string | null;
   roleTitle: string | null;
+  postedAtHint: string | null;
 };
 
 export function growthHarvestExtractInPage(
@@ -34,6 +35,7 @@ export function growthHarvestExtractInPage(
     authorHandle: string | null,
     authorProfileUrl: string | null,
     roleTitle: string | null,
+    postedAtHint: string | null = null,
   ) => {
     const text = bodyText.trim();
     if (text.length < 15) return;
@@ -47,7 +49,19 @@ export function growthHarvestExtractInPage(
       authorHandle,
       authorProfileUrl,
       roleTitle,
+      postedAtHint,
     });
+  };
+
+  const postedHintFromRoot = (root: HTMLElement): string | null => {
+    const timeEl = root.querySelector("time[datetime]");
+    const datetime = timeEl?.getAttribute("datetime");
+    if (datetime) return datetime;
+    const sub = root.querySelector(
+      ".update-components-actor__sub-description, .feed-shared-actor__sub-description, [data-testid='social-actions__time']",
+    );
+    const label = sub?.textContent?.trim();
+    return label && label.length <= 80 ? label : null;
   };
 
   if (plat === "x") {
@@ -87,6 +101,9 @@ export function growthHarvestExtractInPage(
       const handleMatch = profileHref?.match(/^\/([^/]+)/);
       const authorHandle = handleMatch ? `@${handleMatch[1]}` : null;
       const roleTitle = userText.split("\n")[1]?.trim()?.slice(0, 200) || null;
+      const postedAtHint =
+        article?.querySelector("time[datetime]")?.getAttribute("datetime") ??
+        null;
       push(
         text,
         sourceUrl,
@@ -94,6 +111,7 @@ export function growthHarvestExtractInPage(
         authorHandle,
         authorProfileUrl,
         roleTitle,
+        postedAtHint,
       );
     });
 
@@ -109,6 +127,9 @@ export function growthHarvestExtractInPage(
             ? href
             : `https://x.com${href}`
           : null;
+        const postedAtHint =
+          article.querySelector("time[datetime]")?.getAttribute("datetime") ??
+          null;
         push(
           text,
           sourceUrl,
@@ -116,6 +137,7 @@ export function growthHarvestExtractInPage(
           null,
           null,
           null,
+          postedAtHint,
         );
       });
     }
@@ -130,6 +152,9 @@ export function growthHarvestExtractInPage(
         const sourceUrl = href.startsWith("http")
           ? href
           : `https://x.com${href}`;
+        const cellTime =
+          cell?.querySelector("time[datetime]")?.getAttribute("datetime") ??
+          null;
         push(
           text,
           sourceUrl,
@@ -137,6 +162,7 @@ export function growthHarvestExtractInPage(
           null,
           null,
           null,
+          cellTime,
         );
       });
     }
@@ -293,7 +319,15 @@ export function growthHarvestExtractInPage(
   roots.forEach((root) => {
     const text = textFromRoot(root);
     const { name, profileUrl, roleTitle } = authorFromRoot(root);
-    push(text, sourceFromRoot(root), name, null, profileUrl, roleTitle);
+    push(
+      text,
+      sourceFromRoot(root),
+      name,
+      null,
+      profileUrl,
+      roleTitle,
+      postedHintFromRoot(root),
+    );
   });
 
   if (posts.length === 0) {
@@ -309,13 +343,15 @@ export function growthHarvestExtractInPage(
           ? textFromRoot(root as HTMLElement)
           : ((link as HTMLElement).innerText?.trim() ?? "");
         const href = link.getAttribute("href");
+        const rootEl = (root as HTMLElement) ?? document.body;
         push(
           text,
           absLinkedInUrl(href),
-          authorFromRoot((root as HTMLElement) ?? document.body).name,
+          authorFromRoot(rootEl).name,
           null,
           null,
           null,
+          root instanceof HTMLElement ? postedHintFromRoot(root) : null,
         );
       });
   }

@@ -18,9 +18,19 @@ export async function GET(request: Request) {
       platformParam && growthPlatforms.includes(platformParam as GrowthPlatform)
         ? (platformParam as GrowthPlatform)
         : null;
+    const freshnessParam = searchParams.get("freshnessHours");
+    const freshnessParsed = Number.parseInt(freshnessParam ?? "", 10);
+    const freshnessHours =
+      freshnessParam === "0"
+        ? null
+        : Number.isFinite(freshnessParsed) && freshnessParsed > 0
+          ? freshnessParsed
+          : undefined;
+
     const inbox = await listInbox({
       minScore: Number.isFinite(minScore) ? minScore : 0,
       platform,
+      freshnessHours,
     });
     return NextResponse.json(inbox);
   } catch (error) {

@@ -13,16 +13,27 @@ import {
 } from "@/components/admin/growth/GrowthScoreFilter";
 import type { GrowthDraft, GrowthInboxItem } from "@/lib/growth/types";
 import { growthFetch } from "@/lib/growth/growth-fetch";
-import { sortLeadsByCompositeScore } from "@/lib/growth/lead-sort";
+import { INBOX_DEFAULT_FRESHNESS_HOURS } from "@/lib/growth/harvest-config";
+import { sortInboxItemsByRecency } from "@/lib/growth/lead-sort";
+import { GrowthFreshnessFilter } from "@/components/admin/growth/GrowthFreshnessFilter";
 import { resolveGrowthPostUrl } from "@/lib/growth/post-url";
 import { normalizeDiscoveryKeyword } from "@/lib/growth/personalized-draft";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 import { useCallback, useMemo, useState } from "react";
 
-function inboxQuery(minScore: number, platform: PlatformFilter): string {
+function inboxQuery(
+  minScore: number,
+  platform: PlatformFilter,
+  freshnessHours: number,
+): string {
   const params = new URLSearchParams();
   if (minScore > 0) params.set("minScore", String(minScore));
   if (platform !== "all") params.set("platform", platform);
+  if (freshnessHours > 0) {
+    params.set("freshnessHours", String(freshnessHours));
+  } else {
+    params.set("freshnessHours", "0");
+  }
   const qs = params.toString();
   return qs ? `?${qs}` : "";
 }
@@ -52,6 +63,9 @@ export function GrowthInboxPanel({ fixedPlatform }: GrowthInboxPanelProps = {}) 
   const [platform, setPlatform] = useState<PlatformFilter>(
     fixedPlatform ?? "all",
   );
+  const [freshnessHours, setFreshnessHours] = useState(
+    INBOX_DEFAULT_FRESHNESS_HOURS,
+  );
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   const platformFilter: PlatformFilter = fixedPlatform ?? platform;
@@ -62,16 +76,11 @@ export function GrowthInboxPanel({ fixedPlatform }: GrowthInboxPanelProps = {}) 
       else setRefreshing(true);
       try {
         const res = await growthFetch(
-          `/api/admin/growth/inbox${inboxQuery(minScore, platformFilter)}`,
+          `/api/admin/growth/inbox${inboxQuery(minScore, platformFilter, freshnessHours)}`,
         );
         if (!res.ok) throw new Error("Could not load inbox");
         const json = (await res.json()) as { items: GrowthInboxItem[] };
-        const sorted = sortLeadsByCompositeScore(
-          json.items.map((i) => i.lead),
-        ).map((lead) => {
-          const found = json.items.find((i) => i.lead.id === lead.id);
-          return found ?? { lead, signal: null, draft: null };
-        });
+        const sorted = sortInboxItemsByRecency(json.items);
         setItems(sorted);
         const next: Record<string, string> = {};
         for (const item of sorted) {
@@ -85,7 +94,7 @@ export function GrowthInboxPanel({ fixedPlatform }: GrowthInboxPanelProps = {}) 
         setRefreshing(false);
       }
     },
-    [toast, minScore, platformFilter],
+    [toast, minScore, platformFilter, freshnessHours],
   );
 
   const linkedInInbox = fixedPlatform === "linkedin";
@@ -179,7 +188,10 @@ export function GrowthInboxPanel({ fixedPlatform }: GrowthInboxPanelProps = {}) 
             {needsReply > 0
               ? ` · ${needsReply} awaiting reply`
               : ""}{" "}
-            · highest fit first
+            · newest first
+            {freshnessHours > 0
+              ? ` · last ${freshnessHours <= 24 ? "24h" : freshnessHours <= 72 ? "72h" : `${Math.round(freshnessHours / 24)}d`}`
+              : ""}
           </p>
           <p className="mt-1 max-w-xl text-xs text-muted">
             {linkedInInbox
@@ -191,6 +203,10 @@ export function GrowthInboxPanel({ fixedPlatform }: GrowthInboxPanelProps = {}) 
           {fixedPlatform ? null : (
             <GrowthPlatformFilter value={platform} onChange={setPlatform} />
           )}
+          <GrowthFreshnessFilter
+            freshnessHours={freshnessHours}
+            onChange={setFreshnessHours}
+          />
           <div className="flex flex-wrap items-center gap-3">
             <GrowthScoreFilter minScore={minScore} onChange={setMinScore} />
             <AdminActionButton

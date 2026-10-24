@@ -44,6 +44,7 @@ export type GrowthSignal = {
   bodyText: string;
   contextSummary: string | null;
   ingestedAt: string;
+  postedAt: string | null;
 };
 
 export type GrowthLead = {
@@ -100,6 +101,8 @@ export type IngestSignalInput = {
   companyName?: string;
   bodyText: string;
   contextSummary?: string;
+  /** ISO timestamp when the platform says the post was published. */
+  postedAt?: string;
   email?: string;
   profileContext?: string;
   rawPayload?: Record<string, unknown>;

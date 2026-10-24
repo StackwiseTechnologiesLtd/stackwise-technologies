@@ -2,6 +2,7 @@ import {
   growthHarvestExtractInPage,
   type InPageExtractDebug,
 } from "@/lib/growth/harvest-extract-in-page";
+import { parsePostedAtHint } from "@/lib/growth/harvest-freshness";
 import type { GrowthPlatform, IngestSignalInput } from "@/lib/growth/types";
 
 type HarvestInteractPage = {
@@ -43,17 +44,22 @@ export function rawPostsToSignals(
     authorHandle?: string | null;
     authorProfileUrl?: string | null;
     roleTitle?: string | null;
+    postedAtHint?: string | null;
   }[],
 ): IngestSignalInput[] {
-  return posts.map((p) => ({
-    platform,
-    sourceUrl: p.sourceUrl ?? undefined,
-    authorName: authorFromBlockText(p.authorName || p.bodyText),
-    authorHandle: p.authorHandle ?? undefined,
-    authorProfileUrl: p.authorProfileUrl ?? undefined,
-    roleTitle: p.roleTitle ?? undefined,
-    bodyText: p.bodyText,
-  }));
+  return posts.map((p) => {
+    const posted = parsePostedAtHint(p.postedAtHint ?? null);
+    return {
+      platform,
+      sourceUrl: p.sourceUrl ?? undefined,
+      authorName: authorFromBlockText(p.authorName || p.bodyText),
+      authorHandle: p.authorHandle ?? undefined,
+      authorProfileUrl: p.authorProfileUrl ?? undefined,
+      roleTitle: p.roleTitle ?? undefined,
+      bodyText: p.bodyText,
+      postedAt: posted?.toISOString(),
+    };
+  });
 }
 
 async function waitForPosts(page: HarvestInteractPage, platform: GrowthPlatform) {

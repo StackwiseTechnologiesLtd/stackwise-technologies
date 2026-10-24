@@ -291,6 +291,13 @@ CREATE INDEX IF NOT EXISTS idx_payment_links_contract_engagement
   ON payment_links (contract_engagement_id);
 `;
 
+const GROWTH_SIGNAL_POSTED_AT_SQL = `
+ALTER TABLE growth_signals
+  ADD COLUMN IF NOT EXISTS posted_at TIMESTAMPTZ;
+CREATE INDEX IF NOT EXISTS idx_growth_signals_posted
+  ON growth_signals (posted_at DESC NULLS LAST);
+`;
+
 export const MIGRATION_STATEMENTS = [
   ...splitStatements(INIT_SQL),
   ...splitStatements(KPAY_IS_TEST_SQL),
@@ -306,4 +313,5 @@ export const MIGRATION_STATEMENTS = [
   ...splitStatements(GROWTH_CONNECT_BROWSER_SESSIONS_SQL),
   ...splitStatements(CONTRACT_ENGAGEMENTS_SQL),
   ...splitStatements(CONTRACT_ENGAGEMENTS_V2_SQL),
+  ...splitStatements(GROWTH_SIGNAL_POSTED_AT_SQL),
 ];

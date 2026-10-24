@@ -35,7 +35,7 @@ export function platformSearchUrl(
 ): string {
   const q = encodeURIComponent(query);
   if (platform === "linkedin") {
-    return `https://www.linkedin.com/search/results/content/?keywords=${q}&sortBy=%22date_posted%22`;
+    return `https://www.linkedin.com/search/results/content/?keywords=${q}&sortBy=%22date_posted%22&datePosted=%22past-week%22`;
   }
   return `https://x.com/search?q=${q}&f=live`;
 }

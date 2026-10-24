@@ -178,8 +178,8 @@ export function GrowthHarvestPanel({
           </h3>
           <p className="mt-1 max-w-xl text-sm text-muted">
             {focusPlatform === "linkedin"
-              ? "Search LinkedIn posts from your ICP intent phrases, score leads, and queue comment replies in your LinkedIn inbox."
-              : "Runs keyword searches from your ICP settings (intent phrases), scores matching posts, and creates reply drafts in the inbox below."}
+              ? "Searches recent LinkedIn posts (past week) from your ICP phrases, keeps only strong-fit fresh posts, and adds them to your inbox."
+              : "Runs live X / recent LinkedIn searches from ICP settings, filters irrelevant or stale posts, and saves strong-fit leads to the inbox."}
           </p>
           {leadCount !== null ? (
             <p className="mt-2 text-sm text-foreground">
