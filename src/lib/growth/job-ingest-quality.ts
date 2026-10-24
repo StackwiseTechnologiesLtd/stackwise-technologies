@@ -4,7 +4,7 @@ import {
   HARVEST_MAX_POST_AGE_HOURS,
   HARVEST_MIN_COMPOSITE_SCORE,
 } from "@/lib/growth/harvest-config";
-import { scoreLead, type ScoreResult } from "@/lib/growth/scoring";
+import { scoreLead } from "@/lib/growth/scoring";
 import type { HarvestFilterResult } from "@/lib/growth/harvest-quality";
 
 function normalize(text: string): string {

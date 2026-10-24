@@ -320,8 +320,10 @@ Use for any new UI page before marking a phase complete:
 | Variable                                        | Phase | Purpose                                 |
 | ----------------------------------------------- | ----- | --------------------------------------- |
 | `INTEGRATIONS_INGEST_SECRET`                    | 1     | Bearer token for ingest API             |
-| `HUGINN_WEBHOOK_TOKEN`                          | 3     | Optional extra Huginn header validation |
-| `FREEHIRE_ADAPTER_URL`                          | 4     | Internal URL for adapter cron           |
+| `HUGINN_WEBHOOK_TOKEN`                          | 3     | Optional extra ingest bearer            |
+| `INGEST_URL`                                    | 3–4   | Target for `huginn-ingest-smoke` / `freehire-ingest` scripts |
+| `CRM_AUTO_PIPELINE`                             | 2     | Set `false` to disable auto CRM on ingest |
+| `CRM_AUTO_PIPELINE_MIN_SCORE`                   | 2     | Min fit % for CRM board + auto-sync (default 45) |
 | Existing `GROWTH_*`, `DATABASE_URL`, OpenRouter | —     | Unchanged                               |
 
 Never commit values; use `.env.local` / `.env.prod` + `npm run cf:secrets`.
@@ -348,8 +350,15 @@ Each sprint ends only when the **Manual test flow** for that phase is signed off
 
 ---
 
-## Next PR (start here)
+## Code delivery status (manual sign-off still required)
 
-1. Add this file (done when merged).
-2. Phase **0.1–0.2** + **1.1–1.3** (Ponytail rules stub, integration migration, ingest route).
-3. Run Phase **0** and **1** manual tests locally; update Progress log.
+| Phase | Code in repo | Manual tests |
+| ----- | ------------ | ------------ |
+| 0 | Rules, `check-no-secrets`, `ponytail.md` | 0.T1–0.T4 |
+| 1 | Ingest, status, inbox channel filter, compose stub | 1.T1–1.T6 |
+| 2 | `crm_*`, APIs, auto-sync, backfill/prune | 2.T1–2.T3 |
+| 2b | `/admin/crm` board + table, record, timeline, Growth links | 2.T4–2.T7, 2.U1–2.U6 |
+| 3 | Huginn scenario + README + smoke script | 3.T1–3.T6 |
+| 4 | `freehire-ingest.mjs`, Jobs inbox, job scoring, CRM titles | 4.T1–4.T5 |
+
+**Next for operators:** run each phase’s manual test flow; check boxes in the Progress log above when green.
