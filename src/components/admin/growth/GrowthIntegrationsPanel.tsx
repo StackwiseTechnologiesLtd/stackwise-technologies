@@ -60,7 +60,7 @@ export function GrowthIntegrationsPanel() {
           <p className="mt-2 text-xs text-muted">
             Ingest secret:{" "}
             {data?.ingestSecretConfigured
-              ? "configured (INTEGRATIONS_INGEST_SECRET or GROWTH_CONNECTOR_SECRET)"
+              ? "configured (INTEGRATIONS_INGEST_SECRET, GROWTH_CONNECTOR_SECRET, or HUGINN_WEBHOOK_TOKEN)"
               : "not set — webhooks will return 401"}
           </p>
         </div>

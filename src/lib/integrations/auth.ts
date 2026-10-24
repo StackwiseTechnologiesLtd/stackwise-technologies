@@ -13,9 +13,18 @@ function ingestSecrets(): string[] {
   const secrets: string[] = [];
   const integrations = process.env.INTEGRATIONS_INGEST_SECRET?.trim();
   const connector = process.env.GROWTH_CONNECTOR_SECRET?.trim();
+  const huginn = process.env.HUGINN_WEBHOOK_TOKEN?.trim();
   if (integrations && integrations.length >= 32) secrets.push(integrations);
   if (connector && connector.length >= 32 && connector !== integrations) {
     secrets.push(connector);
+  }
+  if (
+    huginn &&
+    huginn.length >= 32 &&
+    huginn !== integrations &&
+    huginn !== connector
+  ) {
+    secrets.push(huginn);
   }
   return secrets;
 }
