@@ -76,7 +76,7 @@ export function CrmActivityTimeline({
                 {a.activityType.replace("_", " ")} ·{" "}
                 {new Date(a.createdAt).toLocaleString()}
               </p>
-              <p className="mt-1 text-foreground">{a.body}</p>
+              <p className="mt-1 break-words text-foreground">{a.body}</p>
             </li>
           ))
         )}

@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth/session";
-import { listOpportunities } from "@/lib/crm/repository";
+import { crmAutoPipelineMinScore } from "@/lib/crm/auto-sync";
+import {
+  countOpportunitiesBelowFitThreshold,
+  listOpportunities,
+} from "@/lib/crm/repository";
 import { pipelineStatuses, type PipelineStatus } from "@/lib/growth/types";
 
 export async function GET(request: Request) {
@@ -16,9 +20,20 @@ export async function GET(request: Request) {
       ? (stageParam as PipelineStatus)
       : null;
 
+  const includeBelow =
+    searchParams.get("includeBelowThreshold") === "1" ||
+    searchParams.get("includeBelowThreshold") === "true";
+
   try {
-    const opportunities = await listOpportunities({ stage });
-    return NextResponse.json({ opportunities });
+    const [opportunities, belowThreshold] = await Promise.all([
+      listOpportunities({ stage, includeBelowFitThreshold: includeBelow }),
+      countOpportunitiesBelowFitThreshold(),
+    ]);
+    return NextResponse.json({
+      opportunities,
+      minFitScore: crmAutoPipelineMinScore(),
+      belowThreshold,
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : "List failed";
     return NextResponse.json({ error: message }, { status: 500 });

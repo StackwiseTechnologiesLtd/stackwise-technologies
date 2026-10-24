@@ -157,27 +157,81 @@ export async function getOpportunityByGrowthLeadId(
 export async function listOpportunities(options?: {
   stage?: PipelineStatus | null;
   limit?: number;
+  /** When true, include opportunities below the CRM fit bar (default false). */
+  includeBelowFitThreshold?: boolean;
 }): Promise<CrmOpportunity[]> {
   await ready();
   const sql = getSql();
-  const limit = options?.limit ?? 200;
+  const limit = options?.limit ?? 500;
   const stage = options?.stage ?? null;
+  const minFit = options?.includeBelowFitThreshold
+    ? 0
+    : crmAutoPipelineMinScore();
 
   const rows = asRows<OpportunityRow>(
     stage
       ? await sql`
           SELECT * FROM crm_opportunities
-          WHERE stage = ${stage}
-          ORDER BY updated_at DESC
+          WHERE fit_score >= ${minFit}
+            AND stage = ${stage}
+          ORDER BY fit_score DESC, updated_at DESC
           LIMIT ${limit}
         `
       : await sql`
           SELECT * FROM crm_opportunities
-          ORDER BY updated_at DESC
+          WHERE fit_score >= ${minFit}
+          ORDER BY fit_score DESC, updated_at DESC
           LIMIT ${limit}
         `,
   );
   return rows.map(mapOpportunity);
+}
+
+export async function countOpportunitiesBelowFitThreshold(): Promise<number> {
+  await ready();
+  const sql = getSql();
+  const minFit = crmAutoPipelineMinScore();
+  const rows = asRows<{ count: string }>(
+    await sql`
+      SELECT COUNT(*)::text AS count
+      FROM crm_opportunities
+      WHERE fit_score < ${minFit}
+    `,
+  );
+  return Number(rows[0]?.count ?? 0);
+}
+
+/** Remove CRM rows that should not be in the operator pipeline (bad backfill / low fit). */
+export async function pruneOpportunitiesBelowFitThreshold(): Promise<{
+  removed: number;
+  minFitScore: number;
+}> {
+  await ready();
+  const sql = getSql();
+  const minFit = crmAutoPipelineMinScore();
+
+  const deleted = asRows<{ id: string }>(
+    await sql`
+      DELETE FROM crm_opportunities
+      WHERE fit_score < ${minFit}
+      RETURNING id
+    `,
+  );
+
+  await sql`
+    DELETE FROM crm_people p
+    WHERE NOT EXISTS (
+      SELECT 1 FROM crm_opportunities o WHERE o.person_id = p.id
+    )
+  `;
+  await sql`
+    DELETE FROM crm_companies c
+    WHERE NOT EXISTS (
+      SELECT 1 FROM crm_opportunities o WHERE o.company_id = c.id
+    )
+  `;
+
+  return { removed: deleted.length, minFitScore: minFit };
 }
 
 export async function getOpportunityDetail(
@@ -223,14 +277,14 @@ export async function getOpportunityDetail(
 
 export async function ensureGrowthLeadInCrm(
   growthLeadId: string,
-  options?: { activityNote?: string },
+  options?: { activityNote?: string; force?: boolean },
 ): Promise<CrmOpportunityDetail> {
   return promoteGrowthLeadToCrm(growthLeadId, options);
 }
 
 export async function promoteGrowthLeadToCrm(
   growthLeadId: string,
-  options?: { activityNote?: string },
+  options?: { activityNote?: string; force?: boolean },
 ): Promise<CrmOpportunityDetail> {
   const existing = await getOpportunityByGrowthLeadId(growthLeadId);
   if (existing) {
@@ -243,6 +297,12 @@ export async function promoteGrowthLeadToCrm(
     throw new Error("Growth lead not found");
   }
   const { lead, signal } = bundle;
+  const minFit = crmAutoPipelineMinScore();
+  if (!options?.force && lead.compositeScore < minFit) {
+    throw new Error(
+      `Lead fit ${lead.compositeScore}% is below the CRM minimum (${minFit}%)`,
+    );
+  }
   const now = new Date().toISOString();
   const platform = lead.platform ?? signal?.platform ?? null;
   const sourcePostUrl = lead.sourceUrl ?? signal?.sourceUrl ?? null;

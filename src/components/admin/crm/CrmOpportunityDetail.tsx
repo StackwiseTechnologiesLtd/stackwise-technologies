@@ -3,6 +3,8 @@
 import { AdminActionButton } from "@/components/admin/AdminActionButton";
 import { CrmActivityTimeline } from "@/components/admin/crm/CrmActivityTimeline";
 import { GrowthArticleLink } from "@/components/admin/growth/GrowthArticleLink";
+import { leadSourceBadgeLabel } from "@/components/admin/growth/GrowthLeadSourceFilter";
+import { formatShortRelativeTime } from "@/lib/format-relative-time";
 import { crmStageLabels, type CrmOpportunityDetail } from "@/lib/crm/types";
 import { pipelineStatuses, type PipelineStatus } from "@/lib/growth/types";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
@@ -57,14 +59,14 @@ export function CrmOpportunityDetailPanel({ opportunityId }: { opportunityId: st
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
+        <div className="min-w-0 max-w-full flex-1">
           <Link href="/admin/crm" className="text-xs text-accent hover:underline">
             ← Pipeline
           </Link>
-          <h2 className="mt-2 text-xl font-semibold tracking-tight">
+          <h2 className="mt-2 break-words text-xl font-semibold tracking-tight">
             {opportunity.name}
           </h2>
-          <p className="text-sm text-muted">
+          <p className="break-words text-sm text-muted">
             {person.fullName}
             {person.roleTitle ? ` · ${person.roleTitle}` : ""}
             {company ? ` · ${company.name}` : ""}
@@ -82,11 +84,21 @@ export function CrmOpportunityDetailPanel({ opportunityId }: { opportunityId: st
               <option key={s} value={s}>{crmStageLabels[s]}</option>
             ))}
           </select>
-          <p className="mt-2 text-xs text-muted">{opportunity.fitScore}% fit</p>
+          <p className="mt-2 truncate text-xs text-muted">
+            {[
+              formatShortRelativeTime(opportunity.updatedAt),
+              opportunity.leadSource
+                ? leadSourceBadgeLabel(opportunity.leadSource)
+                : null,
+              `${opportunity.fitScore}% fit`,
+            ]
+              .filter(Boolean)
+              .join(" · ")}
+          </p>
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-3 text-sm">
+      <div className="flex min-w-0 flex-wrap gap-3 text-sm">
         {opportunity.sourcePostUrl ? (
           <GrowthArticleLink
             href={opportunity.sourcePostUrl}
