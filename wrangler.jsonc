@@ -13,8 +13,7 @@
   "browser": {
     "binding": "BROWSER",
   },
-  "vars": {
-    "DEFAULT_PAYMENT_CURRENCY": "KES",
-    "OPENROUTER_MODEL": "nvidia/nemotron-3.5-lightning:free",
-  },
+  // Secrets live in Cloudflare only — never commit keys here.
+  // Deploy: node scripts/sync-cloudflare-env.mjs .env.prod
+  "vars": {},
 }
