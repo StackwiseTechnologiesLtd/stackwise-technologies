@@ -20,7 +20,7 @@ export function GrowthPlatformFilter({
   return (
     <div className="flex flex-wrap items-center gap-2">
       <span className="text-xs font-medium uppercase tracking-wide text-muted">
-        Source
+        Platform
       </span>
       {options.map((opt) => {
         const active = value === opt.id;

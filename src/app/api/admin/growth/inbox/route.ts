@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import { authorizeGrowthApi } from "@/lib/growth/auth";
 import { listInbox } from "@/lib/growth/repository";
-import { growthPlatforms, type GrowthPlatform } from "@/lib/growth/types";
+import {
+  growthPlatforms,
+  leadSources,
+  type GrowthPlatform,
+  type LeadSource,
+} from "@/lib/growth/types";
 
 export const dynamic = "force-dynamic";
 
@@ -27,9 +32,16 @@ export async function GET(request: Request) {
           ? freshnessParsed
           : undefined;
 
+    const leadSourceParam = searchParams.get("leadSource");
+    const leadSource =
+      leadSourceParam && leadSources.includes(leadSourceParam as LeadSource)
+        ? (leadSourceParam as LeadSource)
+        : null;
+
     const inbox = await listInbox({
       minScore: Number.isFinite(minScore) ? minScore : 0,
       platform,
+      leadSource,
       freshnessHours,
     });
     return NextResponse.json(inbox);

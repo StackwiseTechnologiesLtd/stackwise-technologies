@@ -23,6 +23,7 @@ export async function POST(request: Request) {
 
     const result = await ingestSignal({
       ...body,
+      leadSource: body.leadSource ?? "manual",
       authorName: body.authorName.trim(),
       bodyText: body.bodyText.trim(),
     });
