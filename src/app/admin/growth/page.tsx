@@ -1,6 +1,7 @@
 "use client";
 
 import { GrowthCaptureForm } from "@/components/admin/growth/GrowthCaptureForm";
+import { GrowthCrmPipelineBanner } from "@/components/admin/growth/GrowthCrmPipelineBanner";
 import { GrowthHarvestPanel } from "@/components/admin/growth/GrowthHarvestPanel";
 import { GrowthInboxPanel } from "@/components/admin/growth/GrowthInboxPanel";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
@@ -15,6 +16,7 @@ export default function GrowthInboxPage() {
         title="Inbox"
         description="Personalized reply drafts for X and LinkedIn — review before posting. Use LinkedIn in the sidebar for comment workflows."
       />
+      <GrowthCrmPipelineBanner />
       <GrowthInboxPanel key={inboxKey} />
       <div className="grid gap-6 lg:grid-cols-2">
         <GrowthHarvestPanel onHarvested={() => setInboxKey((k) => k + 1)} />

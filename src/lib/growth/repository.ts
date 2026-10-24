@@ -290,7 +290,7 @@ export async function ingestSignal(
   );
 
   const lead = mapLead(leadRows[0]);
-  await syncIngestedLeadToCrm(leadId, leadSource);
+  await syncIngestedLeadToCrm(leadId, leadSource, lead.compositeScore);
 
   return {
     signal: mapSignal(signalRows[0]),

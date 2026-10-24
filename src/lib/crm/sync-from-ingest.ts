@@ -1,4 +1,4 @@
-import { isCrmAutoPipelineEnabled } from "@/lib/crm/auto-sync";
+import { shouldAutoSyncLeadToCrm } from "@/lib/crm/auto-sync";
 import { ensureGrowthLeadInCrm } from "@/lib/crm/repository";
 import type { LeadSource } from "@/lib/growth/types";
 
@@ -12,8 +12,9 @@ const sourceLabels: Record<LeadSource, string> = {
 export async function syncIngestedLeadToCrm(
   growthLeadId: string,
   leadSource: LeadSource,
+  compositeScore: number,
 ): Promise<void> {
-  if (!isCrmAutoPipelineEnabled()) return;
+  if (!shouldAutoSyncLeadToCrm(compositeScore)) return;
 
   const label = sourceLabels[leadSource] ?? leadSource;
   try {

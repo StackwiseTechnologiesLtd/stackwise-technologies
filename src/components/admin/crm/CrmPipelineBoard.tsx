@@ -84,8 +84,11 @@ export function CrmPipelineBoard() {
         error?: string;
       };
       if (!res.ok) throw new Error(json.error ?? "Backfill failed");
+      const skipped = (json as { skipped?: number }).skipped;
       toast.success(
-        `Synced ${json.synced ?? 0} leads${json.failed ? ` (${json.failed} failed)` : ""}`,
+        `Synced ${json.synced ?? 0} leads` +
+          (skipped ? ` · ${skipped} below min score` : "") +
+          (json.failed ? ` · ${json.failed} failed` : ""),
       );
       await load();
     } catch (e) {
