@@ -20,6 +20,7 @@ import type {
   CrmPerson,
 } from "@/lib/crm/types";
 import { crmAutoPipelineMinScore } from "@/lib/crm/auto-sync";
+import { crmOpportunityDisplayName } from "@/lib/crm/opportunity-name";
 import { crmActivityTypes, crmStageLabels } from "@/lib/crm/types";
 
 async function ready() {
@@ -351,10 +352,7 @@ export async function promoteGrowthLeadToCrm(
     )
   `;
 
-  const oppName =
-    lead.companyName?.trim()
-      ? `${lead.fullName} @ ${lead.companyName.trim()}`
-      : lead.fullName;
+  const oppName = crmOpportunityDisplayName(lead);
 
   await sql`
     INSERT INTO crm_opportunities (

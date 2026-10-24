@@ -23,6 +23,8 @@ Open http://localhost:3001 and complete signup with invitation code `stackwise-l
 
 Import the scenario and docs: [deploy/integrations/huginn/README.md](./huginn/README.md).
 
+**freehire jobs:** [deploy/integrations/freehire/README.md](./freehire/README.md) and `node scripts/freehire-ingest.mjs`.
+
 Quick smoke test without Docker:
 
 ```bash
