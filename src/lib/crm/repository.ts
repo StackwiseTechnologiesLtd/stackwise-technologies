@@ -19,6 +19,7 @@ import type {
   CrmOpportunityDetail,
   CrmPerson,
 } from "@/lib/crm/types";
+import { crmAutoPipelineMinScore } from "@/lib/crm/auto-sync";
 import { crmActivityTypes, crmStageLabels } from "@/lib/crm/types";
 
 async function ready() {
@@ -436,10 +437,11 @@ export async function backfillCrmFromGrowthLeads(options?: {
   await ready();
   const sql = getSql();
   const limit = options?.limit ?? 500;
+  const minScore = crmAutoPipelineMinScore();
 
-  const rows = asRows<{ id: string }>(
+  const rows = asRows<{ id: string; composite_score: number }>(
     await sql`
-      SELECT l.id
+      SELECT l.id, l.composite_score
       FROM growth_leads l
       LEFT JOIN crm_opportunities o ON o.growth_lead_id = l.id
       WHERE o.id IS NULL
@@ -449,8 +451,13 @@ export async function backfillCrmFromGrowthLeads(options?: {
   );
 
   let synced = 0;
+  let skipped = 0;
   let failed = 0;
   for (const row of rows) {
+    if (row.composite_score < minScore) {
+      skipped += 1;
+      continue;
+    }
     try {
       await ensureGrowthLeadInCrm(row.id, {
         activityNote: "Backfilled from Growth pipeline",
@@ -461,5 +468,5 @@ export async function backfillCrmFromGrowthLeads(options?: {
     }
   }
 
-  return { synced, skipped: 0, failed };
+  return { synced, skipped, failed };
 }

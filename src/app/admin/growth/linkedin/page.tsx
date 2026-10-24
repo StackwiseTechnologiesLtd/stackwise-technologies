@@ -1,5 +1,6 @@
 "use client";
 
+import { GrowthCrmPipelineBanner } from "@/components/admin/growth/GrowthCrmPipelineBanner";
 import { GrowthHarvestPanel } from "@/components/admin/growth/GrowthHarvestPanel";
 import { GrowthInboxPanel } from "@/components/admin/growth/GrowthInboxPanel";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
@@ -14,6 +15,7 @@ export default function GrowthLinkedInInboxPage() {
         title="LinkedIn inbox"
         description="Harvest LinkedIn posts, draft comment replies, and track what you have posted."
       />
+      <GrowthCrmPipelineBanner />
       <GrowthInboxPanel key={inboxKey} fixedPlatform="linkedin" />
       <GrowthHarvestPanel
         focusPlatform="linkedin"

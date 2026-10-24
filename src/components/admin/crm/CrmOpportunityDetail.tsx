@@ -115,10 +115,10 @@ export function CrmOpportunityDetailPanel({ opportunityId }: { opportunityId: st
         ) : null}
         {opportunity.growthLeadId ? (
           <Link
-            href="/admin/growth/leads"
+            href="/admin/growth"
             className="text-accent hover:underline"
           >
-            Growth lead
+            Growth inbox
           </Link>
         ) : null}
       </div>
