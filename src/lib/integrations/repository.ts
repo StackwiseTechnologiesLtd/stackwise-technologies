@@ -114,7 +114,7 @@ export async function getIntegrationsStatus(): Promise<{
         configured: true,
         lastEventAt: null,
         lastSuccessAt: null,
-        lastDetail: "Promote leads from Growth",
+        lastDetail: "Auto-sync on ingest",
       },
     ],
   };

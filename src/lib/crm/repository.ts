@@ -220,8 +220,16 @@ export async function getOpportunityDetail(
   };
 }
 
+export async function ensureGrowthLeadInCrm(
+  growthLeadId: string,
+  options?: { activityNote?: string },
+): Promise<CrmOpportunityDetail> {
+  return promoteGrowthLeadToCrm(growthLeadId, options);
+}
+
 export async function promoteGrowthLeadToCrm(
   growthLeadId: string,
+  options?: { activityNote?: string },
 ): Promise<CrmOpportunityDetail> {
   const existing = await getOpportunityByGrowthLeadId(growthLeadId);
   if (existing) {
@@ -313,7 +321,7 @@ export async function promoteGrowthLeadToCrm(
       ${crypto.randomUUID()}::uuid,
       ${opportunityId}::uuid,
       'system',
-      ${"Promoted from Growth inbox"},
+      ${options?.activityNote ?? "Promoted from Growth"},
       ${now}::timestamptz
     )
   `;
@@ -420,4 +428,38 @@ export async function addOpportunityActivity(
     body,
     createdAt: now,
   };
+}
+
+export async function backfillCrmFromGrowthLeads(options?: {
+  limit?: number;
+}): Promise<{ synced: number; skipped: number; failed: number }> {
+  await ready();
+  const sql = getSql();
+  const limit = options?.limit ?? 500;
+
+  const rows = asRows<{ id: string }>(
+    await sql`
+      SELECT l.id
+      FROM growth_leads l
+      LEFT JOIN crm_opportunities o ON o.growth_lead_id = l.id
+      WHERE o.id IS NULL
+      ORDER BY l.created_at DESC
+      LIMIT ${limit}
+    `,
+  );
+
+  let synced = 0;
+  let failed = 0;
+  for (const row of rows) {
+    try {
+      await ensureGrowthLeadInCrm(row.id, {
+        activityNote: "Backfilled from Growth pipeline",
+      });
+      synced += 1;
+    } catch {
+      failed += 1;
+    }
+  }
+
+  return { synced, skipped: 0, failed };
 }

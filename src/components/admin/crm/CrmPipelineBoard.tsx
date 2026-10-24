@@ -1,5 +1,7 @@
 "use client";
 
+import { AdminActionButton } from "@/components/admin/AdminActionButton";
+import { useToast } from "@/components/ToastProvider";
 import { crmStageLabels } from "@/lib/crm/types";
 import type { CrmOpportunity } from "@/lib/crm/types";
 import type { PipelineStatus } from "@/lib/growth/types";
@@ -19,8 +21,10 @@ const boardStages: PipelineStatus[] = [
 ];
 
 export function CrmPipelineBoard() {
+  const toast = useToast();
   const [items, setItems] = useState<CrmOpportunity[]>([]);
   const [loading, setLoading] = useState(true);
+  const [backfilling, setBackfilling] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -66,11 +70,48 @@ export function CrmPipelineBoard() {
     );
   }
 
+  async function backfill() {
+    setBackfilling(true);
+    try {
+      const res = await fetch("/api/admin/crm/backfill", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ limit: 500 }),
+      });
+      const json = (await res.json()) as {
+        synced?: number;
+        failed?: number;
+        error?: string;
+      };
+      if (!res.ok) throw new Error(json.error ?? "Backfill failed");
+      toast.success(
+        `Synced ${json.synced ?? 0} leads${json.failed ? ` (${json.failed} failed)` : ""}`,
+      );
+      await load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Backfill failed");
+    } finally {
+      setBackfilling(false);
+    }
+  }
+
   if (items.length === 0) {
     return (
       <div className="rounded-2xl border border-dashed border-line bg-panel/40 p-10 text-center text-sm text-muted">
-        No opportunities yet. Use <strong className="text-foreground">Promote to CRM</strong>{" "}
-        from Growth inbox or leads.
+        <p>
+          New harvest, Huginn, and manual leads appear here automatically after ingest.
+        </p>
+        <p className="mt-2">
+          Already have Growth leads from before auto-sync? Import them into the pipeline.
+        </p>
+        <AdminActionButton
+          className="mt-4"
+          busy={backfilling}
+          busyLabel="Syncing…"
+          onClick={() => void backfill()}
+        >
+          Sync existing Growth leads
+        </AdminActionButton>
       </div>
     );
   }
