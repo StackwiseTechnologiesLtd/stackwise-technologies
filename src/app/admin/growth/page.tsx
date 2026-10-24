@@ -13,7 +13,7 @@ export default function GrowthInboxPage() {
     <div className="space-y-8">
       <AdminPageHeader
         title="Inbox"
-        description="Personalized reply drafts for founders and decision makers — review before posting."
+        description="Personalized reply drafts for X and LinkedIn — review before posting. Use LinkedIn in the sidebar for comment workflows."
       />
       <GrowthInboxPanel key={inboxKey} />
       <div className="grid gap-6 lg:grid-cols-2">

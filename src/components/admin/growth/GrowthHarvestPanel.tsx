@@ -24,7 +24,14 @@ function formatLogTime(iso: string): string {
   }
 }
 
-export function GrowthHarvestPanel({ onHarvested }: { onHarvested?: () => void }) {
+export function GrowthHarvestPanel({
+  onHarvested,
+  focusPlatform,
+}: {
+  onHarvested?: () => void;
+  /** When set, only show harvest for this platform and tailor copy. */
+  focusPlatform?: GrowthPlatform;
+}) {
   const toast = useToast();
   const [platforms, setPlatforms] = useState<PlatformCredentialStatus[]>([]);
   const [loading, setLoading] = useState(true);
@@ -151,16 +158,28 @@ export function GrowthHarvestPanel({ onHarvested }: { onHarvested?: () => void }
     );
   }
 
-  const connected = platforms.filter((p) => p.sessionStatus === "active");
+  const connected = platforms
+    .filter((p) => p.sessionStatus === "active")
+    .filter((p) => !focusPlatform || p.platform === focusPlatform);
+
+  const focusLabel =
+    focusPlatform === "linkedin"
+      ? "LinkedIn"
+      : focusPlatform === "x"
+        ? "X"
+        : null;
 
   return (
     <section className="rounded-xl border border-line bg-panel p-5 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 className="text-base font-semibold tracking-tight">Lead generation</h3>
+          <h3 className="text-base font-semibold tracking-tight">
+            {focusLabel ? `${focusLabel} harvest` : "Lead generation"}
+          </h3>
           <p className="mt-1 max-w-xl text-sm text-muted">
-            Runs keyword searches from your ICP settings (intent phrases), scores
-            matching posts, and creates reply drafts in the inbox below.
+            {focusPlatform === "linkedin"
+              ? "Search LinkedIn posts from your ICP intent phrases, score leads, and queue comment replies in your LinkedIn inbox."
+              : "Runs keyword searches from your ICP settings (intent phrases), scores matching posts, and creates reply drafts in the inbox below."}
           </p>
           {leadCount !== null ? (
             <p className="mt-2 text-sm text-foreground">
@@ -176,7 +195,9 @@ export function GrowthHarvestPanel({ onHarvested }: { onHarvested?: () => void }
 
       {connected.length === 0 ? (
         <p className="mt-4 text-sm text-amber-200/90">
-          Connect LinkedIn or X in Settings before harvesting.
+          {focusPlatform === "linkedin"
+            ? "Connect LinkedIn in Settings before harvesting."
+            : "Connect LinkedIn or X in Settings before harvesting."}
         </p>
       ) : (
         <ul className="mt-4 flex flex-wrap gap-2">

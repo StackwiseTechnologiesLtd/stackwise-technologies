@@ -34,7 +34,12 @@ function draftStatusLabel(item: GrowthInboxItem): string {
   return draft.status;
 }
 
-export function GrowthInboxPanel() {
+export type GrowthInboxPanelProps = {
+  /** Locks the inbox to one platform and hides the platform filter. */
+  fixedPlatform?: Exclude<PlatformFilter, "all">;
+};
+
+export function GrowthInboxPanel({ fixedPlatform }: GrowthInboxPanelProps = {}) {
   const toast = useToast();
   const [items, setItems] = useState<GrowthInboxItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,8 +47,12 @@ export function GrowthInboxPanel() {
   const [editing, setEditing] = useState<Record<string, string>>({});
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [minScore, setMinScore] = useState(0);
-  const [platform, setPlatform] = useState<PlatformFilter>("all");
+  const [platform, setPlatform] = useState<PlatformFilter>(
+    fixedPlatform ?? "all",
+  );
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+
+  const platformFilter: PlatformFilter = fixedPlatform ?? platform;
 
   const load = useCallback(
     async (opts?: { silent?: boolean }) => {
@@ -51,7 +60,7 @@ export function GrowthInboxPanel() {
       else setRefreshing(true);
       try {
         const res = await growthFetch(
-          `/api/admin/growth/inbox${inboxQuery(minScore, platform)}`,
+          `/api/admin/growth/inbox${inboxQuery(minScore, platformFilter)}`,
         );
         if (!res.ok) throw new Error("Could not load inbox");
         const json = (await res.json()) as { items: GrowthInboxItem[] };
@@ -74,8 +83,10 @@ export function GrowthInboxPanel() {
         setRefreshing(false);
       }
     },
-    [toast, minScore, platform],
+    [toast, minScore, platformFilter],
   );
+
+  const linkedInInbox = fixedPlatform === "linkedin";
 
   useDeferredEffect(() => {
     void load();
@@ -158,7 +169,9 @@ export function GrowthInboxPanel() {
     <section className="space-y-5">
       <div className="flex flex-col gap-4 rounded-2xl border border-line bg-gradient-to-br from-panel/90 to-black/40 p-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-lg font-semibold tracking-tight">Lead inbox</p>
+          <p className="text-lg font-semibold tracking-tight">
+            {linkedInInbox ? "LinkedIn inbox" : "Lead inbox"}
+          </p>
           <p className="text-sm text-muted">
             {sortedItems.length} lead{sortedItems.length === 1 ? "" : "s"}
             {needsReply > 0
@@ -167,12 +180,15 @@ export function GrowthInboxPanel() {
             · highest fit first
           </p>
           <p className="mt-1 max-w-xl text-xs text-muted">
-            Expand a lead to read the post and generate a reply when you are
-            ready. Drafts are not saved in X&apos;s Drafts folder until you post.
+            {linkedInInbox
+              ? "Expand a lead to draft a comment, then copy and paste it on the LinkedIn post. Mark posted when you are done."
+              : "Expand a lead to read the post and generate a reply. Use the LinkedIn tab for comment workflows; X supports one-click post from here."}
           </p>
         </div>
         <div className="flex flex-col gap-3">
-          <GrowthPlatformFilter value={platform} onChange={setPlatform} />
+          {fixedPlatform ? null : (
+            <GrowthPlatformFilter value={platform} onChange={setPlatform} />
+          )}
           <div className="flex flex-wrap items-center gap-3">
             <GrowthScoreFilter minScore={minScore} onChange={setMinScore} />
             <AdminActionButton
@@ -266,7 +282,9 @@ export function GrowthInboxPanel() {
                               rel="noopener noreferrer"
                               className="text-accent hover:underline"
                             >
-                              Original post
+                              {lead.platform === "linkedin"
+                                ? "Open on LinkedIn"
+                                : "Original post"}
                             </a>
                           ) : null}
                         </div>
@@ -371,7 +389,9 @@ export function GrowthInboxPanel() {
                             <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">
                               {draft.platform === "x"
                                 ? "Tweet reply (≤280 chars)"
-                                : "Draft reply"}
+                                : draft.platform === "linkedin"
+                                  ? "LinkedIn comment"
+                                  : "Draft reply"}
                             </p>
                             <textarea
                               className="mt-2 min-h-[11rem] flex-1 w-full rounded-xl border border-line bg-black/45 px-3 py-2.5 text-sm leading-relaxed text-foreground"
@@ -400,6 +420,40 @@ export function GrowthInboxPanel() {
                             ) : null}
 
                             <div className="mt-4 flex flex-wrap gap-2">
+                              {draft.platform === "linkedin" &&
+                              signal?.sourceUrl ? (
+                                <AdminActionButton
+                                  variant="primary"
+                                  busy={busyKey === `${draft.id}:linkedin`}
+                                  busyLabel="Opening…"
+                                  disabled={
+                                    draftBusy &&
+                                    busyKey !== `${draft.id}:linkedin`
+                                  }
+                                  onClick={() =>
+                                    void runAction(
+                                      `${draft.id}:linkedin`,
+                                      async () => {
+                                        const text =
+                                          editing[draft.id] ?? draft.bodyText;
+                                        await navigator.clipboard.writeText(
+                                          text,
+                                        );
+                                        window.open(
+                                          signal.sourceUrl!,
+                                          "_blank",
+                                          "noopener,noreferrer",
+                                        );
+                                        toast.success(
+                                          "Comment copied — paste on LinkedIn",
+                                        );
+                                      },
+                                    )
+                                  }
+                                >
+                                  Copy & open post
+                                </AdminActionButton>
+                              ) : null}
                               {draft.platform === "x" && signal?.sourceUrl ? (
                                 <AdminActionButton
                                   variant="primary"

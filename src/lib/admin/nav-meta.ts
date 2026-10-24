@@ -20,6 +20,7 @@ export type AdminNavChild = {
 
 export const adminGrowthNavChildren: AdminNavChild[] = [
   { href: "/admin/growth", label: "Inbox", match: "exact" },
+  { href: "/admin/growth/linkedin", label: "LinkedIn", match: "prefix" },
   { href: "/admin/growth/leads", label: "Leads", match: "prefix" },
   { href: "/admin/growth/settings", label: "Settings", match: "prefix" },
 ];
@@ -56,6 +57,7 @@ export function adminPageTitle(pathname: string): string {
   if (pathname === "/admin/withdraw") return "Withdraw funds";
   if (pathname === "/admin/audit-logs") return "Payment access logs";
   if (pathname === "/admin/growth") return "Inbox";
+  if (pathname.startsWith("/admin/growth/linkedin")) return "LinkedIn inbox";
   if (pathname.startsWith("/admin/growth/leads")) return "Leads";
   if (pathname.startsWith("/admin/growth/settings")) return "Settings";
   if (pathname.startsWith("/admin/growth/connect")) return "Connect";
