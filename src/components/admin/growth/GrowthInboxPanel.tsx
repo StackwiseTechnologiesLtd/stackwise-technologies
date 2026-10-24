@@ -16,7 +16,7 @@ import {
   GrowthScoreFilter,
   scoreBadgeClass,
 } from "@/components/admin/growth/GrowthScoreFilter";
-import type { GrowthDraft, GrowthInboxItem } from "@/lib/growth/types";
+import type { GrowthDraft, GrowthInboxItem, LeadSource } from "@/lib/growth/types";
 import { growthFetch } from "@/lib/growth/growth-fetch";
 import { INBOX_DEFAULT_FRESHNESS_HOURS } from "@/lib/growth/harvest-config";
 import { sortInboxItemsByRecency } from "@/lib/growth/lead-sort";
@@ -59,9 +59,14 @@ function draftStatusLabel(item: GrowthInboxItem): string {
 export type GrowthInboxPanelProps = {
   /** Locks the inbox to one platform and hides the platform filter. */
   fixedPlatform?: Exclude<PlatformFilter, "all">;
+  /** Locks the inbox to one lead channel and hides the channel filter. */
+  fixedLeadSource?: LeadSource;
 };
 
-export function GrowthInboxPanel({ fixedPlatform }: GrowthInboxPanelProps = {}) {
+export function GrowthInboxPanel({
+  fixedPlatform,
+  fixedLeadSource,
+}: GrowthInboxPanelProps = {}) {
   const toast = useToast();
   const [items, setItems] = useState<GrowthInboxItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -75,10 +80,13 @@ export function GrowthInboxPanel({ fixedPlatform }: GrowthInboxPanelProps = {}) 
   const [freshnessHours, setFreshnessHours] = useState(
     INBOX_DEFAULT_FRESHNESS_HOURS,
   );
-  const [leadSource, setLeadSource] = useState<LeadSourceFilter>("all");
+  const [leadSource, setLeadSource] = useState<LeadSourceFilter>(
+    fixedLeadSource ?? "all",
+  );
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   const platformFilter: PlatformFilter = fixedPlatform ?? platform;
+  const leadSourceFilter: LeadSourceFilter = fixedLeadSource ?? leadSource;
 
   const load = useCallback(
     async (opts?: { silent?: boolean }) => {
@@ -86,7 +94,7 @@ export function GrowthInboxPanel({ fixedPlatform }: GrowthInboxPanelProps = {}) 
       else setRefreshing(true);
       try {
         const res = await growthFetch(
-          `/api/admin/growth/inbox${inboxQuery(minScore, platformFilter, leadSource, freshnessHours)}`,
+          `/api/admin/growth/inbox${inboxQuery(minScore, platformFilter, leadSourceFilter, freshnessHours)}`,
         );
         if (!res.ok) throw new Error("Could not load inbox");
         const json = (await res.json()) as { items: GrowthInboxItem[] };
@@ -104,10 +112,11 @@ export function GrowthInboxPanel({ fixedPlatform }: GrowthInboxPanelProps = {}) 
         setRefreshing(false);
       }
     },
-    [toast, minScore, platformFilter, leadSource, freshnessHours],
+    [toast, minScore, platformFilter, leadSourceFilter, freshnessHours],
   );
 
   const linkedInInbox = fixedPlatform === "linkedin";
+  const jobsInbox = fixedLeadSource === "freehire";
 
   useDeferredEffect(() => {
     void load();
@@ -191,7 +200,11 @@ export function GrowthInboxPanel({ fixedPlatform }: GrowthInboxPanelProps = {}) 
       <div className="flex flex-col gap-4 rounded-2xl border border-line bg-gradient-to-br from-panel/90 to-black/40 p-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-lg font-semibold tracking-tight">
-            {linkedInInbox ? "LinkedIn inbox" : "Lead inbox"}
+            {jobsInbox
+              ? "Jobs inbox"
+              : linkedInInbox
+                ? "LinkedIn inbox"
+                : "Lead inbox"}
           </p>
           <p className="text-sm text-muted">
             {sortedItems.length} lead{sortedItems.length === 1 ? "" : "s"}
@@ -204,16 +217,20 @@ export function GrowthInboxPanel({ fixedPlatform }: GrowthInboxPanelProps = {}) 
               : ""}
           </p>
           <p className="mt-1 max-w-xl text-xs text-muted">
-            {linkedInInbox
-              ? "Expand a lead to draft a comment, then copy and paste it on the LinkedIn post. Mark posted when you are done."
-              : "Expand a lead to read the post and generate a reply. Use the LinkedIn tab for comment workflows; X supports one-click post from here."}
+            {jobsInbox
+              ? "Job postings from freehire. Qualified roles sync to CRM as Hiring opportunities."
+              : linkedInInbox
+                ? "Expand a lead to draft a comment, then copy and paste it on the LinkedIn post. Mark posted when you are done."
+                : "Expand a lead to read the post and generate a reply. Use the LinkedIn tab for comment workflows; X supports one-click post from here."}
           </p>
         </div>
         <div className="flex flex-col gap-3">
           {fixedPlatform ? null : (
             <GrowthPlatformFilter value={platform} onChange={setPlatform} />
           )}
-          <GrowthLeadSourceFilter value={leadSource} onChange={setLeadSource} />
+          {fixedLeadSource ? null : (
+            <GrowthLeadSourceFilter value={leadSource} onChange={setLeadSource} />
+          )}
           <GrowthFreshnessFilter
             freshnessHours={freshnessHours}
             onChange={setFreshnessHours}

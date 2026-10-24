@@ -3,6 +3,7 @@ import { authorizeIntegrationsIngest } from "@/lib/integrations/auth";
 import { parseIntegrationIngestBody } from "@/lib/integrations/ingest-payload";
 import { recordIntegrationEvent } from "@/lib/integrations/repository";
 import { evaluateHarvestCandidate } from "@/lib/growth/harvest-quality";
+import { evaluateJobIngestCandidate } from "@/lib/growth/job-ingest-quality";
 import { getIcpConfig, ingestSignal, signalAlreadyIngested } from "@/lib/growth/repository";
 
 export const dynamic = "force-dynamic";
@@ -36,7 +37,10 @@ export async function POST(request: Request) {
     }
 
     const config = await getIcpConfig();
-    const verdict = evaluateHarvestCandidate(input, config);
+    const verdict =
+      leadSource === "freehire"
+        ? evaluateJobIngestCandidate(input, config)
+        : evaluateHarvestCandidate(input, config);
     if (!verdict.ok) {
       await recordIntegrationEvent({
         leadSource,
