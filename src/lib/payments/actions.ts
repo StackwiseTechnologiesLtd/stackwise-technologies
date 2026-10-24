@@ -33,6 +33,7 @@ import {
 import type { LineItem, PaymentLink } from "@/lib/payments/types";
 import { finalizePaidPayment } from "@/lib/payments/receipts";
 import {
+  DEFAULT_PAYMENT_METHODS_OPTION,
   isCheckoutMethodAllowed,
   type PaymentMethodsOption,
 } from "@/lib/payments/payment-methods";
@@ -61,7 +62,8 @@ export async function createPaymentLink(
     throw new Error("Total amount must be greater than zero");
   }
 
-  const allowedPaymentMethods = input.allowedPaymentMethods ?? "BOTH";
+  const allowedPaymentMethods =
+    input.allowedPaymentMethods ?? DEFAULT_PAYMENT_METHODS_OPTION;
   assertInvoiceCurrencyAllowed(
     input.currency,
     allowedPaymentMethods,

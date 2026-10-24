@@ -9,6 +9,7 @@ import { formatMoney } from "@/lib/currency";
 import { KPAY_CARD_MAX_USD } from "@/lib/kpay/buildGatewayInit";
 import { SERVICES_CATALOG } from "@/lib/services-catalog";
 import {
+  DEFAULT_PAYMENT_METHODS_OPTION,
   PAYMENT_METHODS_OPTIONS,
   paymentMethodOptionDescription,
   type PaymentMethodsOption,
@@ -36,7 +37,7 @@ export function PaymentLinkBuilder({
   const [customerEmail, setCustomerEmail] = useState("");
   const [currencyChoice, setCurrencyChoice] = useState("KES");
   const [allowedPaymentMethods, setAllowedPaymentMethods] =
-    useState<PaymentMethodsOption>("BOTH");
+    useState<PaymentMethodsOption>(DEFAULT_PAYMENT_METHODS_OPTION);
   const [notes, setNotes] = useState("");
   const [sendEmail, setSendEmail] = useState(false);
   const [items, setItems] = useState<SelectedItem[]>([]);

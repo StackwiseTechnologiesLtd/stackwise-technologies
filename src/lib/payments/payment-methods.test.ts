@@ -44,24 +44,22 @@ function link(partial: Partial<PaymentLink>): PaymentLink {
 }
 
 describe("resolveCheckoutMethods", () => {
-  it("returns both methods by default", () => {
-    expect(resolveCheckoutMethods("BOTH")).toEqual(["CARD", "MOBILE_MONEY"]);
+  it("returns card only for BOTH when KPay checkout is disabled", () => {
+    expect(resolveCheckoutMethods("BOTH")).toEqual(["CARD"]);
   });
 
   it("returns card only when configured", () => {
     expect(resolveCheckoutMethods("CARD")).toEqual(["CARD"]);
   });
 
-  it("drops card when amount exceeds KPay card limit", () => {
-    expect(resolveCheckoutMethods("BOTH", KPAY_CARD_MAX_USD + 1)).toEqual([
-      "MOBILE_MONEY",
-    ]);
+  it("drops card when amount exceeds KPay card limit and KPay is processor", () => {
+    expect(resolveCheckoutMethods("BOTH", KPAY_CARD_MAX_USD + 1)).toEqual([]);
   });
 
   it("keeps card above the KPay limit when Paystack is the card processor", () => {
     expect(
       resolveCheckoutMethods("BOTH", KPAY_CARD_MAX_USD + 1, "PAYSTACK"),
-    ).toEqual(["CARD", "MOBILE_MONEY"]);
+    ).toEqual(["CARD"]);
   });
 });
 

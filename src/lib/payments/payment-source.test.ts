@@ -41,15 +41,13 @@ function link(partial: Partial<PaymentLink>): PaymentLink {
 
 describe("formatLinkProcessorLine", () => {
   it("shows configured rails for open invoices", () => {
-    expect(formatLinkProcessorLine(link({}), "PAYSTACK")).toBe(
-      "Paystack · KPay",
-    );
+    expect(formatLinkProcessorLine(link({}), "PAYSTACK")).toBe("Paystack");
     expect(
       formatLinkProcessorLine(
         link({ allowedPaymentMethods: "MOBILE_MONEY" }),
         "PAYSTACK",
       ),
-    ).toBe("KPay");
+    ).toBe("Paystack");
   });
 
   it("shows the processor used when paid", () => {

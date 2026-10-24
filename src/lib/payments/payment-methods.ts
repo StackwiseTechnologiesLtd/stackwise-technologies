@@ -5,7 +5,10 @@ import type { PaymentLink } from "@/lib/payments/types";
 
 export type PaymentMethodsOption = "CARD" | "MOBILE_MONEY" | "BOTH";
 
-export const PAYMENT_METHODS_OPTIONS: Array<{
+/** KPay card + Mobile Money checkout. Set true to re-enable admin + pay-page KPay rails. */
+export const KPAY_CHECKOUT_ENABLED = false;
+
+const ALL_PAYMENT_METHODS_OPTIONS: Array<{
   value: PaymentMethodsOption;
   label: string;
   description: string;
@@ -27,17 +30,34 @@ export const PAYMENT_METHODS_OPTIONS: Array<{
   },
 ];
 
+export const PAYMENT_METHODS_OPTIONS = KPAY_CHECKOUT_ENABLED
+  ? ALL_PAYMENT_METHODS_OPTIONS
+  : ALL_PAYMENT_METHODS_OPTIONS.filter((item) => item.value === "CARD");
+
+export const DEFAULT_PAYMENT_METHODS_OPTION: PaymentMethodsOption =
+  KPAY_CHECKOUT_ENABLED ? "BOTH" : "CARD";
+
+function effectivePaymentMethodsOption(
+  option: PaymentMethodsOption,
+): PaymentMethodsOption {
+  if (KPAY_CHECKOUT_ENABLED) return option;
+  if (option === "CARD") return "CARD";
+  return "CARD";
+}
+
 export function paymentMethodOptionDescription(
   option: PaymentMethodsOption,
   cardProcessor: CardProcessor = "KPAY",
 ): string {
-  if (option === "CARD") {
+  const effective = effectivePaymentMethodsOption(option);
+  if (effective === "CARD") {
     return cardProcessor === "PAYSTACK"
       ? "Visa / Mastercard via Paystack"
       : "Visa / Mastercard via KPay";
   }
   return (
-    PAYMENT_METHODS_OPTIONS.find((item) => item.value === option)?.description ?? ""
+    ALL_PAYMENT_METHODS_OPTIONS.find((item) => item.value === effective)
+      ?.description ?? ""
   );
 }
 
@@ -46,8 +66,10 @@ export function resolveCheckoutMethods(
   amountUsd?: number,
   cardProcessor: CardProcessor = "KPAY",
 ): CheckoutPaymentMethod[] {
+  const effective = effectivePaymentMethodsOption(option);
+
   let methods: CheckoutPaymentMethod[];
-  switch (option) {
+  switch (effective) {
     case "CARD":
       methods = ["CARD"];
       break;
@@ -56,6 +78,10 @@ export function resolveCheckoutMethods(
       break;
     default:
       methods = ["CARD", "MOBILE_MONEY"];
+  }
+
+  if (!KPAY_CHECKOUT_ENABLED) {
+    methods = methods.filter((method) => method !== "MOBILE_MONEY");
   }
 
   if (

@@ -1,5 +1,6 @@
 import { EnvironmentBadge } from "@/components/admin/EnvironmentBadge";
 import { adminCheckoutStatus } from "@/lib/payments/admin-checkout";
+import { KPAY_CHECKOUT_ENABLED } from "@/lib/payments/payment-methods";
 
 export function AdminCheckoutStatus() {
   const status = adminCheckoutStatus();
@@ -13,11 +14,13 @@ export function AdminCheckoutStatus() {
         </span>
         <EnvironmentBadge environment={status.cardEnvironment} compact />
       </div>
-      <div className="flex flex-wrap items-center gap-2">
-        <span>Mobile Money:</span>
-        <span className="font-medium text-foreground">KPay</span>
-        <EnvironmentBadge environment={status.kpayEnvironment} compact />
-      </div>
+      {KPAY_CHECKOUT_ENABLED ? (
+        <div className="flex flex-wrap items-center gap-2">
+          <span>Mobile Money:</span>
+          <span className="font-medium text-foreground">KPay</span>
+          <EnvironmentBadge environment={status.kpayEnvironment} compact />
+        </div>
+      ) : null}
     </div>
   );
 }
