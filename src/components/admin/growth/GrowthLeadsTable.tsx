@@ -13,6 +13,7 @@ import {
 } from "@/components/admin/growth/GrowthScoreFilter";
 import { growthFetch } from "@/lib/growth/growth-fetch";
 import { sortLeadsByCompositeScore } from "@/lib/growth/lead-sort";
+import { GrowthArticleLink } from "@/components/admin/growth/GrowthArticleLink";
 import Link from "next/link";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 import { useCallback, useState } from "react";
@@ -152,6 +153,15 @@ export function GrowthLeadsTable() {
                         .filter(Boolean)
                         .join(" · ") || "—"}
                     </p>
+                    {lead.sourceUrl ? (
+                      <p className="mt-1">
+                        <GrowthArticleLink
+                          href={lead.sourceUrl}
+                          platform={lead.platform}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </p>
+                    ) : null}
                   </div>
                   <span className="shrink-0 text-xs capitalize text-muted">
                     {lead.platform ?? "n/a"}
@@ -165,16 +175,24 @@ export function GrowthLeadsTable() {
                     <p className="text-[10px] text-muted">
                       ICP {lead.icpScore} · intent {lead.intentScore}
                     </p>
-                    {lead.profileUrl ? (
-                      <a
-                        href={lead.profileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-2 inline-block text-xs text-accent hover:underline"
-                      >
-                        Profile
-                      </a>
-                    ) : null}
+                    <div className="mt-2 flex flex-wrap gap-3">
+                      {lead.sourceUrl ? (
+                        <GrowthArticleLink
+                          href={lead.sourceUrl}
+                          platform={lead.platform}
+                        />
+                      ) : null}
+                      {lead.profileUrl ? (
+                        <a
+                          href={lead.profileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-accent hover:underline"
+                        >
+                          Profile
+                        </a>
+                      ) : null}
+                    </div>
                     {lead.profileSummary ? (
                       <p className="mt-2 text-xs leading-relaxed text-muted">
                         {lead.profileSummary.slice(0, 320)}

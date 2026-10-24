@@ -401,10 +401,13 @@ export async function listInbox(options?: {
   );
 
   const items: GrowthInboxItem[] = leadRows.map((row) => {
-    const lead = mapLead(row);
     const signal = row.signal_id
       ? signalById.get(row.signal_id) ?? null
       : null;
+    const lead = {
+      ...mapLead(row),
+      sourceUrl: signal?.sourceUrl ?? null,
+    };
     const draft = draftByLeadId.get(row.id) ?? null;
     return { lead, signal, draft };
   });
@@ -489,7 +492,30 @@ export async function listLeads(options?: {
           LIMIT ${limit}
         `,
   );
-  return rows.map(mapLead);
+
+  const signalIds = rows
+    .map((r) => r.signal_id)
+    .filter((id): id is string => Boolean(id));
+  const signalRows =
+    signalIds.length > 0
+      ? asRows<SignalRow>(
+          await sql`
+            SELECT id, source_url FROM growth_signals
+            WHERE id = ANY(${signalIds}::uuid[])
+          `,
+        )
+      : [];
+  const sourceUrlBySignalId = new Map(
+    signalRows.map((s) => [s.id, s.source_url] as const),
+  );
+
+  return rows.map((row) => {
+    const lead = mapLead(row);
+    const sourceUrl = row.signal_id
+      ? sourceUrlBySignalId.get(row.signal_id) ?? null
+      : null;
+    return sourceUrl ? { ...lead, sourceUrl } : lead;
+  });
 }
 
 export async function updateLead(

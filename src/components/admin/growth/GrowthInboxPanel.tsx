@@ -1,6 +1,7 @@
 "use client";
 
 import { AdminActionButton } from "@/components/admin/AdminActionButton";
+import { GrowthArticleLink } from "@/components/admin/growth/GrowthArticleLink";
 import { useToast } from "@/components/ToastProvider";
 import {
   GrowthPlatformFilter,
@@ -217,6 +218,8 @@ export function GrowthInboxPanel({ fixedPlatform }: GrowthInboxPanelProps = {}) 
             const score = lead.compositeScore;
             const draftBusy =
               draft && busyKey?.startsWith(`${draft.id}:`) ? true : busyKey === `${lead.id}:generate`;
+            const articleUrl =
+              signal?.sourceUrl?.trim() || lead.sourceUrl?.trim() || null;
 
             return (
               <li
@@ -251,6 +254,15 @@ export function GrowthInboxPanel({ fixedPlatform }: GrowthInboxPanelProps = {}) 
                         .filter(Boolean)
                         .join(" · ") || signal?.bodyText?.slice(0, 80)}
                     </p>
+                    {articleUrl ? (
+                      <p className="mt-1.5">
+                        <GrowthArticleLink
+                          href={articleUrl}
+                          platform={lead.platform}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </p>
+                    ) : null}
                   </div>
                   <span
                     className="mt-1 shrink-0 text-muted"
@@ -275,17 +287,11 @@ export function GrowthInboxPanel({ fixedPlatform }: GrowthInboxPanelProps = {}) 
                               Profile
                             </a>
                           ) : null}
-                          {signal?.sourceUrl ? (
-                            <a
-                              href={signal.sourceUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-accent hover:underline"
-                            >
-                              {lead.platform === "linkedin"
-                                ? "Open on LinkedIn"
-                                : "Original post"}
-                            </a>
+                          {articleUrl ? (
+                            <GrowthArticleLink
+                              href={articleUrl}
+                              platform={lead.platform}
+                            />
                           ) : null}
                         </div>
 

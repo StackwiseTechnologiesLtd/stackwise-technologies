@@ -62,6 +62,8 @@ export type GrowthLead = {
   pipelineStatus: PipelineStatus;
   feedbackNote: string | null;
   profileSummary: string | null;
+  /** Post or article URL from the harvested signal, when loaded with a join. */
+  sourceUrl?: string | null;
   createdAt: string;
   updatedAt: string;
 };
