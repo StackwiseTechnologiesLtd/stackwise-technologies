@@ -6,7 +6,7 @@ alwaysApply: true
 # Integrations and scope
 
 - Follow phase order in `docs/INTEGRATIONS_BUILD_PLAN.md` (Ponytail → ingest fabric → in-repo CRM → Huginn → freehire).
-- CRM lives in this repo (`/admin/crm`, Neon `crm_*` tables). Do not add Twenty Cloud, self-hosted twenty-server, or iframe CRM UIs.
+- CRM lives in this repo (`/admin/crm`, Neon `crm_*`). UI may be Twenty-inspired or selectively copied per `docs/vendor/TWENTY_UI_AND_FEATURES.md` and `vendor/twenty/README.md`. No Twenty Cloud, no twenty-server, no iframe.
 - External tools (Huginn, freehire) only via `POST /api/admin/integrations/ingest` and headless deploy under `deploy/integrations/`.
 - Minimal diffs; no secrets in `wrangler.jsonc` or git — use `scripts/sync-cloudflare-env.mjs`.
 - Complete the manual test flow for a phase before claiming it done.

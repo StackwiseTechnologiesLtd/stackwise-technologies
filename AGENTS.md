@@ -7,5 +7,5 @@ This version has breaking changes — APIs, conventions, and file structure may 
 ## Stackwise integrations (agents)
 
 - **Build plan:** `docs/INTEGRATIONS_BUILD_PLAN.md` — includes manual test flows and a progress sign-off table per phase.
-- **CRM:** In-repo only (`src/lib/crm/`, `/admin/crm`). Use `docs/vendor/TWENTY_REFERENCE.md` for object names; do not deploy Twenty as a hosted app.
+- **CRM:** In-repo only (`src/lib/crm/`, `/admin/crm`). Data: `docs/vendor/TWENTY_REFERENCE.md`. UI/features (inspire or copy per AGPL): `docs/vendor/TWENTY_UI_AND_FEATURES.md`, `vendor/twenty/`. No hosted Twenty server or iframe.
 - **Scope:** Ponytail-style minimal changes (`docs/engineering/ponytail.md`). No secrets in tracked files; run `node scripts/check-no-secrets.mjs` before PRs touching config.

@@ -5,8 +5,9 @@
 ## Required for this repo
 
 1. Follow [INTEGRATIONS_BUILD_PLAN.md](../INTEGRATIONS_BUILD_PLAN.md) phase order (Ponytail → integration fabric → in-repo CRM → Huginn → freehire).
-2. Prefer extending existing modules (`growth_*`, `AdminShell`, Neon migrations) over new apps or hosted CRMs.
-3. Never commit secrets; use `scripts/sync-cloudflare-env.mjs` for Worker secrets.
+2. Prefer extending existing modules (`growth_*`, `crm_*`, `AdminShell`, Neon migrations) over new apps or hosted CRMs.
+3. CRM UI may follow [TWENTY_UI_AND_FEATURES.md](../vendor/TWENTY_UI_AND_FEATURES.md) (inspire or copy with `vendor/twenty/` policy).
+4. Never commit secrets; use `scripts/sync-cloudflare-env.mjs` for Worker secrets.
 
 ## Installing Ponytail skills (optional)
 
