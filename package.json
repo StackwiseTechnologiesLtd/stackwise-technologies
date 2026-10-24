@@ -8,6 +8,7 @@
     "build": "node scripts/next-production-build.mjs",
     "start": "next start",
     "lint": "eslint",
+    "check:no-secrets": "node scripts/check-no-secrets.mjs",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "build:worker": "OPENNEXT_CLOUDFLARE_BUILD=1 opennextjs-cloudflare build",

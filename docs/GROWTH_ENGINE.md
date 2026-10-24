@@ -2,6 +2,8 @@
 
 Admin UI under `/admin/growth` scores inbound social signals, drafts replies for human review, and stores **encrypted** LinkedIn / X session cookies for a **local connector** (no official posting APIs in phase 1).
 
+**Integrations roadmap (Ponytail, in-repo CRM, Huginn, freehire):** [INTEGRATIONS_BUILD_PLAN.md](./INTEGRATIONS_BUILD_PLAN.md).
+
 Discovery calls use [Cal.com](https://cal.com/stackwise-technologies/30min) via `bookingUrl()` in `src/lib/booking.ts` (guest `tshikombadaniel@gmail.com` always prefilled).
 
 ## Architecture: Cloudflare vs Playwright
