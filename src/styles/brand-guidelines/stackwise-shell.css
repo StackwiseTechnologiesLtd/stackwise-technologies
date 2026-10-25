@@ -1,4 +1,9 @@
 /* Stackwise overrides for Kargul-style brand guidelines shell */
+.brand-guidelines-root,
+html.brand-guidelines-root {
+  color-scheme: dark;
+}
+
 .brand-guidelines-root {
   --brand-accent: #e24b5c;
   --brand-burgundy: #541111;

@@ -11,7 +11,19 @@ import {
 } from "react";
 import type { BrandGuidelines, BrandImageSet } from "@/lib/branding/types";
 import { brandAssetUrl } from "@/lib/branding/asset-url";
+import { proportionSegmentStyle } from "@/lib/branding/proportion-segment-style";
 import { BrandResponsiveImage } from "./brand-media";
+import {
+  BrandImageFrame,
+  ColorVersionsFrame,
+  ExportAssetCard,
+  ExportTypographyRow,
+  LogotypeScaleBlock,
+  SectionArticle,
+  TypeScalePanel,
+  TypographyPreviewStack,
+  VerbalIdentityTables,
+} from "./brand-ui-parts";
 import { CopyButton } from "./CopyButton";
 import {
   IconClipboardCopy,
@@ -132,8 +144,9 @@ function ImageCarousel({ images }: { images: BrandImageSet[] }) {
 export function BrandGuidelinesPage({ brand }: { brand: BrandGuidelines }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [dark, setDark] = useState(() => {
-    if (typeof document === "undefined") return false;
-    return document.documentElement.getAttribute("data-theme") === "dark";
+    if (typeof document === "undefined") return true;
+    const theme = document.documentElement.getAttribute("data-theme");
+    return theme !== "light";
   });
   const [activeNavId, setActiveNavId] = useState("foundation");
   const [navBarY, setNavBarY] = useState(0);
@@ -149,6 +162,7 @@ export function BrandGuidelinesPage({ brand }: { brand: BrandGuidelines }) {
     const next = !dark;
     setDark(next);
     document.documentElement.setAttribute("data-theme", next ? "dark" : "light");
+    document.documentElement.style.colorScheme = next ? "dark" : "light";
     try {
       localStorage.setItem(THEME_KEY, next ? "dark" : "light");
     } catch {
@@ -354,6 +368,18 @@ export function BrandGuidelinesPage({ brand }: { brand: BrandGuidelines }) {
                 <p className="FigmaExportButton_description__vyneu">
                   Color swatches and vector assets, organized in one board.
                 </p>
+                <div className="FigmaExportButton_steps__ObkwE">
+                  <div>
+                    <span>01</span>
+                    <p>Copy the brand kit</p>
+                  </div>
+                  <div>
+                    <span>02</span>
+                    <p>
+                      Open a Figma design file and paste <kbd>⌘ / Ctrl V</kbd>
+                    </p>
+                  </div>
+                </div>
                 <div className="FigmaExportButton_actions__GyPUM">
                   <button
                     type="button"
@@ -393,95 +419,36 @@ export function BrandGuidelinesPage({ brand }: { brand: BrandGuidelines }) {
               </header>
             </div>
 
-            <section id="brand-context" className="Guidelines_section__GgFag">
+            <SectionArticle id="brand-context">
               <SectionHeader title={brand.introduction.title} />
+              <BrandImageFrame
+                baseName={brand.introduction.heroImage.baseName}
+                alt={brand.introduction.heroImage.alt}
+                downloadBasePath="exports/applications/opsis-introduction.png"
+                priority
+              />
               <div className="Guidelines_body__k1Zwo">
                 <p className="Guidelines_bodyText__C2R9D">{brand.introduction.body}</p>
               </div>
-              <div className="Guidelines_frame__9X4Dv Guidelines_frameWithDownload__IUkzI">
-                <BrandResponsiveImage
-                  baseName={brand.introduction.heroImage.baseName}
-                  alt={brand.introduction.heroImage.alt}
-                  className="Guidelines_imageFill__leSLX"
-                  priority
-                />
-              </div>
-            </section>
+            </SectionArticle>
 
-            <section id="marks" className="Guidelines_section__GgFag">
+            <SectionArticle id="marks">
               <SectionHeader title={brand.marks.logotypeScale.title} />
-              <div className="Guidelines_body__k1Zwo">
-                <p className="Guidelines_bodyText__C2R9D">
-                  {brand.marks.logotypeScale.body}
-                </p>
-              </div>
-              <div
-                className="Guidelines_logotypeScaleFrame__YW05P"
-                aria-label="Opsis Partners logotype at web scale sizes"
-              >
-                <div className="Guidelines_logotypeScaleViewport__dtD04">
-                  <ul className="Guidelines_logotypeScaleList__pbZd5">
-                    {brand.marks.logotypeScale.sizes.map((px) => (
-                      <li key={px} className="Guidelines_logotypeScaleRow__gY6ve">
-                        <span className="Guidelines_logotypeScaleLabel__Yaz2s">
-                          {px}
-                          <span className="Guidelines_logotypeScaleLabelUnit__oos_2">
-                            px
-                          </span>
-                        </span>
-                        <div className="Guidelines_logotypeScaleRowScroller__zFkji">
-                          <div className="Guidelines_logotypeScaleLogoCell__P_7X7">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                              src={brandAssetUrl(
-                                "exports/logotype/opsis-logotype-black.svg",
-                              )}
-                              alt={`Opsis Partners logotype at ${px} pixels height`}
-                              className="Guidelines_logotypeScaleLogo__8sR11"
-                              style={{ height: px }}
-                            />
-                          </div>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </section>
+              <LogotypeScaleBlock
+                sizes={brand.marks.logotypeScale.sizes}
+                body={brand.marks.logotypeScale.body}
+              />
+            </SectionArticle>
 
-            <section id="mark-colors" className="Guidelines_section__GgFag">
+            <SectionArticle id="mark-colors">
               <SectionHeader title={brand.marks.colorVersions.title} />
-              <div className="Guidelines_bodyGridTwo__igR1j">
-                <div className="Guidelines_body__k1Zwo">
-                  <p className="Guidelines_bodyText__C2R9D">
-                    {brand.marks.colorVersions.blackOnLight}
-                  </p>
-                </div>
-                <div className="Guidelines_body__k1Zwo">
-                  <p className="Guidelines_bodyText__C2R9D">
-                    {brand.marks.colorVersions.whiteOnDark}
-                  </p>
-                </div>
-              </div>
-              <div className="Guidelines_gridTwo__igR1j">
-                <div className="Guidelines_tileLight___lU6r Guidelines_tileWide__RO1QA">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={brandAssetUrl(brand.marks.colorVersions.blackLogotype)}
-                    alt="Opsis Partners Black logotype on a light surface"
-                    className="Guidelines_logoImageWide__S_DzT"
-                  />
-                </div>
-                <div className="Guidelines_tile__3aEpo Guidelines_tileWide__RO1QA">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={brandAssetUrl(brand.marks.colorVersions.whiteLogotype)}
-                    alt="Opsis Partners White logotype on a dark surface"
-                    className="Guidelines_logoImageWide__S_DzT Guidelines_logotypeScaleLogoDark__c9QtG"
-                  />
-                </div>
-              </div>
-            </section>
+              <ColorVersionsFrame
+                blackOnLight={brand.marks.colorVersions.blackOnLight}
+                whiteOnDark={brand.marks.colorVersions.whiteOnDark}
+                blackLogotype={brand.marks.colorVersions.blackLogotype}
+                whiteLogotype={brand.marks.colorVersions.whiteLogotype}
+              />
+            </SectionArticle>
 
             <section id="color-palette" className="Guidelines_section__GgFag">
               <SectionHeader
@@ -543,20 +510,26 @@ export function BrandGuidelinesPage({ brand }: { brand: BrandGuidelines }) {
               </div>
               <div className="Guidelines_proportionsFrame__3B5OW">
                 <div className="Guidelines_proportionsBar__iS_pA">
-                  {brand.colors.proportions.bars.map((bar) => (
-                    <div
-                      key={bar.name}
-                      className="Guidelines_proportionsBarSegment__Gprle"
-                      style={{ flexGrow: bar.value }}
-                    >
-                      <span className="Guidelines_proportionsBarName__1IzZY">
-                        {bar.name}
-                      </span>
-                      <span className="Guidelines_proportionsBarValue__Qfcig">
-                        {bar.value}
-                      </span>
-                    </div>
-                  ))}
+                  {brand.colors.proportions.bars.map((bar) => {
+                    const swatch = brand.colors.palette.swatches.find(
+                      (s) => s.name === bar.name,
+                    );
+                    const hex = swatch?.hex ?? "#131D18";
+                    return (
+                      <div
+                        key={bar.name}
+                        className="Guidelines_proportionsBarSegment__Gprle"
+                        style={proportionSegmentStyle(bar.name, bar.value, hex)}
+                      >
+                        <p className="Guidelines_proportionsBarName__1IzZY">
+                          {bar.name}
+                        </p>
+                        <p className="Guidelines_proportionsBarValue__Qfcig">
+                          {bar.value}%
+                        </p>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </section>
@@ -619,20 +592,12 @@ export function BrandGuidelinesPage({ brand }: { brand: BrandGuidelines }) {
               </div>
             </section>
 
-            <section id="typography" className="Guidelines_section__GgFag">
+            <SectionArticle id="typography">
               <SectionHeader title={brand.typography.typeSystem.title} />
-              <div className="Guidelines_bodyGridTwo__igR1j">
-                <div className="Guidelines_body__k1Zwo">
-                  <p className="Guidelines_bodyText__C2R9D">
-                    {brand.typography.typeSystem.exposure}
-                  </p>
-                </div>
-                <div className="Guidelines_body__k1Zwo">
-                  <p className="Guidelines_bodyText__C2R9D">
-                    {brand.typography.typeSystem.geist}
-                  </p>
-                </div>
-              </div>
+              <TypographyPreviewStack
+                exposure={brand.typography.typeSystem.exposure}
+                geist={brand.typography.typeSystem.geist}
+              />
               <a
                 href={brandAssetUrl(brand.typography.typeSystem.fontDownloadPath)}
                 download
@@ -643,77 +608,42 @@ export function BrandGuidelinesPage({ brand }: { brand: BrandGuidelines }) {
                 </span>
                 <IconDownload className="Guidelines_fontDownloadIcon__NH02f" />
               </a>
-            </section>
+            </SectionArticle>
 
-            <section id="type-scale" className="Guidelines_section__GgFag">
+            <SectionArticle id="type-scale">
               <SectionHeader title={brand.typography.typeScale.title} />
               <div className="Guidelines_body__k1Zwo">
                 <p className="Guidelines_bodyText__C2R9D">
                   {brand.typography.typeScale.intro}
                 </p>
               </div>
-              <div className="TypeScaleGenerator_generator__m3oVZ">
-                <ul className="TypeScaleGenerator_scale__Co_6Y">
-                  {brand.typography.typeScale.rows.map((row) => (
-                    <li key={row.level} className="TypeScaleGenerator_scaleRow__XdIZj">
-                      <div className="TypeScaleGenerator_scaleMeta__sfEq3">
-                        <span className="TypeScaleGenerator_scaleLevel__3mp0_">
-                          {row.level}
-                        </span>
-                        <span className="TypeScaleGenerator_scaleSize__qtWzB">
-                          {row.meta}
-                        </span>
-                      </div>
-                      <textarea
-                        rows={1}
-                        defaultValue={row.sample}
-                        spellCheck={false}
-                        aria-label={`${row.level} sample text · type to preview`}
-                        className="TypeScaleGenerator_scaleSample__zX7kq"
-                        style={row.sampleStyle as CSSProperties}
-                      />
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </section>
+              <TypeScalePanel
+                baseDefault={brand.typography.typeScale.baseDefault}
+                ratioDefault={brand.typography.typeScale.ratioDefault}
+                rows={brand.typography.typeScale.rows}
+              />
+            </SectionArticle>
 
-            <section id="tone-of-voice" className="Guidelines_section__GgFag">
-              <SectionHeader title={brand.tone.title} />
-              <div className="Guidelines_body__k1Zwo">
+            <SectionArticle id="tone-of-voice">
+              <SectionHeader
+                title={brand.tone.title}
+                action={
+                  <CopyButton
+                    text={brand.tone.messages
+                      .map((m) => `${m.label}\n${m.text}`)
+                      .join("\n\n")}
+                    label="Copy Tone of voice"
+                  />
+                }
+              />
+              <div className="Guidelines_body__k1Zwo Guidelines_verbalIdentityBody__R09AK">
                 <p className="Guidelines_bodyText__C2R9D">{brand.tone.intro}</p>
               </div>
-              <div className="VerbalIdentityPreview_preview__gJaEr">
-                <ul className="VerbalIdentityPreview_principles__pLN1a">
-                  {brand.tone.principles.map((p) => (
-                    <li key={p.title} className="VerbalIdentityPreview_principle__yFU3X">
-                      <h3 className="VerbalIdentityPreview_principleTitle__XKdwO">
-                        {p.title}
-                      </h3>
-                      <p className="VerbalIdentityPreview_description___Cl5I">
-                        {p.description}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
-                <div className="VerbalIdentityPreview_messaging__klIpZ">
-                  <table className="VerbalIdentityPreview_table__NAOsX">
-                    <tbody>
-                      {brand.tone.pairs.map((pair) => (
-                        <tr key={pair.say} className="VerbalIdentityPreview_tableRow__8TgqP">
-                          <td className="VerbalIdentityPreview_tableCell__aLOqg VerbalIdentityPreview_sayCell__X9I79">
-                            {pair.say}
-                          </td>
-                          <td className="VerbalIdentityPreview_tableCell__aLOqg VerbalIdentityPreview_avoidCell__5_Kuz">
-                            {pair.avoid}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </section>
+              <VerbalIdentityTables
+                messages={brand.tone.messages}
+                principles={brand.tone.principles}
+              />
+            </SectionArticle>
 
             <section id="applications" className="Guidelines_section__GgFag">
               <SectionHeader title={brand.applications.social.title} />
@@ -799,63 +729,53 @@ export function BrandGuidelinesPage({ brand }: { brand: BrandGuidelines }) {
               </div>
             </section>
 
-            <section id="exports" className="Guidelines_section__GgFag">
+            <SectionArticle id="exports">
               <SectionHeader title={brand.exports.title} />
               {brand.exports.groups.map((group) => (
                 <div key={group.title} className="Guidelines_exportGroup__iBFD_">
                   <h3 className="Guidelines_exportGroupTitle__ycfL_">{group.title}</h3>
-                  <ul
-                    className={
-                      group.title === "App icons"
-                        ? "Guidelines_exportsAppIconsGrid__Ccdfr"
-                        : group.title === "Applications"
-                          ? "Guidelines_exportsGridThreeCol__ZHvC9"
-                          : "Guidelines_exportsGrid__E8mCy"
-                    }
-                  >
-                    {group.assets.map((asset) => (
-                      <li key={asset.path} className="Guidelines_exportCard__pkq7T">
-                        <div
-                          className={`Guidelines_exportPreview__GxNYZ${
-                            asset.variant === "pfp"
-                              ? " Guidelines_exportPreviewPfp__E7Y3Q"
-                              : asset.variant === "appIcon"
-                                ? " Guidelines_exportPreviewAppIcon__Ohe0_"
-                                : asset.variant === "banner"
-                                  ? " Guidelines_exportPreviewBannerLinkedin__f26bM"
-                                  : asset.variant === "application"
-                                    ? " Guidelines_exportPreviewWide__zi5k4"
-                                    : " Guidelines_exportPreviewLogotype__nghS9"
-                          }`}
-                        >
-                          {asset.path.endsWith(".svg") ||
-                          asset.path.endsWith(".png") ||
-                          asset.path.endsWith(".ico") ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={brandAssetUrl(asset.path)}
-                              alt=""
-                              className="Guidelines_exportImage__1FBec"
-                            />
-                          ) : null}
-                        </div>
-                        <span className="Guidelines_exportLabel__j59dY">{asset.label}</span>
-                        <div className="Guidelines_exportActionsRow__6kZ7n">
-                          <a
-                            href={brandAssetUrl(asset.path)}
-                            download
-                            className="Guidelines_exportActionButton__hSwNa"
-                            aria-label={`Download ${asset.label}`}
-                          >
-                            <IconDownload className="Guidelines_exportActionIcon__DUect" />
-                          </a>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
+                  {group.title === "Typography" ? (
+                    <div className="Guidelines_exportsWallpaperGrid__LO_F5">
+                      <ExportTypographyRow
+                        name="Exposure 0"
+                        sampleStyle={{
+                          fontFamily: "var(--font-opsis-exposure)",
+                          fontSize: "48px",
+                        }}
+                      />
+                      <ExportTypographyRow
+                        name="Geist"
+                        sampleStyle={{
+                          fontFamily: "var(--font-geist-sans)",
+                          fontSize: "48px",
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <div
+                      className={
+                        group.title === "App icons"
+                          ? "Guidelines_exportsAppIconsGrid__Ccdfr"
+                          : group.title === "Applications"
+                            ? "Guidelines_exportsGridThreeCol__ZHvC9"
+                            : "Guidelines_exportsGrid__E8mCy"
+                      }
+                      style={
+                        group.title === "Isotype" ||
+                        group.title === "Logotype" ||
+                        group.title === "Profile pictures"
+                          ? ({ "--export-columns": 5 } as CSSProperties)
+                          : undefined
+                      }
+                    >
+                      {group.assets.map((asset) => (
+                        <ExportAssetCard key={asset.path} asset={asset} />
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
-            </section>
+            </SectionArticle>
           </div>
 
           <footer className="PageShell_mainFooter__miTAm">
