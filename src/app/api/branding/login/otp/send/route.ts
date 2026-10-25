@@ -1,18 +1,17 @@
 import { NextResponse } from "next/server";
 import { OtpLockedError } from "@/lib/otp/lockout";
 import { OtpThrottleError } from "@/lib/otp/throttle";
-import { sendBrandPortalLoginOtp } from "@/lib/branding-portal/otp";
+import { sendBrandPortalLoginOtpForEmail } from "@/lib/branding-portal/otp";
 
 export async function POST(request: Request) {
   try {
-    const body = (await request.json()) as { brandSlug?: string; email?: string };
-    const brandSlug = body.brandSlug?.trim() ?? "";
+    const body = (await request.json()) as { email?: string };
     const email = body.email?.trim() ?? "";
-    if (!brandSlug || !email) {
-      return NextResponse.json({ error: "Email and project are required" }, { status: 400 });
+    if (!email) {
+      return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
-    const result = await sendBrandPortalLoginOtp(brandSlug, email);
+    const result = await sendBrandPortalLoginOtpForEmail(email);
     return NextResponse.json(result);
   } catch (error) {
     if (error instanceof OtpLockedError || error instanceof OtpThrottleError) {

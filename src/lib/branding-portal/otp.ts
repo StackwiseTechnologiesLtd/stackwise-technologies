@@ -4,7 +4,10 @@ import { sendEmail } from "@/lib/emails/sendEmail";
 import { assertOtpNotLocked, clearOtpVerifyAttempts, recordOtpVerifyFailure } from "@/lib/otp/lockout";
 import { assertOtpSendAllowed, markOtpSendSuccess } from "@/lib/otp/throttle";
 import { brandPortalOtpSubjectHash } from "@/lib/branding-portal/identity";
-import { findActiveMember } from "@/lib/branding-portal/members";
+import {
+  findActiveMember,
+  resolveOtpMemberByEmail,
+} from "@/lib/branding-portal/members";
 
 const OTP_TTL_MS = 10 * 60 * 1000;
 const isProduction = process.env.NODE_ENV === "production";
@@ -14,6 +17,19 @@ const memoryOtps = new Map<string, { otp: string; expiresAt: number }>();
 function generateOtp(): string {
   const value = (crypto.getRandomValues(new Uint32Array(1))[0] % 900_000) + 100_000;
   return String(value);
+}
+
+export async function sendBrandPortalLoginOtpForEmail(
+  email: string,
+): Promise<{ success: boolean; dispatched: boolean }> {
+  const member = await resolveOtpMemberByEmail(email);
+  if (!member) {
+    if (!isProduction) {
+      console.info("[brand-portal-otp] no unique OTP member for email");
+    }
+    return { success: true, dispatched: false };
+  }
+  return sendBrandPortalLoginOtp(member.brandSlug, email);
 }
 
 export async function sendBrandPortalLoginOtp(
@@ -77,6 +93,17 @@ export async function sendBrandPortalLoginOtp(
   }
 
   return { success: true, dispatched: true };
+}
+
+export async function verifyBrandPortalLoginOtpForEmail(
+  email: string,
+  otp: string,
+): Promise<{ email: string; brandSlug: string }> {
+  const member = await resolveOtpMemberByEmail(email);
+  if (!member) {
+    throw new Error("Invalid or expired code");
+  }
+  return verifyBrandPortalLoginOtp(member.brandSlug, email, otp);
 }
 
 export async function verifyBrandPortalLoginOtp(
