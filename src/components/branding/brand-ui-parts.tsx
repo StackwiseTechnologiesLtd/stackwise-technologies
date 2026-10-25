@@ -8,68 +8,15 @@ import {
 } from "react";
 import { brandAssetUrl } from "@/lib/branding/asset-url";
 import type { BrandExportAsset, BrandTypeScaleRow } from "@/lib/branding/types";
-import { IconCopy, IconDownload } from "./brand-icons";
+import { IconDownload } from "./brand-icons";
 import { BrandResponsiveImage } from "./brand-media";
+import {
+  AssetActionBar,
+  type AssetFormatOption,
+} from "./asset-action-bar";
 
-type FormatOption = { value: string; label: string };
-
-function pathForFormat(basePath: string, format: string): string {
-  const dot = basePath.lastIndexOf(".");
-  if (dot === -1) return `${basePath}.${format}`;
-  return `${basePath.slice(0, dot)}.${format}`;
-}
-
-export function TileActions({
-  ariaLabel,
-  downloadPath,
-  formats,
-  onDark,
-}: {
-  ariaLabel: string;
-  downloadPath: string;
-  formats: FormatOption[];
-  onDark?: boolean;
-}) {
-  const [format, setFormat] = useState(formats[0]?.value ?? "png");
-  const href = brandAssetUrl(pathForFormat(downloadPath, format));
-  const fileName = href.split("/").pop() ?? "asset";
-
-  return (
-    <div
-      className={`Guidelines_tileActions__UCc8_${onDark ? " Guidelines_tileActionsOnDark__bPuao" : ""}`}
-    >
-      <select
-        className="Guidelines_assetFormatSelect__0LbNt"
-        aria-label={ariaLabel}
-        value={format}
-        onChange={(e) => setFormat(e.target.value)}
-      >
-        {formats.map((f) => (
-          <option key={f.value} value={f.value}>
-            {f.label}
-          </option>
-        ))}
-      </select>
-      <button
-        type="button"
-        className={`Guidelines_downloadIconButton__HyeQt${onDark ? " Guidelines_downloadIconButtonOnDark__ERqdR" : ""}`}
-        aria-disabled="true"
-        data-copy-disabled="true"
-        aria-label="Download only to maintain P3 color"
-      >
-        <IconCopy className="Guidelines_downloadIconButtonIcon__oRZTC" />
-      </button>
-      <a
-        href={href}
-        download={fileName}
-        className={`Guidelines_downloadIconButton__HyeQt${onDark ? " Guidelines_downloadIconButtonOnDark__ERqdR" : ""}`}
-        aria-label={`Download ${fileName}`}
-      >
-        <IconDownload className="Guidelines_downloadIconButtonIcon__oRZTC" />
-      </a>
-    </div>
-  );
-}
+export type { AssetActionBarProps, AssetFormatOption } from "./asset-action-bar";
+export { AssetActionBar };
 
 export function BrandImageFrame({
   baseName,
@@ -84,13 +31,13 @@ export function BrandImageFrame({
   baseName: string;
   alt: string;
   downloadBasePath: string;
-  formats?: FormatOption[];
+  formats?: AssetFormatOption[];
   priority?: boolean;
 }) {
   return (
     <div className="Guidelines_imageStack__0wBWj">
       <div className="Guidelines_frame__9X4Dv Guidelines_frameWithDownload__IUkzI">
-        <TileActions
+        <AssetActionBar
           ariaLabel={`Choose format for ${baseName}`}
           downloadPath={downloadBasePath}
           formats={formats}
@@ -376,7 +323,7 @@ export function ExportAssetCard({ asset }: { asset: BrandExportAsset }) {
     <div className="Guidelines_exportPicker__79uD1">
       <div className="Guidelines_exportCard__pkq7T">
         <div className={exportPreviewClasses(asset)}>
-          <TileActions
+          <AssetActionBar
             ariaLabel={`Choose format for ${asset.label}`}
             downloadPath={asset.path}
             formats={formats}
@@ -604,7 +551,7 @@ export function ColorVersionsFrame({
       <div className="Guidelines_gridTwo__igR1j">
         <div className="Guidelines_gridPair__GfyUS">
           <div className="Guidelines_tile__3aEpo Guidelines_tileLight___lU6r">
-            <TileActions
+            <AssetActionBar
               ariaLabel="Choose format for opsis-logotype-black.png"
               downloadPath={blackLogotype.replace(/\.svg$/, ".png")}
               formats={[
@@ -631,7 +578,7 @@ export function ColorVersionsFrame({
         </div>
         <div className="Guidelines_gridPair__GfyUS">
           <div className="Guidelines_tile__3aEpo">
-            <TileActions
+            <AssetActionBar
               ariaLabel="Choose format for opsis-logotype-white.png"
               downloadPath={whiteLogotype.replace(/\.svg$/, ".png")}
               formats={[
