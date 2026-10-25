@@ -44,6 +44,32 @@ function rowToMember(row: MemberRow): BrandPortalMember {
   };
 }
 
+export async function findActiveMembersByEmail(
+  email: string,
+): Promise<BrandPortalMember[]> {
+  const normalizedEmail = normalizePortalEmail(email);
+  if (!normalizedEmail) return [];
+
+  if (isDatabaseConfigured()) {
+    await ensureSchema();
+    const sql = getSql();
+    const rows = asRows<MemberRow>(await sql`
+      SELECT id, brand_slug, email, password_hash, auth_method, active
+      FROM brand_portal_members
+      WHERE email = ${normalizedEmail}
+        AND active = TRUE
+      ORDER BY created_at ASC
+    `);
+    return rows
+      .map(rowToMember)
+      .filter((m) => getBrand(m.brandSlug));
+  }
+
+  return [...memoryMembers.values()].filter(
+    (m) => m.email === normalizedEmail && m.active && getBrand(m.brandSlug),
+  );
+}
+
 export async function findActiveMember(
   brandSlug: string,
   email: string,
@@ -80,6 +106,29 @@ export async function verifyMemberPassword(
   }
   const ok = await verifyPortalPassword(password, member.passwordHash);
   return ok ? member : null;
+}
+
+export async function verifyMemberPasswordByEmail(
+  email: string,
+  password: string,
+): Promise<BrandPortalMember | null> {
+  const members = await findActiveMembersByEmail(email);
+  for (const member of members) {
+    if (member.authMethod !== "password" || !member.passwordHash) continue;
+    const ok = await verifyPortalPassword(password, member.passwordHash);
+    if (ok) return member;
+  }
+  return null;
+}
+
+export async function resolveOtpMemberByEmail(
+  email: string,
+): Promise<BrandPortalMember | null> {
+  const otpMembers = (await findActiveMembersByEmail(email)).filter(
+    (m) => m.authMethod === "otp",
+  );
+  if (otpMembers.length !== 1) return null;
+  return otpMembers[0] ?? null;
 }
 
 export async function listMembers(brandSlug: string): Promise<BrandPortalMember[]> {

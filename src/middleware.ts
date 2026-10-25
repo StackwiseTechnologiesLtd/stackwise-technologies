@@ -18,7 +18,6 @@ export async function middleware(request: NextRequest) {
       if (!session || (slug && session.brandSlug !== slug)) {
         const loginUrl = request.nextUrl.clone();
         loginUrl.pathname = "/branding/login";
-        if (slug) loginUrl.searchParams.set("project", slug);
         loginUrl.searchParams.set("next", pathname);
         return NextResponse.redirect(loginUrl);
       }

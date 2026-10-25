@@ -90,8 +90,9 @@ export default function AdminBrandPortalPage() {
       <div>
         <h1 className="text-xl font-semibold">Brand guidelines access</h1>
         <p className="mt-1 text-sm text-muted">
-          Invite contracted customers to their guidelines portal. Each login is scoped to one
-          brand project so clients cannot see each other&apos;s assets.
+          Invite contracted customers to their guidelines portal. They sign in with email only;
+          the account you create determines which brand they see. Use a unique email per customer
+          (especially for email-code sign-in).
         </p>
       </div>
 

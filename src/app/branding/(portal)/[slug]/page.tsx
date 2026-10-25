@@ -28,7 +28,7 @@ export default async function BrandGuidelineSlugPage({ params }: PageProps) {
 
   const session = await getBrandPortalSession();
   if (!session) {
-    redirect(`/branding/login?project=${encodeURIComponent(slug)}`);
+    redirect(`/branding/login?next=${encodeURIComponent(`/branding/${slug}`)}`);
   }
   if (session.brandSlug !== slug) {
     redirect(`/branding/${session.brandSlug}`);
