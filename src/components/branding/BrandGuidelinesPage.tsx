@@ -9,11 +9,15 @@ import {
   type CSSProperties,
   type ReactNode,
 } from "react";
-import type { BrandGuidelines, BrandImageSet } from "@/lib/branding/types";
+import type { BrandGuidelines } from "@/lib/branding/types";
 import { brandAssetUrl } from "@/lib/branding/asset-url";
 import { proportionSegmentStyle } from "@/lib/branding/proportion-segment-style";
-import { BrandResponsiveImage } from "./brand-media";
+import {
+  ApplicationHeroImage,
+  ApplicationImageStack,
+} from "./application-image-stack";
 import { ColorPaletteGrid } from "./color-palette-grid";
+import { SocialProfileMockup } from "./social-profile-mockup";
 import {
   BrandImageFrame,
   ColorVersionsFrame,
@@ -34,14 +38,6 @@ import {
   IconSun,
 } from "./brand-icons";
 
-const PFP_BY_COLOR: Record<string, string> = {
-  Forest: "exports/profile-pictures/opsis-pfp-on-green.svg",
-  Earth: "exports/profile-pictures/opsis-pfp-on-brown.svg",
-  Paper: "exports/profile-pictures/opsis-pfp-on-paper.svg",
-  Black: "exports/profile-pictures/opsis-pfp-on-black.svg",
-  White: "exports/profile-pictures/opsis-pfp-on-white.svg",
-};
-
 const THEME_KEY = "brand-guidelines-theme";
 
 function SectionHeader({
@@ -58,51 +54,6 @@ function SectionHeader({
       </div>
       {action ? (
         <div className="Guidelines_headerAction__l4m_r">{action}</div>
-      ) : null}
-    </div>
-  );
-}
-
-function ImageCarousel({ images }: { images: BrandImageSet[] }) {
-  const [index, setIndex] = useState(0);
-  const count = images.length;
-
-  const go = (dir: -1 | 1) => {
-    setIndex((i) => (i + dir + count) % count);
-  };
-
-  return (
-    <div className="Guidelines_imageCarouselFrame__RYvlu">
-      <div className="Guidelines_imageCarouselViewport___q9Ts">
-        {images.map((img, i) => (
-          <div
-            key={img.baseName}
-            className={`Guidelines_imageCarouselSlide__uaG7I${i === index ? " Guidelines_imageCarouselSlideActive__mVOGP" : ""}`}
-            aria-hidden={i !== index}
-          >
-            <BrandResponsiveImage
-              baseName={img.baseName}
-              alt={img.alt}
-              lightbox={false}
-            />
-          </div>
-        ))}
-      </div>
-      {count > 1 ? (
-        <>
-          <button
-            type="button"
-            className="Guidelines_imageCarouselButton__axhbB Guidelines_imageCarouselButtonPrevious__uRocR"
-            aria-label="Previous image"
-            onClick={() => go(-1)}
-          />
-          <button
-            type="button"
-            className="Guidelines_imageCarouselButton__axhbB Guidelines_imageCarouselButtonNext___yC51"
-            aria-label="Next image"
-            onClick={() => go(1)}
-          />
-        </>
       ) : null}
     </div>
   );
@@ -591,93 +542,49 @@ export function BrandGuidelinesPage({ brand }: { brand: BrandGuidelines }) {
               />
             </SectionArticle>
 
-            <section id="applications" className="Guidelines_section__GgFag">
+            <SectionArticle id="applications">
               <SectionHeader title={brand.applications.social.title} />
+              <SocialProfileMockup
+                social={brand.applications.social}
+                profileColor={profileColor}
+                onProfileColorChange={setProfileColor}
+              />
               <div className="Guidelines_body__k1Zwo">
                 <p className="Guidelines_bodyText__C2R9D">
                   {brand.applications.social.body}
                 </p>
               </div>
-              <div className="Guidelines_socialMediaFrame__qjU65">
-                <div className="Guidelines_socialProfileMockup__EsDWT">
-                  <div className="Guidelines_socialProfileHeaderMedia___I9jB">
-                    <BrandResponsiveImage
-                      baseName={brand.applications.social.linkedinHeader.baseName}
-                      alt={brand.applications.social.linkedinHeader.alt}
-                      className="Guidelines_socialProfileBannerImage__JT9xy"
-                      aspectRatio="3046 / 516"
-                      width={3046}
-                      height={516}
-                      lightbox={false}
-                    />
-                  </div>
-                  <div className="Guidelines_socialProfileBlock__NDNnZ">
-                    <div className="Guidelines_socialProfileAvatarWrap__f9xk8">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={brandAssetUrl(PFP_BY_COLOR[profileColor] ?? PFP_BY_COLOR.Forest)}
-                        alt={`Opsis Partners profile picture on ${profileColor}`}
-                        className="Guidelines_socialProfileAvatarImage__IkUDP"
-                      />
-                    </div>
-                    <div className="Guidelines_socialProfileColorPicker__OpWQD">
-                      {brand.applications.social.profileColors.map((color) => (
-                        <button
-                          key={color}
-                          type="button"
-                          className={`Guidelines_socialProfileColorTab__2D3oU${
-                            profileColor === color
-                              ? " Guidelines_socialProfileColorTabActive__4DQCC"
-                              : ""
-                          }`}
-                          onClick={() => setProfileColor(color)}
-                        >
-                          <span className="Guidelines_socialProfileColorLabel__IHxqO">
-                            {color}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
+            </SectionArticle>
 
-            <section id="campaign-applications" className="Guidelines_section__GgFag">
+            <SectionArticle id="campaign-applications">
               <SectionHeader title={brand.applications.brandInUse.title} />
+              <ApplicationImageStack images={brand.applications.brandInUse.images} />
               <div className="Guidelines_body__k1Zwo">
                 <p className="Guidelines_bodyText__C2R9D">
                   {brand.applications.brandInUse.body}
                 </p>
               </div>
-              <ImageCarousel images={brand.applications.brandInUse.images} />
-            </section>
+            </SectionArticle>
 
-            <section id="stationery" className="Guidelines_section__GgFag">
+            <SectionArticle id="stationery">
               <SectionHeader title={brand.applications.material.title} />
+              <ApplicationImageStack images={brand.applications.material.images} />
               <div className="Guidelines_body__k1Zwo">
                 <p className="Guidelines_bodyText__C2R9D">
                   {brand.applications.material.body}
                 </p>
               </div>
-              <ImageCarousel images={brand.applications.material.images} />
-            </section>
+            </SectionArticle>
 
-            <section id="recognition" className="Guidelines_section__GgFag">
+            <SectionArticle id="recognition">
               <SectionHeader title={brand.applications.recognition.title} />
+              <ApplicationHeroImage image={brand.applications.recognition.image} />
               <div className="Guidelines_body__k1Zwo">
                 <p className="Guidelines_bodyText__C2R9D">
                   {brand.applications.recognition.body}
                 </p>
               </div>
-              <div className="Guidelines_frame__9X4Dv">
-                <BrandResponsiveImage
-                  baseName={brand.applications.recognition.image.baseName}
-                  alt={brand.applications.recognition.image.alt}
-                  priority
-                />
-              </div>
-            </section>
+            </SectionArticle>
 
             <SectionArticle id="exports">
               <SectionHeader title={brand.exports.title} />
