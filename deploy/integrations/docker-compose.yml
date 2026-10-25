@@ -16,11 +16,11 @@ services:
       - "3001:3000"
     environment:
       DATABASE_ADAPTER: postgresql
-      POSTGRES_HOST: huginn-db
-      POSTGRES_PORT: 5432
-      POSTGRES_USERNAME: huginn
-      POSTGRES_PASSWORD: huginn
-      POSTGRES_DATABASE: huginn
+      DATABASE_HOST: huginn-db
+      DATABASE_PORT: 5432
+      DATABASE_NAME: huginn
+      DATABASE_USERNAME: huginn
+      DATABASE_PASSWORD: huginn
       INVITATION_CODE: stackwise-local
       FORCE_SSL: "false"
     extra_hosts:
