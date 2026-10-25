@@ -1,0 +1,29 @@
+/* Stackwise overrides for Kargul-style brand guidelines shell */
+.brand-guidelines-root {
+  --brand-accent: #e24b5c;
+  --brand-burgundy: #541111;
+  --selected: #54111114;
+  --color-sidebar-active: var(--selected);
+}
+
+html[data-theme="dark"].brand-guidelines-root {
+  --selected: #ffffff14;
+  --color-sidebar-active: var(--selected);
+}
+
+.brand-guidelines-root .Sidebar_navItemActive__Q4zh_ .Sidebar_navLink__YWfYH {
+  color: var(--fg-1);
+}
+
+@font-face {
+  font-family: "Opsis Exposure";
+  src: url("/branding/opsis/preview-fonts/Exposure-0.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.brand-guidelines-root {
+  --font-opsis-exposure: "Opsis Exposure", Georgia, serif;
+  --font-display: var(--font-opsis-exposure);
+}
