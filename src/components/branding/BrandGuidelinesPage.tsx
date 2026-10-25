@@ -13,6 +13,7 @@ import type { BrandGuidelines, BrandImageSet } from "@/lib/branding/types";
 import { brandAssetUrl } from "@/lib/branding/asset-url";
 import { proportionSegmentStyle } from "@/lib/branding/proportion-segment-style";
 import { BrandResponsiveImage } from "./brand-media";
+import { ColorPaletteGrid } from "./color-palette-grid";
 import {
   BrandImageFrame,
   ColorVersionsFrame,
@@ -29,6 +30,7 @@ import {
   IconClipboardCopy,
   IconDownload,
   IconMoon,
+  IconPalette,
   IconSun,
 } from "./brand-icons";
 
@@ -58,41 +60,6 @@ function SectionHeader({
         <div className="Guidelines_headerAction__l4m_r">{action}</div>
       ) : null}
     </div>
-  );
-}
-
-function SwatchValueRow({
-  label,
-  value,
-  copyLabel,
-}: {
-  label: string;
-  value: string;
-  copyLabel: string;
-}) {
-  const [copied, setCopied] = useState(false);
-
-  const onCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(value);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1500);
-    } catch {
-      /* ignore */
-    }
-  };
-
-  return (
-    <button
-      type="button"
-      className={`Guidelines_swatchValueRow__uqpXK${copied ? " Guidelines_swatchValueRowCopied___Z11X" : ""}`}
-      aria-label={copyLabel}
-      onClick={() => void onCopy()}
-    >
-      <span className="Guidelines_swatchValueLabel__0BtPE">{label}</span>
-      <span className="Guidelines_swatchValueText__HioaT">{value}</span>
-      <span className="Guidelines_swatchValueIcon__H4Qn7" aria-hidden />
-    </button>
   );
 }
 
@@ -450,56 +417,35 @@ export function BrandGuidelinesPage({ brand }: { brand: BrandGuidelines }) {
               />
             </SectionArticle>
 
-            <section id="color-palette" className="Guidelines_section__GgFag">
+            <SectionArticle id="color-palette">
               <SectionHeader
                 title={brand.colors.palette.title}
                 action={
-                  <CopyButton
-                    text={paletteCopyText}
-                    label="Copy Core palette tokens"
-                  />
+                  <div className="Guidelines_headerActionGroup__JwdAG">
+                    <CopyButton
+                      text={paletteCopyText}
+                      label="Copy Core palette tokens"
+                      className="Guidelines_downloadIconButton__HyeQt"
+                      iconClassName="Guidelines_downloadIconButtonIcon__oRZTC"
+                    />
+                    <button
+                      type="button"
+                      className="Guidelines_downloadIconButton__HyeQt"
+                      aria-label="Copy palette for Figma"
+                      onClick={() =>
+                        void navigator.clipboard.writeText(figmaCopyText)
+                      }
+                    >
+                      <IconPalette className="Guidelines_downloadIconButtonIcon__oRZTC" />
+                    </button>
+                  </div>
                 }
               />
+              <ColorPaletteGrid swatches={brand.colors.palette.swatches} />
               <div className="Guidelines_body__k1Zwo">
                 <p className="Guidelines_bodyText__C2R9D">{brand.colors.palette.body}</p>
               </div>
-              <div className="Guidelines_colorPaletteFrame__9TB_G">
-                <ul className="Guidelines_swatchGrid__G1Rjv">
-                  {brand.colors.palette.swatches.map((swatch) => (
-                    <li key={swatch.name}>
-                      <article
-                        className="Guidelines_swatchCard__Zx1vV"
-                        style={{ "--swatch-color": swatch.hex } as CSSProperties}
-                      >
-                        <div
-                          className="Guidelines_swatchName__fs2bk"
-                          style={{ backgroundColor: swatch.hex }}
-                        >
-                          {swatch.name}
-                        </div>
-                        <div className="Guidelines_swatchValues__UaRjv">
-                          <SwatchValueRow
-                            label="HEX"
-                            value={swatch.hex}
-                            copyLabel={`Copy HEX: ${swatch.hex}`}
-                          />
-                          <SwatchValueRow
-                            label="RGB"
-                            value={swatch.rgb}
-                            copyLabel={`Copy RGB: ${swatch.rgb}`}
-                          />
-                          <SwatchValueRow
-                            label="CMYK"
-                            value={swatch.cmyk}
-                            copyLabel={`Copy CMYK: ${swatch.cmyk}`}
-                          />
-                        </div>
-                      </article>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </section>
+            </SectionArticle>
 
             <section id="color-proportions" className="Guidelines_section__GgFag">
               <SectionHeader title={brand.colors.proportions.title} />
