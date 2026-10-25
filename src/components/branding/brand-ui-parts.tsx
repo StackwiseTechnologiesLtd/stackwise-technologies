@@ -95,12 +95,7 @@ export function BrandImageFrame({
           downloadPath={downloadBasePath}
           formats={formats}
         />
-        <BrandResponsiveImage
-          baseName={baseName}
-          alt={alt}
-          className="Guidelines_imageFill__leSLX"
-          priority={priority}
-        />
+        <BrandResponsiveImage baseName={baseName} alt={alt} priority={priority} />
       </div>
     </div>
   );

@@ -116,7 +116,7 @@ function ImageCarousel({ images }: { images: BrandImageSet[] }) {
             <BrandResponsiveImage
               baseName={img.baseName}
               alt={img.alt}
-              className="Guidelines_imageFill__leSLX"
+              lightbox={false}
             />
           </div>
         ))}
@@ -659,6 +659,10 @@ export function BrandGuidelinesPage({ brand }: { brand: BrandGuidelines }) {
                       baseName={brand.applications.social.linkedinHeader.baseName}
                       alt={brand.applications.social.linkedinHeader.alt}
                       className="Guidelines_socialProfileBannerImage__JT9xy"
+                      aspectRatio="3046 / 516"
+                      width={3046}
+                      height={516}
+                      lightbox={false}
                     />
                   </div>
                   <div className="Guidelines_socialProfileBlock__NDNnZ">
@@ -724,7 +728,7 @@ export function BrandGuidelinesPage({ brand }: { brand: BrandGuidelines }) {
                 <BrandResponsiveImage
                   baseName={brand.applications.recognition.image.baseName}
                   alt={brand.applications.recognition.image.alt}
-                  className="Guidelines_imageFill__leSLX"
+                  priority
                 />
               </div>
             </section>
