@@ -1,8 +1,8 @@
 import { hashString } from "@/lib/crypto/hash";
+import { parsePortalEmail } from "@/lib/branding-portal/validation";
 
 export function normalizePortalEmail(email: string): string | null {
-  const normalized = email.trim().toLowerCase();
-  return normalized.includes("@") ? normalized : null;
+  return parsePortalEmail(email);
 }
 
 export function normalizeBrandSlug(slug: string): string | null {

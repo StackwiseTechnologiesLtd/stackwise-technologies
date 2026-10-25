@@ -6,6 +6,10 @@ import {
   normalizeBrandSlug,
   normalizePortalEmail,
 } from "@/lib/branding-portal/identity";
+import {
+  parsePortalMemberId,
+  parsePortalPassword,
+} from "@/lib/branding-portal/validation";
 
 export type BrandPortalAuthMethod = "password" | "otp";
 
@@ -166,8 +170,18 @@ export async function createMember(input: {
   let passwordHash: string | null = null;
 
   if (input.authMethod === "password") {
-    const password = input.password?.trim() || crypto.randomUUID().replace(/-/g, "").slice(0, 14);
-    if (!input.password?.trim()) temporaryPassword = password;
+    const supplied = input.password?.trim();
+    let password: string;
+    if (supplied) {
+      const parsed = parsePortalPassword(supplied);
+      if (!parsed) {
+        throw new Error("Password must be 8–128 characters with no control characters");
+      }
+      password = parsed;
+    } else {
+      password = crypto.randomUUID().replace(/-/g, "").slice(0, 14);
+      temporaryPassword = password;
+    }
     passwordHash = await hashPortalPassword(password);
   }
 
@@ -213,19 +227,24 @@ export async function setMemberActive(
   memberId: string,
   active: boolean,
 ): Promise<void> {
+  const id = parsePortalMemberId(memberId);
+  if (!id) {
+    throw new Error("Invalid member id");
+  }
+
   if (isDatabaseConfigured()) {
     await ensureSchema();
     const sql = getSql();
     await sql`
       UPDATE brand_portal_members
       SET active = ${active}, updated_at = NOW()
-      WHERE id = ${memberId}::uuid
+      WHERE id = ${id}::uuid
     `;
     return;
   }
 
   for (const [key, member] of memoryMembers) {
-    if (member.id === memberId) {
+    if (member.id === id) {
       memoryMembers.set(key, { ...member, active });
       break;
     }

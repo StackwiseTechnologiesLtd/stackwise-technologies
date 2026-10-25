@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { OtpLockedError } from "@/lib/otp/lockout";
 import { verifyBrandPortalLoginOtpForEmail } from "@/lib/branding-portal/otp";
+import { parsePortalEmail, parsePortalOtp } from "@/lib/branding-portal/validation";
 import {
   createBrandPortalSessionToken,
   setBrandPortalSessionCookie,
@@ -9,12 +10,12 @@ import {
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as {
-      email?: string;
-      otp?: string;
+      email?: unknown;
+      otp?: unknown;
     };
-    const email = body.email?.trim() ?? "";
-    const otp = body.otp?.trim() ?? "";
-    if (!email || otp.length !== 6) {
+    const email = parsePortalEmail(body.email);
+    const otp = parsePortalOtp(body.otp);
+    if (!email || !otp) {
       return NextResponse.json({ error: "Invalid or expired code" }, { status: 401 });
     }
 
