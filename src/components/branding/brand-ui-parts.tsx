@@ -6,7 +6,11 @@ import {
   type CSSProperties,
   type ReactNode,
 } from "react";
-import { brandAssetUrl } from "@/lib/branding/asset-url";
+import {
+  brandAssetUrl,
+  brandPreviewSrcSet,
+  brandPreviewUrl,
+} from "@/lib/branding/asset-url";
 import type { BrandExportAsset, BrandTypeScaleRow } from "@/lib/branding/types";
 import { IconDownload } from "./brand-icons";
 import { BrandResponsiveImage } from "./brand-media";
@@ -288,10 +292,8 @@ function exportPreviewClasses(asset: BrandExportAsset): string {
   if (asset.variant === "pfp") return `${base} Guidelines_exportPreviewPfp__E7Y3Q`;
   if (asset.variant === "appIcon")
     return `${base} Guidelines_exportPreviewAppIcon__Ohe0_`;
-  if (asset.variant === "banner")
-    return `${base} Guidelines_exportPreviewBannerLinkedin__f26bM`;
-  if (asset.variant === "application")
-    return `${base} Guidelines_exportPreviewWide__zi5k4`;
+  if (asset.variant === "banner" || asset.variant === "application")
+    return `${base} Guidelines_exportPreviewWide__zi5k4 Guidelines_exportPreviewLight__1696S`;
   if (asset.label === "White" || asset.label === "Black")
     return `${base} Guidelines_exportPreviewDark__33d8C`;
   return `${base} Guidelines_exportPreviewLight__1696S`;
@@ -300,7 +302,8 @@ function exportPreviewClasses(asset: BrandExportAsset): string {
 function exportImageClass(asset: BrandExportAsset): string {
   if (asset.variant === "pfp") return "Guidelines_exportImagePfp__m_usS";
   if (asset.variant === "appIcon") return "Guidelines_exportImageAppIcon__dkVgO";
-  if (asset.variant === "banner") return "Guidelines_exportImageWide__A_7vt";
+  if (asset.variant === "banner" || asset.variant === "application")
+    return "Guidelines_exportImageWallpaper__ilb06";
   if (asset.variant === "isotype") return "Guidelines_exportImageMark__hVOI7";
   return "Guidelines_exportImage__1FBec";
 }
@@ -319,10 +322,19 @@ export function ExportAssetCard({ asset }: { asset: BrandExportAsset }) {
             { value: "avif", label: "AVIF" },
           ];
 
+  const previewStyle =
+    asset.previewAspect != null
+      ? ({ "--export-preview-aspect": asset.previewAspect } as CSSProperties)
+      : undefined;
+
+  const imageSrc = asset.previewId
+    ? brandPreviewUrl(asset.previewId, 800)
+    : brandAssetUrl(asset.path);
+
   return (
     <div className="Guidelines_exportPicker__79uD1">
       <div className="Guidelines_exportCard__pkq7T">
-        <div className={exportPreviewClasses(asset)}>
+        <div className={exportPreviewClasses(asset)} style={previewStyle}>
           <AssetActionBar
             ariaLabel={`Choose format for ${asset.label}`}
             downloadPath={asset.path}
@@ -331,9 +343,17 @@ export function ExportAssetCard({ asset }: { asset: BrandExportAsset }) {
           />
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={brandAssetUrl(asset.path)}
-            alt=""
+            src={imageSrc}
+            srcSet={asset.previewId ? brandPreviewSrcSet(asset.previewId) : undefined}
+            sizes={
+              asset.previewId
+                ? "(max-width: 699px) calc(100vw - 48px), (max-width: 1079px) 45vw, 440px"
+                : undefined
+            }
+            alt={asset.previewAlt ?? ""}
             className={exportImageClass(asset)}
+            decoding="async"
+            loading="lazy"
           />
         </div>
         <span className="Guidelines_exportLabel__j59dY">{asset.label}</span>

@@ -613,8 +613,8 @@ export function BrandGuidelinesPage({ brand }: { brand: BrandGuidelines }) {
                       className={
                         group.title === "App icons"
                           ? "Guidelines_exportsAppIconsGrid__Ccdfr"
-                          : group.title === "Applications"
-                            ? "Guidelines_exportsGridThreeCol__ZHvC9"
+                          : group.title === "Social media" || group.title === "Applications"
+                            ? "Guidelines_exportsWallpaperGrid__LO_F5"
                             : "Guidelines_exportsGrid__E8mCy"
                       }
                       style={
@@ -622,7 +622,9 @@ export function BrandGuidelinesPage({ brand }: { brand: BrandGuidelines }) {
                         group.title === "Logotype" ||
                         group.title === "Profile pictures"
                           ? ({ "--export-columns": 5 } as CSSProperties)
-                          : undefined
+                          : group.title === "Social media" || group.title === "Applications"
+                            ? ({ "--export-columns": 4 } as CSSProperties)
+                            : undefined
                       }
                     >
                       {group.assets.map((asset) => (
