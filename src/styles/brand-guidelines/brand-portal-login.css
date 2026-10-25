@@ -1,0 +1,132 @@
+.brand-portal-login {
+  --login-bg: #f7f7f5;
+  --login-fg: #111112;
+  --login-muted: #6b6b6f;
+  --login-line: #e4e4e0;
+  --login-error: #c44b62;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.5rem 3rem;
+  background: var(--login-bg);
+  color: var(--login-fg);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+.brand-portal-login__inner {
+  width: 100%;
+  max-width: 420px;
+}
+
+.brand-portal-login__eyebrow {
+  margin: 0 0 0.75rem;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--login-muted);
+  text-align: center;
+}
+
+.brand-portal-login__title {
+  margin: 0 0 0.5rem;
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  text-align: center;
+  line-height: 1.05;
+}
+
+.brand-portal-login__lead {
+  margin: 0 0 2rem;
+  text-align: center;
+  color: var(--login-muted);
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.brand-portal-login__form {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-portal-login__field {
+  border: 0;
+  border-top: 1px solid var(--login-line);
+  padding: 1rem 0;
+  font-size: 17px;
+  background: transparent;
+  color: var(--login-fg);
+  width: 100%;
+}
+
+.brand-portal-login__field:focus {
+  outline: none;
+}
+
+.brand-portal-login__password-wrap {
+  display: flex;
+  align-items: center;
+  border-top: 1px solid var(--login-line);
+}
+
+.brand-portal-login__password-wrap .brand-portal-login__field {
+  border-top: 0;
+  flex: 1;
+}
+
+.brand-portal-login__toggle {
+  border: 0;
+  background: transparent;
+  color: var(--login-muted);
+  padding: 0.5rem;
+  cursor: pointer;
+}
+
+.brand-portal-login__submit {
+  margin-top: 1.25rem;
+  border: 0;
+  border-radius: 2px;
+  background: var(--login-fg);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 500;
+  padding: 0.85rem 1rem;
+  cursor: pointer;
+}
+
+.brand-portal-login__submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.brand-portal-login__error {
+  margin: 0.75rem 0 0;
+  color: var(--login-error);
+  font-size: 14px;
+  text-align: center;
+}
+
+.brand-portal-login__alt {
+  margin-top: 1rem;
+  text-align: center;
+  font-size: 14px;
+}
+
+.brand-portal-login__alt button {
+  border: 0;
+  background: transparent;
+  color: var(--login-fg);
+  text-decoration: underline;
+  cursor: pointer;
+  font: inherit;
+}
+
+.brand-portal-login__footer {
+  margin-top: auto;
+  padding-top: 3rem;
+  text-align: center;
+  font-size: 13px;
+  color: var(--login-muted);
+}

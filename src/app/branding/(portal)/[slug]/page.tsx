@@ -1,7 +1,8 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { getBrand } from "@/lib/branding/brands";
 import { BrandGuidelinesPage } from "@/components/branding/BrandGuidelinesPage";
+import { getBrandPortalSession } from "@/lib/branding-portal/session";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -25,5 +26,13 @@ export default async function BrandGuidelineSlugPage({ params }: PageProps) {
   const brand = getBrand(slug);
   if (!brand) notFound();
 
-  return <BrandGuidelinesPage brand={brand} />;
+  const session = await getBrandPortalSession();
+  if (!session) {
+    redirect(`/branding/login?project=${encodeURIComponent(slug)}`);
+  }
+  if (session.brandSlug !== slug) {
+    redirect(`/branding/${session.brandSlug}`);
+  }
+
+  return <BrandGuidelinesPage brand={brand} portalEmail={session.email} />;
 }

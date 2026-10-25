@@ -59,7 +59,39 @@ function SectionHeader({
   );
 }
 
-export function BrandGuidelinesPage({ brand }: { brand: BrandGuidelines }) {
+function BrandPortalSignOut() {
+  return (
+    <button
+      type="button"
+      className="PageShell_mainFooterText__uNa6N"
+      style={{
+        marginTop: "0.5rem",
+        background: "none",
+        border: 0,
+        cursor: "pointer",
+        textDecoration: "underline",
+        padding: 0,
+        font: "inherit",
+        color: "inherit",
+      }}
+      onClick={() => {
+        void fetch("/api/branding/logout", { method: "POST" }).then(() => {
+          window.location.href = "/branding/login";
+        });
+      }}
+    >
+      Sign out
+    </button>
+  );
+}
+
+export function BrandGuidelinesPage({
+  brand,
+  portalEmail,
+}: {
+  brand: BrandGuidelines;
+  portalEmail?: string;
+}) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [dark, setDark] = useState(() => {
     if (typeof document === "undefined") return true;
@@ -641,7 +673,9 @@ export function BrandGuidelinesPage({ brand }: { brand: BrandGuidelines }) {
             <p className="PageShell_mainFooterText__uNa6N">{brand.footerCredit}</p>
             <p className="PageShell_mainFooterDisclaimer__l6_T_">
               Guidelines are confidential to the brand owner.
+              {portalEmail ? ` Signed in as ${portalEmail}.` : null}
             </p>
+            {portalEmail ? <BrandPortalSignOut /> : null}
           </footer>
         </div>
       </div>
