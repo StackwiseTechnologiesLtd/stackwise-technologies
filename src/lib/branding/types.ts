@@ -125,8 +125,8 @@ export type BrandGuidelines = {
   tone: {
     title: string;
     intro: string;
-    principles: BrandVerbalPrinciple[];
-    pairs: BrandSayAvoidPair[];
+    messages: { label: string; text: string }[];
+    principles: (BrandVerbalPrinciple & { pairs: BrandSayAvoidPair[] })[];
   };
   applications: {
     social: {

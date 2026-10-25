@@ -14,13 +14,12 @@ const themeScript = `
   try {
     var key = "brand-guidelines-theme";
     var stored = localStorage.getItem(key);
-    var dark =
-      stored === "dark" ||
-      (stored !== "light" &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches);
+    var dark = stored !== "light";
     document.documentElement.setAttribute("data-theme", dark ? "dark" : "light");
+    document.documentElement.style.colorScheme = dark ? "dark" : "light";
   } catch (e) {
-    document.documentElement.setAttribute("data-theme", "light");
+    document.documentElement.setAttribute("data-theme", "dark");
+    document.documentElement.style.colorScheme = "dark";
   }
 })();
 `;
@@ -30,11 +29,15 @@ export default function BrandingLayout({ children }: { children: ReactNode }) {
     <html
       lang="en"
       className={`brand-guidelines-root ${geistSans.variable}`}
+      data-theme="dark"
+      style={{ colorScheme: "dark" }}
       suppressHydrationWarning
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
-        <meta name="color-scheme" content="light dark" />
+        <meta name="color-scheme" content="dark light" />
+        <meta name="theme-color" content="#111112" />
+        <link rel="stylesheet" href="/branding/opsis/brand-fonts.css" />
       </head>
       <body>{children}</body>
     </html>

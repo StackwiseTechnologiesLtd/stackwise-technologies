@@ -298,59 +298,81 @@ export const opsisBrand: BrandGuidelines = {
   tone: {
     title: "Tone of voice",
     intro:
-      "Opsis sounds like someone who knows the business and follows through. Use plain language, specific actions and a measured tone. A founder should be able to understand the position quickly and know what happens next.",
+      "Opsis sounds like someone who knows the business and follows through. Use plain language, specific actions and a measured tone. A founder should be able to understand the position quickly and know whether anything needs their attention.",
+    messages: [
+      { label: "Signature", text: "Handled." },
+      { label: "Short headline", text: "The details have an owner." },
+      {
+        label: "Headline",
+        text: "Good follow-through means you don't have to ask twice.",
+      },
+      {
+        label: "Brand statement",
+        text:
+          "Opsis takes responsibility for the work between a decision and a result.",
+      },
+      {
+        label: "Introduction",
+        text:
+          "From invoices and supplier requests to recurring deadlines, Opsis keeps track of who needs what and sees each task through, so founders can stop being the link between every moving part.",
+      },
+    ],
     principles: [
       {
         title: "Make ownership clear",
         description: "Name the work and who is handling it.",
+        pairs: [
+          {
+            say: "We follow up on unpaid invoices.",
+            avoid: "End-to-end operational solutions.",
+          },
+          {
+            say: "We will arrange the renewal.",
+            avoid: "Please delegate the next steps.",
+          },
+          {
+            say: "The supplier review is complete.",
+            avoid: "We are working on various things.",
+          },
+        ],
       },
       {
         title: "Give the useful detail",
         description:
           "State the position, the next step and any decision needed.",
+        pairs: [
+          {
+            say: "Two invoices are awaiting payment.",
+            avoid: "Everything is under control.",
+          },
+          {
+            say: "Please approve the quote by Friday.",
+            avoid: "Please review at your convenience.",
+          },
+          {
+            say: "We will check again on Thursday.",
+            avoid: "We will follow up shortly.",
+          },
+        ],
       },
       {
         title: "Respect the founder's attention",
         description:
           "Offer a recommendation and make it easy to respond.",
-      },
-    ],
-    pairs: [
-      {
-        say: "We follow up on unpaid invoices.",
-        avoid: "End-to-end operational solutions.",
-      },
-      {
-        say: "We will arrange the renewal.",
-        avoid: "Please delegate the next steps.",
-      },
-      {
-        say: "The supplier review is complete.",
-        avoid: "We are working on various things.",
-      },
-      {
-        say: "Two invoices are awaiting payment.",
-        avoid: "Everything is under control.",
-      },
-      {
-        say: "Please approve the quote by Friday.",
-        avoid: "Please review at your convenience.",
-      },
-      {
-        say: "We will check again on Thursday.",
-        avoid: "We will follow up shortly.",
-      },
-      {
-        say: "We recommend the current provider.",
-        avoid: "Please advise on all of the above.",
-      },
-      {
-        say: "The lower quote saves £200 a month.",
-        avoid: "This option adds significant value.",
-      },
-      {
-        say: "Tell us what takes up your week.",
-        avoid: "Ready to supercharge your journey?",
+        pairs: [
+          {
+            say: "We recommend the current provider.",
+            avoid: "Please advise on all of the above.",
+          },
+          {
+            say: "The lower quote saves £200 a month.",
+            avoid: "This option adds significant value.",
+          },
+          {
+            say: "Tell us what takes up your week.",
+            avoid: "Ready to supercharge your journey?",
+          },
+        ],
       },
     ],
   },
@@ -468,6 +490,13 @@ export const opsisBrand: BrandGuidelines = {
           { label: "Campaigns", path: "exports/applications/opsis-posters.png", variant: "application" },
           { label: "Materials and light", path: "exports/applications/opsis-materials.png", variant: "application" },
           { label: "In motion", path: "exports/applications/opsis-flag.png", variant: "application" },
+        ],
+      },
+      {
+        title: "Typography",
+        assets: [
+          { label: "Exposure 0", path: "preview-fonts/Exposure-0.ttf", variant: "mark" },
+          { label: "Geist", path: "preview-fonts/Exposure-0.ttf", variant: "mark" },
         ],
       },
     ],
