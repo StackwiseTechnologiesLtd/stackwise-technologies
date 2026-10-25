@@ -370,6 +370,22 @@ CREATE INDEX IF NOT EXISTS idx_growth_signals_posted
   ON growth_signals (posted_at DESC NULLS LAST);
 `;
 
+const BRAND_PORTAL_SQL = `
+CREATE TABLE IF NOT EXISTS brand_portal_members (
+  id UUID PRIMARY KEY,
+  brand_slug VARCHAR(64) NOT NULL,
+  email TEXT NOT NULL,
+  password_hash TEXT NULL,
+  auth_method VARCHAR(16) NOT NULL DEFAULT 'password',
+  active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (brand_slug, email)
+);
+CREATE INDEX IF NOT EXISTS idx_brand_portal_members_slug
+  ON brand_portal_members (brand_slug, active);
+`;
+
 export const MIGRATION_STATEMENTS = [
   ...splitStatements(INIT_SQL),
   ...splitStatements(KPAY_IS_TEST_SQL),
@@ -388,4 +404,5 @@ export const MIGRATION_STATEMENTS = [
   ...splitStatements(GROWTH_SIGNAL_POSTED_AT_SQL),
   ...splitStatements(INTEGRATIONS_SQL),
   ...splitStatements(CRM_SQL),
+  ...splitStatements(BRAND_PORTAL_SQL),
 ];
