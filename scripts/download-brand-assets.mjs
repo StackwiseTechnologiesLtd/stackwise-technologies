@@ -71,6 +71,23 @@ const paths = [
   "exports/app-icons/ico/favicon.ico",
 ];
 
+const previewIds = [
+  "044b4bf96039d0c0a819",
+  "6333851358cf66290da7",
+  "a4d14e1ed75cdf980cce",
+  "d63bb013657ed89ccfb2",
+  "823d144bf9338ce3f809",
+  "3ebe7e302100bb897430",
+  "584f6ff1b6f060abc6be",
+  "b888a89d234f43a543ed",
+];
+
+for (const id of previewIds) {
+  for (const w of [400, 800, 1600]) {
+    paths.push(`previews/${id}-${w}.webp`);
+  }
+}
+
 for (const rel of paths) {
   const url = `${base}/${rel}`;
   const out = join(destRoot, rel);

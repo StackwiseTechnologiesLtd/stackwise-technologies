@@ -48,6 +48,11 @@ export type BrandExportAsset = {
   label: string;
   path: string;
   variant?: "mark" | "logotype" | "isotype" | "pfp" | "appIcon" | "banner" | "application";
+  /** Kargul preview webp id under `previews/<id>-{400,800,1600}.webp` */
+  previewId?: string;
+  /** CSS value for `--export-preview-aspect`, e.g. `4 / 1` */
+  previewAspect?: string;
+  previewAlt?: string;
 };
 
 export type BrandExportGroup = {
