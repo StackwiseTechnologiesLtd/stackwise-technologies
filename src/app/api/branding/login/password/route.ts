@@ -1,22 +1,25 @@
 import { NextResponse } from "next/server";
-import { normalizePortalEmail } from "@/lib/branding-portal/identity";
 import { verifyMemberPasswordByEmail } from "@/lib/branding-portal/members";
 import {
   createBrandPortalSessionToken,
   setBrandPortalSessionCookie,
 } from "@/lib/branding-portal/session";
+import {
+  parsePortalEmail,
+  parsePortalPasswordForLogin,
+} from "@/lib/branding-portal/validation";
 
 const GENERIC_ERROR = "Email or password is incorrect.";
 
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as {
-      email?: string;
-      password?: string;
+      email?: unknown;
+      password?: unknown;
     };
 
-    const email = normalizePortalEmail(body.email ?? "");
-    const password = body.password ?? "";
+    const email = parsePortalEmail(body.email);
+    const password = parsePortalPasswordForLogin(body.password);
 
     if (!email || !password) {
       return NextResponse.json({ error: GENERIC_ERROR }, { status: 401 });

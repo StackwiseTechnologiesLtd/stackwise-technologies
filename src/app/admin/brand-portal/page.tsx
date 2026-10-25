@@ -3,6 +3,12 @@
 import { useCallback, useState } from "react";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 import { listBrands } from "@/lib/branding/brands";
+import {
+  parsePortalEmail,
+  parsePortalPassword,
+  PORTAL_EMAIL_MAX_LENGTH,
+  PORTAL_PASSWORD_MAX_LENGTH,
+} from "@/lib/branding-portal/validation";
 import { BTN_PRIMARY } from "@/lib/ui/buttons";
 import { useToast } from "@/components/ToastProvider";
 
@@ -40,6 +46,17 @@ export default function AdminBrandPortalPage() {
 
   async function createMember(e: React.FormEvent) {
     e.preventDefault();
+    const parsedEmail = parsePortalEmail(email);
+    if (!parsedEmail) {
+      toast.error("Enter a valid customer email");
+      return;
+    }
+    if (authMethod === "password" && password.trim()) {
+      if (!parsePortalPassword(password)) {
+        toast.error("Password must be 8–128 characters");
+        return;
+      }
+    }
     setLoading(true);
     try {
       const res = await fetch("/api/admin/brand-portal/members", {
@@ -47,9 +64,9 @@ export default function AdminBrandPortalPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           brandSlug,
-          email,
+          email: parsedEmail,
           authMethod,
-          password: authMethod === "password" ? password || undefined : undefined,
+          password: authMethod === "password" ? password.trim() || undefined : undefined,
         }),
       });
       const data = (await res.json()) as {
@@ -117,6 +134,7 @@ export default function AdminBrandPortalPage() {
             className="w-full rounded-lg border border-line bg-background px-3 py-2"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            maxLength={PORTAL_EMAIL_MAX_LENGTH}
           />
         </label>
         <label className="block space-y-2">
@@ -138,6 +156,7 @@ export default function AdminBrandPortalPage() {
               className="w-full rounded-lg border border-line bg-background px-3 py-2"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              maxLength={PORTAL_PASSWORD_MAX_LENGTH}
               autoComplete="off"
             />
           </label>

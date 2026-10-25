@@ -3,6 +3,11 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { OtpInput } from "@/components/admin/OtpInput";
+import {
+  parsePortalEmail,
+  PORTAL_EMAIL_MAX_LENGTH,
+  PORTAL_PASSWORD_MAX_LENGTH,
+} from "@/lib/branding-portal/validation";
 import "@/styles/brand-guidelines/brand-portal-login.css";
 
 type Mode = "password" | "otp";
@@ -32,15 +37,34 @@ export function BrandPortalLogin() {
     router.refresh();
   }
 
+  function validateEmailField(): string | null {
+    const parsed = parsePortalEmail(email);
+    if (!parsed) {
+      setError("Enter a valid email address.");
+      return null;
+    }
+    return parsed;
+  }
+
   async function onPasswordSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    const parsedEmail = validateEmailField();
+    if (!parsedEmail) {
+      setLoading(false);
+      return;
+    }
+    if (!password || password.length > PORTAL_PASSWORD_MAX_LENGTH) {
+      setError(PASSWORD_ERROR);
+      setLoading(false);
+      return;
+    }
     try {
       const res = await fetch("/api/branding/login/password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: parsedEmail, password }),
       });
       const data = (await res.json()) as { error?: string; brandSlug?: string };
       if (!res.ok) {
@@ -59,11 +83,16 @@ export function BrandPortalLogin() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    const parsedEmail = validateEmailField();
+    if (!parsedEmail) {
+      setLoading(false);
+      return;
+    }
     try {
       const res = await fetch("/api/branding/login/otp/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: parsedEmail }),
       });
       const data = (await res.json()) as { error?: string };
       if (!res.ok) throw new Error(data.error ?? "Unable to send code");
@@ -78,11 +107,17 @@ export function BrandPortalLogin() {
   async function verifyOtp(code: string) {
     setLoading(true);
     setError(null);
+    const parsedEmail = parsePortalEmail(email);
+    if (!parsedEmail || !/^\d{6}$/.test(code)) {
+      setError("Invalid or expired code");
+      setLoading(false);
+      return;
+    }
     try {
       const res = await fetch("/api/branding/login/otp/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, otp: code }),
+        body: JSON.stringify({ email: parsedEmail, otp: code }),
       });
       const data = (await res.json()) as { error?: string; brandSlug?: string };
       if (!res.ok) {
@@ -117,6 +152,7 @@ export function BrandPortalLogin() {
                   placeholder="Work email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  maxLength={PORTAL_EMAIL_MAX_LENGTH}
                   required
                 />
               </div>
@@ -130,6 +166,7 @@ export function BrandPortalLogin() {
                   placeholder="Enter password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  maxLength={PORTAL_PASSWORD_MAX_LENGTH}
                   required
                 />
                 <button
@@ -171,6 +208,7 @@ export function BrandPortalLogin() {
                   placeholder="Work email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  maxLength={PORTAL_EMAIL_MAX_LENGTH}
                   required
                 />
               </div>
