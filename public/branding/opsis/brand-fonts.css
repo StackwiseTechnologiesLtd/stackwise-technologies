@@ -1,0 +1,12 @@
+/* Generated from this brand manifest. Do not edit by hand. */
+@font-face {
+  font-family: "Opsis Exposure";
+  src: url("/assets/opsis/preview-fonts/Exposure-0.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --font-opsis-exposure: "Opsis Exposure", Georgia, serif;
+}
