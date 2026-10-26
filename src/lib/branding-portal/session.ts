@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
-import { getAppSecret } from "@/lib/secrets";
+import { getBrandPortalSessionSecret } from "@/lib/auth/session-secret";
 
 export const BRAND_PORTAL_COOKIE = "sw_brand_portal_session";
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -24,7 +24,7 @@ function decodeBase64Url(data: string): string {
 async function sign(payload: string): Promise<string> {
   const key = await crypto.subtle.importKey(
     "raw",
-    new TextEncoder().encode(getAppSecret()),
+    new TextEncoder().encode(getBrandPortalSessionSecret()),
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign"],
