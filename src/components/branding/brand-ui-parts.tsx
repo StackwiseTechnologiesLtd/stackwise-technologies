@@ -23,6 +23,7 @@ export type { AssetActionBarProps, AssetFormatOption } from "./asset-action-bar"
 export { AssetActionBar };
 
 export function BrandImageFrame({
+  brandSlug,
   baseName,
   alt,
   downloadBasePath,
@@ -32,6 +33,7 @@ export function BrandImageFrame({
   ],
   priority,
 }: {
+  brandSlug: string;
   baseName: string;
   alt: string;
   downloadBasePath: string;
@@ -42,11 +44,17 @@ export function BrandImageFrame({
     <div className="Guidelines_imageStack__0wBWj">
       <div className="Guidelines_frame__9X4Dv Guidelines_frameWithDownload__IUkzI">
         <AssetActionBar
+          brandSlug={brandSlug}
           ariaLabel={`Choose format for ${baseName}`}
           downloadPath={downloadBasePath}
           formats={formats}
         />
-        <BrandResponsiveImage baseName={baseName} alt={alt} priority={priority} />
+        <BrandResponsiveImage
+          brandSlug={brandSlug}
+          baseName={baseName}
+          alt={alt}
+          priority={priority}
+        />
       </div>
     </div>
   );
@@ -308,7 +316,13 @@ function exportImageClass(asset: BrandExportAsset): string {
   return "Guidelines_exportImage__1FBec";
 }
 
-export function ExportAssetCard({ asset }: { asset: BrandExportAsset }) {
+export function ExportAssetCard({
+  brandSlug,
+  asset,
+}: {
+  brandSlug: string;
+  asset: BrandExportAsset;
+}) {
   const formats =
     asset.path.endsWith(".svg")
       ? [
@@ -328,14 +342,15 @@ export function ExportAssetCard({ asset }: { asset: BrandExportAsset }) {
       : undefined;
 
   const imageSrc = asset.previewId
-    ? brandPreviewUrl(asset.previewId, 800)
-    : brandAssetUrl(asset.path);
+    ? brandPreviewUrl(brandSlug, asset.previewId, 800)
+    : brandAssetUrl(brandSlug, asset.path);
 
   return (
     <div className="Guidelines_exportPicker__79uD1">
       <div className="Guidelines_exportCard__pkq7T">
         <div className={exportPreviewClasses(asset)} style={previewStyle}>
           <AssetActionBar
+            brandSlug={brandSlug}
             ariaLabel={`Choose format for ${asset.label}`}
             downloadPath={asset.path}
             formats={formats}
@@ -344,7 +359,9 @@ export function ExportAssetCard({ asset }: { asset: BrandExportAsset }) {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={imageSrc}
-            srcSet={asset.previewId ? brandPreviewSrcSet(asset.previewId) : undefined}
+            srcSet={
+              asset.previewId ? brandPreviewSrcSet(brandSlug, asset.previewId) : undefined
+            }
             sizes={
               asset.previewId
                 ? "(max-width: 699px) calc(100vw - 48px), (max-width: 1079px) 45vw, 440px"
@@ -480,9 +497,15 @@ export function VerbalIdentityTables({
 }
 
 export function LogotypeScaleBlock({
+  brandSlug,
+  blackLogotype,
+  whiteLogotype,
   sizes,
   body,
 }: {
+  brandSlug: string;
+  blackLogotype: string;
+  whiteLogotype: string;
   sizes: number[];
   body: string;
 }) {
@@ -510,18 +533,14 @@ export function LogotypeScaleBlock({
                   <div className="Guidelines_logotypeScaleLogoCell__P_7X7">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={brandAssetUrl(
-                        "exports/logotype/opsis-logotype-black.svg",
-                      )}
+                      src={brandAssetUrl(brandSlug, blackLogotype)}
                       alt={`Opsis Partners logotype at ${px} pixels height`}
                       className="Guidelines_logotypeScaleLogo__8sR11"
                       style={{ height: px }}
                     />
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={brandAssetUrl(
-                        "exports/logotype/opsis-logotype-white.svg",
-                      )}
+                      src={brandAssetUrl(brandSlug, whiteLogotype)}
                       alt=""
                       aria-hidden
                       className="Guidelines_logotypeScaleLogo__8sR11 Guidelines_logotypeScaleLogoDark__c9QtG"
@@ -554,11 +573,13 @@ export function LogotypeScaleBlock({
 }
 
 export function ColorVersionsFrame({
+  brandSlug,
   blackOnLight,
   whiteOnDark,
   blackLogotype,
   whiteLogotype,
 }: {
+  brandSlug: string;
   blackOnLight: string;
   whiteOnDark: string;
   blackLogotype: string;
@@ -572,6 +593,7 @@ export function ColorVersionsFrame({
         <div className="Guidelines_gridPair__GfyUS">
           <div className="Guidelines_tile__3aEpo Guidelines_tileLight___lU6r">
             <AssetActionBar
+              brandSlug={brandSlug}
               ariaLabel="Choose format for opsis-logotype-black.png"
               downloadPath={blackLogotype.replace(/\.svg$/, ".png")}
               formats={[
@@ -581,7 +603,7 @@ export function ColorVersionsFrame({
             />
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={brandAssetUrl(blackLogotype)}
+              src={brandAssetUrl(brandSlug, blackLogotype)}
               alt="Opsis Partners Black logotype on a light surface"
               className="Guidelines_logoImage__l1lfd Guidelines_logoImageWide__S_DzT"
               style={{
@@ -599,6 +621,7 @@ export function ColorVersionsFrame({
         <div className="Guidelines_gridPair__GfyUS">
           <div className="Guidelines_tile__3aEpo">
             <AssetActionBar
+              brandSlug={brandSlug}
               ariaLabel="Choose format for opsis-logotype-white.png"
               downloadPath={whiteLogotype.replace(/\.svg$/, ".png")}
               formats={[
@@ -609,7 +632,7 @@ export function ColorVersionsFrame({
             />
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={brandAssetUrl(whiteLogotype)}
+              src={brandAssetUrl(brandSlug, whiteLogotype)}
               alt="Opsis Partners White logotype on a dark surface"
               className="Guidelines_logoImage__l1lfd Guidelines_logoImageWide__S_DzT Guidelines_logotypeScaleLogoDark__c9QtG"
               style={{
