@@ -214,14 +214,14 @@ export function BrandGuidelinesPage({
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={brandAssetUrl("exports/logotype/opsis-logotype-black.svg")}
+            src={brandAssetUrl(brand.slug, brand.marks.colorVersions.blackLogotype)}
             alt=""
             className="PageShell_topbarLogo__7jA_m PageShell_topbarLogoLight__0O_iT"
             style={{ height: 22 }}
           />
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={brandAssetUrl("exports/logotype/opsis-logotype-white.svg")}
+            src={brandAssetUrl(brand.slug, brand.marks.colorVersions.whiteLogotype)}
             alt=""
             className="PageShell_topbarLogo__7jA_m PageShell_topbarLogoDark__Ot_mL"
             style={{ height: 22 }}
@@ -390,6 +390,7 @@ export function BrandGuidelinesPage({
             <SectionArticle id="brand-context">
               <SectionHeader title={brand.introduction.title} />
               <BrandImageFrame
+                brandSlug={brand.slug}
                 baseName={brand.introduction.heroImage.baseName}
                 alt={brand.introduction.heroImage.alt}
                 downloadBasePath="exports/applications/opsis-introduction.png"
@@ -403,6 +404,9 @@ export function BrandGuidelinesPage({
             <SectionArticle id="marks">
               <SectionHeader title={brand.marks.logotypeScale.title} />
               <LogotypeScaleBlock
+                brandSlug={brand.slug}
+                blackLogotype={brand.marks.colorVersions.blackLogotype}
+                whiteLogotype={brand.marks.colorVersions.whiteLogotype}
                 sizes={brand.marks.logotypeScale.sizes}
                 body={brand.marks.logotypeScale.body}
               />
@@ -411,6 +415,7 @@ export function BrandGuidelinesPage({
             <SectionArticle id="mark-colors">
               <SectionHeader title={brand.marks.colorVersions.title} />
               <ColorVersionsFrame
+                brandSlug={brand.slug}
                 blackOnLight={brand.marks.colorVersions.blackOnLight}
                 whiteOnDark={brand.marks.colorVersions.whiteOnDark}
                 blackLogotype={brand.marks.colorVersions.blackLogotype}
@@ -546,7 +551,7 @@ export function BrandGuidelinesPage({
                 geist={brand.typography.typeSystem.geist}
               />
               <a
-                href={brandAssetUrl(brand.typography.typeSystem.fontDownloadPath)}
+                href={brandAssetUrl(brand.slug, brand.typography.typeSystem.fontDownloadPath)}
                 download
                 className="Guidelines_fontDownloadLink__pq6u7"
               >
@@ -595,6 +600,7 @@ export function BrandGuidelinesPage({
             <SectionArticle id="applications">
               <SectionHeader title={brand.applications.social.title} />
               <SocialProfileMockup
+                brandSlug={brand.slug}
                 social={brand.applications.social}
                 profileColor={profileColor}
                 onProfileColorChange={setProfileColor}
@@ -608,7 +614,10 @@ export function BrandGuidelinesPage({
 
             <SectionArticle id="campaign-applications">
               <SectionHeader title={brand.applications.brandInUse.title} />
-              <ApplicationImageStack images={brand.applications.brandInUse.images} />
+              <ApplicationImageStack
+                brandSlug={brand.slug}
+                images={brand.applications.brandInUse.images}
+              />
               <div className="Guidelines_body__k1Zwo">
                 <p className="Guidelines_bodyText__C2R9D">
                   {brand.applications.brandInUse.body}
@@ -618,7 +627,10 @@ export function BrandGuidelinesPage({
 
             <SectionArticle id="stationery">
               <SectionHeader title={brand.applications.material.title} />
-              <ApplicationImageStack images={brand.applications.material.images} />
+              <ApplicationImageStack
+                brandSlug={brand.slug}
+                images={brand.applications.material.images}
+              />
               <div className="Guidelines_body__k1Zwo">
                 <p className="Guidelines_bodyText__C2R9D">
                   {brand.applications.material.body}
@@ -628,7 +640,10 @@ export function BrandGuidelinesPage({
 
             <SectionArticle id="recognition">
               <SectionHeader title={brand.applications.recognition.title} />
-              <ApplicationHeroImage image={brand.applications.recognition.image} />
+              <ApplicationHeroImage
+                brandSlug={brand.slug}
+                image={brand.applications.recognition.image}
+              />
               <div className="Guidelines_body__k1Zwo">
                 <p className="Guidelines_bodyText__C2R9D">
                   {brand.applications.recognition.body}
@@ -678,7 +693,11 @@ export function BrandGuidelinesPage({
                       }
                     >
                       {group.assets.map((asset) => (
-                        <ExportAssetCard key={asset.path} asset={asset} />
+                        <ExportAssetCard
+                          key={asset.path}
+                          brandSlug={brand.slug}
+                          asset={asset}
+                        />
                       ))}
                     </div>
                   )}

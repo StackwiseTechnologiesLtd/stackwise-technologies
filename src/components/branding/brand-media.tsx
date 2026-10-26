@@ -2,23 +2,27 @@
 
 import { brandAssetUrl } from "@/lib/branding/asset-url";
 
-export function avifSrcSet(baseName: string): {
+export function avifSrcSet(
+  brandSlug: string,
+  baseName: string,
+): {
   src: string;
   srcSet: string;
   sizes: string;
 } {
   return {
-    src: brandAssetUrl(`${baseName}.avif`),
+    src: brandAssetUrl(brandSlug, `${baseName}.avif`),
     srcSet: [
-      `${brandAssetUrl(`${baseName}-800.avif`)} 800w`,
-      `${brandAssetUrl(`${baseName}-1600.avif`)} 1600w`,
-      `${brandAssetUrl(`${baseName}.avif`)} 3200w`,
+      `${brandAssetUrl(brandSlug, `${baseName}-800.avif`)} 800w`,
+      `${brandAssetUrl(brandSlug, `${baseName}-1600.avif`)} 1600w`,
+      `${brandAssetUrl(brandSlug, `${baseName}.avif`)} 3200w`,
     ].join(", "),
     sizes: "(max-width: 950px) 100vw, 950px",
   };
 }
 
 export function BrandResponsiveImage({
+  brandSlug,
   baseName,
   alt,
   className,
@@ -28,6 +32,7 @@ export function BrandResponsiveImage({
   height = 1801,
   lightbox = true,
 }: {
+  brandSlug: string;
   baseName: string;
   alt: string;
   className?: string;
@@ -37,7 +42,7 @@ export function BrandResponsiveImage({
   height?: number;
   lightbox?: boolean;
 }) {
-  const { src, srcSet, sizes } = avifSrcSet(baseName);
+  const { src, srcSet, sizes } = avifSrcSet(brandSlug, baseName);
   const imgClass = ["Guidelines_imageFill__leSLX", className]
     .filter(Boolean)
     .join(" ");

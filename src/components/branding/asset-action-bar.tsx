@@ -13,6 +13,7 @@ function pathForFormat(basePath: string, format: string): string {
 }
 
 export type AssetActionBarProps = {
+  brandSlug: string;
   ariaLabel: string;
   downloadPath: string;
   formats: AssetFormatOption[];
@@ -27,6 +28,7 @@ export type AssetActionBarProps = {
  * Universal PNG/SVG (etc.) + copy + download control cluster from Kargul brand guidelines.
  */
 export function AssetActionBar({
+  brandSlug,
   ariaLabel,
   downloadPath,
   formats,
@@ -35,7 +37,7 @@ export function AssetActionBar({
   copyLabel = "Copy asset",
 }: AssetActionBarProps) {
   const [format, setFormat] = useState(formats[0]?.value ?? "png");
-  const href = brandAssetUrl(pathForFormat(downloadPath, format));
+  const href = brandAssetUrl(brandSlug, pathForFormat(downloadPath, format));
   const fileName = href.split("/").pop() ?? "asset";
   const copyDisabled = !copyText;
 

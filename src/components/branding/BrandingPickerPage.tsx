@@ -9,9 +9,18 @@ type BrandingPickerPageProps = {
   viewer: BrandingViewer;
 };
 
-function previewImagePath(brand: BrandGuidelines): string {
+function previewImageProps(brand: BrandGuidelines) {
   const base = brand.introduction.heroImage.baseName;
-  return brandAssetUrl(`${base}.avif`);
+  const slug = brand.slug;
+  return {
+    src: brandAssetUrl(slug, `${base}.avif`),
+    srcSet: [
+      `${brandAssetUrl(slug, `${base}-800.avif`)} 800w`,
+      `${brandAssetUrl(slug, `${base}-1600.avif`)} 1600w`,
+      `${brandAssetUrl(slug, `${base}.avif`)} 3200w`,
+    ].join(", "),
+    sizes: "(max-width: 719px) 100vw, 58vw",
+  };
 }
 
 export function BrandingPickerPage({ brands, viewer }: BrandingPickerPageProps) {
@@ -47,32 +56,42 @@ export function BrandingPickerPage({ brands, viewer }: BrandingPickerPageProps) 
         </header>
 
         <div className="branding-picker__grid">
-          {visibleBrands.map((brand, index) => (
-            <Link
-              key={brand.slug}
-              href={`/branding/${brand.slug}`}
-              className={`branding-picker__card ${
-                index === 0 ? "branding-picker__card--hero" : "branding-picker__card--side"
-              }`}
-            >
-              <div className="branding-picker__card-media" aria-hidden>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={previewImagePath(brand)} alt="" loading="lazy" decoding="async" />
-              </div>
-              <div className="branding-picker__card-scrim" aria-hidden />
-              <div className="branding-picker__card-body">
-                {isAdmin ? (
-                  <span className="branding-picker__card-label">Client system</span>
-                ) : null}
-                <h2 className="branding-picker__card-title">{brand.name}</h2>
-                <p className="branding-picker__card-desc">{brand.heroSubtitle}</p>
-              </div>
-            </Link>
-          ))}
+          {visibleBrands.map((brand, index) => {
+            const preview = previewImageProps(brand);
+            return (
+              <Link
+                key={brand.slug}
+                href={`/branding/${brand.slug}`}
+                className={`branding-picker__card branding-picker__card--link ${
+                  index === 0 ? "branding-picker__card--hero" : "branding-picker__card--side"
+                }`}
+              >
+                <div className="branding-picker__card-media" aria-hidden>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={preview.src}
+                    srcSet={preview.srcSet}
+                    sizes={preview.sizes}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </div>
+                <div className="branding-picker__card-scrim" aria-hidden />
+                <div className="branding-picker__card-body">
+                  {isAdmin ? (
+                    <span className="branding-picker__card-label">Client system</span>
+                  ) : null}
+                  <h2 className="branding-picker__card-title">{brand.name}</h2>
+                  <p className="branding-picker__card-desc">{brand.heroSubtitle}</p>
+                </div>
+              </Link>
+            );
+          })}
 
           {isAdmin ? (
             <div
-              className="branding-picker__card branding-picker__card--info branding-picker__card--side"
+              className="branding-picker__card branding-picker__card--info branding-picker__card--access"
             >
               <div className="branding-picker__card-body">
                 <h2 className="branding-picker__card-title">Customer access</h2>
@@ -80,21 +99,8 @@ export function BrandingPickerPage({ brands, viewer }: BrandingPickerPageProps) 
                   Invite clients under Admin → Brand access. They only see their project; you can
                   preview any system here.
                 </p>
-                <p style={{ marginTop: "0.75rem" }}>
+                <p className="branding-picker__card-link">
                   <Link href="/admin/brand-portal">Open brand access →</Link>
-                </p>
-              </div>
-            </div>
-          ) : null}
-
-          {isAdmin && visibleBrands.length === 1 ? (
-            <div
-              className="branding-picker__card branding-picker__card--info branding-picker__card--wide"
-            >
-              <div className="branding-picker__card-body">
-                <h2 className="branding-picker__card-title">More systems coming</h2>
-                <p>
-                  Additional client guidelines will appear in this grid as they are published.
                 </p>
               </div>
             </div>

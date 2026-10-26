@@ -1,16 +1,20 @@
-export function brandAssetUrl(path: string): string {
+export function brandAssetUrl(slug: string, path: string): string {
   const normalized = path.replace(/^\//, "");
-  return `/branding/opsis/${normalized}`;
+  return `/branding/${slug}/${normalized}`;
 }
 
-export function brandPreviewUrl(previewId: string, width: 400 | 800 | 1600): string {
-  return `/branding/opsis/previews/${previewId}-${width}.webp`;
+export function brandPreviewUrl(
+  slug: string,
+  previewId: string,
+  width: 400 | 800 | 1600,
+): string {
+  return `/branding/${slug}/previews/${previewId}-${width}.webp`;
 }
 
-export function brandPreviewSrcSet(previewId: string): string {
+export function brandPreviewSrcSet(slug: string, previewId: string): string {
   return [
-    `${brandPreviewUrl(previewId, 400)} 400w`,
-    `${brandPreviewUrl(previewId, 800)} 800w`,
-    `${brandPreviewUrl(previewId, 1600)} 1600w`,
+    `${brandPreviewUrl(slug, previewId, 400)} 400w`,
+    `${brandPreviewUrl(slug, previewId, 800)} 800w`,
+    `${brandPreviewUrl(slug, previewId, 1600)} 1600w`,
   ].join(", ");
 }
