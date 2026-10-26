@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { getAppSecret } from "@/lib/secrets";
+import { getAdminSessionSecret } from "@/lib/auth/session-secret";
 
 const COOKIE_NAME = "sw_admin_session";
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -8,10 +8,6 @@ type SessionPayload = {
   email: string;
   exp: number;
 };
-
-function getSessionSecret(): string {
-  return getAppSecret();
-}
 
 function encodeBase64Url(data: string): string {
   return btoa(data).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
@@ -26,7 +22,7 @@ function decodeBase64Url(data: string): string {
 async function sign(payload: string): Promise<string> {
   const key = await crypto.subtle.importKey(
     "raw",
-    new TextEncoder().encode(getSessionSecret()),
+    new TextEncoder().encode(getAdminSessionSecret()),
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign"],
