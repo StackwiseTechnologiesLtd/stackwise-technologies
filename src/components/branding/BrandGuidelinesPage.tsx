@@ -85,12 +85,30 @@ function BrandPortalSignOut() {
   );
 }
 
+function BrandAdminPreviewFooter() {
+  return (
+    <p className="PageShell_mainFooterText__uNa6N" style={{ marginTop: "0.5rem" }}>
+      <a href="/branding" style={{ color: "inherit", textDecoration: "underline" }}>
+        All brand systems
+      </a>
+      {" · "}
+      <a href="/admin" style={{ color: "inherit", textDecoration: "underline" }}>
+        Admin
+      </a>
+    </p>
+  );
+}
+
 export function BrandGuidelinesPage({
   brand,
   portalEmail,
+  adminPreview,
+  adminEmail,
 }: {
   brand: BrandGuidelines;
   portalEmail?: string;
+  adminPreview?: boolean;
+  adminEmail?: string;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [dark, setDark] = useState(() => {
@@ -673,8 +691,13 @@ export function BrandGuidelinesPage({
             <p className="PageShell_mainFooterText__uNa6N">{brand.footerCredit}</p>
             <p className="PageShell_mainFooterDisclaimer__l6_T_">
               Guidelines are confidential to the brand owner.
-              {portalEmail ? ` Signed in as ${portalEmail}.` : null}
+              {adminPreview && adminEmail
+                ? ` Admin preview as ${adminEmail}.`
+                : portalEmail
+                  ? ` Signed in as ${portalEmail}.`
+                  : null}
             </p>
+            {adminPreview ? <BrandAdminPreviewFooter /> : null}
             {portalEmail ? <BrandPortalSignOut /> : null}
           </footer>
         </div>
