@@ -2,7 +2,10 @@ import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { getBrand } from "@/lib/branding/brands";
 import { BrandGuidelinesPage } from "@/components/branding/BrandGuidelinesPage";
-import { getBrandPortalSession } from "@/lib/branding-portal/session";
+import {
+  getBrandingViewer,
+  viewerCanAccessBrand,
+} from "@/lib/branding-portal/access";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -26,13 +29,20 @@ export default async function BrandGuidelineSlugPage({ params }: PageProps) {
   const brand = getBrand(slug);
   if (!brand) notFound();
 
-  const session = await getBrandPortalSession();
-  if (!session) {
+  const viewer = await getBrandingViewer();
+  if (!viewer) {
     redirect(`/branding/login?next=${encodeURIComponent(`/branding/${slug}`)}`);
   }
-  if (session.brandSlug !== slug) {
-    redirect(`/branding/${session.brandSlug}`);
+  if (!viewerCanAccessBrand(viewer, slug)) {
+    redirect(viewer.mode === "portal" ? `/branding/${viewer.brandSlug}` : "/branding");
   }
 
-  return <BrandGuidelinesPage brand={brand} portalEmail={session.email} />;
+  return (
+    <BrandGuidelinesPage
+      brand={brand}
+      portalEmail={viewer.mode === "portal" ? viewer.email : undefined}
+      adminPreview={viewer.mode === "admin"}
+      adminEmail={viewer.mode === "admin" ? viewer.email : undefined}
+    />
+  );
 }

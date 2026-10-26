@@ -5,24 +5,19 @@ import {
   brandSlugFromAssetPath,
   isBrandPortalProtectedAsset,
 } from "@/lib/branding-portal/static-assets";
-import { verifyBrandPortalSessionToken } from "@/lib/branding-portal/session";
+import { canAccessBrandPortalAsset } from "@/lib/branding-portal/asset-access";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (isBrandPortalProtectedAsset(pathname)) {
     const slug = brandSlugFromAssetPath(pathname);
-    const token = request.cookies.get("sw_brand_portal_session")?.value;
-    try {
-      const session = await verifyBrandPortalSessionToken(token);
-      if (!session || (slug && session.brandSlug !== slug)) {
-        const loginUrl = request.nextUrl.clone();
-        loginUrl.pathname = "/branding/login";
-        loginUrl.searchParams.set("next", pathname);
-        return NextResponse.redirect(loginUrl);
-      }
-    } catch {
-      return NextResponse.redirect(new URL("/branding/login", request.url));
+    const allowed = await canAccessBrandPortalAsset(request, slug);
+    if (!allowed) {
+      const loginUrl = request.nextUrl.clone();
+      loginUrl.pathname = "/branding/login";
+      loginUrl.searchParams.set("next", pathname);
+      return NextResponse.redirect(loginUrl);
     }
     return NextResponse.next();
   }
