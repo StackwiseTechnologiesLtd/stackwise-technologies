@@ -32,3 +32,82 @@ html[data-theme="dark"].brand-guidelines-root {
   --font-opsis-exposure: "Opsis Exposure", Georgia, serif;
   --font-display: var(--font-opsis-exposure);
 }
+
+/* Color proportions: width = percentage share (Kargul flex-grow 1 equalises segments). */
+.brand-guidelines-root .Guidelines_proportionsBar__iS_pA {
+  flex-direction: row;
+  height: auto;
+  min-height: clamp(180px, 20vw, 240px);
+}
+
+.brand-guidelines-root .Guidelines_proportionsBarSegment__Gprle {
+  flex: var(--proportion-grow, 1) 1 0;
+  flex-basis: 0;
+  min-width: 0;
+  width: auto;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  min-height: clamp(180px, 20vw, 240px);
+  padding: 16px 20px;
+}
+
+@media (max-width: 699px) {
+  .brand-guidelines-root .Guidelines_proportionsBar__iS_pA {
+    flex-direction: column;
+    height: min(72vh, 460px);
+    min-height: 340px;
+  }
+
+  .brand-guidelines-root .Guidelines_proportionsBarSegment__Gprle {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    min-height: 44px;
+    padding: 12px 16px;
+  }
+}
+
+/* App icon / favicon: white field, centered mark */
+.brand-guidelines-root .Guidelines_exportPreviewAppIcon__Ohe0_ {
+  background-color: #ffffff;
+}
+
+.brand-guidelines-root .Guidelines_exportImageAppIcon__dkVgO {
+  object-fit: contain;
+  padding: 12%;
+  box-sizing: border-box;
+}
+
+/* Logotype scale: always show both contrast versions */
+.brand-guidelines-root .Guidelines_logotypeScaleContrastWell__stackwise .Guidelines_logotypeScaleLogo__8sR11,
+.brand-guidelines-root .Guidelines_logotypeScaleContrastWell__stackwise .Guidelines_logotypeScaleLogoDark__c9QtG {
+  display: block !important;
+}
+
+.brand-guidelines-root .Guidelines_logotypeScaleContrastWell__stackwise {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  border-radius: var(--radius-s, 4px);
+  flex-shrink: 0;
+}
+
+.brand-guidelines-root .Guidelines_logotypeScaleContrastWellLight__stackwise {
+  background-color: #ffffff;
+}
+
+.brand-guidelines-root .Guidelines_logotypeScaleContrastWellDark__stackwise {
+  background-color: #000000;
+}
+
+/* Color versions: fixed white / black fields (not theme tokens) */
+.brand-guidelines-root .Guidelines_colorUsageTileLight__stackwise {
+  background-color: #ffffff;
+}
+
+.brand-guidelines-root .Guidelines_colorUsageTileDark__stackwise {
+  background-color: #000000;
+}

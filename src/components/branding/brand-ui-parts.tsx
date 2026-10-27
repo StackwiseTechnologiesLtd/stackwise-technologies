@@ -315,11 +315,13 @@ function exportPreviewClasses(asset: BrandExportAsset): string {
   const base = "Guidelines_exportPreview__GxNYZ";
   if (asset.variant === "pfp") return `${base} Guidelines_exportPreviewPfp__E7Y3Q`;
   if (asset.variant === "appIcon")
-    return `${base} Guidelines_exportPreviewAppIcon__Ohe0_`;
+    return `${base} Guidelines_exportPreviewAppIcon__Ohe0_ Guidelines_exportPreviewLight__1696S`;
   if (asset.variant === "banner" || asset.variant === "application")
     return `${base} Guidelines_exportPreviewWide__zi5k4 Guidelines_exportPreviewLight__1696S`;
-  if (asset.label === "White" || asset.label === "Black")
+  if (asset.label === "White")
     return `${base} Guidelines_exportPreviewDark__33d8C`;
+  if (asset.label === "Black")
+    return `${base} Guidelines_exportPreviewLight__1696S`;
   return `${base} Guidelines_exportPreviewLight__1696S`;
 }
 
@@ -549,21 +551,28 @@ export function LogotypeScaleBlock({
                     </span>
                   </p>
                   <div className="Guidelines_logotypeScaleLogoCell__P_7X7">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={brandAssetUrl(brandSlug, blackLogotype)}
-                      alt={`Opsis Partners logotype at ${px} pixels height`}
-                      className="Guidelines_logotypeScaleLogo__8sR11"
-                      style={{ height: px }}
-                    />
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={brandAssetUrl(brandSlug, whiteLogotype)}
-                      alt=""
-                      aria-hidden
-                      className="Guidelines_logotypeScaleLogo__8sR11 Guidelines_logotypeScaleLogoDark__c9QtG"
-                      style={{ height: px }}
-                    />
+                    <div
+                      className="Guidelines_logotypeScaleContrastWell__stackwise Guidelines_logotypeScaleContrastWellLight__stackwise"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={brandAssetUrl(brandSlug, blackLogotype)}
+                        alt={`Logotype on white at ${px} pixels height`}
+                        className="Guidelines_logotypeScaleLogo__8sR11"
+                        style={{ height: px }}
+                      />
+                    </div>
+                    <div
+                      className="Guidelines_logotypeScaleContrastWell__stackwise Guidelines_logotypeScaleContrastWellDark__stackwise"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={brandAssetUrl(brandSlug, whiteLogotype)}
+                        alt={`Logotype on black at ${px} pixels height`}
+                        className="Guidelines_logotypeScaleLogo__8sR11 Guidelines_logotypeScaleLogoDark__c9QtG"
+                        style={{ height: px }}
+                      />
+                    </div>
                   </div>
                 </div>
               </li>
@@ -609,10 +618,12 @@ export function ColorVersionsFrame({
     >
       <div className="Guidelines_gridTwo__igR1j">
         <div className="Guidelines_gridPair__GfyUS">
-          <div className="Guidelines_tile__3aEpo Guidelines_tileLight___lU6r">
+          <div
+            className="Guidelines_tile__3aEpo Guidelines_tileLight___lU6r Guidelines_colorUsageTileLight__stackwise"
+          >
             <AssetActionBar
               brandSlug={brandSlug}
-              ariaLabel="Choose format for opsis-logotype-black.png"
+              ariaLabel="Choose format for logotype on light"
               downloadPath={blackLogotype.replace(/\.svg$/, ".png")}
               formats={[
                 { value: "png", label: "PNG" },
@@ -637,10 +648,12 @@ export function ColorVersionsFrame({
           </p>
         </div>
         <div className="Guidelines_gridPair__GfyUS">
-          <div className="Guidelines_tile__3aEpo">
+          <div
+            className="Guidelines_tile__3aEpo Guidelines_colorUsageTileDark__stackwise"
+          >
             <AssetActionBar
               brandSlug={brandSlug}
-              ariaLabel="Choose format for opsis-logotype-white.png"
+              ariaLabel="Choose format for logotype on dark"
               downloadPath={whiteLogotype.replace(/\.svg$/, ".png")}
               formats={[
                 { value: "png", label: "PNG" },
