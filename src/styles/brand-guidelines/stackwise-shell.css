@@ -93,27 +93,29 @@ html[data-theme="dark"].brand-guidelines-root {
   box-sizing: border-box;
 }
 
-/* Logotype scale: always show both contrast versions */
-.brand-guidelines-root .Guidelines_logotypeScaleContrastWell__stackwise .Guidelines_logotypeScaleLogo__8sR11,
-.brand-guidelines-root .Guidelines_logotypeScaleContrastWell__stackwise .Guidelines_logotypeScaleLogoDark__c9QtG {
+/* Logotype scale: show both lockups; sketch dividers behind logos (not through them) */
+.brand-guidelines-root
+  .Guidelines_logotypeScaleLogoCell__P_7X7
+  .Guidelines_logotypeScaleLogo__8sR11,
+.brand-guidelines-root
+  .Guidelines_logotypeScaleLogoCell__P_7X7
+  .Guidelines_logotypeScaleLogoDark__c9QtG {
   display: block !important;
+  gap: 2;
 }
 
-.brand-guidelines-root .Guidelines_logotypeScaleContrastWell__stackwise {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px 16px;
-  border-radius: var(--radius-s, 4px);
-  flex-shrink: 0;
+.brand-guidelines-root .Guidelines_logotypeScaleList__pbZd5 {
+  position: relative;
+  z-index: 3;
 }
 
-.brand-guidelines-root .Guidelines_logotypeScaleContrastWellLight__stackwise {
-  background-color: #ffffff;
+.brand-guidelines-root .Guidelines_logotypeScaleLogoCell__P_7X7 {
+  position: relative;
+  z-index: 2;
 }
 
-.brand-guidelines-root .Guidelines_logotypeScaleContrastWellDark__stackwise {
-  background-color: #000000;
+.brand-guidelines-root .Guidelines_logotypeScaleSeparators__0DpFd {
+  z-index: 1;
 }
 
 /* Color versions: fixed white / black fields (not theme tokens) */

@@ -1,23 +1,23 @@
 "use client";
 
 import {
+  brandAssetUrl,
+  brandPreviewSrcSet,
+  brandPreviewUrl,
+} from "@/lib/branding/asset-url";
+import type { BrandExportAsset, BrandTypeScaleRow } from "@/lib/branding/types";
+import {
   useMemo,
   useState,
   type CSSProperties,
   type ReactNode,
 } from "react";
 import {
-  brandAssetUrl,
-  brandPreviewSrcSet,
-  brandPreviewUrl,
-} from "@/lib/branding/asset-url";
-import type { BrandExportAsset, BrandTypeScaleRow } from "@/lib/branding/types";
-import { IconDownload } from "./brand-icons";
-import { BrandResponsiveImage } from "./brand-media";
-import {
   AssetActionBar,
   type AssetFormatOption,
 } from "./asset-action-bar";
+import { IconDownload } from "./brand-icons";
+import { BrandResponsiveImage } from "./brand-media";
 
 export type { AssetActionBarProps, AssetFormatOption } from "./asset-action-bar";
 export { AssetActionBar };
@@ -344,15 +344,15 @@ export function ExportAssetCard({
   const formats =
     asset.path.endsWith(".svg")
       ? [
-          { value: "svg", label: "SVG" },
-          { value: "png", label: "PNG" },
-        ]
+        { value: "svg", label: "SVG" },
+        { value: "png", label: "PNG" },
+      ]
       : asset.path.endsWith(".ico")
         ? [{ value: "ico", label: "ICO" }]
         : [
-            { value: "png", label: "PNG" },
-            { value: "avif", label: "AVIF" },
-          ];
+          { value: "png", label: "PNG" },
+          { value: "avif", label: "AVIF" },
+        ];
 
   const previewStyle =
     asset.previewAspect != null
@@ -550,29 +550,21 @@ export function LogotypeScaleBlock({
                       px
                     </span>
                   </p>
-                  <div className="Guidelines_logotypeScaleLogoCell__P_7X7">
-                    <div
-                      className="Guidelines_logotypeScaleContrastWell__stackwise Guidelines_logotypeScaleContrastWellLight__stackwise"
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={brandAssetUrl(brandSlug, blackLogotype)}
-                        alt={`Logotype on white at ${px} pixels height`}
-                        className="Guidelines_logotypeScaleLogo__8sR11"
-                        style={{ height: px }}
-                      />
-                    </div>
-                    <div
-                      className="Guidelines_logotypeScaleContrastWell__stackwise Guidelines_logotypeScaleContrastWellDark__stackwise"
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={brandAssetUrl(brandSlug, whiteLogotype)}
-                        alt={`Logotype on black at ${px} pixels height`}
-                        className="Guidelines_logotypeScaleLogo__8sR11 Guidelines_logotypeScaleLogoDark__c9QtG"
-                        style={{ height: px }}
-                      />
-                    </div>
+                  <div className="Guidelines_logotypeScaleLogoCell__P_7X7" style={{ gap: "16px" }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={brandAssetUrl(brandSlug, blackLogotype)}
+                      alt={`Logotype on light at ${px} pixels height`}
+                      className="Guidelines_logotypeScaleLogo__8sR11"
+                      style={{ height: px }}
+                    />
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={brandAssetUrl(brandSlug, whiteLogotype)}
+                      alt={`Logotype on dark at ${px} pixels height`}
+                      className="Guidelines_logotypeScaleLogo__8sR11 Guidelines_logotypeScaleLogoDark__c9QtG"
+                      style={{ height: px }}
+                    />
                   </div>
                 </div>
               </li>
