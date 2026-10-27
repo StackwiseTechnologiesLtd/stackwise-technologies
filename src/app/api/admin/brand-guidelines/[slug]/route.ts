@@ -4,8 +4,11 @@ import {
   deleteDatabaseBrand,
   getDatabaseBrand,
   listDatabaseAssetPaths,
-  upsertDatabaseBrand,
 } from "@/lib/branding/db/repository";
+import {
+  ensureDatabaseBrandFromAdmin,
+  loadAdminBrand,
+} from "@/lib/branding/db/admin-brand";
 import { parseBrandGuidelinesConfig } from "@/lib/branding/db/validate-config";
 import { standardBrandAssetPaths } from "@/lib/branding/db/asset-manifest";
 import { normalizeBrandSlug } from "@/lib/branding-portal/identity";
@@ -23,18 +26,29 @@ export async function GET(_request: Request, context: RouteContext) {
     return NextResponse.json({ error: "Invalid slug" }, { status: 400 });
   }
 
-  const brand = await getDatabaseBrand(slug, true);
-  if (!brand) {
+  const record = await loadAdminBrand(slug);
+  if (!record) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const uploaded = await listDatabaseAssetPaths(slug);
-  const slots = standardBrandAssetPaths(slug).map((slot) => ({
+  const uploaded =
+    record.storage === "database" ? await listDatabaseAssetPaths(slug) : [];
+  const assetSlots = standardBrandAssetPaths(slug).map((slot) => ({
     ...slot,
-    uploaded: uploaded.includes(slot.path),
+    uploaded:
+      record.storage === "database"
+        ? uploaded.includes(slot.path)
+        : true,
+    repoAssets: record.storage === "code",
   }));
 
-  return NextResponse.json({ brand, assetSlots: slots, uploaded });
+  return NextResponse.json({
+    brand: record.brand,
+    storage: record.storage,
+    published: record.published,
+    assetSlots,
+    uploaded,
+  });
 }
 
 export async function PUT(request: Request, context: RouteContext) {
@@ -48,8 +62,8 @@ export async function PUT(request: Request, context: RouteContext) {
     return NextResponse.json({ error: "Invalid slug" }, { status: 400 });
   }
 
-  const existing = await getDatabaseBrand(slug, true);
-  if (!existing) {
+  const record = await loadAdminBrand(slug);
+  if (!record) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
@@ -58,7 +72,7 @@ export async function PUT(request: Request, context: RouteContext) {
     config?: unknown;
   };
 
-  let config = existing;
+  let config = record.brand;
   if (body.config !== undefined) {
     config = parseBrandGuidelinesConfig(body.config);
     if (config.slug !== slug) {
@@ -66,13 +80,23 @@ export async function PUT(request: Request, context: RouteContext) {
     }
   }
 
+  const existingDb = await getDatabaseBrand(slug, true);
   const published =
-    typeof body.published === "boolean" ? body.published : (existing.published ?? false);
+    typeof body.published === "boolean"
+      ? body.published
+      : existingDb
+        ? (existingDb.published ?? false)
+        : record.storage === "code"
+          ? true
+          : false;
 
-  await upsertDatabaseBrand({ slug, published, config });
+  const brand = await ensureDatabaseBrandFromAdmin(slug, config, published);
 
-  const brand = await getDatabaseBrand(slug, true);
-  return NextResponse.json({ brand });
+  return NextResponse.json({
+    brand,
+    storage: "database" as const,
+    importedFromRepo: record.storage === "code" && !existingDb,
+  });
 }
 
 export async function DELETE(_request: Request, context: RouteContext) {
@@ -84,6 +108,14 @@ export async function DELETE(_request: Request, context: RouteContext) {
   const slug = normalizeBrandSlug((await context.params).slug);
   if (!slug) {
     return NextResponse.json({ error: "Invalid slug" }, { status: 400 });
+  }
+
+  const existing = await getDatabaseBrand(slug, true);
+  if (!existing) {
+    return NextResponse.json(
+      { error: "Only database-backed brands can be deleted here" },
+      { status: 400 },
+    );
   }
 
   await deleteDatabaseBrand(slug);

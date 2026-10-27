@@ -3,11 +3,16 @@
 import { useCallback, useState } from "react";
 import Link from "next/link";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
-import type { BrandGuidelines } from "@/lib/branding/types";
+import type { BrandAssetStorage, BrandGuidelines } from "@/lib/branding/types";
 import { BTN_PRIMARY } from "@/lib/ui/buttons";
 import { useToast } from "@/components/ToastProvider";
 
-type AssetSlot = { path: string; label: string; uploaded: boolean };
+type AssetSlot = {
+  path: string;
+  label: string;
+  uploaded: boolean;
+  repoAssets?: boolean;
+};
 
 type EditorProps = {
   slug: string;
@@ -18,6 +23,7 @@ export function BrandGuidelinesAdminEditor({ slug }: EditorProps) {
   const [brand, setBrand] = useState<BrandGuidelines | null>(null);
   const [published, setPublished] = useState(false);
   const [assetSlots, setAssetSlots] = useState<AssetSlot[]>([]);
+  const [storage, setStorage] = useState<BrandAssetStorage>("code");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -28,10 +34,13 @@ export function BrandGuidelinesAdminEditor({ slug }: EditorProps) {
       if (!res.ok) throw new Error("Could not load brand");
       const data = (await res.json()) as {
         brand: BrandGuidelines;
+        storage: BrandAssetStorage;
+        published: boolean;
         assetSlots: AssetSlot[];
       };
       setBrand(data.brand);
-      setPublished(data.brand.published ?? false);
+      setStorage(data.storage);
+      setPublished(data.published);
       setAssetSlots(data.assetSlots);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Load failed");
@@ -57,7 +66,12 @@ export function BrandGuidelinesAdminEditor({ slug }: EditorProps) {
         const data = (await res.json()) as { error?: string };
         throw new Error(data.error ?? "Save failed");
       }
-      toast.toast("Brand guidelines saved");
+      const data = (await res.json()) as { importedFromRepo?: boolean };
+      toast.toast(
+        data.importedFromRepo
+          ? "Saved to database (imported from repo — portal now uses DB config when published)"
+          : "Brand guidelines saved",
+      );
       await load();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Save failed");
@@ -121,9 +135,18 @@ export function BrandGuidelinesAdminEditor({ slug }: EditorProps) {
           disabled={saving}
           onClick={() => void saveConfig()}
         >
-          {saving ? "Saving…" : "Save"}
+          {saving ? "Saving…" : storage === "code" ? "Save to database" : "Save"}
         </button>
       </div>
+
+      {storage === "code" ? (
+        <p className="rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3 py-2 text-sm text-muted">
+          This brand is loaded from the repository. Edits apply in this form only until you save —
+          saving copies the config into Neon. Assets still live under{" "}
+          <code className="text-xs">public/branding/{slug}/</code> until you upload replacements
+          here (uploads import the brand to the database automatically).
+        </p>
+      ) : null}
 
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold">Identity</h2>
@@ -209,7 +232,9 @@ export function BrandGuidelinesAdminEditor({ slug }: EditorProps) {
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-semibold">Assets</h2>
         <p className="text-sm text-muted">
-          Upload files to match the Opsis portal layout. Paths are stored in Neon, not the repo.
+          {storage === "database"
+            ? "Upload files to match the Opsis portal layout. Paths are stored in Neon."
+            : "Uploading a file imports this brand to the database and stores that asset in Neon. Until then, the portal serves files from the repo."}
         </p>
         <ul className="flex flex-col gap-3">
           {assetSlots.map((slot) => (
@@ -227,7 +252,11 @@ export function BrandGuidelinesAdminEditor({ slug }: EditorProps) {
                     slot.uploaded ? "text-emerald-600" : "text-muted"
                   }
                 >
-                  {slot.uploaded ? "Uploaded" : "Missing"}
+                  {slot.repoAssets && slot.uploaded
+                    ? "In repo"
+                    : slot.uploaded
+                      ? "In database"
+                      : "Missing"}
                 </span>
                 <input
                   type="file"

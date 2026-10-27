@@ -7,7 +7,12 @@ import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { BTN_PRIMARY } from "@/lib/ui/buttons";
 import { useToast } from "@/components/ToastProvider";
 
-type BrandRow = { slug: string; name: string; published: boolean };
+type BrandRow = {
+  slug: string;
+  name: string;
+  published: boolean;
+  storage: "code" | "database";
+};
 
 export default function AdminBrandGuidelinesPage() {
   const toast = useToast();
@@ -56,14 +61,53 @@ export default function AdminBrandGuidelinesPage() {
     <div className="flex flex-col gap-8">
       <AdminPageHeader
         title="Brand guidelines"
-        description="Create DB-backed brand portals with the same Opsis shell. Assets live in Neon, not git."
+        description="Create and edit client brand portals. Database brands store assets in Neon; in-repo brands can be edited here and saved to the database when you’re ready."
       />
+
+      <section>
+        <h2 className="mb-3 text-sm font-semibold">All brand systems</h2>
+        {brands.length === 0 ? (
+          <p className="text-sm text-muted">No brands registered yet.</p>
+        ) : (
+          <ul className="flex flex-col gap-2">
+            {brands.map((b) => (
+              <li key={b.slug}>
+                <Link
+                  href={`/admin/brand-guidelines/${b.slug}`}
+                  className="flex items-center justify-between gap-3 rounded border border-[var(--admin-border)] px-3 py-2.5 text-sm hover:bg-[var(--admin-surface)]"
+                >
+                  <span className="min-w-0">
+                    <span className="font-medium">{b.name}</span>
+                    <span className="ml-2 font-mono text-xs text-muted">{b.slug}</span>
+                  </span>
+                  <span className="flex shrink-0 items-center gap-2 text-xs text-muted">
+                    <span
+                      className={
+                        b.storage === "database"
+                          ? "rounded bg-[var(--admin-surface)] px-1.5 py-0.5"
+                          : "rounded border border-[var(--admin-border)] px-1.5 py-0.5"
+                      }
+                    >
+                      {b.storage === "database" ? "Database" : "In repo"}
+                    </span>
+                    {b.published ? "Published" : "Draft"}
+                    <span className="text-[var(--admin-fg)]">Edit →</span>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       <form
         onSubmit={createBrand}
         className="flex max-w-xl flex-col gap-3 rounded-lg border border-[var(--admin-border)] p-4"
       >
         <h2 className="text-sm font-semibold">New brand</h2>
+        <p className="text-xs text-muted">
+          Uses the Opsis shell template. Slug must not match an existing brand.
+        </p>
         <label className="flex flex-col gap-1 text-sm">
           Slug (lowercase, hyphens)
           <input
@@ -88,32 +132,6 @@ export default function AdminBrandGuidelinesPage() {
           {creating ? "Creating…" : "Create from template"}
         </button>
       </form>
-
-      <section>
-        <h2 className="mb-3 text-sm font-semibold">Database brands</h2>
-        {brands.length === 0 ? (
-          <p className="text-sm text-muted">No DB brands yet. Opsis and Aetheri remain in-repo.</p>
-        ) : (
-          <ul className="flex flex-col gap-2">
-            {brands.map((b) => (
-              <li key={b.slug}>
-                <Link
-                  href={`/admin/brand-guidelines/${b.slug}`}
-                  className="flex items-center justify-between rounded border border-[var(--admin-border)] px-3 py-2 text-sm hover:bg-[var(--admin-surface)]"
-                >
-                  <span>
-                    <span className="font-medium">{b.name}</span>
-                    <span className="ml-2 font-mono text-xs text-muted">{b.slug}</span>
-                  </span>
-                  <span className="text-xs text-muted">
-                    {b.published ? "Published" : "Draft"}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
 
       <p className="text-sm text-muted">
         Customer access:{" "}
