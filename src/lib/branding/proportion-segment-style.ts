@@ -22,6 +22,7 @@ export function proportionSegmentStyle(
       : "rgba(255, 255, 255, 0.72)",
     "--proportion-fg-name": light ? "#000000" : "#ffffff",
     "--proportion": `${value}%`,
+    "--proportion-grow": String(value),
     "--brand-color-srgb": hex,
     "--brand-color-p3": P3[hex.toUpperCase()] ?? hex,
   } as CSSProperties;
