@@ -13,6 +13,13 @@ export const opsisBrand: BrandGuidelines = {
     "The visual identity, typography and tone of voice of Opsis Partners.",
   footerCredit:
     "Live brand system developed by Stackwise Technologies for remarkable clients.",
+  theme: {
+    stylesheet: "brand-fonts.css",
+    displayFontVar: "--font-opsis-exposure",
+    uiFontVar: "--font-geist-sans",
+    typographyExportDisplayName: "Exposure 0",
+    typographyExportUiName: "Geist",
+  },
   nav: [
     { id: "foundation", label: "Foundation", href: "#foundation" },
     { id: "marks", label: "Marks", href: "#marks" },
@@ -385,8 +392,37 @@ export const opsisBrand: BrandGuidelines = {
         "opsis-linkedin-header",
         "Opsis Partners LinkedIn header",
       ),
+      linkedinHeaderDownloadPath:
+        "exports/applications/opsis-linkedin-header.png",
       profileColors: ["Forest", "Earth", "Paper", "Black", "White"],
       defaultProfileColor: "Forest",
+      profileAssets: {
+        Forest: {
+          hex: "#131D18",
+          pfpSvg: "exports/profile-pictures/opsis-pfp-on-green.svg",
+          pfpPng: "exports/profile-pictures/opsis-pfp-on-green.png",
+        },
+        Earth: {
+          hex: "#2C1E19",
+          pfpSvg: "exports/profile-pictures/opsis-pfp-on-brown.svg",
+          pfpPng: "exports/profile-pictures/opsis-pfp-on-brown.png",
+        },
+        Paper: {
+          hex: "#DDDAD5",
+          pfpSvg: "exports/profile-pictures/opsis-pfp-on-paper.svg",
+          pfpPng: "exports/profile-pictures/opsis-pfp-on-paper.png",
+        },
+        Black: {
+          hex: "#000000",
+          pfpSvg: "exports/profile-pictures/opsis-pfp-on-black.svg",
+          pfpPng: "exports/profile-pictures/opsis-pfp-on-black.png",
+        },
+        White: {
+          hex: "#FFFFFF",
+          pfpSvg: "exports/profile-pictures/opsis-pfp-on-white.svg",
+          pfpPng: "exports/profile-pictures/opsis-pfp-on-white.png",
+        },
+      },
     },
     brandInUse: {
       title: "Brand in use",

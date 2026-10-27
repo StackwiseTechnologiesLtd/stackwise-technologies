@@ -1,0 +1,6 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Jomhuria&display=swap");
+
+:root {
+  --font-aetheri-jomhuria: "Jomhuria", cursive;
+  --font-aetheri-inter: "Inter", var(--font-geist-sans), system-ui, sans-serif;
+}

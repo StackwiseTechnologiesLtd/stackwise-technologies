@@ -125,6 +125,19 @@ export function BrandGuidelinesPage({
   const navListRef = useRef<HTMLUListElement>(null);
   const itemRefs = useRef<Record<string, HTMLLIElement | null>>({});
 
+  useEffect(() => {
+    const href = `/branding/${brand.slug}/${brand.theme.stylesheet}`;
+    const id = "brand-guidelines-fonts";
+    let link = document.getElementById(id) as HTMLLinkElement | null;
+    if (!link) {
+      link = document.createElement("link");
+      link.id = id;
+      link.rel = "stylesheet";
+      document.head.appendChild(link);
+    }
+    link.href = href;
+  }, [brand.slug, brand.theme.stylesheet]);
+
   const toggleTheme = useCallback(() => {
     document.documentElement.classList.add("theme-switching");
     const next = !dark;
@@ -393,7 +406,7 @@ export function BrandGuidelinesPage({
                 brandSlug={brand.slug}
                 baseName={brand.introduction.heroImage.baseName}
                 alt={brand.introduction.heroImage.alt}
-                downloadBasePath="exports/applications/opsis-introduction.png"
+                downloadBasePath={`exports/applications/${brand.introduction.heroImage.baseName}.png`}
                 priority
               />
               <div className="Guidelines_body__k1Zwo">
@@ -549,6 +562,18 @@ export function BrandGuidelinesPage({
               <TypographyPreviewStack
                 exposure={brand.typography.typeSystem.exposure}
                 geist={brand.typography.typeSystem.geist}
+                displayFontVar={brand.theme.displayFontVar}
+                uiFontVar={brand.theme.uiFontVar}
+                displayPreviewLink={brand.typography.typeSystem.displayPreviewLink}
+                uiPreviewLink={brand.typography.typeSystem.uiPreviewLink}
+                displayPreviewLabel={brand.theme.typographyExportDisplayName}
+                uiPreviewLabel={brand.theme.typographyExportUiName}
+                displayPreviewPlaceholder={
+                  brand.typography.typeSystem.displayPreviewPlaceholder
+                }
+                uiPreviewPlaceholder={
+                  brand.typography.typeSystem.uiPreviewPlaceholder
+                }
               />
               <a
                 href={brandAssetUrl(brand.slug, brand.typography.typeSystem.fontDownloadPath)}
@@ -594,6 +619,7 @@ export function BrandGuidelinesPage({
               <VerbalIdentityTables
                 messages={brand.tone.messages}
                 principles={brand.tone.principles}
+                displayFontVar={brand.theme.displayFontVar}
               />
             </SectionArticle>
 
@@ -601,6 +627,7 @@ export function BrandGuidelinesPage({
               <SectionHeader title={brand.applications.social.title} />
               <SocialProfileMockup
                 brandSlug={brand.slug}
+                brandName={brand.name}
                 social={brand.applications.social}
                 profileColor={profileColor}
                 onProfileColorChange={setProfileColor}
@@ -659,16 +686,16 @@ export function BrandGuidelinesPage({
                   {group.title === "Typography" ? (
                     <div className="Guidelines_exportsWallpaperGrid__LO_F5">
                       <ExportTypographyRow
-                        name="Exposure 0"
+                        name={brand.theme.typographyExportDisplayName}
                         sampleStyle={{
-                          fontFamily: "var(--font-opsis-exposure)",
+                          fontFamily: `var(${brand.theme.displayFontVar})`,
                           fontSize: "48px",
                         }}
                       />
                       <ExportTypographyRow
-                        name="Geist"
+                        name={brand.theme.typographyExportUiName}
                         sampleStyle={{
-                          fontFamily: "var(--font-geist-sans)",
+                          fontFamily: `var(${brand.theme.uiFontVar})`,
                           fontSize: "48px",
                         }}
                       />

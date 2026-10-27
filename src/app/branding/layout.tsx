@@ -37,7 +37,6 @@ export default function BrandingLayout({ children }: { children: ReactNode }) {
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <meta name="color-scheme" content="dark light" />
         <meta name="theme-color" content="#111112" />
-        <link rel="stylesheet" href="/branding/opsis/brand-fonts.css" />
       </head>
       <body>{children}</body>
     </html>

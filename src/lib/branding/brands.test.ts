@@ -13,7 +13,16 @@ describe("getBrand", () => {
     expect(getBrand("unknown")).toBeUndefined();
   });
 
+  it("returns aetheri brand by slug", () => {
+    const brand = getBrand("aetheri");
+    expect(brand).toBeDefined();
+    expect(brand?.slug).toBe("aetheri");
+    expect(brand?.heroTitle).toContain("Aetheri Medical");
+  });
+
   it("lists registered brands", () => {
-    expect(listBrands().map((b) => b.slug)).toContain("opsis");
+    const slugs = listBrands().map((b) => b.slug);
+    expect(slugs).toContain("opsis");
+    expect(slugs).toContain("aetheri");
   });
 });

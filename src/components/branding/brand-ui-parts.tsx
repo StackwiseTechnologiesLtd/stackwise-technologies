@@ -214,36 +214,52 @@ export function TypeScalePanel({
 export function TypographyPreviewStack({
   exposure,
   geist,
+  displayFontVar,
+  uiFontVar,
+  displayPreviewLink = "https://www.205.tf/exposure",
+  uiPreviewLink = "https://vercel.com/font",
+  displayPreviewLabel = "display",
+  uiPreviewLabel = "UI",
+  displayPreviewPlaceholder = "Exposure: Quietly in control.",
+  uiPreviewPlaceholder = "Geist: Every detail has its place.",
 }: {
   exposure: string;
   geist: string;
+  displayFontVar: string;
+  uiFontVar: string;
+  displayPreviewLink?: string;
+  uiPreviewLink?: string;
+  displayPreviewLabel?: string;
+  uiPreviewLabel?: string;
+  displayPreviewPlaceholder?: string;
+  uiPreviewPlaceholder?: string;
 }) {
   return (
     <div className="TypographyPreview_stack__ksyDu">
       <div className="TypographyPreview_group__iqW9q">
         <div className="TypographyPreview_groupActions__sXwcX">
           <a
-            href="https://www.205.tf/exposure"
+            href={displayPreviewLink}
             target="_blank"
             rel="noreferrer"
             className="Guidelines_downloadIconButton__HyeQt"
-            aria-label="Explore Exposure at 205TF"
+            aria-label={`Explore ${displayPreviewLabel} typeface`}
           >
             <IconDownload className="Guidelines_downloadIconButtonIcon__oRZTC" />
-            <span className="sr-only">Explore Exposure at 205TF</span>
+            <span className="sr-only">Explore {displayPreviewLabel} typeface</span>
           </a>
         </div>
         <div className="TypographyPreview_field__yKgIa">
           <textarea
             className="TypographyPreview_input__6Nc_r"
-            aria-label="Exposure 0 preview · type to try the typeface"
-            placeholder="Exposure: Quietly in control."
+            aria-label={`${displayPreviewLabel} preview · type to try the typeface`}
+            placeholder={displayPreviewPlaceholder}
             rows={1}
             spellCheck={false}
-            defaultValue="Exposure: Quietly in control."
+            defaultValue={displayPreviewPlaceholder}
             style={
               {
-                "--preview-font-family": "var(--font-opsis-exposure)",
+                "--preview-font-family": `var(${displayFontVar})`,
                 "--preview-font-size": "36px",
                 "--preview-font-weight": "400",
                 "--preview-line-height": "1.3",
@@ -259,27 +275,27 @@ export function TypographyPreviewStack({
       <div className="TypographyPreview_group__iqW9q">
         <div className="TypographyPreview_groupActions__sXwcX">
           <a
-            href="https://vercel.com/font"
+            href={uiPreviewLink}
             target="_blank"
             rel="noreferrer"
             className="Guidelines_downloadIconButton__HyeQt"
-            aria-label="Explore Geist at Vercel"
+            aria-label={`Explore ${uiPreviewLabel} typeface`}
           >
             <IconDownload className="Guidelines_downloadIconButtonIcon__oRZTC" />
-            <span className="sr-only">Explore Geist at Vercel</span>
+            <span className="sr-only">Explore {uiPreviewLabel} typeface</span>
           </a>
         </div>
         <div className="TypographyPreview_field__yKgIa">
           <textarea
             className="TypographyPreview_input__6Nc_r"
-            aria-label="Geist preview · type to try the typeface"
-            placeholder="Geist: Every detail has its place."
+            aria-label={`${uiPreviewLabel} preview · type to try the typeface`}
+            placeholder={uiPreviewPlaceholder}
             rows={1}
             spellCheck={false}
-            defaultValue="Geist: Every detail has its place."
+            defaultValue={uiPreviewPlaceholder}
             style={
               {
-                "--preview-font-family": "var(--font-geist-sans)",
+                "--preview-font-family": `var(${uiFontVar})`,
                 "--preview-font-size": "22px",
                 "--preview-font-weight": "400",
                 "--preview-line-height": "1.35",
@@ -404,6 +420,7 @@ export function ExportTypographyRow({
 export function VerbalIdentityTables({
   messages,
   principles,
+  displayFontVar,
 }: {
   messages: { label: string; text: string }[];
   principles: {
@@ -411,6 +428,7 @@ export function VerbalIdentityTables({
     description: string;
     pairs: { say: string; avoid: string }[];
   }[];
+  displayFontVar: string;
 }) {
   return (
     <div className="VerbalIdentityPreview_preview__gJaEr">
@@ -425,7 +443,7 @@ export function VerbalIdentityTables({
               </span>
               <p
                 className="VerbalIdentityPreview_messageText__JXjre"
-                style={{ fontFamily: "var(--font-opsis-exposure)" }}
+                style={{ fontFamily: `var(${displayFontVar})` }}
               >
                 {m.text}
               </p>
