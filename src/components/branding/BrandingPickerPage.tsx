@@ -24,12 +24,19 @@ function previewImageProps(brand: BrandGuidelines) {
   };
 }
 
+function gridCountKey(count: number): string {
+  if (count <= 0) return "0";
+  if (count <= 5) return String(count);
+  return "many";
+}
+
 export function BrandingPickerPage({ brands, viewer }: BrandingPickerPageProps) {
   const isAdmin = viewer.mode === "admin";
   const visibleBrands =
     viewer.mode === "portal"
       ? brands.filter((b) => b.slug === viewer.brandSlug)
       : brands;
+  const countKey = gridCountKey(visibleBrands.length);
 
   return (
     <main className="branding-picker">
@@ -44,69 +51,74 @@ export function BrandingPickerPage({ brands, viewer }: BrandingPickerPageProps) 
               ? "Choose a client system to open. You are signed in as admin — no separate portal login required."
               : "Open your project guidelines and export assets."}
           </p>
-          <p className="branding-picker__meta">
-            {isAdmin ? (
-              <>
-                Signed in as {viewer.email} ·{" "}
-                <Link href="/admin/brand-portal">Manage customer access</Link>
-              </>
-            ) : (
-              <>Signed in as {viewer.email}</>
-            )}
-          </p>
+          <p className="branding-picker__meta">Signed in as {viewer.email}</p>
         </header>
 
-        <div className="branding-picker__grid">
-          {visibleBrands.map((brand, index) => {
-            const preview = previewImageProps(brand);
-            return (
-              <Link
-                key={brand.slug}
-                href={`/branding/${brand.slug}`}
-                className={`branding-picker__card branding-picker__card--link ${
-                  index === 0 ? "branding-picker__card--hero" : "branding-picker__card--side"
-                }`}
-              >
-                <div className="branding-picker__card-media" aria-hidden>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={preview.src}
-                    srcSet={preview.srcSet}
-                    sizes={preview.sizes}
-                    alt=""
-                    loading="lazy"
-                    decoding="async"
-                  />
-                </div>
-                <div className="branding-picker__card-scrim" aria-hidden />
-                <div className="branding-picker__card-body">
-                  {isAdmin ? (
-                    <span className="branding-picker__card-label">Client system</span>
-                  ) : null}
-                  <h2 className="branding-picker__card-title">{brand.name}</h2>
-                  <p className="branding-picker__card-desc">{brand.heroSubtitle}</p>
-                </div>
-              </Link>
-            );
-          })}
+        {visibleBrands.length === 0 ? (
+          <p className="branding-picker__empty">
+            {isAdmin
+              ? "No published brand systems yet. Create one under Admin → Brand guidelines."
+              : "No guidelines are available for your account."}
+          </p>
+        ) : (
+          <div
+            className="branding-picker__grid branding-picker__grid--brands"
+            data-count={countKey}
+          >
+            {visibleBrands.map((brand) => {
+              const preview = previewImageProps(brand);
+              return (
+                <Link
+                  key={brand.slug}
+                  href={`/branding/${brand.slug}`}
+                  className="branding-picker__card branding-picker__card--link"
+                >
+                  <div className="branding-picker__card-media" aria-hidden>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={preview.src}
+                      srcSet={preview.srcSet}
+                      sizes={preview.sizes}
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </div>
+                  <div className="branding-picker__card-scrim" aria-hidden />
+                  <div className="branding-picker__card-body">
+                    {isAdmin ? (
+                      <span className="branding-picker__card-label">Client system</span>
+                    ) : null}
+                    <h2 className="branding-picker__card-title">{brand.name}</h2>
+                    <p className="branding-picker__card-desc">{brand.heroSubtitle}</p>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
 
-          {isAdmin ? (
-            <div
-              className="branding-picker__card branding-picker__card--info branding-picker__card--access"
-            >
-              <div className="branding-picker__card-body">
-                <h2 className="branding-picker__card-title">Customer access</h2>
+        {isAdmin ? (
+          <footer className="branding-picker__footer">
+            <div className="branding-picker__access">
+              <div className="branding-picker__access-copy">
+                <h2 className="branding-picker__access-title">Customer access</h2>
                 <p>
                   Invite clients under Admin → Brand access. They only see their project; you can
-                  preview any system here.
-                </p>
-                <p className="branding-picker__card-link">
-                  <Link href="/admin/brand-portal">Open brand access →</Link>
+                  preview any system above.
                 </p>
               </div>
+              <div className="branding-picker__access-actions">
+                <Link href="/admin/brand-portal" className="branding-picker__access-btn">
+                  Manage customer access
+                </Link>
+                <Link href="/admin/brand-guidelines" className="branding-picker__access-link">
+                  Brand guidelines admin
+                </Link>
+              </div>
             </div>
-          ) : null}
-        </div>
+          </footer>
+        ) : null}
       </div>
     </main>
   );
