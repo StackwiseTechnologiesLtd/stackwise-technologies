@@ -34,7 +34,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  return new NextResponse(asset.data, {
+  return new NextResponse(Buffer.from(asset.data), {
     status: 200,
     headers: {
       "Content-Type": asset.contentType,
