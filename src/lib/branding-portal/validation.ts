@@ -1,4 +1,4 @@
-import { getBrand } from "@/lib/branding/brands";
+import { brandExistsAsync, getBrand } from "@/lib/branding/brands";
 import { normalizeBrandSlug } from "@/lib/branding-portal/identity";
 
 export const PORTAL_EMAIL_MAX_LENGTH = 254;
@@ -65,6 +65,14 @@ export function parsePortalBrandSlug(raw: unknown): string | null {
   if (typeof raw !== "string") return null;
   const slug = normalizeBrandSlug(raw);
   if (!slug || !getBrand(slug)) return null;
+  return slug;
+}
+
+export async function parsePortalBrandSlugAsync(raw: unknown): Promise<string | null> {
+  if (typeof raw !== "string") return null;
+  const slug = normalizeBrandSlug(raw);
+  if (!slug) return null;
+  if (!(await brandExistsAsync(slug))) return null;
   return slug;
 }
 

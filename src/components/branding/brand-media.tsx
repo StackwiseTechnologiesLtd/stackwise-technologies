@@ -1,21 +1,24 @@
 "use client";
 
 import { brandAssetUrl } from "@/lib/branding/asset-url";
+import type { BrandAssetStorage } from "@/lib/branding/types";
+import { useBrandAssetStorage } from "./brand-asset-context";
 
 export function avifSrcSet(
   brandSlug: string,
   baseName: string,
+  storage: BrandAssetStorage = "code",
 ): {
   src: string;
   srcSet: string;
   sizes: string;
 } {
   return {
-    src: brandAssetUrl(brandSlug, `${baseName}.avif`),
+    src: brandAssetUrl(brandSlug, `${baseName}.avif`, storage),
     srcSet: [
-      `${brandAssetUrl(brandSlug, `${baseName}-800.avif`)} 800w`,
-      `${brandAssetUrl(brandSlug, `${baseName}-1600.avif`)} 1600w`,
-      `${brandAssetUrl(brandSlug, `${baseName}.avif`)} 3200w`,
+      `${brandAssetUrl(brandSlug, `${baseName}-800.avif`, storage)} 800w`,
+      `${brandAssetUrl(brandSlug, `${baseName}-1600.avif`, storage)} 1600w`,
+      `${brandAssetUrl(brandSlug, `${baseName}.avif`, storage)} 3200w`,
     ].join(", "),
     sizes: "(max-width: 950px) 100vw, 950px",
   };
@@ -31,8 +34,10 @@ export function BrandResponsiveImage({
   width = 3200,
   height = 1801,
   lightbox = true,
+  storage,
 }: {
   brandSlug: string;
+  storage?: BrandAssetStorage;
   baseName: string;
   alt: string;
   className?: string;
@@ -42,7 +47,9 @@ export function BrandResponsiveImage({
   height?: number;
   lightbox?: boolean;
 }) {
-  const { src, srcSet, sizes } = avifSrcSet(brandSlug, baseName);
+  const contextStorage = useBrandAssetStorage();
+  const resolvedStorage = storage ?? contextStorage;
+  const { src, srcSet, sizes } = avifSrcSet(brandSlug, baseName, resolvedStorage);
   const imgClass = ["Guidelines_imageFill__leSLX", className]
     .filter(Boolean)
     .join(" ");

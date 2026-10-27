@@ -2,7 +2,6 @@
 
 import { useCallback, useState } from "react";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
-import { listBrands } from "@/lib/branding/brands";
 import {
   parsePortalEmail,
   parsePortalPassword,
@@ -20,15 +19,29 @@ type MemberRow = {
   active: boolean;
 };
 
+type BrandOption = { slug: string; name: string };
+
 export default function AdminBrandPortalPage() {
   const toast = useToast();
-  const brands = listBrands();
-  const [brandSlug, setBrandSlug] = useState(brands[0]?.slug ?? "");
+  const [brands, setBrands] = useState<BrandOption[]>([]);
+  const [brandSlug, setBrandSlug] = useState("");
   const [email, setEmail] = useState("");
   const [authMethod, setAuthMethod] = useState<"password" | "otp">("password");
   const [password, setPassword] = useState("");
   const [members, setMembers] = useState<MemberRow[]>([]);
   const [loading, setLoading] = useState(false);
+
+  const loadBrands = useCallback(async () => {
+    const res = await fetch("/api/admin/brand-portal/brands");
+    if (!res.ok) return;
+    const data = (await res.json()) as { brands: BrandOption[] };
+    setBrands(data.brands);
+    setBrandSlug((current) => current || data.brands[0]?.slug || "");
+  }, []);
+
+  useDeferredEffect(() => {
+    void loadBrands();
+  }, [loadBrands]);
 
   const loadMembers = useCallback(async () => {
     if (!brandSlug) return;

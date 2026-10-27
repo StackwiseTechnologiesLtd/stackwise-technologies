@@ -10,7 +10,8 @@ import {
   type ReactNode,
 } from "react";
 import type { BrandGuidelines } from "@/lib/branding/types";
-import { brandAssetUrl } from "@/lib/branding/asset-url";
+import { brandAssetUrl, brandStorageOf } from "@/lib/branding/asset-url";
+import { BrandAssetStorageProvider } from "./brand-asset-context";
 import { proportionSegmentStyle } from "@/lib/branding/proportion-segment-style";
 import {
   ApplicationHeroImage,
@@ -110,6 +111,7 @@ export function BrandGuidelinesPage({
   adminPreview?: boolean;
   adminEmail?: string;
 }) {
+  const assetStorage = brandStorageOf(brand);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [dark, setDark] = useState(() => {
     if (typeof document === "undefined") return true;
@@ -126,7 +128,7 @@ export function BrandGuidelinesPage({
   const itemRefs = useRef<Record<string, HTMLLIElement | null>>({});
 
   useEffect(() => {
-    const href = `/branding/${brand.slug}/${brand.theme.stylesheet}`;
+    const href = brandAssetUrl(brand.slug, brand.theme.stylesheet, assetStorage);
     const id = "brand-guidelines-fonts";
     let link = document.getElementById(id) as HTMLLinkElement | null;
     if (!link) {
@@ -136,7 +138,7 @@ export function BrandGuidelinesPage({
       document.head.appendChild(link);
     }
     link.href = href;
-  }, [brand.slug, brand.theme.stylesheet]);
+  }, [brand.slug, brand.theme.stylesheet, assetStorage]);
 
   const toggleTheme = useCallback(() => {
     document.documentElement.classList.add("theme-switching");
@@ -211,6 +213,7 @@ export function BrandGuidelinesPage({
   };
 
   return (
+    <BrandAssetStorageProvider storage={assetStorage}>
     <div className="PageShell_page__1Lyq5">
       <div className="PageShell_container__OwJca">
       <header
@@ -227,14 +230,14 @@ export function BrandGuidelinesPage({
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={brandAssetUrl(brand.slug, brand.marks.colorVersions.blackLogotype)}
+            src={brandAssetUrl(brand.slug, brand.marks.colorVersions.blackLogotype, assetStorage)}
             alt=""
             className="PageShell_topbarLogo__7jA_m PageShell_topbarLogoLight__0O_iT"
             style={{ height: 22 }}
           />
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={brandAssetUrl(brand.slug, brand.marks.colorVersions.whiteLogotype)}
+            src={brandAssetUrl(brand.slug, brand.marks.colorVersions.whiteLogotype, assetStorage)}
             alt=""
             className="PageShell_topbarLogo__7jA_m PageShell_topbarLogoDark__Ot_mL"
             style={{ height: 22 }}
@@ -576,7 +579,11 @@ export function BrandGuidelinesPage({
                 }
               />
               <a
-                href={brandAssetUrl(brand.slug, brand.typography.typeSystem.fontDownloadPath)}
+                href={brandAssetUrl(
+                  brand.slug,
+                  brand.typography.typeSystem.fontDownloadPath,
+                  assetStorage,
+                )}
                 download
                 className="Guidelines_fontDownloadLink__pq6u7"
               >
@@ -750,5 +757,6 @@ export function BrandGuidelinesPage({
       </div>
       </div>
     </div>
+    </BrandAssetStorageProvider>
   );
 }

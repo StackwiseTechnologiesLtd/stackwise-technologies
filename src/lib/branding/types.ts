@@ -80,8 +80,15 @@ export type BrandThemeFonts = {
   typographyExportUiName: string;
 };
 
+/** `code` = assets under `public/branding/<slug>/`; `database` = Neon `brand_guideline_assets`. */
+export type BrandAssetStorage = "code" | "database";
+
 export type BrandGuidelines = {
   slug: string;
+  /** Defaults to `code` when omitted (in-repo Opsis-style brands). */
+  storage?: BrandAssetStorage;
+  /** DB-backed brands only; code brands are always portal-eligible when registered. */
+  published?: boolean;
   name: string;
   heroTitle: string;
   heroSubtitle: string;

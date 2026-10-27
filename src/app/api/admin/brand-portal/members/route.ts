@@ -7,7 +7,7 @@ import {
 } from "@/lib/branding-portal/members";
 import {
   parsePortalAuthMethod,
-  parsePortalBrandSlug,
+  parsePortalBrandSlugAsync,
   parsePortalEmail,
   parsePortalMemberId,
   parsePortalPasswordForCreate,
@@ -19,7 +19,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const brandSlug = parsePortalBrandSlug(
+  const brandSlug = await parsePortalBrandSlugAsync(
     new URL(request.url).searchParams.get("brandSlug") ?? "",
   );
   if (!brandSlug) {
@@ -51,7 +51,7 @@ export async function POST(request: Request) {
     password?: unknown;
   };
 
-  const brandSlug = parsePortalBrandSlug(body.brandSlug);
+  const brandSlug = await parsePortalBrandSlugAsync(body.brandSlug);
   const email = parsePortalEmail(body.email);
   const authMethod = parsePortalAuthMethod(body.authMethod);
 

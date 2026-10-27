@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { brandAssetUrl } from "@/lib/branding/asset-url";
+import { useBrandAssetStorage } from "./brand-asset-context";
 import { IconCopy, IconDownload } from "./brand-icons";
 
 export type AssetFormatOption = { value: string; label: string };
@@ -36,8 +37,9 @@ export function AssetActionBar({
   copyText,
   copyLabel = "Copy asset",
 }: AssetActionBarProps) {
+  const storage = useBrandAssetStorage();
   const [format, setFormat] = useState(formats[0]?.value ?? "png");
-  const href = brandAssetUrl(brandSlug, pathForFormat(downloadPath, format));
+  const href = brandAssetUrl(brandSlug, pathForFormat(downloadPath, format), storage);
   const fileName = href.split("/").pop() ?? "asset";
   const copyDisabled = !copyText;
 

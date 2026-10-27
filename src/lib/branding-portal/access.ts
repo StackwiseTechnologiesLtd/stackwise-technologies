@@ -1,7 +1,7 @@
 import { cookies, headers } from "next/headers";
 import type { NextRequest } from "next/server";
 import { verifySessionToken } from "@/lib/auth/session";
-import { getBrand } from "@/lib/branding/brands";
+import { getBrand, getBrandAsync } from "@/lib/branding/brands";
 import {
   BRAND_PORTAL_COOKIE,
   verifyBrandPortalSessionToken,
@@ -113,11 +113,23 @@ export async function canAccessBrandingRoute(
   const slug = getBrandingSlugFromPath(pathname);
   if (!slug) return true;
 
-  return viewerCanAccessBrand(viewer, slug);
+  return viewerCanAccessBrandAsync(viewer, slug);
 }
 
 export function viewerCanAccessBrand(viewer: BrandingViewer, slug: string): boolean {
   if (!getBrand(slug)) return false;
+  if (viewer.mode === "admin") return true;
+  return viewer.brandSlug === slug;
+}
+
+export async function viewerCanAccessBrandAsync(
+  viewer: BrandingViewer,
+  slug: string,
+): Promise<boolean> {
+  const brand = await getBrandAsync(slug, {
+    includeUnpublished: viewer.mode === "admin",
+  });
+  if (!brand) return false;
   if (viewer.mode === "admin") return true;
   return viewer.brandSlug === slug;
 }

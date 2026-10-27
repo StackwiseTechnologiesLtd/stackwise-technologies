@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { BrandGuidelines } from "@/lib/branding/types";
 import type { BrandingViewer } from "@/lib/branding-portal/access";
-import { brandAssetUrl } from "@/lib/branding/asset-url";
+import { brandAssetUrl, brandStorageOf } from "@/lib/branding/asset-url";
 import "@/styles/brand-guidelines/branding-picker.css";
 
 type BrandingPickerPageProps = {
@@ -12,12 +12,13 @@ type BrandingPickerPageProps = {
 function previewImageProps(brand: BrandGuidelines) {
   const base = brand.introduction.heroImage.baseName;
   const slug = brand.slug;
+  const storage = brandStorageOf(brand);
   return {
-    src: brandAssetUrl(slug, `${base}.avif`),
+    src: brandAssetUrl(slug, `${base}.avif`, storage),
     srcSet: [
-      `${brandAssetUrl(slug, `${base}-800.avif`)} 800w`,
-      `${brandAssetUrl(slug, `${base}-1600.avif`)} 1600w`,
-      `${brandAssetUrl(slug, `${base}.avif`)} 3200w`,
+      `${brandAssetUrl(slug, `${base}-800.avif`, storage)} 800w`,
+      `${brandAssetUrl(slug, `${base}-1600.avif`, storage)} 1600w`,
+      `${brandAssetUrl(slug, `${base}.avif`, storage)} 3200w`,
     ].join(", "),
     sizes: "(max-width: 719px) 100vw, 58vw",
   };

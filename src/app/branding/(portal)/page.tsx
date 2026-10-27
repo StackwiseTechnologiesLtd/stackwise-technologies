@@ -1,4 +1,4 @@
-import { listBrands } from "@/lib/branding/brands";
+import { listBrandsAsync } from "@/lib/branding/brands";
 import { getBrandingViewer } from "@/lib/branding-portal/access";
 import { BrandingPickerPage } from "@/components/branding/BrandingPickerPage";
 
@@ -11,5 +11,8 @@ export default async function BrandingIndexPage() {
   const viewer = await getBrandingViewer();
   if (!viewer) return null;
 
-  return <BrandingPickerPage brands={listBrands()} viewer={viewer} />;
+  const brands = await listBrandsAsync({
+    includeUnpublished: viewer.mode === "admin",
+  });
+  return <BrandingPickerPage brands={brands} viewer={viewer} />;
 }
