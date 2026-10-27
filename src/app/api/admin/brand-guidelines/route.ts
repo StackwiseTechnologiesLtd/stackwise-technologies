@@ -1,11 +1,8 @@
 import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth/session";
+import { brandExistsAsync, listBrandsAsync } from "@/lib/branding/brands";
 import { createBrandGuidelinesTemplate } from "@/lib/branding/db/default-template";
-import {
-  listDatabaseBrands,
-  upsertDatabaseBrand,
-} from "@/lib/branding/db/repository";
-import { brandExistsAsync } from "@/lib/branding/brands";
+import { upsertDatabaseBrand } from "@/lib/branding/db/repository";
 import { normalizeBrandSlug } from "@/lib/branding-portal/identity";
 
 export async function GET() {
@@ -14,12 +11,13 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const brands = await listDatabaseBrands(true);
+  const brands = await listBrandsAsync({ includeUnpublished: true });
   return NextResponse.json({
     brands: brands.map((b) => ({
       slug: b.slug,
       name: b.name,
-      published: b.published ?? false,
+      published: b.storage === "database" ? (b.published ?? false) : true,
+      storage: b.storage ?? "code",
     })),
   });
 }

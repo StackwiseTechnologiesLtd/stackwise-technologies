@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth/session";
+import { ensureDatabaseBrandFromAdmin, loadAdminBrand } from "@/lib/branding/db/admin-brand";
 import { getDatabaseBrand, putDatabaseAsset } from "@/lib/branding/db/repository";
 import { normalizeBrandSlug } from "@/lib/branding-portal/identity";
 
@@ -18,9 +19,17 @@ export async function POST(request: Request, context: RouteContext) {
     return NextResponse.json({ error: "Invalid slug" }, { status: 400 });
   }
 
-  const brand = await getDatabaseBrand(slug, true);
+  let brand = await getDatabaseBrand(slug, true);
   if (!brand) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+    const record = await loadAdminBrand(slug);
+    if (!record) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+    brand = await ensureDatabaseBrandFromAdmin(
+      slug,
+      record.brand,
+      record.published,
+    );
   }
 
   const form = await request.formData();
