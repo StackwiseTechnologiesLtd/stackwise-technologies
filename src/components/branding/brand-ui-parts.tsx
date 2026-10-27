@@ -5,6 +5,7 @@ import {
   brandPreviewSrcSet,
   brandPreviewUrl,
 } from "@/lib/branding/asset-url";
+import { useBrandAssetStorage } from "./brand-asset-context";
 import type { BrandExportAsset, BrandTypeScaleRow } from "@/lib/branding/types";
 import {
   useMemo,
@@ -341,6 +342,7 @@ export function ExportAssetCard({
   brandSlug: string;
   asset: BrandExportAsset;
 }) {
+  const storage = useBrandAssetStorage();
   const formats =
     asset.path.endsWith(".svg")
       ? [
@@ -360,8 +362,8 @@ export function ExportAssetCard({
       : undefined;
 
   const imageSrc = asset.previewId
-    ? brandPreviewUrl(brandSlug, asset.previewId, 800)
-    : brandAssetUrl(brandSlug, asset.path);
+    ? brandPreviewUrl(brandSlug, asset.previewId, 800, storage)
+    : brandAssetUrl(brandSlug, asset.path, storage);
 
   return (
     <div className="Guidelines_exportPicker__79uD1">
@@ -378,7 +380,9 @@ export function ExportAssetCard({
           <img
             src={imageSrc}
             srcSet={
-              asset.previewId ? brandPreviewSrcSet(brandSlug, asset.previewId) : undefined
+              asset.previewId
+                ? brandPreviewSrcSet(brandSlug, asset.previewId, storage)
+                : undefined
             }
             sizes={
               asset.previewId
@@ -529,6 +533,7 @@ export function LogotypeScaleBlock({
   sizes: number[];
   body: string;
 }) {
+  const storage = useBrandAssetStorage();
   return (
     <>
       <div
@@ -553,14 +558,14 @@ export function LogotypeScaleBlock({
                   <div className="Guidelines_logotypeScaleLogoCell__P_7X7" style={{ gap: "16px" }}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={brandAssetUrl(brandSlug, blackLogotype)}
+                      src={brandAssetUrl(brandSlug, blackLogotype, storage)}
                       alt={`Logotype on light at ${px} pixels height`}
                       className="Guidelines_logotypeScaleLogo__8sR11"
                       style={{ height: px }}
                     />
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={brandAssetUrl(brandSlug, whiteLogotype)}
+                      src={brandAssetUrl(brandSlug, whiteLogotype, storage)}
                       alt={`Logotype on dark at ${px} pixels height`}
                       className="Guidelines_logotypeScaleLogo__8sR11 Guidelines_logotypeScaleLogoDark__c9QtG"
                       style={{ height: px }}
@@ -604,6 +609,7 @@ export function ColorVersionsFrame({
   blackLogotype: string;
   whiteLogotype: string;
 }) {
+  const storage = useBrandAssetStorage();
   return (
     <div
       className="Guidelines_frame__9X4Dv Guidelines_frameBorderless__9sdyQ Guidelines_colorUsageFrame__bUIoL"
@@ -624,7 +630,7 @@ export function ColorVersionsFrame({
             />
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={brandAssetUrl(brandSlug, blackLogotype)}
+              src={brandAssetUrl(brandSlug, blackLogotype, storage)}
               alt="Opsis Partners Black logotype on a light surface"
               className="Guidelines_logoImage__l1lfd Guidelines_logoImageWide__S_DzT"
               style={{
@@ -655,7 +661,7 @@ export function ColorVersionsFrame({
             />
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={brandAssetUrl(brandSlug, whiteLogotype)}
+              src={brandAssetUrl(brandSlug, whiteLogotype, storage)}
               alt="Opsis Partners White logotype on a dark surface"
               className="Guidelines_logoImage__l1lfd Guidelines_logoImageWide__S_DzT Guidelines_logotypeScaleLogoDark__c9QtG"
               style={{

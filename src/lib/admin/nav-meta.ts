@@ -31,6 +31,12 @@ export const adminNavPrimary: AdminNavItem[] = [
   { href: "/admin", label: "Payment links", icon: "links", match: "exact" },
   { href: "/admin/contracts", label: "Agreements", icon: "contracts", match: "prefix" },
   {
+    href: "/admin/brand-guidelines",
+    label: "Brand guidelines",
+    icon: "settings",
+    match: "prefix",
+  },
+  {
     href: "/admin/brand-portal",
     label: "Brand access",
     icon: "settings",
@@ -57,6 +63,8 @@ export function adminPageTitle(pathname: string): string {
   if (pathname === "/admin") return "Payment links";
   if (pathname.startsWith("/admin/payment-links/new")) return "New payment link";
   if (pathname.startsWith("/admin/payment-links/")) return "Payment link";
+  if (pathname === "/admin/brand-guidelines") return "Brand guidelines";
+  if (pathname.startsWith("/admin/brand-guidelines/")) return "Edit brand guidelines";
   if (pathname === "/admin/brand-portal") return "Brand guidelines access";
   if (pathname === "/admin/contracts") return "Agreements";
   if (pathname.startsWith("/admin/contracts/new")) return "New agreement";

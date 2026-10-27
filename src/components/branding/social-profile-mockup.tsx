@@ -2,6 +2,7 @@
 
 import type { BrandGuidelines } from "@/lib/branding/types";
 import { brandAssetUrl } from "@/lib/branding/asset-url";
+import { useBrandAssetStorage } from "./brand-asset-context";
 import { avifSrcSet } from "./brand-media";
 import { AssetActionBar } from "./asset-action-bar";
 
@@ -18,8 +19,9 @@ export function SocialProfileMockup({
   profileColor: string;
   onProfileColorChange: (color: string) => void;
 }) {
+  const storage = useBrandAssetStorage();
   const header = social.linkedinHeader;
-  const { src, srcSet, sizes } = avifSrcSet(brandSlug, header.baseName);
+  const { src, srcSet, sizes } = avifSrcSet(brandSlug, header.baseName, storage);
   const asset =
     social.profileAssets[profileColor] ??
     social.profileAssets[social.defaultProfileColor];
@@ -83,7 +85,7 @@ export function SocialProfileMockup({
               />
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={brandAssetUrl(brandSlug, pfpSvg)}
+                src={brandAssetUrl(brandSlug, pfpSvg, storage)}
                 alt={`${brandName} profile picture on ${profileColor}`}
                 width={172}
                 height={172}

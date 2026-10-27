@@ -1,10 +1,10 @@
 import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
-import { getBrand } from "@/lib/branding/brands";
+import { getBrandAsync } from "@/lib/branding/brands";
 import { BrandGuidelinesPage } from "@/components/branding/BrandGuidelinesPage";
 import {
   getBrandingViewer,
-  viewerCanAccessBrand,
+  viewerCanAccessBrandAsync,
 } from "@/lib/branding-portal/access";
 
 type PageProps = {
@@ -13,7 +13,7 @@ type PageProps = {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const brand = getBrand(slug);
+  const brand = await getBrandAsync(slug, { includeUnpublished: true });
   if (!brand) {
     return { title: "Brand guidelines" };
   }
@@ -26,14 +26,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function BrandGuidelineSlugPage({ params }: PageProps) {
   const { slug } = await params;
-  const brand = getBrand(slug);
+  const viewer = await getBrandingViewer();
+  const includeUnpublished = viewer?.mode === "admin";
+  const brand = await getBrandAsync(slug, { includeUnpublished });
   if (!brand) notFound();
 
-  const viewer = await getBrandingViewer();
   if (!viewer) {
     redirect(`/branding/login?next=${encodeURIComponent(`/branding/${slug}`)}`);
   }
-  if (!viewerCanAccessBrand(viewer, slug)) {
+  if (!(await viewerCanAccessBrandAsync(viewer, slug))) {
     redirect(viewer.mode === "portal" ? `/branding/${viewer.brandSlug}` : "/branding");
   }
 

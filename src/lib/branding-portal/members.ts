@@ -1,6 +1,6 @@
 import { ensureSchema } from "@/lib/db/ensure-schema";
 import { asRows, getSql, isDatabaseConfigured } from "@/lib/db/postgres";
-import { getBrand } from "@/lib/branding/brands";
+import { brandExistsAsync } from "@/lib/branding/brands";
 import { hashPortalPassword, verifyPortalPassword } from "@/lib/branding-portal/password";
 import {
   normalizeBrandSlug,
@@ -64,14 +64,25 @@ export async function findActiveMembersByEmail(
         AND active = TRUE
       ORDER BY created_at ASC
     `);
-    return rows
-      .map(rowToMember)
-      .filter((m) => getBrand(m.brandSlug));
+    const members = rows.map(rowToMember);
+    const eligible: BrandPortalMember[] = [];
+    for (const m of members) {
+      if (await brandExistsAsync(m.brandSlug)) eligible.push(m);
+    }
+    return eligible;
   }
 
-  return [...memoryMembers.values()].filter(
-    (m) => m.email === normalizedEmail && m.active && getBrand(m.brandSlug),
-  );
+  const eligible: BrandPortalMember[] = [];
+  for (const m of memoryMembers.values()) {
+    if (
+      m.email === normalizedEmail &&
+      m.active &&
+      (await brandExistsAsync(m.brandSlug))
+    ) {
+      eligible.push(m);
+    }
+  }
+  return eligible;
 }
 
 export async function findActiveMember(
@@ -80,7 +91,7 @@ export async function findActiveMember(
 ): Promise<BrandPortalMember | null> {
   const slug = normalizeBrandSlug(brandSlug);
   const normalizedEmail = normalizePortalEmail(email);
-  if (!slug || !normalizedEmail || !getBrand(slug)) return null;
+  if (!slug || !normalizedEmail || !(await brandExistsAsync(slug))) return null;
 
   if (isDatabaseConfigured()) {
     await ensureSchema();
@@ -137,7 +148,7 @@ export async function resolveOtpMemberByEmail(
 
 export async function listMembers(brandSlug: string): Promise<BrandPortalMember[]> {
   const slug = normalizeBrandSlug(brandSlug);
-  if (!slug || !getBrand(slug)) return [];
+  if (!slug || !(await brandExistsAsync(slug))) return [];
 
   if (isDatabaseConfigured()) {
     await ensureSchema();
@@ -162,7 +173,7 @@ export async function createMember(input: {
 }): Promise<{ member: BrandPortalMember; temporaryPassword?: string }> {
   const slug = normalizeBrandSlug(input.brandSlug);
   const normalizedEmail = normalizePortalEmail(input.email);
-  if (!slug || !normalizedEmail || !getBrand(slug)) {
+  if (!slug || !normalizedEmail || !(await brandExistsAsync(slug))) {
     throw new Error("Invalid brand or email");
   }
 
