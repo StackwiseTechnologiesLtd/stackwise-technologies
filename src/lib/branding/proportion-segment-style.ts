@@ -25,5 +25,9 @@ export function proportionSegmentStyle(
     "--proportion-grow": String(value),
     "--brand-color-srgb": hex,
     "--brand-color-p3": P3[hex.toUpperCase()] ?? hex,
+    flex: `0 0 ${value}%`,
+    width: `${value}%`,
+    maxWidth: `${value}%`,
+    boxSizing: "border-box",
   } as CSSProperties;
 }
