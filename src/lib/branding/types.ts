@@ -65,6 +65,21 @@ export type BrandImageSet = {
   alt: string;
 };
 
+export type BrandProfileColorAsset = {
+  hex: string;
+  pfpSvg: string;
+  pfpPng?: string;
+};
+
+export type BrandThemeFonts = {
+  /** Path under `/branding/<slug>/`, e.g. `brand-fonts.css` */
+  stylesheet: string;
+  displayFontVar: string;
+  uiFontVar: string;
+  typographyExportDisplayName: string;
+  typographyExportUiName: string;
+};
+
 export type BrandGuidelines = {
   slug: string;
   name: string;
@@ -73,6 +88,7 @@ export type BrandGuidelines = {
   metaTitle: string;
   metaDescription: string;
   footerCredit: string;
+  theme: BrandThemeFonts;
   nav: BrandNavItem[];
   scrollSpy: { navId: string; sectionIds: string[] }[];
   introduction: {
@@ -118,6 +134,10 @@ export type BrandGuidelines = {
       geist: string;
       fontDownloadLabel: string;
       fontDownloadPath: string;
+      displayPreviewLink?: string;
+      uiPreviewLink?: string;
+      displayPreviewPlaceholder?: string;
+      uiPreviewPlaceholder?: string;
     };
     typeScale: {
       title: string;
@@ -138,8 +158,10 @@ export type BrandGuidelines = {
       title: string;
       body: string;
       linkedinHeader: BrandImageSet;
+      linkedinHeaderDownloadPath: string;
       profileColors: string[];
       defaultProfileColor: string;
+      profileAssets: Record<string, BrandProfileColorAsset>;
     };
     brandInUse: {
       title: string;

@@ -5,46 +5,27 @@ import { brandAssetUrl } from "@/lib/branding/asset-url";
 import { avifSrcSet } from "./brand-media";
 import { AssetActionBar } from "./asset-action-bar";
 
-const PROFILE_BG: Record<string, string> = {
-  Forest: "#131D18",
-  Earth: "#2C1E19",
-  Paper: "#DDDAD5",
-  Black: "#000000",
-  White: "#FFFFFF",
-};
-
-const PFP_SVG: Record<string, string> = {
-  Forest: "exports/profile-pictures/opsis-pfp-on-green.svg",
-  Earth: "exports/profile-pictures/opsis-pfp-on-brown.svg",
-  Paper: "exports/profile-pictures/opsis-pfp-on-paper.svg",
-  Black: "exports/profile-pictures/opsis-pfp-on-black.svg",
-  White: "exports/profile-pictures/opsis-pfp-on-white.svg",
-};
-
-const PFP_PNG: Record<string, string> = {
-  Forest: "exports/profile-pictures/opsis-pfp-on-green.png",
-  Earth: "exports/profile-pictures/opsis-pfp-on-brown.png",
-  Paper: "exports/profile-pictures/opsis-pfp-on-paper.png",
-  Black: "exports/profile-pictures/opsis-pfp-on-black.png",
-  White: "exports/profile-pictures/opsis-pfp-on-white.png",
-};
-
 export function SocialProfileMockup({
   brandSlug,
+  brandName,
   social,
   profileColor,
   onProfileColorChange,
 }: {
   brandSlug: string;
+  brandName: string;
   social: BrandGuidelines["applications"]["social"];
   profileColor: string;
   onProfileColorChange: (color: string) => void;
 }) {
   const header = social.linkedinHeader;
   const { src, srcSet, sizes } = avifSrcSet(brandSlug, header.baseName);
-  const pfpSvg = PFP_SVG[profileColor] ?? PFP_SVG.Forest;
-  const pfpPng = PFP_PNG[profileColor] ?? PFP_PNG.Forest;
-  const bg = PROFILE_BG[profileColor] ?? PROFILE_BG.Forest;
+  const asset =
+    social.profileAssets[profileColor] ??
+    social.profileAssets[social.defaultProfileColor];
+  const pfpSvg = asset.pfpSvg;
+  const pfpPng = asset.pfpPng ?? asset.pfpSvg;
+  const bg = asset.hex;
 
   return (
     <div className="Guidelines_socialMediaFrame__qjU65">
@@ -60,7 +41,7 @@ export function SocialProfileMockup({
             <AssetActionBar
               brandSlug={brandSlug}
               ariaLabel={`Choose format for ${header.alt}`}
-              downloadPath="exports/applications/opsis-linkedin-header.png"
+              downloadPath={social.linkedinHeaderDownloadPath}
               formats={[
                 { value: "png", label: "PNG" },
                 { value: "avif", label: "AVIF" },
@@ -103,7 +84,7 @@ export function SocialProfileMockup({
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={brandAssetUrl(brandSlug, pfpSvg)}
-                alt={`Opsis Partners profile picture on ${profileColor}`}
+                alt={`${brandName} profile picture on ${profileColor}`}
                 width={172}
                 height={172}
                 decoding="async"
@@ -138,7 +119,10 @@ export function SocialProfileMockup({
                 >
                   <span
                     className="Guidelines_socialProfileColorDot__B74o7"
-                    style={{ backgroundColor: PROFILE_BG[color] }}
+                    style={{
+                      backgroundColor:
+                        social.profileAssets[color]?.hex ?? "#131D18",
+                    }}
                     aria-hidden
                   />
                   <span className="Guidelines_socialProfileColorLabel__IHxqO">
