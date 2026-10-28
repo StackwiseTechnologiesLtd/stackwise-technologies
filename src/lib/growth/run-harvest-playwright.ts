@@ -1,4 +1,4 @@
-import { platformSessionCheck } from "@/lib/growth/connect-platform";
+import { platformSessionCheck, platformHome } from "@/lib/growth/connect-platform";
 import { detectAccountLabelOnPage } from "@/lib/growth/detect-account-label";
 import {
   extractFeedSignals,
@@ -63,7 +63,16 @@ export async function harvestSearchesWithPlaywright(
 ): Promise<IngestSignalInput[]> {
   await report?.("browser", "Starting browser (read-only)…");
   const { chromium } = await loadPlaywrightModule();
-  const harvestHeaded = process.env.GROWTH_HARVEST_HEADED === "1";
+  const forceHeadless = process.env.GROWTH_HARVEST_HEADLESS === "1";
+  const forceHeaded = process.env.GROWTH_HARVEST_HEADED === "1";
+  const harvestHeaded =
+    forceHeaded || (!forceHeadless && platform === "linkedin");
+  if (harvestHeaded) {
+    await report?.(
+      "browser",
+      "Using visible browser (LinkedIn often blocks headless search). Set GROWTH_HARVEST_HEADLESS=1 to force headless.",
+    );
+  }
   const browser = await chromium.launch({
     headless: !harvestHeaded,
     args: ["--disable-blink-features=AutomationControlled"],
@@ -148,6 +157,34 @@ export async function harvestSearchesWithPlaywright(
         });
       }
       await humanDelay(1500, 3000);
+    }
+
+    if (collected.length === 0 && platform === "linkedin") {
+      await report?.(
+        "search",
+        "No posts from ICP search — scanning your LinkedIn home feed…",
+      );
+      await page.goto(platformHome.linkedin, {
+        waitUntil: "domcontentloaded",
+        timeout: 120_000,
+      });
+      await page.waitForLoadState("networkidle", { timeout: 20_000 }).catch(
+        () => undefined,
+      );
+      await humanDelay(3000, 5000);
+      await scrollResults(page, 6, report);
+      await report?.("extract", "Reading home feed…");
+      const { signals: feedBatch, debug: feedDebug } = await extractFeedSignals(
+        page,
+        platform,
+      );
+      await report?.("extract", formatExtractDebug(feedDebug));
+      for (const signal of feedBatch) {
+        collected.push({
+          ...signal,
+          contextSummary: "linkedin-feed",
+        });
+      }
     }
 
     const withProfiles = await enrichSignalsWithProfiles(

@@ -24,7 +24,7 @@
       "disabled": true,
       "guid": "d2b3c4d5e6f708192a3b4c5d6e7f8091",
       "options": {
-        "url": "https://hnrss.org/frontpage",
+        "url": "https://weworkremotely.com/categories/remote-full-stack-programming-jobs.rss",
         "expected_update_period_in_days": "2",
         "clean": "true"
       },

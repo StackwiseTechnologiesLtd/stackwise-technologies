@@ -40,6 +40,12 @@ function toPayload(job) {
   if (!title || !company || !description || !sourceUrl) {
     return { error: "title, company, description, and url are required" };
   }
+  if (/^https?:\/\/(www\.)?example\.(com|org|net)\//i.test(sourceUrl)) {
+    return {
+      error:
+        "Refusing example.com job URL — export real listings from freehire (see docs/GROWTH_REAL_DATA.md)",
+    };
+  }
   const platform = job.platform === "x" ? "x" : "linkedin";
   return {
     source: "freehire",

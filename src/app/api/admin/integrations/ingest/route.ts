@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { authorizeIntegrationsIngest } from "@/lib/integrations/auth";
 import { parseIntegrationIngestBody } from "@/lib/integrations/ingest-payload";
 import { recordIntegrationEvent } from "@/lib/integrations/repository";
+import { isTestIngestUrl, testIngestAllowed } from "@/lib/growth/is-test-ingest-url";
 import { evaluateHarvestCandidate } from "@/lib/growth/harvest-quality";
 import { evaluateJobIngestCandidate } from "@/lib/growth/job-ingest-quality";
 import { getIcpConfig, ingestSignal, signalAlreadyIngested } from "@/lib/growth/repository";
@@ -23,6 +24,16 @@ export async function POST(request: Request) {
 
     const input = parsed.input;
     const leadSource = input.leadSource ?? "manual";
+
+    if (isTestIngestUrl(input.sourceUrl) && !testIngestAllowed()) {
+      return NextResponse.json(
+        {
+          error:
+            "Test/demo URLs (example.com) are blocked. Use real post or job links, or set ALLOW_TEST_INGEST=1 locally for smoke tests.",
+        },
+        { status: 400 },
+      );
+    }
 
     if (await signalAlreadyIngested(input)) {
       await recordIntegrationEvent({
