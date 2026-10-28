@@ -14,7 +14,12 @@ import {
 loadEnvLocal();
 
 const secret = requireIngestSecret();
-const ingestUrl = process.env.INGEST_URL?.trim() || defaultIngestUrl();
+let ingestUrl = process.env.INGEST_URL?.trim() || defaultIngestUrl();
+
+/** Huginn Post Agent runs inside Docker; reach Stackwise on the host via host.docker.internal */
+ingestUrl = ingestUrl
+  .replace("://localhost:", "://host.docker.internal:")
+  .replace("://127.0.0.1:", "://host.docker.internal:");
 
 const templatePath = path.join(
   process.cwd(),

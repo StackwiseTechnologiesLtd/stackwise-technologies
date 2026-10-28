@@ -5,20 +5,21 @@
 ## Quick start (local)
 
 ```bash
-# 1. Secret + dev server
+# 1. Secret + dev server (two terminals)
 npm run integrations:secret   # add line to .env.local
 npm run dev
 
-# 2. Verify ingest
+# 2. Docker (Huginn + Postgres)
+npm run integrations:up
+
+# 3. Verify ingest
 npm run integrations:check
 
-# 3. Huginn
-npm run integrations:huginn:up
-npm run integrations:huginn:scenario   # import generated JSON in Huginn UI
-# http://localhost:3001 — invitation code stackwise-local
+# 4. Import in Huginn UI: deploy/integrations/huginn/scenarios/generated/stackwise-ingest.local.json
+#    http://localhost:3001 — invitation code stackwise-local
 
-# 4. Job sample (freehire adapter)
-npm run integrations:freehire:sample
+# 5. Optional sample jobs (Docker → host app)
+npm run integrations:jobs:demo
 ```
 
 Env template: [stackwise.env.example](./stackwise.env.example)
