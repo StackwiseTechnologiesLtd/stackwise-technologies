@@ -1,8 +1,10 @@
 import {
   platformSessionCheck,
+  platformHome,
   sessionCookieName,
 } from "@/lib/growth/connect-platform";
 import {
+  extractFeedSignals,
   formatExtractDebug,
   rawPostsToSignals,
 } from "@/lib/growth/harvest-extract";
@@ -294,6 +296,32 @@ async function harvestSearchesWithHostedBrowser(
         });
       }
       await sleep(2000);
+    }
+
+    if (collected.length === 0 && platform === "linkedin") {
+      await report?.(
+        "search",
+        "No posts from ICP search — scanning LinkedIn home feed…",
+      );
+      await page.goto(platformHome.linkedin, {
+        waitUntil: "domcontentloaded",
+        timeout: 120_000,
+      });
+      await sleep(4000);
+      for (let i = 0; i < 6; i++) {
+        await page.evaluate(() => window.scrollBy(0, 400));
+        await sleep(1500);
+      }
+      await report?.("extract", "Reading home feed…");
+      const { posts, debug: feedDebug } = await page.evaluate(
+        growthHarvestExtractInPage,
+        platform,
+      );
+      await report?.("extract", formatExtractDebug(feedDebug));
+      const feedBatch = rawPostsToSignals(platform, posts);
+      for (const signal of feedBatch) {
+        collected.push({ ...signal, contextSummary: "linkedin-feed" });
+      }
     }
 
     const withProfilesHosted = await enrichSignalsWithProfiles(

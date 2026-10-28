@@ -56,7 +56,7 @@ GROWTH_AI_DEBUG=1
 
 Harvest visits each lead’s public profile (when a profile URL is available) and stores a short **profile research** blurb on the lead. **Replies are not auto-generated on harvest** — open a lead in **Inbox**, expand it, and click **Generate reply** (OpenRouter + template fallback).
 
-Inbox and Leads support **Source** filters: All / X / LinkedIn.
+Real-data checklist: [GROWTH_REAL_DATA.md](./GROWTH_REAL_DATA.md).
 
 **Do not commit API keys.** If a key was pasted into chat or committed, rotate it in the OpenRouter dashboard.
 
