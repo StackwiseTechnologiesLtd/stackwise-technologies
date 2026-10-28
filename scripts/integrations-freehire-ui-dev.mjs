@@ -71,6 +71,7 @@ const child = spawn(
     env: {
       ...process.env,
       VITE_API_URL: apiUrl,
+      PUBLIC_FREEHIRE_DEV_AUTH: "1",
     },
   },
 );

@@ -11,6 +11,40 @@ Host ports are in [`compose.env`](./compose.env) so freehire does not clash with
 
 The clone lives at **`vendor/freehire/`** (gitignored). See [`vendor/README-freehire.md`](../../vendor/README-freehire.md).
 
+### Dev auth bypass (local only)
+
+When **`FREEHIRE_DEV_AUTH_BYPASS=1`** is set on the API (in `compose.env`) and **`PUBLIC_FREEHIRE_DEV_AUTH=1`** on the Vite UI (`npm run integrations:freehire:ui` sets both):
+
+- First page load calls **`POST /api/v1/auth/dev-login`** and sets the session cookie (`dev-local@stackwise.local`).
+- **Apply / Save / sign-in prompts** auto dev-login instead of `/signin`.
+
+**Never enable in production.** After `git pull` in `vendor/freehire`, run `npm run integrations:freehire:apply-patches` and rebuild the `app` container.
+
+**Match / Tailor** still need a CV and `LLM_*` on the API for real scores; dev login only removes the account gate.
+
+### Browse without signing in
+
+- **Job search and job pages** (title, description, link to employer) are public — same as production.
+- **Apply** (primary button) prompts sign-in first; use **“View without signing in”** to open the real posting on Stripe/Discord/etc.
+- **Match / Tailor my CV / fit score / saved jobs** require an account (and often a CV + LLM config). Locally, OAuth is off unless you set `OAUTH_*` in `vendor/freehire/.env` — use **http://localhost:8090** job **`Apply on company site`** / external URL for testing without auth.
+
+### Add more companies (boards)
+
+Edit [`boards.seed.json`](./boards.seed.json) (`provider`, `board`, `company` — Greenhouse board slug is the URL segment on `boards.greenhouse.io/…`):
+
+```bash
+npm run integrations:freehire:add-boards   # insert new rows only
+npm run integrations:freehire:crawl        # re-crawl greenhouse + reindex
+```
+
+Or add one board:
+
+```bash
+cd vendor/freehire
+DATABASE_URL=postgres://hire:hire@localhost:5434/hire?sslmode=disable \
+  go run ./cmd/add-board --provider=greenhouse --board=acme --company="Acme Inc." --apply
+```
+
 [freehire](https://github.com/strelov1/freehire/) harvests job listings. Stackwise ingests via HTTP only — no shared DB.
 
 ## Flow

@@ -38,6 +38,7 @@
     "integrations:freehire:restart": "node scripts/integrations-freehire-restart.mjs",
     "integrations:freehire:status": "node scripts/integrations-freehire-status.mjs",
     "integrations:freehire:ui": "node scripts/integrations-freehire-ui-dev.mjs",
+    "integrations:freehire:apply-patches": "node scripts/integrations-freehire-apply-patches.mjs",
     "integrations:freehire:crawl": "node scripts/integrations-freehire-crawl.mjs",
     "integrations:freehire:export": "node scripts/freehire-export-stackwise.mjs",
     "integrations:jobs:demo": "node scripts/integrations-jobs-demo.mjs",
