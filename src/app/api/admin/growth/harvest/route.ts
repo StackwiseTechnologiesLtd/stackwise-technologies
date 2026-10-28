@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAdminSession } from "@/lib/auth/session";
+import { authorizeGrowthApi } from "@/lib/growth/auth";
 import {
   encodeHarvestEvent,
   progressLine,
@@ -16,8 +16,8 @@ function wantsStream(request: Request): boolean {
 }
 
 export async function POST(request: Request) {
-  const session = await getAdminSession();
-  if (!session) {
+  const auth = await authorizeGrowthApi(request);
+  if (!auth.authorized) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
