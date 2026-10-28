@@ -122,9 +122,24 @@ More agent patterns: [deploy/integrations/huginn/README.md](../deploy/integratio
 
 ## 3. freehire / job leads (local)
 
-This repo does **not** bundle the freehire app. Locally you can:
+Clone and run the **freehire** app beside Stackwise (full job search UI):
 
-1. **Sample jobs** (no freehire install):
+```bash
+npm run integrations:freehire:clone
+npm run integrations:freehire:up
+```
+
+Open **http://localhost:8090** (API on **http://localhost:8088**). Ports: `deploy/integrations/freehire/compose.env`.
+
+Local Postgres starts **empty** until you run freehire ingest workers (`vendor/freehire/README.md`). To push real listings into **Growth → Jobs** immediately:
+
+```bash
+FREEHIRE_API_BASE=https://freehire.me npm run integrations:freehire:export -- --ingest -n 10
+```
+
+This repo does **not** commit the freehire tree — only scripts and `compose.env`.
+
+1. **Sample jobs** (no freehire UI — wiring only):
 
 ```bash
 npm run integrations:freehire:sample
