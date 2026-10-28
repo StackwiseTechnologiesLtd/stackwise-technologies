@@ -37,6 +37,8 @@ Authenticate with:
 
 ## Local Huginn
 
+Image: **`ghcr.io/huginn/huginn`** (Docker Hub `huginn/huginn` was retired; update compose if you still see the migration banner).
+
 ```bash
 docker compose -f deploy/integrations/docker-compose.yml up -d
 # or: npm run integrations:huginn:up

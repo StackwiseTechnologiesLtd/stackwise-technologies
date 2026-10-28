@@ -18,7 +18,8 @@ services:
       retries: 10
 
   huginn:
-    image: huginn/huginn:latest
+    # Docker Hub huginn/huginn → ghcr.io/huginn/huginn (see Huginn UI migration notice)
+    image: ghcr.io/huginn/huginn:latest
     ports:
       - "3001:3000"
     env_file:
