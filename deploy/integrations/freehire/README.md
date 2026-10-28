@@ -4,7 +4,7 @@
 
 | Service | URL |
 | -------- | ----- |
-| **Web UI** | http://localhost:8090 |
+| **Web UI** | http://localhost:8090 — run **`npm run integrations:freehire:ui`** (Vite + API in Docker). Docker **`web`** image often fails on pnpm; use **`--with-ui`** only if you need nginx SSR in Docker. |
 | **API** | http://localhost:8088 (`/health`, `/api/v1/jobs/search`) |
 
 Host ports are in [`compose.env`](./compose.env) so freehire does not clash with Huginn (:3001), Stackwise (:3000), or other Postgres on :5432.

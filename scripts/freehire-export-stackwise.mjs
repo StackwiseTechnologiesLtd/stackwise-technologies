@@ -75,7 +75,12 @@ for (const row of rows) {
     company,
     description,
     url: sourceUrl,
-    postedAt: row.posted_at ?? row.created_at ?? new Date().toISOString(),
+    // Greenhouse often returns stale ATS posted dates; catalogue `created_at` reflects when we crawled it.
+    postedAt:
+      row.created_at ??
+      row.last_seen_at ??
+      row.posted_at ??
+      new Date().toISOString(),
     platform: "linkedin",
   });
 }
