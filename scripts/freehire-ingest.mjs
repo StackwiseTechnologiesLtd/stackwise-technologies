@@ -1,14 +1,13 @@
 #!/usr/bin/env node
 /**
  * Push freehire job JSON to Stackwise integrations ingest.
- *
- * Usage:
- *   INTEGRATIONS_INGEST_SECRET=... node scripts/freehire-ingest.mjs jobs.json
- *   node scripts/freehire-ingest.mjs --dry-run jobs.json
+ * Loads .env.local (INTEGRATIONS_INGEST_SECRET, optional INGEST_URL).
  */
-
 import fs from "node:fs";
 import path from "node:path";
+import { defaultIngestUrl, loadEnvLocal, requireIngestSecret } from "./lib/load-env-local.mjs";
+
+loadEnvLocal();
 
 const args = process.argv.slice(2);
 const dryRun = args.includes("--dry-run");
@@ -19,13 +18,10 @@ if (!fileArg) {
   process.exit(1);
 }
 
-const secret = process.env.INTEGRATIONS_INGEST_SECRET?.trim();
-const url =
-  process.env.INGEST_URL?.trim() ||
-  "http://localhost:3000/api/admin/integrations/ingest";
+const secret = dryRun ? null : requireIngestSecret();
+const url = process.env.INGEST_URL?.trim() || defaultIngestUrl();
 
-if (!dryRun && (!secret || secret.length < 32)) {
-  console.error("Set INTEGRATIONS_INGEST_SECRET (at least 32 characters).");
+if (!dryRun && !secret) {
   process.exit(1);
 }
 

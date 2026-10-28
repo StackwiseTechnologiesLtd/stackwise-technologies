@@ -1,6 +1,27 @@
 # Integrations deploy stubs
 
-See [docs/INTEGRATIONS_BUILD_PLAN.md](../../docs/INTEGRATIONS_BUILD_PLAN.md) for the full plan.
+**Local-first guide:** [docs/INTEGRATIONS_LOCAL.md](../../docs/INTEGRATIONS_LOCAL.md)
+
+## Quick start (local)
+
+```bash
+# 1. Secret + dev server
+npm run integrations:secret   # add line to .env.local
+npm run dev
+
+# 2. Verify ingest
+npm run integrations:check
+
+# 3. Huginn
+npm run integrations:huginn:up
+npm run integrations:huginn:scenario   # import generated JSON in Huginn UI
+# http://localhost:3001 — invitation code stackwise-local
+
+# 4. Job sample (freehire adapter)
+npm run integrations:freehire:sample
+```
+
+Env template: [stackwise.env.example](./stackwise.env.example)
 
 ## Ingest endpoint
 
@@ -8,7 +29,7 @@ External systems POST JSON to:
 
 `POST /api/admin/integrations/ingest`
 
-Authenticate with either:
+Authenticate with:
 
 - Admin session cookie (browser), or
 - `Authorization: Bearer <INTEGRATIONS_INGEST_SECRET>` (also accepts legacy `GROWTH_CONNECTOR_SECRET`)
@@ -17,23 +38,40 @@ Authenticate with either:
 
 ```bash
 docker compose -f deploy/integrations/docker-compose.yml up -d
+# or: npm run integrations:huginn:up
 ```
 
 Open http://localhost:3001 and complete signup with invitation code `stackwise-local`.
 
-Import the scenario and docs: [deploy/integrations/huginn/README.md](./huginn/README.md).
+Import scenario: run `npm run integrations:huginn:scenario` and import  
+`deploy/integrations/huginn/scenarios/generated/stackwise-ingest.local.json`  
+(do not commit generated files).
 
-**freehire jobs:** [deploy/integrations/freehire/README.md](./freehire/README.md) and `node scripts/freehire-ingest.mjs`.
+Agent docs: [deploy/integrations/huginn/README.md](./huginn/README.md).
 
-Quick smoke test without Docker:
+**freehire jobs:** [deploy/integrations/freehire/README.md](./freehire/README.md) and `npm run integrations:freehire:sample`.
+
+## VPS (production app URL)
+
+On the VPS, set adapter env:
 
 ```bash
-INTEGRATIONS_INGEST_SECRET=your-secret node scripts/huginn-ingest-smoke.mjs
+INGEST_URL=https://stackwisetechnologies.com/api/admin/integrations/ingest
+INTEGRATIONS_INGEST_SECRET=<same as Cloudflare Worker>
 ```
+
+Re-run `integrations:huginn:scenario` with `INGEST_URL` pointing at prod, import on VPS Huginn.
+
+Sync Worker secrets: `npm run cf:secrets` from `.env.prod`.
+
+See [docs/INTEGRATIONS_LOCAL.md](../../docs/INTEGRATIONS_LOCAL.md) §4.
 
 ## Env vars
 
 Add to `.env.local` / Cloudflare:
 
 - `INTEGRATIONS_INGEST_SECRET` — shared secret for webhook ingest
-- `HUGINN_WEBHOOK_TOKEN` — optional; reserved for Huginn-specific agent auth (Phase 3)
+- `INGEST_URL` — optional; used by CLI scripts and scenario renderer
+- `HUGINN_WEBHOOK_TOKEN` — optional; second bearer accepted by ingest
+
+Never commit values; use `.env.local` / `.env.prod` + `npm run cf:secrets`.

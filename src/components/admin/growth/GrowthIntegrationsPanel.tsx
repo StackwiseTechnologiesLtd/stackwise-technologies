@@ -54,8 +54,9 @@ export function GrowthIntegrationsPanel() {
           <p className="mt-1 text-sm text-muted">
             Huginn and freehire send leads to{" "}
             <code className="text-foreground">/api/admin/integrations/ingest</code>.
-            See{" "}
-            <code className="text-foreground">docs/INTEGRATIONS_BUILD_PLAN.md</code>.
+            Local setup:{" "}
+            <code className="text-foreground">docs/INTEGRATIONS_LOCAL.md</code>{" "}
+            (<code className="text-foreground">npm run integrations:check</code>).
           </p>
           <p className="mt-2 text-xs text-muted">
             Ingest secret:{" "}

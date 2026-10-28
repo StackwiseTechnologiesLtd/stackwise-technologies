@@ -26,6 +26,7 @@
 # misc
 .DS_Store
 *.pem
+deploy/integrations/huginn/scenarios/generated/
 
 # debug
 npm-debug.log*

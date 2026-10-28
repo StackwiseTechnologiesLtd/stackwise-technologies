@@ -1,5 +1,7 @@
 # Huginn → Stackwise Growth
 
+**Start here:** [docs/INTEGRATIONS_LOCAL.md](../../docs/INTEGRATIONS_LOCAL.md) (`npm run integrations:huginn:up`, `npm run integrations:huginn:scenario`).
+
 Huginn runs in Docker beside your app (see `../docker-compose.yml`). It never shares the Neon database — only HTTP calls to the ingest API.
 
 ## Prerequisites
