@@ -1,16 +1,40 @@
 # freehire → Stackwise Growth
 
-**Local sample (no freehire install):** `npm run integrations:freehire:sample` — see [docs/INTEGRATIONS_LOCAL.md](../../docs/INTEGRATIONS_LOCAL.md).
+**Local UI:** clone + Docker — `npm run integrations:freehire:clone` then `npm run integrations:freehire:up`
 
-[freehire](https://github.com/strelov1/freehire/) harvests job listings. This repo does **not** embed freehire in the Worker — run it on a VPS or locally and push results through the same ingest API as Huginn.
+| Service | URL |
+| -------- | ----- |
+| **Web UI** | http://localhost:8090 |
+| **API** | http://localhost:8088 (`/health`, `/api/v1/jobs/search`) |
+
+Host ports are in [`compose.env`](./compose.env) so freehire does not clash with Huginn (:3001), Stackwise (:3000), or other Postgres on :5432.
+
+The clone lives at **`vendor/freehire/`** (gitignored). See [`vendor/README-freehire.md`](../../vendor/README-freehire.md).
+
+[freehire](https://github.com/strelov1/freehire/) harvests job listings. Stackwise ingests via HTTP only — no shared DB.
 
 ## Flow
 
 ```text
-freehire harvest / export  →  scripts/freehire-ingest.mjs  →  POST /api/admin/integrations/ingest
-                                                                    ↓
-                                                          Growth Jobs inbox + CRM (≥45% fit)
+freehire (search / crawl)  →  export JSON  →  scripts/freehire-ingest.mjs  →  POST /api/admin/integrations/ingest
+                                                                                      ↓
+                                                                            Growth Jobs inbox + CRM (≥45% fit)
 ```
+
+**Export + ingest in one step** (uses public API if local DB is empty):
+
+```bash
+FREEHIRE_API_BASE=https://freehire.me npm run integrations:freehire:export -- --ingest -q "full stack developer" -n 10
+```
+
+**Local API only** (after you have indexed jobs in your Docker DB):
+
+```bash
+npm run integrations:freehire:export -- -o /tmp/jobs.json
+node scripts/freehire-ingest.mjs /tmp/jobs.json
+```
+
+**Sample wiring only** (no freehire install): `npm run integrations:freehire:sample` — see [docs/INTEGRATIONS_LOCAL.md](../../docs/INTEGRATIONS_LOCAL.md).
 
 ## Prerequisites
 
@@ -53,6 +77,7 @@ Each item:
 
 ## UI
 
+- **freehire** — http://localhost:8090 (local Docker)
 - **Growth → Jobs** — inbox filtered to `leadSource: freehire`
 - **CRM** — opportunities titled `Hiring: {role} @ {company}`
 
