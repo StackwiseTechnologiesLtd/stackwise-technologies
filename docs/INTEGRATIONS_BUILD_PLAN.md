@@ -4,7 +4,7 @@ Ship external capabilities **inside** [Stackwise admin](https://stackwisetechnol
 
 This document is the source of truth for implementation order, manual validation, and completion sign-off.
 
-**Related:** [GROWTH_ENGINE.md](./GROWTH_ENGINE.md) (X / LinkedIn harvest and inbox).
+**Related:** [GROWTH_ENGINE.md](./GROWTH_ENGINE.md) (X / LinkedIn harvest and inbox). **Local setup:** [INTEGRATIONS_LOCAL.md](./INTEGRATIONS_LOCAL.md).
 
 ---
 

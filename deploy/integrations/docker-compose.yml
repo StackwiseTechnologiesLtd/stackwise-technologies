@@ -1,13 +1,14 @@
 # Optional local stack for integration testing (Huginn).
-# Production webhooks target your deployed app URL, not this compose file.
+# Quick start: docs/INTEGRATIONS_LOCAL.md
 #
-# Usage:
-#   export INTEGRATIONS_INGEST_SECRET=your-secret
-#   docker compose -f deploy/integrations/docker-compose.yml up -d
+#   npm run integrations:huginn:up
+#   npm run integrations:huginn:scenario   # import generated JSON in Huginn UI
 #
-# Point Huginn agents at:
-#   POST https://<your-site>/api/admin/integrations/ingest
-#   Header: Authorization: Bearer $INTEGRATIONS_INGEST_SECRET
+# Huginn POST agent target (from host):
+#   http://host.docker.internal:3000/api/admin/integrations/ingest
+# Production on VPS:
+#   https://<your-site>/api/admin/integrations/ingest
+#   Authorization: Bearer $INTEGRATIONS_INGEST_SECRET
 
 services:
   huginn:

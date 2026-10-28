@@ -25,7 +25,14 @@
     "growth:cookies:pull": "node scripts/growth-connector.mjs pull-cookies",
     "growth:connect": "node scripts/growth-connect.mjs",
     "growth:harvest": "node scripts/growth-harvest.mjs",
-    "growth:connect-server": "node scripts/growth-connect-server.mjs"
+    "growth:connect-server": "node scripts/growth-connect-server.mjs",
+    "integrations:secret": "node scripts/generate-ingest-secret.mjs",
+    "integrations:check": "node scripts/integrations-local-check.mjs",
+    "integrations:smoke": "node scripts/huginn-ingest-smoke.mjs",
+    "integrations:freehire:sample": "node scripts/freehire-ingest.mjs deploy/integrations/freehire/sample-jobs.json",
+    "integrations:huginn:up": "docker compose -f deploy/integrations/docker-compose.yml up -d",
+    "integrations:huginn:down": "docker compose -f deploy/integrations/docker-compose.yml down",
+    "integrations:huginn:scenario": "node scripts/render-huginn-scenario.mjs"
   },
   "dependencies": {
     "@cloudflare/puppeteer": "^1.4.0",

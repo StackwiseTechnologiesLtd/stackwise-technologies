@@ -1,19 +1,14 @@
 #!/usr/bin/env node
 /**
  * POST a sample Huginn-shaped payload to local/staging ingest.
- * Usage: INTEGRATIONS_INGEST_SECRET=... node scripts/huginn-ingest-smoke.mjs
- * Optional: INGEST_URL=http://localhost:3000/api/admin/integrations/ingest
+ * Loads .env.local (INTEGRATIONS_INGEST_SECRET, optional INGEST_URL).
  */
+import { defaultIngestUrl, loadEnvLocal, requireIngestSecret } from "./lib/load-env-local.mjs";
 
-const secret = process.env.INTEGRATIONS_INGEST_SECRET?.trim();
-const url =
-  process.env.INGEST_URL?.trim() ||
-  "http://localhost:3000/api/admin/integrations/ingest";
+loadEnvLocal();
 
-if (!secret || secret.length < 32) {
-  console.error("Set INTEGRATIONS_INGEST_SECRET (at least 32 characters).");
-  process.exit(1);
-}
+const secret = requireIngestSecret();
+const url = process.env.INGEST_URL?.trim() || defaultIngestUrl();
 
 const payload = {
   source: "huginn",

@@ -1,5 +1,7 @@
 # freehire → Stackwise Growth
 
+**Local sample (no freehire install):** `npm run integrations:freehire:sample` — see [docs/INTEGRATIONS_LOCAL.md](../../docs/INTEGRATIONS_LOCAL.md).
+
 [freehire](https://github.com/strelov1/freehire/) harvests job listings. This repo does **not** embed freehire in the Worker — run it on a VPS or locally and push results through the same ingest API as Huginn.
 
 ## Flow
