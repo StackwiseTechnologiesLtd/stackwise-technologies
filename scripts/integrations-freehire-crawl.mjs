@@ -10,6 +10,7 @@ import path from "node:path";
 const root = process.cwd();
 const freehireDir = path.join(root, "vendor/freehire");
 const composeEnv = path.join(root, "deploy/integrations/freehire/compose.env");
+const boardsFile = path.join(root, "deploy/integrations/freehire/boards.seed.json");
 
 if (!fs.existsSync(path.join(freehireDir, "docker-compose.yml"))) {
   console.error("Run: npm run integrations:freehire:clone");
@@ -29,11 +30,7 @@ function compose(args, opts = {}) {
   return r.stdout;
 }
 
-const boards = [
-  { provider: "greenhouse", board: "discord", company: "Discord" },
-  { provider: "greenhouse", board: "stripe", company: "Stripe" },
-  { provider: "greenhouse", board: "figma", company: "Figma" },
-];
+const boards = JSON.parse(fs.readFileSync(boardsFile, "utf8"));
 
 console.log("Seeding active Greenhouse boards…");
 for (const b of boards) {
