@@ -1,20 +1,31 @@
 # Optional local stack for integration testing (Huginn).
-# Quick start: docs/INTEGRATIONS_LOCAL.md
-#
-#   npm run integrations:huginn:up
-#   npm run integrations:huginn:scenario   # import generated JSON in Huginn UI
-#
-# Huginn POST agent target (from host):
-#   http://host.docker.internal:3000/api/admin/integrations/ingest
-# Production on VPS:
-#   https://<your-site>/api/admin/integrations/ingest
-#   Authorization: Bearer $INTEGRATIONS_INGEST_SECRET
+# Quick start: npm run integrations:up
+# Guide: docs/INTEGRATIONS_LOCAL.md
 
 services:
+  huginn-db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: huginn
+      POSTGRES_PASSWORD: huginn
+      POSTGRES_DB: huginn
+    volumes:
+      - huginn_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U huginn -d huginn"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   huginn:
     image: huginn/huginn:latest
     ports:
       - "3001:3000"
+    env_file:
+      - path: ../../.env.local
+        required: false
+      - path: ./compose.env
+        required: false
     environment:
       DATABASE_ADAPTER: postgresql
       DATABASE_HOST: huginn-db
@@ -24,19 +35,45 @@ services:
       DATABASE_PASSWORD: huginn
       INVITATION_CODE: stackwise-local
       FORCE_SSL: "false"
+      APP_SECRET_TOKEN: ${HUGINN_APP_SECRET_TOKEN:-stackwise-local-huginn-app-secret-min-30-chars}
+      DOMAIN: localhost:3001
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
-      - huginn-db
+      huginn-db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -sf http://127.0.0.1:3000/ > /dev/null || exit 1",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 300s
 
-  huginn-db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: huginn
-      POSTGRES_PASSWORD: huginn
-      POSTGRES_DB: huginn
+  # One-shot: push sample jobs to Stackwise (requires npm run dev on host + secret in .env.local)
+  job-ingest-demo:
+    profiles: ["jobs"]
+    image: node:22-alpine
+    working_dir: /app
     volumes:
-      - huginn_pg:/var/lib/postgresql/data
+      - ../..:/app:ro
+    env_file:
+      - path: ../../.env.local
+        required: true
+    environment:
+      INGEST_URL: http://host.docker.internal:3000/api/admin/integrations/ingest
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command:
+      [
+        "node",
+        "scripts/freehire-ingest.mjs",
+        "deploy/integrations/freehire/sample-jobs.json",
+      ]
+    restart: "no"
 
 volumes:
   huginn_pg:

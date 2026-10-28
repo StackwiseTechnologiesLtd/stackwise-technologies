@@ -14,8 +14,7 @@ const payload = {
   source: "huginn",
   platform: "linkedin",
   authorName: "Huginn smoke test",
-  bodyText:
-    "Founder here — we need a developer to harden our MVP before production launch.",
+  bodyText: `Huginn smoke ${Date.now()} — we need a developer to harden our MVP before production launch.`,
   sourceUrl: `https://example.com/huginn-smoke-${Date.now()}`,
   postedAt: new Date().toISOString(),
 };
@@ -38,4 +37,9 @@ try {
 }
 
 console.log(res.status, json);
-if (!res.ok) process.exit(1);
+if (res.ok) process.exit(0);
+if (res.status === 409) {
+  console.log("OK (duplicate skipped — ingest auth and API working)");
+  process.exit(0);
+}
+process.exit(1);

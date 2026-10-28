@@ -56,13 +56,19 @@ Admin UI: **Growth → Settings → Integrations** should show ingest secret **c
 
 ## 2. Huginn (local Docker)
 
-### Start
+### Start (Docker)
 
 ```bash
-npm run integrations:huginn:up
+npm run integrations:up
 ```
 
+This starts **Postgres + Huginn** via Compose (healthchecks, `--wait`), renders the Huginn import file, and prints next steps.
+
 Open **http://localhost:3001**, sign up with invitation code **`stackwise-local`**.
+
+Legacy alias: `npm run integrations:huginn:up` (same as `integrations:up`).
+
+Stop: `npm run integrations:down`
 
 ### Import scenario with your URL + secret filled in
 
@@ -122,6 +128,12 @@ This repo does **not** bundle the freehire app. Locally you can:
 
 ```bash
 npm run integrations:freehire:sample
+```
+
+Or from Docker (Stackwise on host must be running):
+
+```bash
+npm run integrations:jobs:demo
 ```
 
 2. **Your export** — run [freehire](https://github.com/strelov1/freehire/) on your machine or VPS, export JSON, then:
