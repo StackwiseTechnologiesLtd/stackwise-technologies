@@ -42,16 +42,29 @@ if (!fs.existsSync(composeEnv)) {
   process.exit(1);
 }
 
-console.log("Building and starting freehire (first run can take several minutes)…\n");
+const withUi = process.argv.includes("--with-ui");
 
-run("docker", [
+const services = withUi
+  ? []
+  : ["db", "redis", "meilisearch", "s3", "s3-init", "app"];
+
+console.log(
+  withUi
+    ? "Building full freehire stack including web UI (slow; may fail on pnpm policy in Docker)…\n"
+    : "Starting freehire API + data services (no web container — use --with-ui to build UI)…\n",
+);
+
+const upArgs = [
   "compose",
   "--env-file",
   composeEnv,
   "up",
   "--build",
   "-d",
-], { cwd: freehireDir });
+  ...services,
+];
+
+run("docker", upArgs, { cwd: freehireDir });
 
 async function waitFor(url, maxMs = 900_000) {
   const start = Date.now();
@@ -77,11 +90,10 @@ async function waitFor(url, maxMs = 900_000) {
 await waitFor("http://localhost:8088/health");
 
 console.log(`
-freehire is up.
+freehire API is up.
 
-  UI:  http://localhost:8090
   API: http://localhost:8088
-
+${withUi ? "  UI:  http://localhost:8090\n" : `  UI:  run \`npm run integrations:freehire:ui\` → http://localhost:8090 (Vite; proxies to API)\n`}
 Local DB starts empty. To crawl jobs: see vendor/freehire/README.md (cmd/ingest, search-drain).
 Or export from the public catalogue into Stackwise:
 
