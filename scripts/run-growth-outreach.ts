@@ -21,7 +21,9 @@ loadEnv();
 import { runOutreachCampaign } from "../src/lib/growth/outreach-run";
 
 const limitArg = process.argv.find((a) => a.startsWith("--limit="));
+const offsetArg = process.argv.find((a) => a.startsWith("--offset="));
 const limit = limitArg ? Number.parseInt(limitArg.split("=")[1], 10) : 200;
+const offset = offsetArg ? Number.parseInt(offsetArg.split("=")[1], 10) : 0;
 const dryRun = process.argv.includes("--dry-run");
 
 async function main() {
@@ -30,6 +32,7 @@ async function main() {
   );
   const { run, items } = await runOutreachCampaign({
     limit: Number.isFinite(limit) ? limit : 200,
+    offset: Number.isFinite(offset) ? offset : 0,
     send: !dryRun,
     createdBy: "cli",
     writeExportFiles: true,
