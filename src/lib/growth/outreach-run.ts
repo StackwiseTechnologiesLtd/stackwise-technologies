@@ -120,6 +120,12 @@ function escapeHtml(text: string): string {
     .replace(/"/g, "&quot;");
 }
 
+/** Neon HTTP driver rejects some backslash sequences in JSON query payloads. */
+function neonSafeText(text: string | null | undefined): string {
+  if (!text) return "";
+  return text.replace(/\\/g, "/").replace(/\u0000/g, "");
+}
+
 function textToHtmlParagraphs(text: string): string {
   return text
     .trim()
@@ -175,6 +181,7 @@ export async function runOutreachCampaign(
   await ready();
   const sql = getSql();
   const limit = Math.min(500, Math.max(1, options.limit ?? 200));
+  const offset = Math.max(0, options.offset ?? 0);
   const send = options.send !== false;
   const config = await getIcpConfig();
 
@@ -218,6 +225,7 @@ export async function runOutreachCampaign(
       LEFT JOIN crm_people p ON p.growth_lead_id = l.id
       WHERE l.profile_url IS NOT NULL AND trim(l.profile_url) <> ''
       ORDER BY l.composite_score DESC, l.created_at DESC
+      OFFSET ${offset}
       LIMIT ${limit}
     `,
   );
@@ -302,28 +310,48 @@ export async function runOutreachCampaign(
     }
 
     const now = new Date().toISOString();
-    await sql`
-      INSERT INTO growth_outreach_items (
-        id, run_id, lead_id, recipient_name, recipient_email, company_name,
-        profile_url, subject_line, body_text, status, error_message, sent_at,
-        used_ai, created_at
-      ) VALUES (
-        ${itemId}::uuid,
-        ${runId}::uuid,
-        ${lead.id}::uuid,
-        ${lead.full_name},
-        ${recipientEmail},
-        ${lead.company_name},
-        ${lead.profile_url},
-        ${subjectLine || "(no subject)"},
-        ${bodyText || ""},
-        ${status},
-        ${errorMessage},
-        ${sentAt}::timestamptz,
-        ${usedAi},
-        ${now}::timestamptz
-      )
-    `;
+    const itemValues = [
+      itemId,
+      runId,
+      lead.id,
+      neonSafeText(lead.full_name),
+      recipientEmail ? neonSafeText(recipientEmail) : null,
+      neonSafeText(lead.company_name),
+      neonSafeText(lead.profile_url),
+      neonSafeText(subjectLine || "(no subject)"),
+      neonSafeText(bodyText || ""),
+      status,
+      errorMessage ? neonSafeText(errorMessage) : null,
+      sentAt,
+      usedAi,
+      now,
+    ];
+    try {
+      await sql.query(
+        `INSERT INTO growth_outreach_items (
+          id, run_id, lead_id, recipient_name, recipient_email, company_name,
+          profile_url, subject_line, body_text, status, error_message, sent_at,
+          used_ai, created_at
+        ) VALUES (
+          $1::uuid, $2::uuid, $3::uuid, $4, $5, $6, $7, $8, $9, $10, $11, $12::timestamptz, $13, $14::timestamptz
+        )`,
+        itemValues,
+      );
+    } catch {
+      itemValues[8] = neonSafeText((bodyText || "").slice(0, 1200));
+      itemValues[9] = status === "failed" ? status : "stored_truncated";
+      itemValues[10] = "Body sanitized for database storage";
+      await sql.query(
+        `INSERT INTO growth_outreach_items (
+          id, run_id, lead_id, recipient_name, recipient_email, company_name,
+          profile_url, subject_line, body_text, status, error_message, sent_at,
+          used_ai, created_at
+        ) VALUES (
+          $1::uuid, $2::uuid, $3::uuid, $4, $5, $6, $7, $8, $9, $10, $11, $12::timestamptz, $13, $14::timestamptz
+        )`,
+        itemValues,
+      );
+    }
     items.push(
       mapItem({
         id: itemId,

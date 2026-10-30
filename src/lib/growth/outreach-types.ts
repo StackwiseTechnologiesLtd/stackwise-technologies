@@ -34,6 +34,7 @@ export type GrowthOutreachItem = {
 
 export type RunOutreachOptions = {
   limit?: number;
+  offset?: number;
   send?: boolean;
   createdBy?: string | null;
   /** Write CSV/MD under repo exports/ (CLI only). */
