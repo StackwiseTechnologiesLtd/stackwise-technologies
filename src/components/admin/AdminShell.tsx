@@ -5,8 +5,8 @@ import { AdminUserAvatar } from "@/components/admin/AdminUserAvatar";
 import Mark from "@/components/Mark";
 import { useToast } from "@/components/ToastProvider";
 import {
-  adminGrowthNavChildren,
-  adminNavPrimary,
+  adminNavSections,
+  adminBreadcrumbArea,
   adminPageTitle,
   isNavActive,
   isNavChildActive,
@@ -24,7 +24,13 @@ import { useDeferredEffect } from "@/lib/use-deferred-effect";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useSyncExternalStore, useState, type ReactNode } from "react";
 
-function SidebarBrand({ collapsed }: { collapsed: boolean }) {
+function SidebarBrand({
+  collapsed,
+  areaLabel,
+}: {
+  collapsed: boolean;
+  areaLabel: string;
+}) {
   return (
     <div
       className={`flex h-12 shrink-0 items-center border-b border-[var(--admin-border)] ${collapsed ? "justify-center px-2" : "gap-2 px-4"
@@ -34,7 +40,7 @@ function SidebarBrand({ collapsed }: { collapsed: boolean }) {
       {!collapsed ? (
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold">Stackwise</p>
-          <p className="truncate text-[11px] text-muted">Payments</p>
+          <p className="truncate text-[11px] text-muted">{areaLabel}</p>
         </div>
       ) : null}
     </div>
@@ -66,67 +72,71 @@ function SidebarNav({
   onNavigate?: () => void;
 }) {
   return (
-    <nav className="flex flex-col gap-1 px-2 py-3" aria-label="Admin">
-      {/* {!collapsed ? (
-        <p className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-wider text-muted">
-          Billing
-        </p>
-      ) : (
-        <p className="sr-only">Billing</p>
-      )} */}
-      {adminNavPrimary.map((item) => {
-        const growthChildren =
-          item.href === "/admin/growth" ? adminGrowthNavChildren : null;
-        const active = isNavActive(pathname, item);
-        return (
-          <div key={item.href} className="flex flex-col gap-0.5">
-            <Link
-              href={item.href}
-              title={collapsed ? item.label : undefined}
-              onClick={onNavigate}
-              className={`${ADMIN_NAV_LINK} ${collapsed ? "justify-center px-2" : ""
-                } ${active
-                  ? collapsed
-                    ? "bg-[var(--admin-nav-active)] font-medium text-foreground"
-                    : "border-l-2 border-[var(--admin-nav-active-border)] bg-[var(--admin-nav-active)] font-medium text-foreground"
-                  : collapsed
-                    ? "text-muted hover:bg-[var(--admin-nav-hover)] hover:text-foreground"
-                    : "border-l-2 border-transparent text-muted hover:bg-[var(--admin-nav-hover)] hover:text-foreground"
-                }`}
-            >
-              <AdminNavIcon
-                name={item.icon}
-                className={`size-4 shrink-0 ${active ? "text-accent" : "opacity-80"}`}
-              />
-              {!collapsed ? <span className="truncate">{item.label}</span> : null}
-              {collapsed ? <span className="sr-only">{item.label}</span> : null}
-            </Link>
-            {growthChildren && !collapsed ? (
-              <div
-                className="ml-4 flex flex-col gap-0.5 border-l border-[var(--admin-border)] pl-2"
-                aria-label="Growth"
-              >
-                {growthChildren.map((child) => {
-                  const childActive = isNavChildActive(pathname, child);
-                  return (
-                    <Link
-                      key={child.href}
-                      href={child.href}
-                      onClick={onNavigate}
-                      className={`rounded-md px-2.5 py-1.5 text-[13px] ${childActive
+    <nav className="flex flex-col gap-4 px-2 py-3" aria-label="Admin">
+      {adminNavSections.map((section) => (
+        <div key={section.id} className="flex flex-col gap-1">
+          {!collapsed ? (
+            <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-muted">
+              {section.label}
+            </p>
+          ) : (
+            <p className="sr-only">{section.label}</p>
+          )}
+          {section.items.map((item) => {
+            const nestedChildren =
+              section.nestedUnder === item.href ? section.nestedChildren : null;
+            const active = isNavActive(pathname, item);
+            return (
+              <div key={item.href} className="flex flex-col gap-0.5">
+                <Link
+                  href={item.href}
+                  title={collapsed ? item.label : undefined}
+                  onClick={onNavigate}
+                  className={`${ADMIN_NAV_LINK} ${collapsed ? "justify-center px-2" : ""
+                    } ${active
+                      ? collapsed
                         ? "bg-[var(--admin-nav-active)] font-medium text-foreground"
-                        : "text-muted hover:bg-[var(--admin-nav-hover)] hover:text-foreground"
-                        }`}
-                    >
-                      {child.label}
-                    </Link>
-                  );
-                })}
+                        : "border-l-2 border-[var(--admin-nav-active-border)] bg-[var(--admin-nav-active)] font-medium text-foreground"
+                      : collapsed
+                        ? "text-muted hover:bg-[var(--admin-nav-hover)] hover:text-foreground"
+                        : "border-l-2 border-transparent text-muted hover:bg-[var(--admin-nav-hover)] hover:text-foreground"
+                    }`}
+                >
+                  <AdminNavIcon
+                    name={item.icon}
+                    className={`size-4 shrink-0 ${active ? "text-accent" : "opacity-80"}`}
+                  />
+                  {!collapsed ? <span className="truncate">{item.label}</span> : null}
+                  {collapsed ? <span className="sr-only">{item.label}</span> : null}
+                </Link>
+                {nestedChildren && !collapsed ? (
+                  <div
+                    className="ml-4 flex flex-col gap-0.5 border-l border-[var(--admin-border)] pl-2"
+                    aria-label={section.label}
+                  >
+                    {nestedChildren.map((child) => {
+                      const childActive = isNavChildActive(pathname, child);
+                      return (
+                        <Link
+                          key={child.href}
+                          href={child.href}
+                          onClick={onNavigate}
+                          className={`rounded-md px-2.5 py-1.5 text-[13px] ${childActive
+                            ? "bg-[var(--admin-nav-active)] font-medium text-foreground"
+                            : "text-muted hover:bg-[var(--admin-nav-hover)] hover:text-foreground"
+                            }`}
+                        >
+                          {child.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                ) : null}
               </div>
-            ) : null}
-          </div>
-        );
-      })}
+            );
+          })}
+        </div>
+      ))}
     </nav>
   );
 }
@@ -166,10 +176,12 @@ function DesktopSidebar({
   pathname,
   collapsed,
   onToggleCollapse,
+  areaLabel,
 }: {
   pathname: string;
   collapsed: boolean;
   onToggleCollapse: () => void;
+  areaLabel: string;
 }) {
   return (
     <aside
@@ -178,7 +190,7 @@ function DesktopSidebar({
         paddingTop: "max(0px, env(safe-area-inset-top))",
       }}
     >
-      <SidebarBrand collapsed={collapsed} />
+      <SidebarBrand collapsed={collapsed} areaLabel={areaLabel} />
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
         <SidebarNav pathname={pathname} collapsed={collapsed} />
       </div>
@@ -213,6 +225,7 @@ export function AdminShell({
     getAdminSidebarCollapsedServerSnapshot,
   );
   const pageTitle = adminPageTitle(pathname);
+  const breadcrumbArea = adminBreadcrumbArea(pathname);
 
   useDeferredEffect(() => {
     setMenuOpen(false);
@@ -257,6 +270,7 @@ export function AdminShell({
         pathname={pathname}
         collapsed={sidebarCollapsed}
         onToggleCollapse={toggleSidebar}
+        areaLabel={breadcrumbArea}
       />
 
       <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
@@ -295,7 +309,7 @@ export function AdminShell({
                 {SITE_NAME}
               </span>
               <span className="hidden opacity-40 md:inline">/</span>
-              <span className="hidden md:inline">Payments</span>
+              <span className="hidden md:inline">{breadcrumbArea}</span>
               <span className="hidden opacity-40 md:inline">/</span>
               <span className="min-w-0 truncate font-medium text-foreground">
                 {pageTitle}
@@ -328,7 +342,7 @@ export function AdminShell({
                 paddingTop: "max(0px, env(safe-area-inset-top))",
               }}
             >
-              <SidebarBrand collapsed={false} />
+              <SidebarBrand collapsed={false} areaLabel={breadcrumbArea} />
               <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
                 <SidebarNav
                   pathname={pathname}
