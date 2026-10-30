@@ -1,0 +1,13 @@
+[
+  { "provider": "greenhouse", "board": "discord", "company": "Discord" },
+  { "provider": "greenhouse", "board": "stripe", "company": "Stripe" },
+  { "provider": "greenhouse", "board": "figma", "company": "Figma" },
+  { "provider": "greenhouse", "board": "airbnb", "company": "Airbnb" },
+  { "provider": "greenhouse", "board": "gitlab", "company": "GitLab" },
+  { "provider": "greenhouse", "board": "cloudflare", "company": "Cloudflare" },
+  { "provider": "greenhouse", "board": "datadog", "company": "Datadog" },
+  { "provider": "greenhouse", "board": "mongodb", "company": "MongoDB" },
+  { "provider": "greenhouse", "board": "vercel", "company": "Vercel" },
+  { "provider": "greenhouse", "board": "scaleai", "company": "Scale AI" },
+  { "provider": "greenhouse", "board": "reddit", "company": "Reddit" }
+]

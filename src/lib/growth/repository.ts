@@ -6,18 +6,21 @@ import { DEFAULT_ICP_CONFIG } from "@/lib/growth/icp-default";
 import { INBOX_DEFAULT_FRESHNESS_HOURS } from "@/lib/growth/harvest-config";
 import { freshnessCutoffIso } from "@/lib/growth/harvest-freshness";
 import { resolveGrowthPostUrl } from "@/lib/growth/post-url";
+import { syncIngestedLeadToCrm } from "@/lib/crm/sync-from-ingest";
 import { scoreLead } from "@/lib/growth/scoring";
-import type {
-  GrowthDraft,
-  GrowthInboxItem,
-  GrowthLead,
-  GrowthPlatform,
-  GrowthSignal,
-  IcpConfig,
-  IngestSignalInput,
-  PlatformCredentialStatus,
-  PipelineStatus,
-  SessionStatus,
+import {
+  parseLeadSource,
+  type GrowthDraft,
+  type GrowthInboxItem,
+  type GrowthLead,
+  type GrowthPlatform,
+  type GrowthSignal,
+  type IcpConfig,
+  type IngestSignalInput,
+  type LeadSource,
+  type PlatformCredentialStatus,
+  type PipelineStatus,
+  type SessionStatus,
 } from "@/lib/growth/types";
 
 async function ready() {
@@ -40,6 +43,7 @@ type SignalRow = {
   context_summary: string | null;
   ingested_at: string;
   posted_at: string | null;
+  lead_source: string | null;
 };
 
 type LeadRow = {
@@ -58,6 +62,7 @@ type LeadRow = {
   pipeline_status: string;
   feedback_note: string | null;
   profile_summary: string | null;
+  lead_source: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -98,6 +103,7 @@ function mapSignal(row: SignalRow): GrowthSignal {
     contextSummary: row.context_summary,
     ingestedAt: row.ingested_at,
     postedAt: row.posted_at ?? null,
+    leadSource: parseLeadSource(row.lead_source),
   };
 }
 
@@ -121,6 +127,7 @@ function mapLead(row: LeadRow): GrowthLead {
     profileUrl: row.profile_url,
     email: row.email,
     platform: (row.platform as GrowthPlatform) ?? null,
+    leadSource: parseLeadSource(row.lead_source),
     icpScore: row.icp_score,
     intentScore: row.intent_score,
     compositeScore: row.composite_score,
@@ -223,14 +230,14 @@ export async function ingestSignal(
   });
 
   const profileSummary = input.profileContext?.trim() || null;
-
+  const leadSource: LeadSource = input.leadSource ?? "harvest";
   const postedAt = input.postedAt?.trim() || null;
 
   await sql`
     INSERT INTO growth_signals (
       id, platform, source_url, author_name, author_handle, author_profile_url,
       role_title, company_name, body_text, context_summary, raw_payload,
-      ingested_at, posted_at
+      ingested_at, posted_at, lead_source
     ) VALUES (
       ${signalId}::uuid,
       ${input.platform},
@@ -244,7 +251,8 @@ export async function ingestSignal(
       ${input.contextSummary ?? null},
       ${input.rawPayload ? JSON.stringify(input.rawPayload) : null}::jsonb,
       ${now}::timestamptz,
-      ${postedAt}::timestamptz
+      ${postedAt}::timestamptz,
+      ${leadSource}
     )
   `;
 
@@ -252,7 +260,7 @@ export async function ingestSignal(
     INSERT INTO growth_leads (
       id, signal_id, full_name, role_title, company_name, profile_url, email, platform,
       icp_score, intent_score, composite_score, score_reasons, pipeline_status,
-      profile_summary, created_at, updated_at
+      profile_summary, lead_source, created_at, updated_at
     ) VALUES (
       ${leadId}::uuid,
       ${signalId}::uuid,
@@ -268,6 +276,7 @@ export async function ingestSignal(
       ${JSON.stringify(scored.reasons)}::jsonb,
       'new',
       ${profileSummary},
+      ${leadSource},
       ${now}::timestamptz,
       ${now}::timestamptz
     )
@@ -280,9 +289,12 @@ export async function ingestSignal(
     await sql`SELECT * FROM growth_leads WHERE id = ${leadId}::uuid`,
   );
 
+  const lead = mapLead(leadRows[0]);
+  await syncIngestedLeadToCrm(leadId, leadSource, lead.compositeScore);
+
   return {
     signal: mapSignal(signalRows[0]),
-    lead: mapLead(leadRows[0]),
+    lead,
     draft: null,
   };
 }
@@ -383,6 +395,7 @@ export async function generateDraftForLead(
 export async function listInbox(options?: {
   minScore?: number;
   platform?: GrowthPlatform | null;
+  leadSource?: LeadSource | null;
   limit?: number;
   /** When set, only leads tied to signals this recent (posted or ingested). */
   freshnessHours?: number | null;
@@ -392,6 +405,7 @@ export async function listInbox(options?: {
   const minScore = options?.minScore ?? 0;
   const limit = options?.limit ?? 50;
   const platform = options?.platform ?? null;
+  const leadSource = options?.leadSource ?? null;
   const freshnessHours =
     options?.freshnessHours === undefined
       ? INBOX_DEFAULT_FRESHNESS_HOURS
@@ -402,50 +416,22 @@ export async function listInbox(options?: {
       : null;
 
   const leadRows = asRows<LeadRow>(
-    platform && cutoff
-      ? await sql`
-          SELECT l.*
-          FROM growth_leads l
-          INNER JOIN growth_signals s ON s.id = l.signal_id
-          WHERE l.composite_score >= ${minScore}
-            AND l.pipeline_status <> 'not_a_fit'
-            AND (l.platform = ${platform} OR s.platform = ${platform})
-            AND COALESCE(s.posted_at, s.ingested_at) >= ${cutoff}::timestamptz
-          ORDER BY COALESCE(s.posted_at, s.ingested_at) DESC, l.composite_score DESC
-          LIMIT ${limit}
-        `
-      : platform
-        ? await sql`
-            SELECT l.*
-            FROM growth_leads l
-            LEFT JOIN growth_signals s ON s.id = l.signal_id
-            WHERE l.composite_score >= ${minScore}
-              AND l.pipeline_status <> 'not_a_fit'
-              AND (l.platform = ${platform} OR s.platform = ${platform})
-            ORDER BY l.composite_score DESC, l.created_at DESC
-            LIMIT ${limit}
-          `
-        : cutoff
-          ? await sql`
-              SELECT l.*
-              FROM growth_leads l
-              INNER JOIN growth_signals s ON s.id = l.signal_id
-              WHERE l.composite_score >= ${minScore}
-                AND l.pipeline_status <> 'not_a_fit'
-                AND COALESCE(s.posted_at, s.ingested_at) >= ${cutoff}::timestamptz
-              ORDER BY COALESCE(s.posted_at, s.ingested_at) DESC, l.composite_score DESC
-              LIMIT ${limit}
-            `
-          : await sql`
-              SELECT l.*
-              FROM growth_leads l
-              LEFT JOIN growth_signals s ON s.id = l.signal_id
-              WHERE l.composite_score >= ${minScore}
-                AND l.pipeline_status <> 'not_a_fit'
-              ORDER BY COALESCE(s.posted_at, s.ingested_at, l.created_at) DESC NULLS LAST,
-                l.composite_score DESC
-              LIMIT ${limit}
-            `,
+    await sql`
+      SELECT l.*
+      FROM growth_leads l
+      LEFT JOIN growth_signals s ON s.id = l.signal_id
+      WHERE l.composite_score >= ${minScore}
+        AND l.pipeline_status <> 'not_a_fit'
+        AND (${platform}::text IS NULL OR l.platform = ${platform} OR s.platform = ${platform})
+        AND (${leadSource}::text IS NULL OR l.lead_source = ${leadSource})
+        AND (
+          ${cutoff}::timestamptz IS NULL
+          OR COALESCE(s.posted_at, s.ingested_at) >= ${cutoff}::timestamptz
+        )
+      ORDER BY COALESCE(s.posted_at, s.ingested_at, l.created_at) DESC NULLS LAST,
+        l.composite_score DESC
+      LIMIT ${limit}
+    `,
   );
 
   const leadIds = leadRows.map((l) => l.id);
@@ -626,6 +612,46 @@ export async function listLeads(options?: {
   });
 }
 
+export async function getLeadById(
+  id: string,
+): Promise<{ lead: GrowthLead; signal: GrowthSignal | null } | null> {
+  await ready();
+  const sql = getSql();
+  const rows = asRows<LeadRow>(
+    await sql`SELECT * FROM growth_leads WHERE id = ${id}::uuid`,
+  );
+  const row = rows[0];
+  if (!row) return null;
+
+  let signal: GrowthSignal | null = null;
+  if (row.signal_id) {
+    const signalRows = asRows<SignalRow>(
+      await sql`SELECT * FROM growth_signals WHERE id = ${row.signal_id}::uuid`,
+    );
+    signal = signalRows[0] ? mapSignal(signalRows[0]) : null;
+  }
+
+  const leadPlatform =
+    (row.platform as GrowthPlatform | null) ??
+    signal?.platform ??
+    null;
+  const sourceUrl = resolveGrowthPostUrl({
+    platform: leadPlatform ?? signal?.platform,
+    sourceUrl: signal?.sourceUrl ?? null,
+    authorProfileUrl: signal?.authorProfileUrl ?? row.profile_url,
+    authorHandle: signal?.authorHandle ?? null,
+  });
+
+  return {
+    lead: {
+      ...mapLead(row),
+      platform: leadPlatform ?? mapLead(row).platform,
+      sourceUrl,
+    },
+    signal,
+  };
+}
+
 export async function updateLead(
   id: string,
   patch: {
@@ -647,6 +673,13 @@ export async function updateLead(
       RETURNING *
     `,
   );
+  if (rows[0] && patch.pipelineStatus) {
+    await sql`
+      UPDATE crm_opportunities
+      SET stage = ${patch.pipelineStatus}, updated_at = ${now}::timestamptz
+      WHERE growth_lead_id = ${id}::uuid
+    `;
+  }
   return rows[0] ? mapLead(rows[0]) : null;
 }
 

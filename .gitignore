@@ -26,6 +26,9 @@
 # misc
 .DS_Store
 *.pem
+deploy/integrations/huginn/scenarios/generated/
+deploy/integrations/freehire/.export-last.json
+/vendor/freehire/
 
 # debug
 npm-debug.log*

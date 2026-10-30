@@ -1,14 +1,32 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { defaultLocale, locales } from "@/lib/content";
+import {
+  brandSlugFromAssetPath,
+  isBrandPortalProtectedAsset,
+} from "@/lib/branding-portal/static-assets";
+import { canAccessBrandPortalAsset } from "@/lib/branding-portal/asset-access";
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  if (isBrandPortalProtectedAsset(pathname)) {
+    const slug = brandSlugFromAssetPath(pathname);
+    const allowed = await canAccessBrandPortalAsset(request, slug);
+    if (!allowed) {
+      const loginUrl = request.nextUrl.clone();
+      loginUrl.pathname = "/branding/login";
+      loginUrl.searchParams.set("next", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+    return NextResponse.next();
+  }
 
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/api") ||
     pathname.startsWith("/admin") ||
+    pathname.startsWith("/branding") ||
     pathname.startsWith("/pay") ||
     pathname.includes(".")
   ) {

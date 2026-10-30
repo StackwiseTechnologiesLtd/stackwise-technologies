@@ -4,18 +4,22 @@ import { AdminActionButton } from "@/components/admin/AdminActionButton";
 import { GrowthArticleLink } from "@/components/admin/growth/GrowthArticleLink";
 import { useToast } from "@/components/ToastProvider";
 import {
+  GrowthLeadSourceFilter,
+  leadSourceBadgeLabel,
+  type LeadSourceFilter,
+} from "@/components/admin/growth/GrowthLeadSourceFilter";
+import {
   GrowthPlatformFilter,
   type PlatformFilter,
 } from "@/components/admin/growth/GrowthPlatformFilter";
-import {
-  GrowthScoreFilter,
-  scoreBadgeClass,
-} from "@/components/admin/growth/GrowthScoreFilter";
-import type { GrowthDraft, GrowthInboxItem } from "@/lib/growth/types";
+import { GrowthScoreFilter } from "@/components/admin/growth/GrowthScoreFilter";
+import type { GrowthDraft, GrowthInboxItem, LeadSource } from "@/lib/growth/types";
 import { growthFetch } from "@/lib/growth/growth-fetch";
 import { INBOX_DEFAULT_FRESHNESS_HOURS } from "@/lib/growth/harvest-config";
 import { sortInboxItemsByRecency } from "@/lib/growth/lead-sort";
 import { GrowthFreshnessFilter } from "@/components/admin/growth/GrowthFreshnessFilter";
+import { PromoteToCrmButton } from "@/components/admin/growth/PromoteToCrmButton";
+import { formatShortRelativeTime } from "@/lib/format-relative-time";
 import { resolveGrowthPostUrl } from "@/lib/growth/post-url";
 import { normalizeDiscoveryKeyword } from "@/lib/growth/personalized-draft";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
@@ -24,11 +28,13 @@ import { useCallback, useMemo, useState } from "react";
 function inboxQuery(
   minScore: number,
   platform: PlatformFilter,
+  leadSource: LeadSourceFilter,
   freshnessHours: number,
 ): string {
   const params = new URLSearchParams();
   if (minScore > 0) params.set("minScore", String(minScore));
   if (platform !== "all") params.set("platform", platform);
+  if (leadSource !== "all") params.set("leadSource", leadSource);
   if (freshnessHours > 0) {
     params.set("freshnessHours", String(freshnessHours));
   } else {
@@ -50,9 +56,14 @@ function draftStatusLabel(item: GrowthInboxItem): string {
 export type GrowthInboxPanelProps = {
   /** Locks the inbox to one platform and hides the platform filter. */
   fixedPlatform?: Exclude<PlatformFilter, "all">;
+  /** Locks the inbox to one lead channel and hides the channel filter. */
+  fixedLeadSource?: LeadSource;
 };
 
-export function GrowthInboxPanel({ fixedPlatform }: GrowthInboxPanelProps = {}) {
+export function GrowthInboxPanel({
+  fixedPlatform,
+  fixedLeadSource,
+}: GrowthInboxPanelProps = {}) {
   const toast = useToast();
   const [items, setItems] = useState<GrowthInboxItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,9 +77,13 @@ export function GrowthInboxPanel({ fixedPlatform }: GrowthInboxPanelProps = {}) 
   const [freshnessHours, setFreshnessHours] = useState(
     INBOX_DEFAULT_FRESHNESS_HOURS,
   );
+  const [leadSource, setLeadSource] = useState<LeadSourceFilter>(
+    fixedLeadSource ?? "all",
+  );
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   const platformFilter: PlatformFilter = fixedPlatform ?? platform;
+  const leadSourceFilter: LeadSourceFilter = fixedLeadSource ?? leadSource;
 
   const load = useCallback(
     async (opts?: { silent?: boolean }) => {
@@ -76,7 +91,7 @@ export function GrowthInboxPanel({ fixedPlatform }: GrowthInboxPanelProps = {}) 
       else setRefreshing(true);
       try {
         const res = await growthFetch(
-          `/api/admin/growth/inbox${inboxQuery(minScore, platformFilter, freshnessHours)}`,
+          `/api/admin/growth/inbox${inboxQuery(minScore, platformFilter, leadSourceFilter, freshnessHours)}`,
         );
         if (!res.ok) throw new Error("Could not load inbox");
         const json = (await res.json()) as { items: GrowthInboxItem[] };
@@ -94,10 +109,11 @@ export function GrowthInboxPanel({ fixedPlatform }: GrowthInboxPanelProps = {}) 
         setRefreshing(false);
       }
     },
-    [toast, minScore, platformFilter, freshnessHours],
+    [toast, minScore, platformFilter, leadSourceFilter, freshnessHours],
   );
 
   const linkedInInbox = fixedPlatform === "linkedin";
+  const jobsInbox = fixedLeadSource === "freehire";
 
   useDeferredEffect(() => {
     void load();
@@ -181,7 +197,11 @@ export function GrowthInboxPanel({ fixedPlatform }: GrowthInboxPanelProps = {}) 
       <div className="flex flex-col gap-4 rounded-2xl border border-line bg-gradient-to-br from-panel/90 to-black/40 p-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-lg font-semibold tracking-tight">
-            {linkedInInbox ? "LinkedIn inbox" : "Lead inbox"}
+            {jobsInbox
+              ? "Jobs inbox"
+              : linkedInInbox
+                ? "LinkedIn inbox"
+                : "Lead inbox"}
           </p>
           <p className="text-sm text-muted">
             {sortedItems.length} lead{sortedItems.length === 1 ? "" : "s"}
@@ -194,14 +214,19 @@ export function GrowthInboxPanel({ fixedPlatform }: GrowthInboxPanelProps = {}) 
               : ""}
           </p>
           <p className="mt-1 max-w-xl text-xs text-muted">
-            {linkedInInbox
-              ? "Expand a lead to draft a comment, then copy and paste it on the LinkedIn post. Mark posted when you are done."
-              : "Expand a lead to read the post and generate a reply. Use the LinkedIn tab for comment workflows; X supports one-click post from here."}
+            {jobsInbox
+              ? "Job postings from freehire. Qualified roles sync to CRM as Hiring opportunities."
+              : linkedInInbox
+                ? "Expand a lead to draft a comment, then copy and paste it on the LinkedIn post. Mark posted when you are done."
+                : "Expand a lead to read the post and generate a reply. Use the LinkedIn tab for comment workflows; X supports one-click post from here."}
           </p>
         </div>
         <div className="flex flex-col gap-3">
           {fixedPlatform ? null : (
             <GrowthPlatformFilter value={platform} onChange={setPlatform} />
+          )}
+          {fixedLeadSource ? null : (
+            <GrowthLeadSourceFilter value={leadSource} onChange={setLeadSource} />
           )}
           <GrowthFreshnessFilter
             freshnessHours={freshnessHours}
@@ -246,6 +271,9 @@ export function GrowthInboxPanel({ fixedPlatform }: GrowthInboxPanelProps = {}) 
                   signal?.authorProfileUrl ?? lead.profileUrl,
                 authorHandle: signal?.authorHandle ?? null,
               });
+            const activityTime = formatShortRelativeTime(
+              signal?.postedAt ?? signal?.ingestedAt ?? lead.createdAt,
+            );
 
             return (
               <li
@@ -259,14 +287,18 @@ export function GrowthInboxPanel({ fixedPlatform }: GrowthInboxPanelProps = {}) 
                   aria-expanded={isOpen}
                 >
                   <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                      <span className="text-[10px] text-muted tabular-nums">
+                        {[
+                          activityTime,
+                          leadSourceBadgeLabel(lead.leadSource),
+                          `${score}% fit`,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </span>
                       <span className="text-xs font-medium uppercase tracking-wide text-muted">
                         {lead.platform ?? "unknown"}
-                      </span>
-                      <span
-                        className={`rounded-full px-2 py-0.5 font-mono text-[11px] font-semibold ring-1 ${scoreBadgeClass(score)}`}
-                      >
-                        {score}% fit
                       </span>
                       <span className="rounded-md bg-black/40 px-2 py-0.5 text-[10px] text-muted ring-1 ring-line">
                         {draftStatusLabel(item)}
@@ -306,7 +338,8 @@ export function GrowthInboxPanel({ fixedPlatform }: GrowthInboxPanelProps = {}) 
                   <div className="border-t border-line">
                     <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
                       <div className="border-b border-line p-5 lg:border-b-0 lg:border-r">
-                        <div className="flex flex-wrap justify-end gap-2 text-xs">
+                        <div className="flex flex-wrap items-center justify-end gap-2 text-xs">
+                          <PromoteToCrmButton leadId={lead.id} />
                           {lead.profileUrl ? (
                             <a
                               href={lead.profileUrl}

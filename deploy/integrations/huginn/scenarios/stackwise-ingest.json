@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "name": "Stackwise Growth ingest",
+  "description": "Manual test event or RSS intent → POST /api/admin/integrations/ingest. After import, edit the Post Agent: post_url and Authorization bearer secret.",
+  "source_url": false,
+  "guid": "b4e2c8a17f3d4e9ab2c16d8e0f1a2b3c",
+  "tag_fg_color": "#f8fafc",
+  "tag_bg_color": "#0f172a",
+  "icon": "globe",
+  "exported_at": "2026-03-24T00:00:00Z",
+  "agents": [
+    {
+      "type": "Agents::ManualAgent",
+      "name": "Stackwise — manual test event",
+      "disabled": false,
+      "guid": "c1a2b3c4d5e6f708192a3b4c5d6e7f80",
+      "options": {},
+      "schedule": "never",
+      "keep_events_for": 604800
+    },
+    {
+      "type": "Agents::RssAgent",
+      "name": "Stackwise — RSS (example, disabled)",
+      "disabled": true,
+      "guid": "d2b3c4d5e6f708192a3b4c5d6e7f8091",
+      "options": {
+        "url": "https://weworkremotely.com/categories/remote-full-stack-programming-jobs.rss",
+        "expected_update_period_in_days": "2",
+        "clean": "true"
+      },
+      "schedule": "every_1h",
+      "keep_events_for": 604800
+    },
+    {
+      "type": "Agents::TriggerAgent",
+      "name": "Stackwise — hiring intent filter",
+      "disabled": true,
+      "guid": "e3c4d5e6f708192a3b4c5d6e7f8091a2",
+      "options": {
+        "rules": [
+          {
+            "type": "regex",
+            "value": "(need a developer|hiring|looking for (a )?dev|mvp|production launch)",
+            "path": "{{ title }} {{ description }}"
+          }
+        ],
+        "must_match": "1"
+      },
+      "schedule": "never",
+      "keep_events_for": 604800
+    },
+    {
+      "type": "Agents::EventFormattingAgent",
+      "name": "Stackwise — ingest JSON shape",
+      "disabled": false,
+      "guid": "f4d5e6f708192a3b4c5d6e7f8091a2b3",
+      "options": {
+        "instructions": {
+          "source": "huginn",
+          "platform": "{{ platform | default: 'linkedin' }}",
+          "authorName": "{{ author_name | default: title | default: 'Unknown' }}",
+          "bodyText": "{{ body_text | default: description | default: title }}",
+          "sourceUrl": "{{ source_url | default: url }}",
+          "postedAt": "{{ posted_at | default: published }}"
+        },
+        "mode": "clean"
+      },
+      "schedule": "never",
+      "keep_events_for": 604800
+    },
+    {
+      "type": "Agents::PostAgent",
+      "name": "Stackwise — POST ingest",
+      "disabled": false,
+      "guid": "a5e6f708192a3b4c5d6e7f8091a2b3c4",
+      "options": {
+        "post_url": "http://host.docker.internal:3000/api/admin/integrations/ingest",
+        "expected_receive_period_in_days": "2",
+        "content_type": "json",
+        "method": "post",
+        "headers": {
+          "Authorization": "Bearer REPLACE_WITH_INTEGRATIONS_INGEST_SECRET"
+        },
+        "payload": {
+          "source": "{{ source }}",
+          "platform": "{{ platform }}",
+          "authorName": "{{ authorName }}",
+          "bodyText": "{{ bodyText }}",
+          "sourceUrl": "{{ sourceUrl }}",
+          "postedAt": "{{ postedAt }}"
+        },
+        "no_merge": "true",
+        "emit_events": "true",
+        "disable_ssl_verification": "false"
+      },
+      "schedule": "never",
+      "keep_events_for": 604800
+    }
+  ],
+  "links": [
+    {
+      "source": 0,
+      "receiver": 3
+    },
+    {
+      "source": 1,
+      "receiver": 2
+    },
+    {
+      "source": 2,
+      "receiver": 3
+    },
+    {
+      "source": 3,
+      "receiver": 4
+    }
+  ],
+  "control_links": []
+}

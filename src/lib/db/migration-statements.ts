@@ -291,11 +291,122 @@ CREATE INDEX IF NOT EXISTS idx_payment_links_contract_engagement
   ON payment_links (contract_engagement_id);
 `;
 
+const INTEGRATIONS_SQL = `
+ALTER TABLE growth_signals
+  ADD COLUMN IF NOT EXISTS lead_source VARCHAR(32) NOT NULL DEFAULT 'harvest';
+ALTER TABLE growth_leads
+  ADD COLUMN IF NOT EXISTS lead_source VARCHAR(32) NOT NULL DEFAULT 'harvest';
+CREATE INDEX IF NOT EXISTS idx_growth_signals_lead_source
+  ON growth_signals (lead_source, ingested_at DESC);
+CREATE INDEX IF NOT EXISTS idx_growth_leads_lead_source
+  ON growth_leads (lead_source, created_at DESC);
+CREATE TABLE IF NOT EXISTS integration_events (
+  id UUID PRIMARY KEY,
+  lead_source VARCHAR(32) NOT NULL,
+  event_type VARCHAR(32) NOT NULL,
+  lead_id UUID REFERENCES growth_leads(id) ON DELETE SET NULL,
+  detail TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_integration_events_source_created
+  ON integration_events (lead_source, created_at DESC);
+`;
+
+const CRM_SQL = `
+CREATE TABLE IF NOT EXISTS crm_companies (
+  id UUID PRIMARY KEY,
+  name TEXT NOT NULL,
+  domain TEXT,
+  growth_lead_id UUID REFERENCES growth_leads(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE TABLE IF NOT EXISTS crm_people (
+  id UUID PRIMARY KEY,
+  full_name TEXT NOT NULL,
+  email TEXT,
+  role_title TEXT,
+  linkedin_url TEXT,
+  x_profile_url TEXT,
+  company_id UUID REFERENCES crm_companies(id) ON DELETE SET NULL,
+  growth_lead_id UUID UNIQUE REFERENCES growth_leads(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE TABLE IF NOT EXISTS crm_opportunities (
+  id UUID PRIMARY KEY,
+  name TEXT NOT NULL,
+  stage VARCHAR(32) NOT NULL DEFAULT 'new',
+  amount_cents INTEGER,
+  fit_score INTEGER NOT NULL DEFAULT 0,
+  source_post_url TEXT,
+  platform VARCHAR(16),
+  lead_source VARCHAR(32),
+  person_id UUID NOT NULL REFERENCES crm_people(id) ON DELETE CASCADE,
+  company_id UUID REFERENCES crm_companies(id) ON DELETE SET NULL,
+  growth_lead_id UUID UNIQUE REFERENCES growth_leads(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE TABLE IF NOT EXISTS crm_activities (
+  id UUID PRIMARY KEY,
+  opportunity_id UUID NOT NULL REFERENCES crm_opportunities(id) ON DELETE CASCADE,
+  activity_type VARCHAR(32) NOT NULL,
+  body TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_crm_opportunities_stage
+  ON crm_opportunities (stage, updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_crm_activities_opportunity
+  ON crm_activities (opportunity_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_crm_people_growth_lead
+  ON crm_people (growth_lead_id);
+`;
+
 const GROWTH_SIGNAL_POSTED_AT_SQL = `
 ALTER TABLE growth_signals
   ADD COLUMN IF NOT EXISTS posted_at TIMESTAMPTZ;
 CREATE INDEX IF NOT EXISTS idx_growth_signals_posted
   ON growth_signals (posted_at DESC NULLS LAST);
+`;
+
+const BRAND_GUIDELINES_SQL = `
+CREATE TABLE IF NOT EXISTS brand_guidelines (
+  slug VARCHAR(64) PRIMARY KEY,
+  published BOOLEAN NOT NULL DEFAULT FALSE,
+  config JSONB NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_brand_guidelines_published
+  ON brand_guidelines (published, slug);
+CREATE TABLE IF NOT EXISTS brand_guideline_assets (
+  brand_slug VARCHAR(64) NOT NULL REFERENCES brand_guidelines (slug) ON DELETE CASCADE,
+  asset_path TEXT NOT NULL,
+  content_type VARCHAR(128) NOT NULL,
+  data BYTEA NOT NULL,
+  byte_size INTEGER NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (brand_slug, asset_path)
+);
+CREATE INDEX IF NOT EXISTS idx_brand_guideline_assets_slug
+  ON brand_guideline_assets (brand_slug);
+`;
+
+const BRAND_PORTAL_SQL = `
+CREATE TABLE IF NOT EXISTS brand_portal_members (
+  id UUID PRIMARY KEY,
+  brand_slug VARCHAR(64) NOT NULL,
+  email TEXT NOT NULL,
+  password_hash TEXT NULL,
+  auth_method VARCHAR(16) NOT NULL DEFAULT 'password',
+  active BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (brand_slug, email)
+);
+CREATE INDEX IF NOT EXISTS idx_brand_portal_members_slug
+  ON brand_portal_members (brand_slug, active);
 `;
 
 export const MIGRATION_STATEMENTS = [
@@ -314,4 +425,8 @@ export const MIGRATION_STATEMENTS = [
   ...splitStatements(CONTRACT_ENGAGEMENTS_SQL),
   ...splitStatements(CONTRACT_ENGAGEMENTS_V2_SQL),
   ...splitStatements(GROWTH_SIGNAL_POSTED_AT_SQL),
+  ...splitStatements(INTEGRATIONS_SQL),
+  ...splitStatements(CRM_SQL),
+  ...splitStatements(BRAND_PORTAL_SQL),
+  ...splitStatements(BRAND_GUIDELINES_SQL),
 ];

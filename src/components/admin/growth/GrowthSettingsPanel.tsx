@@ -2,6 +2,7 @@
 
 import { useToast } from "@/components/ToastProvider";
 import { AdminActionButton } from "@/components/admin/AdminActionButton";
+import { GrowthIntegrationsPanel } from "@/components/admin/growth/GrowthIntegrationsPanel";
 import { GrowthPlatformConnections } from "@/components/admin/growth/GrowthPlatformConnections";
 import type { IcpConfig } from "@/lib/growth/types";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
@@ -82,6 +83,8 @@ export function GrowthSettingsPanel() {
   return (
     <div className="space-y-8">
       <GrowthPlatformConnections />
+
+      <GrowthIntegrationsPanel />
 
       <section className="rounded-xl border border-line bg-panel p-5 sm:p-6">
         <h3 className="text-base font-semibold tracking-tight">ICP and intent rules</h3>

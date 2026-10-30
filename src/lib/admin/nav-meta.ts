@@ -8,6 +8,7 @@ export type AdminNavItem = {
     | "withdraw"
     | "logs"
     | "growth"
+    | "crm"
     | "settings";
   match?: "exact" | "prefix";
 };
@@ -19,15 +20,28 @@ export type AdminNavChild = {
 };
 
 export const adminGrowthNavChildren: AdminNavChild[] = [
+  { href: "/admin/crm", label: "Pipeline", match: "prefix" },
   { href: "/admin/growth", label: "Inbox", match: "exact" },
   { href: "/admin/growth/linkedin", label: "LinkedIn", match: "prefix" },
-  { href: "/admin/growth/leads", label: "Leads", match: "prefix" },
+  { href: "/admin/growth/jobs", label: "Jobs", match: "prefix" },
   { href: "/admin/growth/settings", label: "Settings", match: "prefix" },
 ];
 
 export const adminNavPrimary: AdminNavItem[] = [
   { href: "/admin", label: "Payment links", icon: "links", match: "exact" },
   { href: "/admin/contracts", label: "Agreements", icon: "contracts", match: "prefix" },
+  {
+    href: "/admin/brand-guidelines",
+    label: "Brand guidelines",
+    icon: "settings",
+    match: "prefix",
+  },
+  {
+    href: "/admin/brand-portal",
+    label: "Brand access",
+    icon: "settings",
+    match: "prefix",
+  },
   {
     href: "/admin/subscriptions",
     label: "Subscriptions",
@@ -36,6 +50,7 @@ export const adminNavPrimary: AdminNavItem[] = [
   },
   { href: "/admin/withdraw", label: "Withdraw", icon: "withdraw", match: "prefix" },
   { href: "/admin/audit-logs", label: "Access logs", icon: "logs", match: "prefix" },
+  { href: "/admin/crm", label: "CRM", icon: "crm", match: "prefix" },
   {
     href: "/admin/growth",
     label: "Growth",
@@ -48,6 +63,9 @@ export function adminPageTitle(pathname: string): string {
   if (pathname === "/admin") return "Payment links";
   if (pathname.startsWith("/admin/payment-links/new")) return "New payment link";
   if (pathname.startsWith("/admin/payment-links/")) return "Payment link";
+  if (pathname === "/admin/brand-guidelines") return "Brand guidelines";
+  if (pathname.startsWith("/admin/brand-guidelines/")) return "Edit brand guidelines";
+  if (pathname === "/admin/brand-portal") return "Brand guidelines access";
   if (pathname === "/admin/contracts") return "Agreements";
   if (pathname.startsWith("/admin/contracts/new")) return "New agreement";
   if (pathname.startsWith("/admin/contracts/")) return "Agreement";
@@ -58,9 +76,12 @@ export function adminPageTitle(pathname: string): string {
   if (pathname === "/admin/audit-logs") return "Payment access logs";
   if (pathname === "/admin/growth") return "Inbox";
   if (pathname.startsWith("/admin/growth/linkedin")) return "LinkedIn inbox";
-  if (pathname.startsWith("/admin/growth/leads")) return "Leads";
+  if (pathname.startsWith("/admin/growth/jobs")) return "Jobs inbox";
+  if (pathname.startsWith("/admin/growth/leads")) return "CRM pipeline";
   if (pathname.startsWith("/admin/growth/settings")) return "Settings";
   if (pathname.startsWith("/admin/growth/connect")) return "Connect";
+  if (pathname === "/admin/crm") return "CRM pipeline";
+  if (pathname.startsWith("/admin/crm/opportunities/")) return "Opportunity";
   return "Admin";
 }
 

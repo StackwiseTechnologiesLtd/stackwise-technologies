@@ -27,6 +27,11 @@ export const metadata: Metadata = {
     title: MARKETING_TITLE,
     description: MARKETING_DESCRIPTION,
   }),
+  alternates: {
+    types: {
+      "text/plain": "/llms.txt",
+    },
+  },
   keywords: [
     "Stackwise Technologies",
     "Engineering Partner",
