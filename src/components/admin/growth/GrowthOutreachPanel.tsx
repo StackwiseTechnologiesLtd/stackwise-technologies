@@ -83,11 +83,11 @@ export function GrowthOutreachPanel() {
           <div>
             <h3 className="text-base font-semibold tracking-tight">Campaign</h3>
             <p className="mt-1 max-w-2xl text-sm text-muted">
-              Generates a personalized message per harvested lead (profile URL on file), wraps it in
-              the Stackwise email template, and sends via SMTP when{" "}
-              <code className="text-foreground">growth_leads.email</code> or linked CRM person email
-              is set. Leads without an address are saved as{" "}
-              <strong className="font-medium text-foreground">draft_ready</strong> in the report.
+              Generates a personalized message per lead, wraps it in the Stackwise email template, and
+              sends via SMTP when an email is on file.{" "}
+              <strong className="font-medium text-foreground">firecrawl</strong> leads (and{" "}
+              <code className="text-foreground">GROWTH_OUTREACH_SKIP_SCORE=1</code>) skip the minimum
+              fit score for AI tailoring.
             </p>
           </div>
           <AdminActionButton busy={running} busyLabel="Running…" onClick={() => void startRun()}>

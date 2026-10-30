@@ -18,8 +18,8 @@ const flowSteps = [
   {
     step: "1",
     title: "Connect & harvest",
-    body: "Link LinkedIn / X, run ICP harvest, or ingest jobs from freehire.",
-    href: "/admin/growth/connect",
+    body: "Link LinkedIn / X, run ICP harvest, ingest jobs, or scrape the web locally (Firecrawl).",
+    href: "/admin/growth/discover",
   },
   {
     step: "2",

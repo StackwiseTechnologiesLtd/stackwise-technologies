@@ -7,6 +7,7 @@ export const leadSources = [
   "manual",
   "huginn",
   "freehire",
+  "firecrawl",
 ] as const;
 export type LeadSource = (typeof leadSources)[number];
 

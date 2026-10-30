@@ -72,7 +72,7 @@ export async function buildPersonalizedEmailDraft(
   const fallback = buildFallbackEmail(input);
   const discoveryKeyword = normalizeDiscoveryKeyword(input.contextSummary);
 
-  if (input.compositeScore < minScoreForAiDraft()) {
+  if (!input.skipScoreThreshold && input.compositeScore < minScoreForAiDraft()) {
     return fallback;
   }
 

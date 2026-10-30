@@ -48,6 +48,7 @@ type LeadOutreachRow = {
   body_text: string | null;
   context_summary: string | null;
   crm_email: string | null;
+  lead_source: string | null;
 };
 
 type RunRow = {
@@ -219,11 +220,19 @@ export async function runOutreachCampaign(
         l.profile_summary,
         s.body_text,
         s.context_summary,
-        p.email AS crm_email
+        p.email AS crm_email,
+        l.lead_source
       FROM growth_leads l
       LEFT JOIN growth_signals s ON s.id = l.signal_id
       LEFT JOIN crm_people p ON p.growth_lead_id = l.id
-      WHERE l.profile_url IS NOT NULL AND trim(l.profile_url) <> ''
+      WHERE (
+        (l.profile_url IS NOT NULL AND trim(l.profile_url) <> '')
+        OR (
+          l.lead_source = 'firecrawl'
+          AND l.email IS NOT NULL
+          AND trim(l.email) <> ''
+        )
+      )
       ORDER BY l.composite_score DESC, l.created_at DESC
       OFFSET ${offset}
       LIMIT ${limit}
@@ -264,6 +273,9 @@ export async function runOutreachCampaign(
         compositeScore: lead.composite_score,
         scoreReasons: parseReasons(lead.score_reasons),
         config,
+        skipScoreThreshold:
+          lead.lead_source === "firecrawl" ||
+          process.env.GROWTH_OUTREACH_SKIP_SCORE === "1",
       });
       subjectLine = draft.subject;
       bodyText = draft.body;
