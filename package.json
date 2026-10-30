@@ -25,6 +25,7 @@
     "growth:cookies:pull": "node scripts/growth-connector.mjs pull-cookies",
     "growth:connect": "node scripts/growth-connect.mjs",
     "growth:harvest": "node scripts/growth-harvest.mjs",
+    "growth:outreach": "node scripts/growth-outreach-run.mjs",
     "growth:connect-server": "node scripts/growth-connect-server.mjs",
     "integrations:secret": "node scripts/generate-ingest-secret.mjs",
     "integrations:up": "node scripts/integrations-up.mjs",

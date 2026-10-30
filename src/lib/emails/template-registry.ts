@@ -242,6 +242,42 @@ Open: {{reviewUrl}}`,
 </html>`,
 };
 
+const growthOutreach001: EmailTemplateParts = {
+  subject: "{{subjectLine}}",
+  txt: `Hi {{displayName}},
+
+{{bodyText}}
+
+— Stackwise Technologies
+info@stackwisetechnologies.com`,
+  html: `<!DOCTYPE html>
+<html>
+  <body style="margin:0;padding:24px;background:#f8fafc;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#334155;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:480px;margin:0 auto;">
+      <tr>
+        <td style="background:#ffffff;border-radius:16px;padding:32px 24px;">
+          <div style="border-bottom:1px solid #f1f5f9;padding-bottom:20px;margin-bottom:20px;">
+            <div style="font-size:20px;font-weight:700;color:#541111;">Stackwise</div>
+            <div style="font-size:12px;color:#64748b;margin-top:4px;">Engineering that delivers.</div>
+          </div>
+          <div style="font-size:12px;margin-bottom:12px;">Hi {{displayName}},</div>
+          {{bodyHtml}}
+          <div style="font-size:12px;margin-top:20px;border-top:1px solid #f1f5f9;padding-top:16px;">
+            Best regards,<br /><strong>Stackwise Technologies</strong>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:12px 2px;font-size:12px;color:#64748b;line-height:18px;">
+          Stackwise Technologies Limited · RC: 9398438<br />
+          info@stackwisetechnologies.com
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`,
+};
+
 const TEMPLATES: Record<string, Record<string, EmailTemplateParts>> = {
   "login-otp": { "0.0.1": loginOtp001 },
   "payment-link": { "0.0.1": paymentLink001 },
@@ -250,6 +286,7 @@ const TEMPLATES: Record<string, Record<string, EmailTemplateParts>> = {
   "contract-client": { "0.0.1": contractClient001 },
   "contract-feedback": { "0.0.1": contractFeedback001 },
   "contract-accepted": { "0.0.1": contractAccepted001 },
+  "growth-outreach": { "0.0.1": growthOutreach001 },
 };
 
 export function getEmailTemplate(

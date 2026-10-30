@@ -24,7 +24,17 @@ export function formatOutreachCsv(
   const lines = [headers.join(",")];
   for (const item of items) {
     lines.push(
-      headers.map((h) => csvEscape(item[h as keyof GrowthOutreachItem] as string)).join(","),
+      [
+        csvEscape(item.recipientName),
+        csvEscape(item.recipientEmail),
+        csvEscape(item.companyName),
+        csvEscape(item.profileUrl),
+        csvEscape(item.subjectLine),
+        csvEscape(item.status),
+        csvEscape(item.usedAi ? "yes" : "no"),
+        csvEscape(item.errorMessage),
+        csvEscape(item.bodyText),
+      ].join(","),
     );
   }
   lines.push("");

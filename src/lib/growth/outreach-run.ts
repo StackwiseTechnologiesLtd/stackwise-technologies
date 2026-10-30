@@ -10,9 +10,29 @@ import type {
   RunOutreachOptions,
 } from "@/lib/growth/outreach-types";
 import type { GrowthPlatform } from "@/lib/growth/types";
+import { ensureSchema } from "@/lib/db/ensure-schema";
+import { asRows, getSql, isDatabaseConfigured } from "@/lib/db/postgres";
 import { getIcpConfig } from "@/lib/growth/repository";
-import { asRows, getSql, ready } from "@/lib/growth/sql";
-import { parseReasons } from "@/lib/growth/parse-reasons";
+
+async function ready() {
+  if (!isDatabaseConfigured()) {
+    throw new Error("DATABASE_URL is required for the growth engine");
+  }
+  await ensureSchema();
+}
+
+function parseReasons(value: unknown): string[] {
+  if (Array.isArray(value)) return value.map(String);
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed) ? parsed.map(String) : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
 
 type LeadOutreachRow = {
   id: string;
