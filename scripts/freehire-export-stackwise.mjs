@@ -75,11 +75,11 @@ for (const row of rows) {
     company,
     description,
     url: sourceUrl,
-    // Greenhouse often returns stale ATS posted dates; catalogue `created_at` reflects when we crawled it.
+    // Prefer ATS `posted_at`, then crawl timestamps. `created_at` alone can be stale in search results.
     postedAt:
-      row.created_at ??
-      row.last_seen_at ??
       row.posted_at ??
+      row.last_seen_at ??
+      row.created_at ??
       new Date().toISOString(),
     platform: "linkedin",
   });
