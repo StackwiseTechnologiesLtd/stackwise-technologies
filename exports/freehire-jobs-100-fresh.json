@@ -1,0 +1,802 @@
+[
+  {
+    "title": "Software Engineer - Infrastructure, Data Platform",
+    "company": "Baton",
+    "description": "Builds and maintains the real-time data infrastructure for Ryder’s freight operations, designing streaming pipelines, optimizing SQL, and collaborating with stakeholders to solve logistics data challenges at scale.",
+    "url": "https://job-boards.greenhouse.io/baton/jobs/4011484007?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Forward Deployed Engineer",
+    "company": "Banyan Software",
+    "description": "Embed with client teams to modernize legacy apps to AWS cloud-native architectures, set up CI/CD and IaC, and embed AI-assisted SDLC practices while mentoring engineers.",
+    "url": "https://job-boards.greenhouse.io/banyansoftware/jobs/5056439007?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Expert Online Services Software Engineer",
+    "company": "2K",
+    "description": "Senior engineer builds real-time multiplayer sports game features using Unreal Engine 5 and custom servers, solving networking challenges like latency and prediction.",
+    "url": "https://job-boards.greenhouse.io/2k/jobs/7651054003?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Backend .NET Software Engineer",
+    "company": "Betson Group",
+    "description": "Backend engineer joining Betsson Group's Campaigns & Rewards unit in Malaga, designing distributed .NET event-driven microservices for loyalty campaigns and tournaments while driving containerization and cloud migration. Core stack: C#/.NET, SQL Server/PostgreSQL/Redis/Couchbase, AWS, Kubernetes, Docker.",
+    "url": "https://job-boards.greenhouse.io/betsson/jobs/7972951?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Backend Software Engineer",
+    "company": "Betson Group",
+    "description": "Backend engineer on Betsson Group's Wallet team in Malaga, designing distributed .NET services with event-driven architecture while driving containerization and cloud migration. Core stack: C#/.NET, SQL Server/PostgreSQL/Redis/Couchbase, AWS/Kubernetes, Kafka/RabbitMQ, and observability tooling.",
+    "url": "https://job-boards.greenhouse.io/betsson/jobs/7080187?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Senior Software Engineer",
+    "company": "Blinkhealth",
+    "description": "Senior Software Engineer at Blink Health builds healthcare tech products like BlinkRx to improve prescription affordability and access, using AWS, Python, JavaScript, and AI/ML for automation and personalization.",
+    "url": "https://job-boards.greenhouse.io/blinkhealth/jobs/7529352002?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Machine Learning Engineer",
+    "company": "Betson Group",
+    "description": "The Wow As a Machine Learning Engineer, you will play a pivotal role in designing, developing, and deploying advanced machine learning models that enhance our products and services. You will collaborate with cross-functional teams to solve complex problems and drive the adoption of machine learning solutions across the organization. A taster of what you will be involved with: Design, implement, and optimize machine learning models to solve complex business problems. Oversee the entire machine learning lifecycle, from data collection and pre-processing to model deployment and monitoring. Work closely with data scientists, software engineers, and product managers to integrate machine learning models into production systems. Stay up-to-date with the latest advancements in machine learning and apply them to improve model performance and functionality. Write and maintain high-quality,",
+    "url": "https://job-boards.greenhouse.io/betsson/jobs/7814134?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Machine Learning Engineer",
+    "company": "Betson Group",
+    "description": "The Wow As a Machine Learning Engineer, you will play a pivotal role in designing, developing, and deploying advanced machine learning models that enhance our products and services. You will collaborate with cross-functional teams to solve complex problems and drive the adoption of machine learning solutions across the organization. A taster of what you will be involved with: Design, implement, and optimize machine learning models to solve complex business problems. Oversee the entire machine learning lifecycle, from data collection and pre-processing to model deployment and monitoring. Work closely with data scientists, software engineers, and product managers to integrate machine learning models into production systems. Stay up-to-date with the latest advancements in machine learning and apply them to improve model performance and functionality. Write and",
+    "url": "https://job-boards.greenhouse.io/betsson/jobs/7721239?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Player Management - Backend Software Engineer",
+    "company": "Betson Group",
+    "description": "Build and maintain the backend systems that handle player account management, authentication, and security for 40+ iGaming brands using .NET C#, Web API, and microservices.",
+    "url": "https://job-boards.greenhouse.io/betsson/jobs/7092345?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Player Management - Fullstack Software Engineer",
+    "company": "Betson Group",
+    "description": "Fullstack engineer on Betsson's Player Account Management (PAM) team in Budapest, building scalable account, authentication, session and responsible-gaming services for 40+ iGaming brands. Day-to-day work spans .NET 9 and Angular development, Kafka/RabbitMQ messaging, Docker/Kubernetes on AWS, and PostgreSQL/MSSQL/Couchbase databases.",
+    "url": "https://job-boards.greenhouse.io/betsson/jobs/7694097?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Senior Backend .NET Software Engineer",
+    "company": "Betson Group",
+    "description": "Senior backend engineer joining Betsson Group's Campaigns & Rewards team in Malaga, designing distributed .NET services with event-driven architecture for loyalty features like tournaments and personalized campaigns, while driving containerization, cloud migration, and system scalability on AWS/Kubernetes.",
+    "url": "https://job-boards.greenhouse.io/betsson/jobs/7966873?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "2026 Early Career Software Engineer",
+    "company": "Anduril Industries",
+    "description": "Build and maintain AI-powered defense systems that process real-time data into 3D command-and-control tools using C++, Go, Rust, Java, or Python.",
+    "url": "https://boards.greenhouse.io/andurilindustries/jobs/4802146007?gh_jid=4802146007&utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "2027 Early Career Software Engineer",
+    "company": "Anduril Industries",
+    "description": "Early-career software engineers build and maintain AI-powered defense systems using C++, Go, Rust, Java, and Python to support real-time command and control for military applications.",
+    "url": "https://boards.greenhouse.io/andurilindustries/jobs/5162263007?gh_jid=5162263007&utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "2027 Software Engineer Intern",
+    "company": "Anduril Industries",
+    "description": "Build and improve software for defense systems, collaborating on AI-powered command-and-control tools using C++, Go, Rust, Java, and Python.",
+    "url": "https://boards.greenhouse.io/andurilindustries/jobs/5148079007?gh_jid=5148079007&utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "AD&S, Air Vehicle Software Systems Engineer",
+    "company": "Anduril Industries",
+    "description": "Designs and maintains software systems for autonomous military aircraft, ensuring compliance with aviation and defense standards.",
+    "url": "https://boards.greenhouse.io/andurilindustries/jobs/5131822007?gh_jid=5131822007&utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Senior Software Engineer - Product Data Gateway",
+    "company": "Abnormal Security",
+    "description": "Senior Software Engineer builds and maintains a unified configuration platform to improve developer productivity and system reliability for cybersecurity products.",
+    "url": "https://abnormal.ai/careers/jobs/7481102003?gh_jid=7481102003&utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Senior Software Engineer - Multi-Product Platform",
+    "company": "Abnormal Security",
+    "description": "Senior full-stack engineer building and scaling customer onboarding systems and APIs for Abnormal Security’s enterprise product suite using Python and Postgres.",
+    "url": "https://abnormal.ai/careers/jobs/7602802003?gh_jid=7602802003&utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Senior Software Engineer - Message Security Detection",
+    "company": "Abnormal Security",
+    "description": "Lead the architecture of high-throughput threat detection systems using Spark, Airflow, AWS, and EKS.",
+    "url": "https://abnormal.ai/careers/jobs/7623522003?gh_jid=7623522003&utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Software Engineer II - Platform & Infrastructure",
+    "company": "Abnormal Security",
+    "description": "Develop and operate observability platforms using Python and Golang. Own Prometheus, Grafana, and PagerDuty pipelines, ensure system reliability via SLAs/SLOs, and build tooling to support distributed systems.",
+    "url": "https://abnormal.ai/careers/jobs/7741028003?gh_jid=7741028003&utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Software Engineer II - Product Data Gateway",
+    "company": "Abnormal Security",
+    "description": "Develop backend platforms for cybersecurity product features using Python and Golang, focusing on distributed systems, integration infrastructure, and high-volume data handling.",
+    "url": "https://abnormal.ai/careers/jobs/7694596003?gh_jid=7694596003&utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Staff Software Engineer - MPP Growth",
+    "company": "Abnormal Security",
+    "description": "Lead a team of engineers building distributed applications for the APAC market, utilizing Python, Go, React, and AWS to architect scalable customer journey solutions for enterprise security.",
+    "url": "https://abnormal.ai/careers/jobs/7655895003?gh_jid=7655895003&utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Full-Stack Software Engineer (min 3 years exp) - AI Native Startup (m/f/d)",
+    "company": "Auxilius.ai",
+    "description": "Build and ship full-stack features for an AI-native GRC platform, using Java/Spring Boot and React, while integrating LLMs and cloud-native Azure infrastructure.",
+    "url": "https://www.arbeitnow.com/jobs/companies/auxiliusai/full-stack-software-engineer-ai-native-startup-munich-453930?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Deployment Operations Manager (Active Clearance)",
+    "company": "Anduril Industries",
+    "description": "Anduril Industries is a defense technology company with a mission to transform U.S. and allied military capabilities with advanced technology. By bringing the expertise, technology, and business model of the 21st century’s most innovative companies to the defense industry, Anduril is changing how military systems are designed, built and sold. Anduril’s family of systems is powered by Lattice OS, an AI-powered operating system that turns thousands of data streams into a realtime, 3D command and control center. As the world enters an era of strategic competition, Anduril is committed to bringing cutting-edge autonomy, AI, computer vision, sensor fusion, and networking technology to the military in months, not years. ABOUT THE TEAM The Deployments Team manages the coordination and execution of fielding Anduril’s hardware and software products worldwide. Working across Product, Engineering, Growth, Business Development, Technical Operations,",
+    "url": "https://boards.greenhouse.io/andurilindustries/jobs/5149580007?gh_jid=5149580007&utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Staff Software Engineer",
+    "company": "6sense",
+    "description": "Lead the design and evolution of scalable backend frameworks and platforms in Java or Go, enabling high-quality, reliable services while mentoring engineers and integrating AI into development workflows.",
+    "url": "https://boards.greenhouse.io/6sense/jobs/7100430?gh_jid=7100430&utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Staff Software Engineer - Infrastructure/DevOps",
+    "company": "6sense",
+    "description": "Design and operate a secure, multi-region cloud platform using AWS, Kubernetes, and automation tools to support high-scale, zero-trust infrastructure.",
+    "url": "https://boards.greenhouse.io/6sense/jobs/7647929?gh_jid=7647929&utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Embedded NixOS Engineer",
+    "company": "Anduril Industries",
+    "description": "Build and deploy NixOS-based embedded systems for defense tech, collaborating with hardware and FPGA teams to bring up Linux on custom platforms.",
+    "url": "https://boards.greenhouse.io/andurilindustries/jobs/5043618007?gh_jid=5043618007&utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Staff Software Engineer-Reference Data",
+    "company": "Addepar",
+    "description": "Staff Software Engineer designs and builds scalable financial data systems for investment professionals, using PySpark, Python, AWS, and Kubernetes to process market and security master data.",
+    "url": "https://job-boards.greenhouse.io/addepar1/jobs/8545174002?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Field Engineer",
+    "company": "Addepar",
+    "description": "Field Engineer embeds with clients to design and build custom data integrations, automations, and AI-driven solutions using Addepar's APIs, Databricks (ADX), and Python, ensuring efficient onboarding and operational scale for financial data systems.",
+    "url": "https://job-boards.greenhouse.io/addepar1/jobs/8470951002?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Flight Software Engineer, Embedded C/C++, Air Dominance & Strike",
+    "company": "Anduril Industries",
+    "description": "Develops real-time embedded flight software for autonomous aircraft using C/C++ and RTOS, integrating sensors and control systems for defense vehicles.",
+    "url": "https://boards.greenhouse.io/andurilindustries/jobs/4164476007?gh_jid=4164476007&utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Flight Software Engineer, Embedded C/C++, Air Dominance & Strike - Missiles",
+    "company": "Anduril Industries",
+    "description": "Develops real-time embedded flight software for autonomous missiles and aircraft using C/C++ and RTOS, integrating sensors and control systems for defense applications.",
+    "url": "https://boards.greenhouse.io/andurilindustries/jobs/5035788007?gh_jid=5035788007&utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Sr. Software Engineer-Trading",
+    "company": "Addepar",
+    "description": "Senior Software Engineer building a high-performance trading order lifecycle system in Java/Spring Boot, orchestrating trades with low latency and high fault tolerance for investment workflows.",
+    "url": "https://job-boards.greenhouse.io/addepar1/jobs/8235819002?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Full Stack Software Engineer",
+    "company": "Anduril Industries",
+    "description": "Build AI-powered prototypes and full-stack systems for defense tech, integrating GenAI, computer vision, and distributed services across cloud and embedded platforms.",
+    "url": "https://boards.greenhouse.io/andurilindustries/jobs/5089044007?gh_jid=5089044007&utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Ground Software Engineer, Space",
+    "company": "Anduril Industries",
+    "description": "Build and deploy AI-powered space command-and-control software that integrates legacy defense systems with modern orbital capabilities for U.S. military and allied partners.",
+    "url": "https://boards.greenhouse.io/andurilindustries/jobs/4767772007?gh_jid=4767772007&utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Sr. Software Engineer - AI/ML - AI Platform",
+    "company": "Addepar",
+    "description": "Senior AI Engineer responsible for designing, building, and scaling AI-native products for Addepar’s fintech platform, focusing on LLMs, agentic systems, and productionizing AI solutions for investment workflows.",
+    "url": "https://job-boards.greenhouse.io/addepar1/jobs/8479770002?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Staff Backend Software Engineer - Platform Integration",
+    "company": "Addepar",
+    "description": "Build scalable data-onboarding systems that let investment firms ingest, clean, and analyze financial data in one place using Python/Java and cloud tools.",
+    "url": "https://job-boards.greenhouse.io/addepar1/jobs/8569217002?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Staff Software Engineer - Calculation Engines",
+    "company": "Addepar",
+    "description": "Build and scale the Java-based calculation engine that powers Addepar’s financial analytics platform, handling distributed microservices and time-series data for investment workflows.",
+    "url": "https://job-boards.greenhouse.io/addepar1/jobs/8552200002?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Staff Software Engineer - Reference Data - AI/ML (UK)",
+    "company": "Addepar",
+    "description": "Staff Software Engineer focused on architecting and productionizing AI/ML systems for Addepar’s fintech platform, specializing in LLMs, agentic frameworks, and scalable AI solutions to unify financial data and deliver AI-driven insights for investment professionals.",
+    "url": "https://job-boards.greenhouse.io/addepar1/jobs/8540248002?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Senior Software Engineer - Lending",
+    "company": "Adyen",
+    "description": "This is Adyen Adyen provides payments, data, and financial products in a single solution for customers like Meta, Uber, H&amp;M, and Microsoft - making us the financial technology platform of choice. At Adyen, everything we do is engineered for ambition. For our teams, we create an environment with opportunities for our people to succeed, backed by the culture and support to ensure they are enabled to truly own their careers. We are motivated individuals who tackle unique technical challenges at scale and solve them as a team. Together, we deliver innovative and ethical solutions that help businesses achieve their ambitions faster. Senior Software Engineer, Lending Build lending at Adyen from the first line of code. Businesses run on Adyen: they accept payments, manage their money and issue cards on our platform. Access to capital has been the missing piece, and we're building it now. Lending at",
+    "url": "https://job-boards.greenhouse.io/adyen/jobs/7683100?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Mission Software Engineer",
+    "company": "Anduril Industries",
+    "description": "Builds and scales AI-powered command-and-control software for military systems, integrating autonomy, networking, and distributed data layers to support warfighters in tactical environments.",
+    "url": "https://boards.greenhouse.io/andurilindustries/jobs/5102993007?gh_jid=5102993007&utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Software Engineer (Java)",
+    "company": "Adyen",
+    "description": "This is Adyen Adyen provides payments, data, and financial products in a single solution for customers like Meta, Uber, H&amp;M, and Microsoft - making us the financial technology platform of choice. At Adyen, everything we do is engineered for ambition. For our teams, we create an environment with opportunities for our people to succeed, backed by the culture and support to ensure they are enabled to truly own their careers. We are motivated individuals who tackle unique technical challenges at scale and solve them as a team. Together, we deliver innovative and ethical solutions that help businesses achieve their ambitions faster. As a Senior Java Developer in Payments You'll have the opportunity to: Work in a platform which process tens of millions payments per day Be involved in solutions to provide payments solution to the world's leading companies",
+    "url": "https://job-boards.greenhouse.io/adyen/jobs/7095304?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Senior Software Engineer (Java) - Unified Platform",
+    "company": "Adyen",
+    "description": "Builds and scales Adyen’s unified financial platform in Java, working on APIs, billing, reporting, and observability for global merchants like Facebook and Uber.",
+    "url": "https://job-boards.greenhouse.io/adyen/jobs/7342887?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Manager, Software Engineering",
+    "company": "Anduril Industries",
+    "description": "Leads a 4-10 person multidisciplinary software team in Anduril's Maritime Division in Sydney, owning roadmaps, budgets, and delivery of autonomy, simulation, data processing, and command-and-control software for autonomous underwater vehicles. Requires security clearance eligibility; backend/embedded stacks include C, C++, Rust, Go, TypeScript, and React.",
+    "url": "https://boards.greenhouse.io/andurilindustries/jobs/4950096007?gh_jid=4950096007&utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Field Applications Engineer",
+    "company": "Astera Labs",
+    "description": "Principal Field Applications Engineer at Astera Labs designs and supports AI infrastructure connectivity solutions for cloud providers and OEMs using CXL, Ethernet, PCIe, and related technologies.",
+    "url": "https://job-boards.greenhouse.io/asteralabs/jobs/4674945005?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Hardware Design Engineering, Director - OEM, Silicon Validation Platforms & Rack-Scale Design - Taiwan",
+    "company": "Astera Labs",
+    "description": "Lead a new Taiwan hardware engineering hub to design validation platforms and rack-scale systems for AI connectivity, while partnering with OEMs across Asia to integrate Astera Labs’ silicon into their products.",
+    "url": "https://job-boards.greenhouse.io/asteralabs/jobs/4704546005?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Hardware Engineering Operations / Manufacturing, AVP",
+    "company": "Astera Labs",
+    "description": "Leads hardware manufacturing and operations for AI connectivity products, partnering with Asian contract manufacturers to scale production of cables, modules, and chassis systems while optimizing quality, cost, and time-to-market.",
+    "url": "https://job-boards.greenhouse.io/asteralabs/jobs/4702155005?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Hardware Lab Engineer",
+    "company": "Astera Labs",
+    "description": "Hardware Lab Engineer at Astera Labs in San Jose sets up and maintains test environments for silicon validation of AI connectivity solutions like PCIe, CXL, and Ethernet, using high-speed test equipment and Python automation.",
+    "url": "https://job-boards.greenhouse.io/asteralabs/jobs/4674439005?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Manufacturing Software Engineer, Intelligence Systems",
+    "company": "Anduril Industries",
+    "description": "Build and automate manufacturing test systems for defense tech, integrating cloud data and desktop apps to ensure product quality across land, sea, and air platforms.",
+    "url": "https://boards.greenhouse.io/andurilindustries/jobs/5080387007?gh_jid=5080387007&utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Principal Physical Design Engineer",
+    "company": "Astera Labs",
+    "description": "Designs and optimizes physical layouts for AI connectivity ASICs using EDA tools like Cadence/Synopsys, ensuring timing closure and signoff for complex SoCs in server/storage/networking applications.",
+    "url": "https://job-boards.greenhouse.io/asteralabs/jobs/4679751005?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Principal Digital Design Engineer (AI Fabric)",
+    "company": "Astera Labs",
+    "description": "Principal Digital Design Engineer at Astera Labs designing high-performance connectivity solutions for AI infrastructure, using RTL, synthesis, and advanced CMOS nodes.",
+    "url": "https://job-boards.greenhouse.io/asteralabs/jobs/4645005005?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Principal Field Applications Engineer",
+    "company": "Astera Labs",
+    "description": "Principal Field Applications Engineer designs and supports AI connectivity solutions for cloud providers and OEMs, focusing on PCIe, Ethernet, and CXL technologies.",
+    "url": "https://job-boards.greenhouse.io/asteralabs/jobs/4696806005?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "DevOps Engineer",
+    "company": "Any Desk",
+    "description": "Build and maintain scalable cloud infrastructure and CI/CD pipelines for a remote-desktop platform, using Kubernetes, GitLab, and observability tools like Prometheus and Grafana.",
+    "url": "https://job-boards.eu.greenhouse.io/anydesk/jobs/4780500101?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Principal Physical Design Engineer, STA",
+    "company": "Astera Labs",
+    "description": "Principal Physical Design Engineer (STA) at Astera Labs designs and optimizes timing for high-performance connectivity ASICs used in AI infrastructure, leveraging advanced EDA tools and TSMC 7nm processes.",
+    "url": "https://job-boards.greenhouse.io/asteralabs/jobs/4691422005?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Operations Engineer / Linux Administrator (m/f/d)",
+    "company": "Any Desk",
+    "description": "Maintain and automate AnyDesk’s 200+ Linux servers, networks, and services, using Debian, Bash/Python, and MySQL/PostgreSQL to ensure uptime and security.",
+    "url": "https://job-boards.eu.greenhouse.io/anydesk/jobs/4221715101?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Principal Product Applications Engineer – Memory & CXL",
+    "company": "Astera Labs",
+    "description": "Principal firmware engineer at Astera Labs, building and debugging C/Python code for CXL and DDR memory subsystems while acting as the technical liaison for hyperscale customers and OEMs.",
+    "url": "https://job-boards.greenhouse.io/asteralabs/jobs/4690430005?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Principal Product Application Engineer - PCIe",
+    "company": "Astera Labs",
+    "description": "Principal Product Application Engineer at Astera Labs designs and troubleshoots PCIe connectivity solutions for AI infrastructure, working with hyperscalers and OEMs to deploy high-speed retimers and influence product direction.",
+    "url": "https://job-boards.greenhouse.io/asteralabs/jobs/4697866005?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Software Developer C++",
+    "company": "Any Desk",
+    "description": "Develops and maintains high-performance C++ software for a remote desktop platform, focusing on core components and cross-platform features used by millions globally.",
+    "url": "https://job-boards.eu.greenhouse.io/anydesk/jobs/4628872101?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Applications Engineering Manager - Ethernet",
+    "company": "Astera Labs",
+    "description": "Principal Product Applications Engineer at Astera Labs designs and troubleshoots high-speed Ethernet connectivity for AI infrastructure, working directly with customers to deploy Taurus Smart Cable Modules in data centers.",
+    "url": "https://job-boards.greenhouse.io/asteralabs/jobs/4697283005?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Product Quality Engineer (NCG)",
+    "company": "Astera Labs",
+    "description": "Quality Engineer driving root-cause analysis of failures across semiconductor circuit, package, firmware, and protocol layers for PCIe and Ethernet connectivity solutions. Uses advanced lab instrumentation (BERT, oscilloscopes, VNAs, TDR) to debug high-speed SERDES and collaborates cross-functionally to ensure product reliability for AI infrastructure hardware.",
+    "url": "https://job-boards.greenhouse.io/asteralabs/jobs/4695147005?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Senior Embedded Software Engineer - Ethernet Retimers",
+    "company": "Astera Labs",
+    "description": "Develops and debugs firmware for Ethernet retimers in AI infrastructure, troubleshooting link failures and integrating new products from silicon bringup to deployment.",
+    "url": "https://job-boards.greenhouse.io/asteralabs/jobs/4703734005?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Senior Principal Digital Design Engineer",
+    "company": "Astera Labs",
+    "description": "Senior Principal Digital Design Engineer at Astera Labs in San Jose, CA, leading architecture and RTL implementation for AI connectivity chips using PCIe, CXL, UALink, Ethernet, and DDR protocols.",
+    "url": "https://job-boards.greenhouse.io/asteralabs/jobs/4672620005?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Senior Principal Engineering Program Manager",
+    "company": "Astera Labs",
+    "description": "Leads end-to-end execution of advanced-node ASIC products from concept to production, managing schedules, budgets, and cross-functional teams to deliver revenue-critical silicon on time and at scale.",
+    "url": "https://job-boards.greenhouse.io/asteralabs/jobs/4687560005?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Software Engineer Intern, Quality Assurance",
+    "company": "appier",
+    "description": "Quality Assurance Intern at Appier, part of the QA team ensuring software quality by performing manual testing, bug reporting, and exploratory testing on AI-powered marketing cloud services (Advertising Cloud, Personalization Cloud), using tools like JIRA, Fiddler, and Postman.",
+    "url": "https://job-boards.greenhouse.io/appier/jobs/6967119?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Senior SoC Verification/Validation Engineer",
+    "company": "Astera Labs",
+    "description": "Senior engineer validates AI connectivity SoCs on emulation platforms, debugging high-speed interfaces like PCIe and Ethernet before silicon tape-out.",
+    "url": "https://job-boards.greenhouse.io/asteralabs/jobs/4588342005?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Senior AI Security Engineer",
+    "company": "appier",
+    "description": "Senior role focused on securing the software development lifecycle and CI/CD pipelines, with a specific emphasis on mitigating AI-related risks like LLM vulnerabilities and prompt injection. Key technologies include SAST/DAST tools, IaC scanning, and AI security frameworks like OWASP Top 10 for LLMs.",
+    "url": "https://job-boards.greenhouse.io/appier/jobs/7949831?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Mission Software Engineer, Vehicle Software, Active Clearance",
+    "company": "Anduril Industries",
+    "description": "Builds the foundational software stack for autonomous military vehicles, integrating control systems, networking, and sensor fusion using languages like C++, Python, and Rust.",
+    "url": "https://boards.greenhouse.io/andurilindustries/jobs/4672916007?gh_jid=4672916007&utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Mission Software Engineer, Vehicle Software, Computer Vision",
+    "company": "Anduril Industries",
+    "description": "Builds real-time computer vision and sensor-fusion algorithms for autonomous air vehicles, integrating camera calibration, pose estimation, and IMU data in C++ and Python.",
+    "url": "https://boards.greenhouse.io/andurilindustries/jobs/4734570007?gh_jid=4734570007&utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Senior Software Engineer, Backend Development",
+    "company": "appier",
+    "description": "Appier (TSE: 4180), an AI-powered AdTech/MarTech company, seeks a Senior Backend Software Engineer in Taipei to design and build scalable backend services, lead system design and code reviews, mentor engineers, and share on-call duties. Core stack includes Python/Scala/Go/Java/C++, SQL/NoSQL databases, Linux, and AWS/GCP/Azure.",
+    "url": "https://job-boards.greenhouse.io/appier/jobs/4869920?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Senior Software Engineer, Backend Development (Ad Cloud Platform team)",
+    "company": "appier",
+    "description": "Senior backend engineer building scalable AdTech platforms in Python, designing high-concurrency APIs and data pipelines for real-time AI-driven ad decisions.",
+    "url": "https://job-boards.greenhouse.io/appier/jobs/7160226?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Senior Software Engineer, Backend Development(Ad Cloud  Serving Services)",
+    "company": "appier",
+    "description": "About Appier Appier (TSE: 4180) is an AI-native Agentic AI as a Service (AaaS) company that empowers businesses to create value through cutting-edge AdTech and MarTech solutions. Founded in 2012 with the vision of “Making AI Easy by Making Software Intelligent,” Appier helps businesses turn AI into ROI through its Ad Cloud, Personalization Cloud, and Data Cloud—each powered by Agentic AI that enables autonomous, adaptive, and real-time decision-making. Today, Appier operates 17 offices across APAC, the US, and EMEA, and is listed on the Tokyo Stock Exchange. Learn more at www.appier.com. About Ad Cloud Serving Services Team At Appier's Ad Cloud Team Serving Services Team, we build and maintain the critical systems that power the core of Appier's advertising technology. These systems handle massive, high-concurrency, real-time requests, and ensure the stability, low latency, and",
+    "url": "https://job-boards.greenhouse.io/appier/jobs/7033252?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Senior Software Engineer, Backend Development (Playable Ads)",
+    "company": "appier",
+    "description": "Senior backend engineer building scalable AI-powered ad services for playable ads, using C#, ASP.NET Core, and distributed systems on AWS/GCP.",
+    "url": "https://job-boards.greenhouse.io/appier/jobs/7267131?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Senior Software Engineer, Backend Development (REC)",
+    "company": "appier",
+    "description": "Senior backend engineer building AI-driven recommendation systems using Python/Go, cloud-native architectures, and ML pipelines for real-time personalization in MarTech.",
+    "url": "https://job-boards.greenhouse.io/appier/jobs/7731002?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Senior Software Engineer, C++ Backend Development (Ad Cloud Bidding)- Tokyo Relocation required",
+    "company": "appier",
+    "description": "About Appier Appier is an AI-native Agentic AI as a Service (AaaS) company that uses artificial intelligence (AI) to power business decision-making. Founded in 2012 with a vision of democratizing AI, Appier’s mission is turning AI into ROI by making software intelligent. Appier now has 17 offices across APAC, Europe and U.S., and is listed on the Tokyo Stock Exchange (Ticker number: 4180). Visit for more information. About the role Software engineers (Ad Cloud Bidding) at Appier Tokyo office build a wide range of platforms and services that interconnect data and AI with our customers and users. As a Senior Software Engineer , you will contribute to building scalable backend systems while also participating in service operation activities, including deployment, monitoring, and incident response, to ensure reliable and high-performing distributed services. Responsibilities Design, implement, and",
+    "url": "https://job-boards.greenhouse.io/appier/jobs/7382788?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Senior Software Engineer, Data Backend (Ad Cloud) - Tokyo,Japan",
+    "company": "appier",
+    "description": "Senior Software Engineer builds and maintains AI-powered data backend systems using Python, ClickHouse, Trino, and Spark to process and serve business insights for an ad cloud platform.",
+    "url": "https://job-boards.greenhouse.io/appier/jobs/5476743?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Software Engineer Intern, Backend Development",
+    "company": "appier",
+    "description": "Backend intern at Appier builds and optimizes scalable services for AdTech/MarTech products using Python, Go, or Java, with a hybrid schedule in Taipei.",
+    "url": "https://job-boards.greenhouse.io/appier/jobs/6820898?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Orbital Software Engineer, Space",
+    "company": "Anduril Industries",
+    "description": "Build and deploy AI-powered orbital software for military space missions, integrating satellite systems with legacy defense infrastructure using Python, C++, Rust, or Go.",
+    "url": "https://boards.greenhouse.io/andurilindustries/jobs/4872480007?gh_jid=4872480007&utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Staff/Senior Software Engineer, Machine Learning Platform (Ad Cloud) - Tokyo",
+    "company": "appier",
+    "description": "About Appier Appier is an AI-native Agentic AI as a Service (AaaS) company that uses artificial intelligence (AI) to power business decision-making. Founded in 2012 with a vision of democratizing AI, Appier’s mission is turning AI into ROI by making software intelligent. Appier now has 17 offices across APAC, Europe and U.S., and is listed on the Tokyo Stock Exchange (Ticker number: 4180). Visit for more information. The Impact You’ll Make at Appier We’re looking for a Staff/Senior Machine Learning Platform Engineer to join our Machine Learning Platform Team, which powers end-to-end infrastructure for model training, evaluation, deployment, and monitoring at scale. Our platform supports daily execution of hundreds of ML models and processes billions of data records across batch and streaming pipelines. In this role, you’ll shape the architecture and core components of our ML",
+    "url": "https://job-boards.greenhouse.io/appier/jobs/7859928?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Robotics Software Engineer, Maneuver Dominance",
+    "company": "Anduril Industries",
+    "description": "Design and integrate software for autonomous military systems, connecting vehicles, payloads, and ground stations using C++/Rust, networking, and hardware interfaces.",
+    "url": "https://boards.greenhouse.io/andurilindustries/jobs/5113527007?gh_jid=5113527007&utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Staff Software Engineer, C++ Backend Development (Ad Cloud Bidding) - Tokyo Relocation required",
+    "company": "appier",
+    "description": "About Appier Appier is an AI-native Agentic AI as a Service (AaaS) company that uses artificial intelligence (AI) to power business decision-making. Founded in 2012 with a vision of democratizing AI, Appier’s mission is turning AI into ROI by making software intelligent. Appier now has 17 offices across APAC, Europe and U.S., and is listed on the Tokyo Stock Exchange (Ticker number: 4180). Visit for more information. About the role Software engineers (Ad Cloud Bidding) at Appier Tokyo office build a wide range of platforms and services that interconnect data and AI with our customers and users. As a Staff Software Engineer , you will play a critical role in designing and building scalable and performant backend architecture, owning and driving the technical roadmap for sizable projects or services. You will also take responsibility for service operations – ensuring reliability, availability, and efficient",
+    "url": "https://job-boards.greenhouse.io/appier/jobs/7382795?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Technical Solution Engineer Intern (Ad cloud)",
+    "company": "appier",
+    "description": "Intern provides technical support to help clients integrate and optimize AI-powered AdTech and MarTech solutions, troubleshoot issues, and document processes.",
+    "url": "https://job-boards.greenhouse.io/appier/jobs/5001910?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Application Security Engineer",
+    "company": "AppsFlyer",
+    "description": "You’ll embed security into AppsFlyer’s products by reviewing code, threat-modeling, and automating checks in CI/CD to protect customer data and meet high security standards.",
+    "url": "https://careers.appsflyer.com/jobs/position/8394076002?gh_jid=8394076002&utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Software Engineer",
+    "company": "AppsFlyer",
+    "description": "The DataOS team at AppsFlyer builds and maintains a high-scale data platform processing over 150 billion events daily using technologies like Spark, Kafka, and AWS. Engineers in this role design data pipelines, manage schema and storage, and ensure the reliability of production-grade data systems.",
+    "url": "https://careers.appsflyer.com/jobs/position/8469417002?gh_jid=8469417002&utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Quantum Software Engineer",
+    "company": "Anduril Industries",
+    "description": "Design and implement quantum-enhanced algorithms and hybrid solutions for defense applications, integrating them into AI-powered command systems using C++, Python, and quantum SDKs like Qiskit or Q#.",
+    "url": "https://boards.greenhouse.io/andurilindustries/jobs/5089054007?gh_jid=5089054007&utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Senior MTS SDET, Test Infrastructure",
+    "company": "Aviatrix",
+    "description": "Aviatrix is hiring a Senior SDET to join its Test Infrastructure team: building and improving hermetic integration test frameworks, Terraform-based regression infrastructure, testing dashboards, and mocks/simulators. Core stack includes Python or Go, cloud platforms (AWS/Azure/GCP/OCI), Docker, Kubernetes, GitHub Actions, and Terraform.",
+    "url": "https://aviatrix.com/careers/?gh_jid=4679442005&utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Staff Engineer SDET",
+    "company": "Aviatrix",
+    "description": "Staff SDET on Aviatrix's EngProd team, owning the Platform and Hybrid Scale Integration Playground: building Terraform-based cloud test infrastructure, large-scale simulation environments with thousands of simulated gateways, and benchmark suites to catch scale regressions. Core stack is Python/Go, Terraform, AWS/Azure/GCP, Docker, Kubernetes, and CI/CD.",
+    "url": "https://aviatrix.com/careers/?gh_jid=4697236005&utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Robotics Software Engineer, Maneuver Dominance",
+    "company": "Anduril Industries",
+    "description": "Develops autonomy, computer vision, and command-and-control software for military-grade aerial and ground robotic systems using C++, Rust, and Python.",
+    "url": "https://boards.greenhouse.io/andurilindustries/jobs/5047469007?gh_jid=5047469007&utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Robotics Software Engineer, Sensor Integration",
+    "company": "Anduril Industries",
+    "description": "Builds and integrates software for autonomous robotic systems, focusing on sensor fusion, networking, and multi-agent coordination using C++ and Rust.",
+    "url": "https://boards.greenhouse.io/andurilindustries/jobs/5096506007?gh_jid=5096506007&utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Robotics Software Engineer, Vehicle Software",
+    "company": "Anduril Industries",
+    "description": "Builds core vehicle software for autonomous military robots, focusing on control, networking, and sensor integration using C++/Rust in Linux.",
+    "url": "https://boards.greenhouse.io/andurilindustries/jobs/4672892007?gh_jid=4672892007&utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "AI/ML Scientist/Developer",
+    "company": "Axle",
+    "description": "Develop AI/ML models to predict and optimize organoid growth protocols for biomedical research, using Python, TensorFlow/PyTorch, and biological data analysis at a NIH-funded center in Frederick, MD.",
+    "url": "https://job-boards.greenhouse.io/axle/jobs/4840335007?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "AI Sales Engineer, US",
+    "company": "Arize AI",
+    "description": "Arize AI is hiring a remote (US) AI Sales Engineer / Solutions Architect to partner with account executives through the sales cycle — leading demos, discovery, and hands-on proofs of concept for its AI/agent observability and evaluation platform. Core stack: Python/TypeScript plus LLM/agent frameworks like LangGraph and OpenAI Agents SDK.",
+    "url": "https://job-boards.greenhouse.io/arizeai/jobs/5792327004?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Commercial Account Executive, Digital Native (San Francisco)",
+    "company": "Arize AI",
+    "description": "About Arize AI is rapidly transforming the world. As generative AI reshapes industries, teams need powerful ways to monitor, troubleshoot, and optimize their AI systems. That’s where we come in. Arize AI is the leading AI &amp; Agent Engineering observability and evaluation platform, empowering AI engineers to ship high-performing, reliable agents and applications. From first prototype to production scale, Arize unifies build, test, and run in a single workspace, so teams can ship faster with confidence. Arize serves a rapidly growing customer base of 150+ leading enterprises and Fortune 500 companies. Customers like , Uber, Siemens, and PepsiCo leverage Arize to deliver AI that works. The Team Our engineering team builds systems that interact with some of the most complex software ever deployed in production. The team is composed of industry veterans that have built deep learning infrastructure,",
+    "url": "https://job-boards.greenhouse.io/arizeai/jobs/5803069004?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Enterprise Account Executive (West)",
+    "company": "Arize AI",
+    "description": "About Arize AI is rapidly transforming the world. As generative AI reshapes industries, teams need powerful ways to monitor, troubleshoot, and optimize their AI systems. That’s where we come in. Arize AI is the leading AI &amp; Agent Engineering observability and evaluation platform, empowering AI engineers to ship high-performing, reliable agents and applications. From first prototype to production scale, Arize unifies build, test, and run in a single workspace, so teams can ship faster with confidence. Arize serves a rapidly growing customer base of 150+ leading enterprises and Fortune 500 companies. Customers like , Uber, Siemens, and PepsiCo leverage Arize to deliver AI that works. The Opportunity Our engineering team builds systems that interact with some of the most complex software ever deployed in production. The team is composed of industry veterans that have built deep learning infrastructure,",
+    "url": "https://job-boards.greenhouse.io/arizeai/jobs/5730389004?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Model Performance Software Engineer, Claude Code",
+    "company": "Anthropic",
+    "description": "Build and own evaluation systems and infrastructure to measure and improve Claude Code’s coding capabilities, bridging engineering and AI research.",
+    "url": "https://job-boards.greenhouse.io/anthropic/jobs/5098025008?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Site Reliability Engineer",
+    "company": "Axle",
+    "description": "Designs and maintains a secure, scalable multi-cloud platform for a bioscience IT company, using Kubernetes, AI/ML infrastructure, and observability tools to support research and healthcare programs.",
+    "url": "https://job-boards.greenhouse.io/axle/jobs/5100076007?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Senior Embedded NixOS Engineer",
+    "company": "Anduril Industries",
+    "description": "Build and deploy NixOS-based embedded systems for military-grade EW hardware, shaping build pipelines and CI/CD for secure, real-time software delivery.",
+    "url": "https://boards.greenhouse.io/andurilindustries/jobs/5043617007?gh_jid=5043617007&utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Senior Embedded Software Engineer, EW",
+    "company": "Anduril Industries",
+    "description": "Develop and maintain embedded software for next-gen electronic warfare systems, focusing on Built In Test, production automation, and high-reliability control software.",
+    "url": "https://boards.greenhouse.io/andurilindustries/jobs/5009360007?gh_jid=5009360007&utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Flight Software Engineer",
+    "company": "Anduril Industries",
+    "description": "Develops embedded flight software for small drones (Group 1–3), including control systems, device drivers, and test automation, using C++/Rust on pre-emptible Linux or RTOS. Focuses on scalable, reusable avionics for military applications with rapid iteration from simulation to flight.",
+    "url": "https://boards.greenhouse.io/andurilindustries/jobs/5102166007?gh_jid=5102166007&utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Senior Flight Software Engineer, Embedded C/C++, Air Dominance & Strike",
+    "company": "Anduril Industries",
+    "description": "Develops real-time embedded flight software for autonomous aircraft using C/C++ and RTOS, integrating sensors and control systems for defense-focused vehicles.",
+    "url": "https://boards.greenhouse.io/andurilindustries/jobs/4646426007?gh_jid=4646426007&utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Senior Flight Software Engineer, Embedded C/C++, Air Dominance & Strike - Missiles",
+    "company": "Anduril Industries",
+    "description": "Develops real-time embedded flight software for autonomous aircraft and missiles using C/C++ and RTOS, integrating sensors and control systems under DO-178 safety standards.",
+    "url": "https://boards.greenhouse.io/andurilindustries/jobs/5035820007?gh_jid=5035820007&utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Security Software Engineer, Detection & Response Platform",
+    "company": "Anthropic",
+    "description": "Build and scale AI-powered security analytics infrastructure, including data pipelines, ML detection systems, and incident-response tooling for a cutting-edge AI company.",
+    "url": "https://job-boards.greenhouse.io/anthropic/jobs/4595463008?utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  },
+  {
+    "title": "Senior Ground Software Engineer, Space",
+    "company": "Anduril Industries",
+    "description": "Senior engineer building AI-powered space command-and-control software that integrates legacy defense systems with modern orbital capabilities for U.S. military and allied partners.",
+    "url": "https://boards.greenhouse.io/andurilindustries/jobs/5143736007?gh_jid=5143736007&utm_source=freehire.me",
+    "postedAt": "2026-10-30T12:12:52.856Z",
+    "platform": "linkedin"
+  }
+]
