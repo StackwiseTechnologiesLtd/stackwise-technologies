@@ -8,6 +8,7 @@ const labels: Record<LeadSource, string> = {
   harvest: "Harvest",
   huginn: "Huginn",
   freehire: "Jobs",
+  firecrawl: "Web scrape",
   manual: "Manual",
 };
 

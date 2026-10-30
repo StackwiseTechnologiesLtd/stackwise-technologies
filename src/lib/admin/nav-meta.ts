@@ -26,6 +26,7 @@ export const adminGrowthNavChildren: AdminNavChild[] = [
   { href: "/admin/growth/inbox", label: "Inbox", match: "prefix" },
   { href: "/admin/growth/linkedin", label: "LinkedIn", match: "prefix" },
   { href: "/admin/growth/jobs", label: "Jobs", match: "prefix" },
+  { href: "/admin/growth/discover", label: "Web discover", match: "prefix" },
   { href: "/admin/growth/outreach", label: "Email outreach", match: "prefix" },
   { href: "/admin/crm", label: "CRM pipeline", match: "prefix" },
   { href: "/admin/growth/connect", label: "Connect", match: "prefix" },
@@ -114,6 +115,7 @@ export function adminPageTitle(pathname: string): string {
   if (pathname.startsWith("/admin/growth/inbox")) return "Inbox";
   if (pathname.startsWith("/admin/growth/linkedin")) return "LinkedIn inbox";
   if (pathname.startsWith("/admin/growth/jobs")) return "Jobs inbox";
+  if (pathname.startsWith("/admin/growth/discover")) return "Web discover";
   if (pathname.startsWith("/admin/growth/outreach")) return "Email outreach";
   if (pathname.startsWith("/admin/growth/leads")) return "CRM pipeline";
   if (pathname.startsWith("/admin/growth/settings")) return "Settings";

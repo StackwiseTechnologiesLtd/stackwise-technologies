@@ -20,6 +20,8 @@ export type PersonalizedDraftInput = {
   compositeScore: number;
   scoreReasons: string[];
   config: IcpConfig;
+  /** Firecrawl / manual outreach: still tailor email when composite is below GROWTH_MIN_DRAFT_SCORE. */
+  skipScoreThreshold?: boolean;
 };
 
 /** Admin-only metadata (e.g. harvest keyword). Never surface in reply copy. */
