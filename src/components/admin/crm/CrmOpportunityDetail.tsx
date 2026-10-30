@@ -141,7 +141,7 @@ export function CrmOpportunityDetailPanel({
         ) : null}
         {opportunity.growthLeadId ? (
           <Link
-            href="/admin/growth"
+            href="/admin/growth/inbox"
             className="text-accent hover:underline"
           >
             Growth inbox
