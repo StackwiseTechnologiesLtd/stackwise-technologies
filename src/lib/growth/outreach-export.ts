@@ -63,6 +63,7 @@ export function formatOutreachMarkdown(
     "| --- | ---: |",
     `| Recipients processed | ${t.processed ?? 0} |`,
     `| Sent (SMTP) | ${t.sent ?? 0} |`,
+    `| Invalid email (not sent) | ${t.invalid_email ?? 0} |`,
     `| Draft ready (no email on file) | ${t.no_email ?? 0} |`,
     `| Failed | ${t.failed ?? 0} |`,
     `| AI-tailored | ${t.used_ai ?? 0} |`,

@@ -2,6 +2,7 @@ export type OutreachTotals = {
   processed: number;
   sent: number;
   no_email: number;
+  invalid_email: number;
   failed: number;
   used_ai: number;
 };
@@ -37,6 +38,8 @@ export type RunOutreachOptions = {
   offset?: number;
   send?: boolean;
   createdBy?: string | null;
+  /** Only leads with this growth_leads.lead_source (e.g. firecrawl). */
+  leadSource?: string | null;
   /** Write CSV/MD under repo exports/ (CLI only). */
   writeExportFiles?: boolean;
 };

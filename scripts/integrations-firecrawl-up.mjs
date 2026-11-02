@@ -44,6 +44,11 @@ if (!fs.existsSync(composeEnvDst)) {
 console.log("Building and starting local Firecrawl (this can take several minutes)…\n");
 run("docker", ["compose", "up", "--build", "-d"], { cwd: firecrawlDir });
 
+// API harness often needs a second start after deps are warm (slow first boot).
+console.log("\nEnsuring API container is up…");
+run("docker", ["compose", "up", "-d", "api"], { cwd: firecrawlDir });
+await new Promise((r) => setTimeout(r, 90_000));
+
 async function waitFor(url, maxMs = 900_000) {
   const start = Date.now();
   process.stdout.write(`Waiting for ${url} …`);
@@ -72,6 +77,7 @@ Local Firecrawl is up.
 
   API: http://localhost:3002
   Discover leads: npm run growth:firecrawl:discover -- -q "your ICP query" -n 10
+  Reddit emails only: npm run growth:reddit:discover
   Admin UI: Growth → Discover
 
 Stop:

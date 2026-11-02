@@ -3,7 +3,6 @@
 import { useToast } from "@/components/ToastProvider";
 import { AdminActionButton } from "@/components/admin/AdminActionButton";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
-import Link from "next/link";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 import { useCallback, useState } from "react";
 
@@ -39,6 +38,38 @@ export function GrowthFirecrawlPanel() {
     void checkHealth();
   }, [checkHealth]);
 
+  const [redditRunning, setRedditRunning] = useState(false);
+  const [redditResult, setRedditResult] = useState<{
+    totals: {
+      pagesScanned: number;
+      emailsFound: number;
+      leadsCreated: number;
+      leadsSkipped: number;
+    };
+  } | null>(null);
+
+  async function runRedditDiscover() {
+    setRedditRunning(true);
+    setRedditResult(null);
+    try {
+      const res = await fetch("/api/admin/growth/firecrawl/reddit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ limitPerQuery: limit }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Reddit discover failed");
+      setRedditResult(json);
+      toast.success(
+        `Reddit: ${json.totals.leadsCreated} leads with validated emails (no emails sent)`,
+      );
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Reddit discover failed");
+    } finally {
+      setRedditRunning(false);
+    }
+  }
+
   async function runDiscover() {
     setRunning(true);
     setResult(null);
@@ -51,7 +82,7 @@ export function GrowthFirecrawlPanel() {
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? "Discover failed");
       setResult(json as DiscoverResult);
-      toast.success(`Added ${json.leadsCreated} Firecrawl leads with emails`);
+      toast.success(`Added ${json.leadsCreated} leads with validated emails (not sent)`);
       await checkHealth();
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Discover failed");
@@ -64,7 +95,7 @@ export function GrowthFirecrawlPanel() {
     <div className="space-y-6">
       <AdminPageHeader
         title="Web discover"
-        description="Search and scrape via self-hosted Firecrawl on your machine. New leads use source firecrawl and can be cold-emailed even below the usual fit score."
+        description="Search and scrape via self-hosted Firecrawl. Saves validated emails only — use Email outreach later when you are ready (set GROWTH_OUTREACH_SEND=0 to block sends)."
       />
 
       <section className="rounded-xl border border-line bg-panel p-5 sm:p-6">
@@ -100,6 +131,30 @@ export function GrowthFirecrawlPanel() {
           </AdminActionButton>
         </div>
 
+        <div className="mt-6 border-t border-line pt-5">
+          <h3 className="text-sm font-semibold text-foreground">Reddit (via Firecrawl)</h3>
+          <p className="mt-1 text-sm text-muted">
+            Runs several <code className="text-foreground">site:reddit.com</code> searches for dev, UI/UX,
+            and loyalty intent. Stores MX-valid emails only — does not send mail.
+          </p>
+          <div className="mt-3">
+            <AdminActionButton
+              busy={redditRunning}
+              busyLabel="Crawling Reddit…"
+              onClick={() => void runRedditDiscover()}
+            >
+              Discover Reddit leads
+            </AdminActionButton>
+          </div>
+          {redditResult ? (
+            <ul className="mt-3 list-inside list-disc text-sm text-muted">
+              <li>{redditResult.totals.pagesScanned} Reddit pages scanned</li>
+              <li>{redditResult.totals.emailsFound} emails found</li>
+              <li>{redditResult.totals.leadsCreated} leads saved</li>
+            </ul>
+          ) : null}
+        </div>
+
         {result ? (
           <div className="mt-6 rounded-lg border border-line bg-black/25 p-4 text-sm">
             <p className="font-medium text-foreground">Last run: {result.query}</p>
@@ -114,10 +169,9 @@ export function GrowthFirecrawlPanel() {
                 {result.errors.slice(0, 8).join("\n")}
               </pre>
             ) : null}
-            <p className="mt-4">
-              <Link href="/admin/growth/outreach" className="font-medium text-accent hover:underline">
-                Run email outreach →
-              </Link>
+            <p className="mt-4 text-muted">
+              Review leads in Growth inbox. Outreach is separate — keep{" "}
+              <code className="text-foreground">GROWTH_OUTREACH_SEND=0</code> until you are ready to send.
             </p>
           </div>
         ) : null}
