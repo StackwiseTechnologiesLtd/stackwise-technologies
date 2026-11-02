@@ -1,11 +1,10 @@
 import { firecrawlScrapeMarkdown, firecrawlSearch } from "@/lib/integrations/firecrawl-client";
 import { getIcpConfig, ingestSignal } from "@/lib/growth/repository";
+import {
+  extractPlausibleEmails,
+  validateRecipientEmail,
+} from "@/lib/growth/recipient-email";
 import { scoreLead } from "@/lib/growth/scoring";
-
-const EMAIL_RE = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
-
-const EMAIL_BLOCKLIST =
-  /example\.|noreply|no-reply|donotreply|sentry|wixpress|github\.com|firebase|google\.com|facebook\.com/i;
 
 export type FirecrawlDiscoverResult = {
   query: string;
@@ -17,15 +16,7 @@ export type FirecrawlDiscoverResult = {
 };
 
 function extractEmails(text: string): string[] {
-  const found = text.match(EMAIL_RE) ?? [];
-  const uniq = new Set<string>();
-  for (const raw of found) {
-    const email = raw.toLowerCase();
-    if (EMAIL_BLOCKLIST.test(email)) continue;
-    if (email.endsWith(".png") || email.endsWith(".jpg")) continue;
-    uniq.add(email);
-  }
-  return [...uniq];
+  return extractPlausibleEmails(text);
 }
 
 function nameFromEmail(email: string): string {
@@ -41,6 +32,11 @@ function nameFromEmail(email: string): string {
 function companyFromUrl(url: string): string | null {
   try {
     const host = new URL(url).hostname.replace(/^www\./, "");
+    if (/reddit\.com|redd\.it/i.test(host)) {
+      const path = new URL(url).pathname;
+      const sub = path.match(/^\/r\/([^/]+)/i)?.[1];
+      if (sub) return `r/${sub}`;
+    }
     const segment = host.split(".")[0];
     if (!segment || segment.length < 2) return null;
     return segment.charAt(0).toUpperCase() + segment.slice(1);
@@ -49,12 +45,28 @@ function companyFromUrl(url: string): string | null {
   }
 }
 
+function isRedditUrl(url: string): boolean {
+  try {
+    const host = new URL(url).hostname.toLowerCase();
+    return host.endsWith("reddit.com") || host.endsWith("redd.it");
+  } catch {
+    return false;
+  }
+}
+
 export async function discoverFirecrawlLeads(options: {
   query: string;
   limit?: number;
+  /** Restrict to reddit.com / redd.it URLs and prefix search with site:reddit.com */
+  redditOnly?: boolean;
 }): Promise<FirecrawlDiscoverResult> {
-  const query = options.query.trim();
+  let query = options.query.trim();
   if (!query) throw new Error("Search query is required");
+
+  const redditOnly = options.redditOnly === true;
+  if (redditOnly && !/\bsite:reddit\.com\b/i.test(query)) {
+    query = `site:reddit.com ${query}`;
+  }
 
   const limit = Math.min(20, Math.max(1, options.limit ?? 10));
   const hits = await firecrawlSearch(query, { limit, scrapeMarkdown: true });
@@ -72,6 +84,10 @@ export async function discoverFirecrawlLeads(options: {
   const seenEmails = new Set<string>();
 
   for (const hit of hits) {
+    if (redditOnly && hit.url && !isRedditUrl(hit.url)) {
+      summary.leadsSkipped += 1;
+      continue;
+    }
     summary.pagesScanned += 1;
     let text = [hit.title, hit.description, hit.markdown].filter(Boolean).join("\n\n");
     if (!text.trim() && hit.url) {
@@ -89,6 +105,11 @@ export async function discoverFirecrawlLeads(options: {
     summary.emailsFound += emails.length;
 
     for (const email of emails) {
+      const deliverable = await validateRecipientEmail(email);
+      if (!deliverable.ok) {
+        summary.leadsSkipped += 1;
+        continue;
+      }
       if (seenEmails.has(email)) {
         summary.leadsSkipped += 1;
         continue;
@@ -114,10 +135,13 @@ export async function discoverFirecrawlLeads(options: {
           authorProfileUrl: hit.url,
           companyName: companyName ?? undefined,
           bodyText,
-          contextSummary: `firecrawl search: ${query}`,
+          contextSummary: redditOnly
+            ? `firecrawl reddit: ${query}`
+            : `firecrawl search: ${query}`,
           email,
           rawPayload: {
             firecrawl: true,
+            reddit: redditOnly,
             query,
             compositeScore: scored.compositeScore,
           },

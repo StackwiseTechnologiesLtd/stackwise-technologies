@@ -9,8 +9,10 @@ npm run integrations:firecrawl:clone   # vendor/firecrawl @ pinned tag
 npm run integrations:firecrawl:up      # docker compose (Redis, Playwright, API)
 npm run integrations:firecrawl:status
 
-# Discover leads (needs OPENROUTER optional; uses search + scrape locally)
-npm run growth:firecrawl:discover -- -q "founder hiring full stack developer" -n 15
+# Discover leads on Reddit (valid MX emails only; does not send mail)
+npm run growth:reddit:discover
+
+# Block SMTP outreach until you set GROWTH_OUTREACH_SEND=1 in .env.local
 ```
 
 Then **Growth → Discover** or **Email outreach** — Firecrawl leads skip the minimum fit score for cold email drafts.

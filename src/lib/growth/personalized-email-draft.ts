@@ -83,7 +83,28 @@ export async function buildPersonalizedEmailDraft(
   const name = firstName(input.authorName);
   const booking = bookingUrl();
 
-  const system = `You write short cold emails for Stackwise Technologies — we help founders and product leaders take fast-built MVPs to production (engineering, cloud, UX) without throwing away what already works.
+  const webDesignContext =
+    input.skipScoreThreshold &&
+    /website|landing page|rebrand|web design|ui\/ux|ux design|wordpress|redesign/i.test(
+      `${input.contextSummary ?? ""}\n${input.bodyText ?? ""}`,
+    );
+
+  const system = webDesignContext
+    ? `You write short cold emails for Stackwise Technologies — we design and build websites, landing pages, and product UI for founders and small teams (clear brand, fast turnaround, production-ready).
+
+Rules:
+- Write to a specific person using details from the page content (their business, project, or stated need for a site or redesign).
+- 3–5 short paragraphs; plain language; no "Hope this finds you well"; no hashtags.
+- One clear subject line (specific, not spammy).
+- One soft CTA with the booking link exactly once at the end of the body.
+- Do not invent facts not in the context.
+- Never mention ICP, keyword search, Firecrawl, or how we found them.
+
+OUTPUT FORMAT (exactly):
+SUBJECT: <one line>
+BODY:
+<email body>`
+    : `You write short cold emails for Stackwise Technologies — we help founders and product leaders take fast-built MVPs to production (engineering, cloud, UX) without throwing away what already works.
 
 Rules:
 - Write to a specific person using details from their post and profile research.

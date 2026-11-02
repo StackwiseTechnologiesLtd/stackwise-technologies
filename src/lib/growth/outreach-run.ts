@@ -3,6 +3,7 @@ import path from "node:path";
 import { sendEmail } from "@/lib/emails/sendEmail";
 import { formatOutreachCsv, formatOutreachMarkdown } from "@/lib/growth/outreach-export";
 import { buildPersonalizedEmailDraft } from "@/lib/growth/personalized-email-draft";
+import { validateRecipientEmail } from "@/lib/growth/recipient-email";
 import type {
   GrowthOutreachItem,
   GrowthOutreachRun,
@@ -87,6 +88,7 @@ function mapRun(row: RunRow): GrowthOutreachRun {
       processed: 0,
       sent: 0,
       no_email: 0,
+      invalid_email: 0,
       failed: 0,
       used_ai: 0,
     },
@@ -183,7 +185,8 @@ export async function runOutreachCampaign(
   const sql = getSql();
   const limit = Math.min(500, Math.max(1, options.limit ?? 200));
   const offset = Math.max(0, options.offset ?? 0);
-  const send = options.send !== false;
+  const send =
+    options.send !== false && process.env.GROWTH_OUTREACH_SEND !== "0";
   const config = await getIcpConfig();
 
   const runId = crypto.randomUUID();
@@ -198,6 +201,7 @@ export async function runOutreachCampaign(
         processed: 0,
         sent: 0,
         no_email: 0,
+        invalid_email: 0,
         failed: 0,
         used_ai: 0,
       })}::jsonb,
@@ -205,44 +209,82 @@ export async function runOutreachCampaign(
     )
   `;
 
+  const leadSource = options.leadSource?.trim() || null;
+
   const leadRows = asRows<LeadOutreachRow>(
-    await sql`
-      SELECT
-        l.id,
-        l.full_name,
-        l.role_title,
-        l.company_name,
-        l.profile_url,
-        l.email,
-        l.platform,
-        l.composite_score,
-        l.score_reasons,
-        l.profile_summary,
-        s.body_text,
-        s.context_summary,
-        p.email AS crm_email,
-        l.lead_source
-      FROM growth_leads l
-      LEFT JOIN growth_signals s ON s.id = l.signal_id
-      LEFT JOIN crm_people p ON p.growth_lead_id = l.id
-      WHERE (
-        (l.profile_url IS NOT NULL AND trim(l.profile_url) <> '')
-        OR (
-          l.lead_source = 'firecrawl'
-          AND l.email IS NOT NULL
-          AND trim(l.email) <> ''
-        )
-      )
-      ORDER BY l.composite_score DESC, l.created_at DESC
-      OFFSET ${offset}
-      LIMIT ${limit}
-    `,
+    leadSource
+      ? await sql`
+          SELECT
+            l.id,
+            l.full_name,
+            l.role_title,
+            l.company_name,
+            l.profile_url,
+            l.email,
+            l.platform,
+            l.composite_score,
+            l.score_reasons,
+            l.profile_summary,
+            s.body_text,
+            s.context_summary,
+            p.email AS crm_email,
+            l.lead_source
+          FROM growth_leads l
+          LEFT JOIN growth_signals s ON s.id = l.signal_id
+          LEFT JOIN crm_people p ON p.growth_lead_id = l.id
+          WHERE l.lead_source = ${leadSource}
+            AND l.email IS NOT NULL
+            AND trim(l.email) <> ''
+            AND NOT EXISTS (
+              SELECT 1 FROM growth_outreach_items oi
+              WHERE oi.lead_id = l.id AND oi.status = 'sent'
+            )
+          ORDER BY l.created_at DESC
+          OFFSET ${offset}
+          LIMIT ${limit}
+        `
+      : await sql`
+          SELECT
+            l.id,
+            l.full_name,
+            l.role_title,
+            l.company_name,
+            l.profile_url,
+            l.email,
+            l.platform,
+            l.composite_score,
+            l.score_reasons,
+            l.profile_summary,
+            s.body_text,
+            s.context_summary,
+            p.email AS crm_email,
+            l.lead_source
+          FROM growth_leads l
+          LEFT JOIN growth_signals s ON s.id = l.signal_id
+          LEFT JOIN crm_people p ON p.growth_lead_id = l.id
+          WHERE (
+            (l.profile_url IS NOT NULL AND trim(l.profile_url) <> '')
+            OR (
+              l.lead_source = 'firecrawl'
+              AND l.email IS NOT NULL
+              AND trim(l.email) <> ''
+            )
+          )
+          AND NOT EXISTS (
+            SELECT 1 FROM growth_outreach_items oi
+            WHERE oi.lead_id = l.id AND oi.status = 'sent'
+          )
+          ORDER BY l.composite_score DESC, l.created_at DESC
+          OFFSET ${offset}
+          LIMIT ${limit}
+        `,
   );
 
   const totals: OutreachTotals = {
     processed: 0,
     sent: 0,
     no_email: 0,
+    invalid_email: 0,
     failed: 0,
     used_ai: 0,
   };
@@ -262,57 +304,68 @@ export async function runOutreachCampaign(
     let sentAt: string | null = null;
 
     try {
-      const draft = await buildPersonalizedEmailDraft({
-        platform,
-        authorName: lead.full_name,
-        roleTitle: lead.role_title,
-        companyName: lead.company_name,
-        bodyText: lead.body_text ?? lead.role_title ?? "",
-        contextSummary: lead.context_summary,
-        profileSummary: lead.profile_summary,
-        compositeScore: lead.composite_score,
-        scoreReasons: parseReasons(lead.score_reasons),
-        config,
-        skipScoreThreshold:
-          lead.lead_source === "firecrawl" ||
-          process.env.GROWTH_OUTREACH_SKIP_SCORE === "1",
-      });
-      subjectLine = draft.subject;
-      bodyText = draft.body;
-      usedAi = draft.usedAi;
-      if (draft.usedAi) totals.used_ai += 1;
-
       if (!recipientEmail) {
         status = "no_email";
         totals.no_email += 1;
-      } else if (!send) {
-        status = "dry_run";
       } else {
-        const bodyHtml = textToHtmlParagraphs(bodyText);
-        const result = await sendEmail({
-          to: recipientEmail,
-          template: "growth-outreach",
-          version: "0.0.1",
-          metadata: {
-            displayName: lead.full_name.split(/\s+/)[0] || "there",
-            subjectLine,
-            bodyText,
-            bodyHtml,
-          },
+        const deliverable = await validateRecipientEmail(recipientEmail);
+        if (!deliverable.ok) {
+          status = "invalid_email";
+          errorMessage = deliverable.reason ?? "Invalid email";
+          totals.invalid_email += 1;
+        }
+      }
+
+      if (status !== "no_email" && status !== "invalid_email") {
+        const draft = await buildPersonalizedEmailDraft({
+          platform,
+          authorName: lead.full_name,
+          roleTitle: lead.role_title,
+          companyName: lead.company_name,
+          bodyText: lead.body_text ?? lead.role_title ?? "",
+          contextSummary: lead.context_summary,
+          profileSummary: lead.profile_summary,
+          compositeScore: lead.composite_score,
+          scoreReasons: parseReasons(lead.score_reasons),
+          config,
+          skipScoreThreshold:
+            lead.lead_source === "firecrawl" ||
+            process.env.GROWTH_OUTREACH_SKIP_SCORE === "1",
         });
-        if (result) {
-          status = "sent";
-          sentAt = new Date().toISOString();
-          totals.sent += 1;
-          await sql`
-            UPDATE growth_leads
-            SET pipeline_status = 'outreach', updated_at = NOW()
-            WHERE id = ${lead.id}::uuid
-          `;
+        subjectLine = draft.subject;
+        bodyText = draft.body;
+        usedAi = draft.usedAi;
+        if (draft.usedAi) totals.used_ai += 1;
+
+        if (!send) {
+          status = "dry_run";
         } else {
-          status = "smtp_dev_log";
-          totals.no_email += 1;
-          errorMessage = "SMTP not configured — draft logged in dev console only";
+          const bodyHtml = textToHtmlParagraphs(bodyText);
+          const result = await sendEmail({
+            to: recipientEmail!,
+            template: "growth-outreach",
+            version: "0.0.1",
+            metadata: {
+              displayName: lead.full_name.split(/\s+/)[0] || "there",
+              subjectLine,
+              bodyText,
+              bodyHtml,
+            },
+          });
+          if (result) {
+            status = "sent";
+            sentAt = new Date().toISOString();
+            totals.sent += 1;
+            await sql`
+              UPDATE growth_leads
+              SET pipeline_status = 'outreach', updated_at = NOW()
+              WHERE id = ${lead.id}::uuid
+            `;
+          } else {
+            status = "smtp_dev_log";
+            totals.no_email += 1;
+            errorMessage = "SMTP not configured — draft logged in dev console only";
+          }
         }
       }
     } catch (error) {

@@ -46,6 +46,7 @@ export function GrowthOutreachPanel() {
     processed: 0,
     sent: 0,
     no_email: 0,
+    invalid_email: 0,
     failed: 0,
     used_ai: 0,
   };
@@ -56,12 +57,12 @@ export function GrowthOutreachPanel() {
       const res = await fetch("/api/admin/growth/outreach/run", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ limit: 200, send: true }),
+        body: JSON.stringify({ limit: 200, send: true, leadSource: "firecrawl" }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? "Run failed");
       toast.success(
-        `Outreach complete — ${json.run.totals.sent} sent, ${json.run.totals.no_email} drafts (no email)`,
+        `Outreach complete — ${json.run.totals.sent} sent, ${json.run.totals.invalid_email ?? 0} invalid, ${json.run.totals.no_email} no email`,
       );
       setSelectedId(json.run.id);
       await load();
@@ -84,7 +85,10 @@ export function GrowthOutreachPanel() {
             <h3 className="text-base font-semibold tracking-tight">Campaign</h3>
             <p className="mt-1 max-w-2xl text-sm text-muted">
               Generates a personalized message per lead, wraps it in the Stackwise email template, and
-              sends via SMTP when an email is on file.{" "}
+              sends via SMTP when an email is on file. Addresses are checked for placeholders and domain
+              MX before send. Set{" "}
+              <code className="text-foreground">GROWTH_OUTREACH_SEND=0</code> in{" "}
+              <code className="text-foreground">.env.local</code> to draft only (no SMTP).{" "}
               <strong className="font-medium text-foreground">firecrawl</strong> leads (and{" "}
               <code className="text-foreground">GROWTH_OUTREACH_SKIP_SCORE=1</code>) skip the minimum
               fit score for AI tailoring.
@@ -96,9 +100,10 @@ export function GrowthOutreachPanel() {
         </div>
 
         {latest ? (
-          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
             <StatCard label="Processed" value={totals.processed} />
             <StatCard label="Sent" value={totals.sent} />
+            <StatCard label="Invalid email" value={totals.invalid_email ?? 0} />
             <StatCard label="No email (draft)" value={totals.no_email} />
             <StatCard label="Failed" value={totals.failed} />
             <StatCard label="AI tailored" value={totals.used_ai} />
