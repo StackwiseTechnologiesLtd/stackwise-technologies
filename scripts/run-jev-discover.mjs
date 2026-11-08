@@ -16,7 +16,7 @@ syncJevProfile(repoRoot, jevHome);
 const passthrough = process.argv.slice(2);
 const limit = passthrough.includes("--limit")
   ? []
-  : ["--limit", process.env.JEV_DISCOVER_LIMIT ?? "30"];
+  : ["--limit", process.env.JEV_DISCOVER_LIMIT ?? "150"];
 
 const child = spawnSync(
   "npm",
