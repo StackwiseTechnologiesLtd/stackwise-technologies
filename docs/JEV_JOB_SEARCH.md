@@ -13,6 +13,17 @@ JEV ships for **new grad / early career** boards. For agency lead gen, widen sou
 
 ## One-time setup
 
+### Your CV → JEV profile
+
+Stackwise reads `~/Documents/my-cv.json.json` before each discover (override with `STACKWISE_CV_JSON`).
+
+```bash
+npm run growth:jev:sync-profile
+# or: node scripts/cv-json-to-jev-profile.mjs /path/to/my-cv.json.json
+```
+
+Review `workAuthorization` in the generated `~/jev-job-search/data/profile.json` (citizenship is not in the CV JSON and may need a manual fix).
+
 ### 1. Clone JEV (keep outside this repo)
 
 ```bash
