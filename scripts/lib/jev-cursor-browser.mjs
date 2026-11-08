@@ -55,9 +55,34 @@ export function profileForBrowserAgent(profile) {
   };
 }
 
-export function queuedJobs(entries, limit) {
-  const queued = entries.filter((e) => e.status === "queued");
-  queued.sort((a, b) => (b.fit?.score ?? 0) - (a.fit?.score ?? 0));
+const REMOTE_RE = /\bremote\b|work from home|\bwfh\b|distributed|anywhere|worldwide/i;
+const ONSITE_ONLY_RE =
+  /\b(on[- ]site|in[- ]office|hybrid|relocation required|must (be )?located)\b/i;
+
+/** True when the posting is marketed as remote (locations or title). */
+export function isRemoteJob(entry) {
+  const { job } = entry;
+  const locs = job?.locations ?? [];
+  const blob = [...locs, job?.title ?? "", job?.description ?? ""].join(" ");
+  if (locs.some((l) => REMOTE_RE.test(l))) return true;
+  if (REMOTE_RE.test(job?.title ?? "")) return true;
+  if (REMOTE_RE.test(blob) && !ONSITE_ONLY_RE.test(blob)) return true;
+  return false;
+}
+
+export function queuedJobs(entries, limit, { remoteOnly = false } = {}) {
+  let queued = entries.filter((e) => e.status === "queued");
+  if (remoteOnly) {
+    queued = queued.filter(isRemoteJob);
+  }
+  queued.sort((a, b) => {
+    const score = (b.fit?.score ?? 0) - (a.fit?.score ?? 0);
+    if (score !== 0) return score;
+    if (remoteOnly) return 0;
+    const ar = isRemoteJob(a) ? 1 : 0;
+    const br = isRemoteJob(b) ? 1 : 0;
+    return br - ar;
+  });
   return queued.slice(0, limit);
 }
 
@@ -84,13 +109,21 @@ export function writeSession(repoRoot, payload) {
   return sessionPath;
 }
 
-export function prepareSession(repoRoot, { count = 1, syncProfile = true } = {}) {
+export function prepareSession(
+  repoRoot,
+  { count = 1, syncProfile = true, remoteOnly = false } = {},
+) {
   const { jevHome } = prepareJevContext(repoRoot);
   if (syncProfile) syncJevProfile(repoRoot, jevHome);
   const { entries, generatedAt } = loadQueue(jevHome);
   const profile = loadProfile(jevHome);
-  const selected = queuedJobs(entries, count);
+  const selected = queuedJobs(entries, count, { remoteOnly });
   if (selected.length === 0) {
+    if (remoteOnly) {
+      throw new Error(
+        "No queued remote jobs in the pack filter. Run npm run growth:jev:discover to refresh the queue, or use company boards that list Remote locations.",
+      );
+    }
     throw new Error("No queued jobs. Run growth:jev:discover or widen sources.");
   }
   const payload = {
@@ -100,9 +133,11 @@ export function prepareSession(repoRoot, { count = 1, syncProfile = true } = {})
     jevHome,
     applicant: profileForBrowserAgent(profile),
     jobs: selected.map((e, i) => jobCard(e, i)),
+    remoteOnly,
     agentInstructions: [
       "Use cursor-ide-browser MCP (browser_navigate → browser_lock → snapshot → fill → unlock).",
       "Do not submit until the user says to submit this application.",
+      "Applicant wants fully remote roles; use standingAnswers for location/hybrid/remote questions.",
       "Use applicant.standingAnswers and experience for text fields; upload resume from applicant.resumePath if the form allows (user may need to pick the file manually).",
       "After submit or skip, run: npm run growth:jev:browser:mark -- <jobId> applied|skipped|manual",
     ],

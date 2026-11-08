@@ -96,6 +96,7 @@ try {
     const row = upsertAccount(
       {
         id,
+        email,
         employer: readArg("employer") || id,
         portal: readArg("portal") || "workday",
         signInUrl: readArg("url"),
