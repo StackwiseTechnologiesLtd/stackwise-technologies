@@ -2,7 +2,13 @@
 
 import { useToast } from "@/components/ToastProvider";
 import { AdminActionButton } from "@/components/admin/AdminActionButton";
-import type { GrowthOutreachRun, OutreachTotals } from "@/lib/growth/outreach-types";
+import type {
+  GrowthOutreachItem,
+  GrowthOutreachRun,
+  OutreachResponseStatus,
+  OutreachTotals,
+} from "@/lib/growth/outreach-types";
+import { outreachResponseStatuses } from "@/lib/growth/outreach-types";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 import { useCallback, useState } from "react";
 
@@ -21,6 +27,8 @@ export function GrowthOutreachPanel() {
   const [loading, setLoading] = useState(true);
   const [running, setRunning] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [runItems, setRunItems] = useState<GrowthOutreachItem[]>([]);
+  const [itemsLoading, setItemsLoading] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -40,6 +48,52 @@ export function GrowthOutreachPanel() {
   useDeferredEffect(() => {
     void load();
   }, [load]);
+
+  const loadRunItems = useCallback(
+    async (runId: string | null) => {
+      if (!runId) {
+        setRunItems([]);
+        return;
+      }
+      setItemsLoading(true);
+      try {
+        const res = await fetch(`/api/admin/growth/outreach/runs/${runId}`);
+        if (!res.ok) throw new Error("Could not load run items");
+        const json = (await res.json()) as { items: GrowthOutreachItem[] };
+        setRunItems(json.items ?? []);
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Load items failed");
+        setRunItems([]);
+      } finally {
+        setItemsLoading(false);
+      }
+    },
+    [toast],
+  );
+
+  useDeferredEffect(() => {
+    void loadRunItems(selectedId);
+  }, [selectedId, loadRunItems]);
+
+  async function markResponse(
+    itemId: string,
+    responseStatus: OutreachResponseStatus,
+  ) {
+    try {
+      const res = await fetch(`/api/admin/growth/outreach/items/${itemId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ responseStatus }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? "Update failed");
+      setRunItems((prev) =>
+        prev.map((item) => (item.id === itemId ? (json.item as GrowthOutreachItem) : item)),
+      );
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Update failed");
+    }
+  }
 
   const latest = runs[0];
   const totals: OutreachTotals = latest?.totals ?? {
@@ -85,8 +139,9 @@ export function GrowthOutreachPanel() {
             <h3 className="text-base font-semibold tracking-tight">Campaign</h3>
             <p className="mt-1 max-w-2xl text-sm text-muted">
               Generates a personalized message per lead, wraps it in the Stackwise email template, and
-              sends via SMTP when an email is on file. Addresses are checked for placeholders and domain
-              MX before send. Set{" "}
+              sends via SMTP when an email is on file. Each address is syntax-checked and verified for a
+              domain MX record before send; invalid addresses are logged, not sent. Sent messages are
+              listed below so you can mark reply status later. Set{" "}
               <code className="text-foreground">GROWTH_OUTREACH_SEND=0</code> in{" "}
               <code className="text-foreground">.env.local</code> to draft only (no SMTP).{" "}
               <strong className="font-medium text-foreground">firecrawl</strong> leads (and{" "}
@@ -169,6 +224,65 @@ export function GrowthOutreachPanel() {
           ): <code className="text-foreground">npm run growth:outreach</code>
         </p>
       </section>
+
+      {selectedId ? (
+        <section className="rounded-xl border border-line bg-panel p-5 sm:p-6">
+          <h3 className="text-base font-semibold tracking-tight">Sent &amp; tracked</h3>
+          <p className="mt-1 text-sm text-muted">
+            Mark whether each recipient replied after a campaign run. Validation failures show as invalid
+            email in run totals, not here.
+          </p>
+          {itemsLoading ? (
+            <p className="mt-4 text-sm text-muted">Loading items…</p>
+          ) : (
+            <ul className="mt-4 max-h-[28rem] space-y-2 overflow-y-auto">
+              {runItems
+                .filter((item) => item.status === "sent" || item.recipientEmail)
+                .map((item) => (
+                  <li
+                    key={item.id}
+                    className="rounded-lg border border-line bg-black/30 px-4 py-3 text-sm"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <div>
+                        <p className="font-medium text-foreground">
+                          {item.recipientName ?? item.companyName ?? "Lead"}
+                        </p>
+                        <p className="text-xs text-muted">
+                          {item.recipientEmail ?? "—"} · {item.status}
+                          {item.sentAt ? ` · ${new Date(item.sentAt).toLocaleString()}` : ""}
+                        </p>
+                        <p className="mt-1 line-clamp-1 text-xs text-muted">{item.subjectLine}</p>
+                      </div>
+                      <label className="flex items-center gap-2 text-xs">
+                        <span className="text-muted">Reply</span>
+                        <select
+                          className="rounded-md border border-line bg-background px-2 py-1 text-foreground"
+                          value={item.responseStatus}
+                          onChange={(e) =>
+                            void markResponse(
+                              item.id,
+                              e.target.value as OutreachResponseStatus,
+                            )
+                          }
+                        >
+                          {outreachResponseStatuses.map((s) => (
+                            <option key={s} value={s}>
+                              {s.replaceAll("_", " ")}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    </div>
+                  </li>
+                ))}
+              {!itemsLoading && runItems.length === 0 ? (
+                <li className="text-sm text-muted">No items in this run.</li>
+              ) : null}
+            </ul>
+          )}
+        </section>
+      ) : null}
     </div>
   );
 }

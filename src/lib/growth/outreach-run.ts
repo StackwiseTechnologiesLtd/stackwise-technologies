@@ -4,11 +4,13 @@ import { sendEmail } from "@/lib/emails/sendEmail";
 import { formatOutreachCsv, formatOutreachMarkdown } from "@/lib/growth/outreach-export";
 import { buildPersonalizedEmailDraft } from "@/lib/growth/personalized-email-draft";
 import { validateRecipientEmail } from "@/lib/growth/recipient-email";
-import type {
-  GrowthOutreachItem,
-  GrowthOutreachRun,
-  OutreachTotals,
-  RunOutreachOptions,
+import {
+  outreachResponseStatuses,
+  type GrowthOutreachItem,
+  type GrowthOutreachRun,
+  type OutreachResponseStatus,
+  type OutreachTotals,
+  type RunOutreachOptions,
 } from "@/lib/growth/outreach-types";
 import type { GrowthPlatform } from "@/lib/growth/types";
 import { ensureSchema } from "@/lib/db/ensure-schema";
@@ -76,6 +78,9 @@ type ItemRow = {
   sent_at: string | null;
   used_ai: boolean;
   created_at: string;
+  response_status: string;
+  response_marked_at: string | null;
+  response_notes: string | null;
 };
 
 function mapRun(row: RunRow): GrowthOutreachRun {
@@ -112,7 +117,16 @@ function mapItem(row: ItemRow): GrowthOutreachItem {
     sentAt: row.sent_at,
     usedAi: row.used_ai,
     createdAt: row.created_at,
+    responseStatus: parseResponseStatus(row.response_status),
+    responseMarkedAt: row.response_marked_at,
+    responseNotes: row.response_notes,
   };
+}
+
+function parseResponseStatus(value: string | null | undefined): OutreachResponseStatus {
+  const v = value?.trim() as OutreachResponseStatus | undefined;
+  if (v && outreachResponseStatuses.includes(v)) return v;
+  return "unknown";
 }
 
 function escapeHtml(text: string): string {
@@ -470,4 +484,31 @@ export async function runOutreachCampaign(
   }
 
   return { run, items };
+}
+
+export async function updateOutreachItemResponse(
+  itemId: string,
+  input: { responseStatus: OutreachResponseStatus; responseNotes?: string | null },
+): Promise<GrowthOutreachItem | null> {
+  await ready();
+  if (!outreachResponseStatuses.includes(input.responseStatus)) {
+    throw new Error("Invalid response status");
+  }
+  const sql = getSql();
+  const notes = input.responseNotes?.trim() || null;
+  const markedAt =
+    input.responseStatus === "unknown" ? null : new Date().toISOString();
+  const rows = asRows<ItemRow>(
+    await sql`
+      UPDATE growth_outreach_items
+      SET
+        response_status = ${input.responseStatus},
+        response_marked_at = ${markedAt}::timestamptz,
+        response_notes = ${notes}
+      WHERE id = ${itemId}::uuid
+      RETURNING *
+    `,
+  );
+  const row = rows[0];
+  return row ? mapItem(row) : null;
 }
