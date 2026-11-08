@@ -189,7 +189,8 @@ function buildProfile(cv) {
     },
     preferences: {
       earliestStart: "Immediately",
-      availability: "Full-time; open to senior IC, lead, and contract roles",
+      availability:
+        "Full-time software roles and internships; remote only (based in Cyprus, EU).",
       salaryExpectation: "",
       willingToRelocate: "no",
       remote: "preferred",
@@ -217,6 +218,11 @@ function buildProfile(cv) {
       {
         question: "Office, hybrid, or remote?",
         answer: "Fully remote.",
+      },
+      {
+        question: "Internship or full-time?",
+        answer:
+          "Open to both: full-time software engineering and internships/co-ops, as long as the role is remote.",
       },
       {
         question: "Years of professional software experience",

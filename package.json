@@ -50,6 +50,7 @@
     "growth:reddit:discover": "node scripts/growth-reddit-discover.mjs",
     "growth:jev:sync-profile": "node scripts/cv-json-to-jev-profile.mjs",
     "growth:jev:discover": "node scripts/run-jev-discover.mjs",
+    "growth:jev:import-remote-freehire": "node scripts/jev-import-remote-freehire.mjs",
     "growth:jev:doctor": "node scripts/run-jev-doctor.mjs",
     "growth:jev:apply": "node scripts/run-jev-apply.mjs",
     "growth:jev:browser:pack": "node scripts/jev-cursor-browser-pack.mjs",
