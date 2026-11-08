@@ -59,34 +59,67 @@ const REMOTE_RE = /\bremote\b|work from home|\bwfh\b|distributed|anywhere|worldw
 const ONSITE_ONLY_RE =
   /\b(on[- ]site|in[- ]office|hybrid|relocation required|must (be )?located)\b/i;
 
-/** True when the posting is marketed as remote (locations or title). */
-export function isRemoteJob(entry) {
-  const { job } = entry;
-  const locs = job?.locations ?? [];
-  const blob = [...locs, job?.title ?? "", job?.description ?? ""].join(" ");
+/** Remote in location line or job title (used for pack filters). */
+export function isRemoteLocation(entry) {
+  const locs = entry.job?.locations ?? [];
   if (locs.some((l) => REMOTE_RE.test(l))) return true;
-  if (REMOTE_RE.test(job?.title ?? "")) return true;
-  if (REMOTE_RE.test(blob) && !ONSITE_ONLY_RE.test(blob)) return true;
-  return false;
+  return REMOTE_RE.test(entry.job?.title ?? "");
 }
 
-export function queuedJobs(entries, limit, { remoteOnly = false } = {}) {
+/** Remote in locations/title/description (used for labels and supplemental search). */
+export function isRemoteJob(entry) {
+  if (isRemoteLocation(entry)) return true;
+  const blob = [
+    ...(entry.job?.locations ?? []),
+    entry.job?.title ?? "",
+    entry.job?.description ?? "",
+  ].join(" ");
+  return REMOTE_RE.test(blob) && !ONSITE_ONLY_RE.test(blob);
+}
+
+/** Posting is clearly on-site (no Remote in locations/title). */
+export function isOnsiteOnlyJob(entry) {
+  if (isRemoteLocation(entry)) return false;
+  const locs = entry.job?.locations ?? [];
+  if (locs.length === 0) return false;
+  return true;
+}
+
+const SOFTWARE_TITLE =
+  /software|engineer|developer|full[- ]stack|backend|frontend|front[- ]end|back[- ]end|platform|\bswe\b|devops|sre\b/i;
+
+/** Skipped/below-threshold remote software rows worth a manual look (e.g. international remote). */
+export function supplementalRemoteCandidates(entries, limit) {
+  return entries
+    .filter((e) => e.status === "skipped" && e.fit && isRemoteLocation(e))
+    .filter((e) => !/US role, no sponsorship|citizenship|clearance/i.test(e.fit?.skipReason ?? ""))
+    .filter((e) => SOFTWARE_TITLE.test(e.job?.title ?? ""))
+    .filter((e) => (e.fit?.score ?? 0) >= 0.25)
+    .sort((a, b) => (b.fit?.score ?? 0) - (a.fit?.score ?? 0))
+    .slice(0, limit);
+}
+
+export function queuedJobs(
+  entries,
+  limit,
+  { remoteOnly = false, excludeOnsite = true } = {},
+) {
   let queued = entries.filter((e) => e.status === "queued");
   if (remoteOnly) {
-    queued = queued.filter(isRemoteJob);
+    queued = queued.filter(isRemoteLocation);
+  } else if (excludeOnsite) {
+    queued = queued.filter((e) => !isOnsiteOnlyJob(e));
   }
   queued.sort((a, b) => {
-    const score = (b.fit?.score ?? 0) - (a.fit?.score ?? 0);
-    if (score !== 0) return score;
-    if (remoteOnly) return 0;
-    const ar = isRemoteJob(a) ? 1 : 0;
-    const br = isRemoteJob(b) ? 1 : 0;
-    return br - ar;
+    const ar = isRemoteLocation(a) ? 1 : 0;
+    const br = isRemoteLocation(b) ? 1 : 0;
+    if (br !== ar) return br - ar;
+    return (b.fit?.score ?? 0) - (a.fit?.score ?? 0);
   });
   return queued.slice(0, limit);
 }
 
-export function jobCard(entry, index) {
+export function jobCard(entry, index, { fromSupplement = false } = {}) {
   const { job, fit } = entry;
   return {
     index: index + 1,
@@ -96,8 +129,12 @@ export function jobCard(entry, index) {
     applyUrl: job.url,
     ats: job.ats ?? "unknown",
     locations: job.locations ?? [],
+    remote: isRemoteLocation(entry),
     jevScore: fit?.score ?? null,
     jevReasons: fit?.reasons ?? [],
+    ...(fromSupplement
+      ? { source: "supplemental_remote", note: "Was skipped in JEV; review sponsorship/location before applying." }
+      : {}),
   };
 }
 
@@ -111,20 +148,36 @@ export function writeSession(repoRoot, payload) {
 
 export function prepareSession(
   repoRoot,
-  { count = 1, syncProfile = true, remoteOnly = false } = {},
+  {
+    count = 1,
+    syncProfile = true,
+    remoteOnly = false,
+    includeOnsite = false,
+    supplementalRemote = 3,
+  } = {},
 ) {
   const { jevHome } = prepareJevContext(repoRoot);
   if (syncProfile) syncJevProfile(repoRoot, jevHome);
   const { entries, generatedAt } = loadQueue(jevHome);
   const profile = loadProfile(jevHome);
-  const selected = queuedJobs(entries, count, { remoteOnly });
-  if (selected.length === 0) {
+  const selected = queuedJobs(entries, count, {
+    remoteOnly,
+    excludeOnsite: !includeOnsite && !remoteOnly,
+  });
+  const extra =
+    remoteOnly || supplementalRemote <= 0
+      ? []
+      : supplementalRemoteCandidates(entries, supplementalRemote);
+  const combined = [...selected, ...extra];
+  if (combined.length === 0) {
     if (remoteOnly) {
       throw new Error(
-        "No queued remote jobs in the pack filter. Run npm run growth:jev:discover to refresh the queue, or use company boards that list Remote locations.",
+        "No queued remote jobs. Run growth:jev:import-remote-freehire then growth:jev:discover -- --limit 80.",
       );
     }
-    throw new Error("No queued jobs. Run growth:jev:discover or widen sources.");
+    throw new Error(
+      "No jobs match remote-first pack (onsite-only excluded). Use --include-onsite, growth:jev:import-remote-freehire, or growth:jev:discover -- --limit 80.",
+    );
   }
   const payload = {
     mode: "cursor-browser",
@@ -132,12 +185,15 @@ export function prepareSession(
     queueGeneratedAt: generatedAt,
     jevHome,
     applicant: profileForBrowserAgent(profile),
-    jobs: selected.map((e, i) => jobCard(e, i)),
+    jobs: combined.map((e, i) =>
+      jobCard(e, i, { fromSupplement: i >= selected.length }),
+    ),
     remoteOnly,
+    includeOnsite: includeOnsite || false,
     agentInstructions: [
       "Use cursor-ide-browser MCP (browser_navigate → browser_lock → snapshot → fill → unlock).",
       "Do not submit until the user says to submit this application.",
-      "Applicant wants fully remote roles; use standingAnswers for location/hybrid/remote questions.",
+      "Applicant wants remote full-time or remote internships (based in Cyprus); use standingAnswers.",
       "Use applicant.standingAnswers and experience for text fields; upload resume from applicant.resumePath if the form allows (user may need to pick the file manually).",
       "After submit or skip, run: npm run growth:jev:browser:mark -- <jobId> applied|skipped|manual",
     ],

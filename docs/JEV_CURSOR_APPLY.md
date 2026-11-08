@@ -14,7 +14,17 @@ npm run growth:jev:browser:pack -- --count 1
 npm run growth:jev:browser:pack -- --count 3 --remote   # remote postings only
 ```
 
-Set `preferences.remote` / standing answers in `~/jev-job-search/data/profile.json` (or `npm run growth:jev:sync-profile`) so forms get **fully remote**. `~/jev-job-search/data/policy.json` with `"where": ["remote", "international"]` steers JEV’s daily autopilot. Intern lists (e.g. vansh) skew on-site — **discover** company boards (GitLab, Deel, etc.) for roles that literally say Remote.
+**Full-time + intern, remote-first:** profile says both employment types; remote only for location (`npm run growth:jev:sync-profile`). Pack **excludes on-site-only** queued jobs by default; use `--include-onsite` for NYC-style interns. `--remote` is strict Remote-only.
+
+For **full-time remote** not on intern lists:
+
+```bash
+npm run growth:jev:import-remote-freehire
+npm run growth:jev:discover -- --limit 80
+npm run growth:jev:browser:pack -- --count 3
+```
+
+`policy.json` uses `"where": ["remote", "international", "unclear"]` and empty `levels` (intern + new grad). US “Remote” intern rows are often skipped for sponsorship — pack may add a few **supplemental** international remote skips when rated.
 
 That writes **`.jev-cursor-apply/session.json`** (gitignored; contains your email/phone for the agent).
 
