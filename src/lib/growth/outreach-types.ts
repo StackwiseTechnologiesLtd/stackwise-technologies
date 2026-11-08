@@ -16,6 +16,16 @@ export type GrowthOutreachRun = {
   createdBy: string | null;
 };
 
+export const outreachResponseStatuses = [
+  "unknown",
+  "no_reply",
+  "replied",
+  "bounced",
+  "not_interested",
+] as const;
+
+export type OutreachResponseStatus = (typeof outreachResponseStatuses)[number];
+
 export type GrowthOutreachItem = {
   id: string;
   runId: string;
@@ -31,6 +41,9 @@ export type GrowthOutreachItem = {
   sentAt: string | null;
   usedAi: boolean;
   createdAt: string;
+  responseStatus: OutreachResponseStatus;
+  responseMarkedAt: string | null;
+  responseNotes: string | null;
 };
 
 export type RunOutreachOptions = {
