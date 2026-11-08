@@ -1,6 +1,6 @@
 ---
 description: Personal job apply via JEV from Cursor (no Claude Code /apply)
-globs: scripts/run-jev-*.mjs,scripts/jev-cursor-browser*.mjs,scripts/lib/jev-*.mjs,docs/JEV*.md,.jev-cursor-apply/**
+globs: scripts/run-jev-*.mjs,scripts/jev-cursor-browser*.mjs,scripts/jev-accounts.mjs,scripts/lib/jev-*.mjs,docs/JEV*.md,.jev-cursor-apply/**
 ---
 
 # JEV from Cursor
@@ -18,6 +18,8 @@ JEV's `npx jev apply` **cannot** connect to Cursor's browser — it only drives 
 5. `npm run growth:jev:browser:mark -- <jobId> applied|skipped|manual`
 
 Never commit `.jev-cursor-apply/` (PII).
+
+**Employer accounts (Workday, etc.):** Passwords in macOS Keychain via `npm run growth:jev:accounts:save`. Metadata in `~/.stackwise/jev-accounts.json`. Before sign-in, `growth:jev:accounts:list` / `accounts:show <id>` (never paste passwords in chat). After Create Account succeeds, save credentials. See `docs/JEV_CURSOR_APPLY.md` § Employer logins.
 
 ## B. Full JEV automation (requires Google Chrome)
 

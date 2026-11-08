@@ -36,6 +36,45 @@ npm run growth:jev:browser:mark -- <jobId> applied
 
 Discover and queue scoring are the same for both.
 
+## Employer logins (Workday and other portals)
+
+Sites that need **Create account** / **Sign in** (e.g. PETRONAS Workday) should use a saved employer login so the next apply reuses the same credentials.
+
+**Storage (never in git):**
+
+- Passwords: **macOS Keychain**, service `stackwise-jev-apply`
+- Metadata: `~/.stackwise/jev-accounts.json` (mode `600`) — employer name, email, sign-in URL, Keychain item id
+
+**After you create an account in the browser** (or when the agent generates a password you confirm on the form):
+
+```bash
+# Generate a Workday-safe password (print only — copy before save)
+npm run growth:jev:accounts:gen-password
+
+# Save (password via env, never commit this)
+JEV_ACCOUNT_PASSWORD='…' npm run growth:jev:accounts:save -- \
+  --id workday:petronascanada \
+  --employer "PETRONAS Canada" \
+  --portal workday \
+  --email you@example.com \
+  --url "https://petronascanada.wd3.myworkdayjobs.com/en-US/PETRONASCanada/..."
+```
+
+List / retrieve (local machine only):
+
+```bash
+npm run growth:jev:accounts:list
+npm run growth:jev:accounts:show -- workday:petronascanada   # password to stdout
+```
+
+Optional — reuse the same login in **JEV + Chrome** later:
+
+```bash
+npm run growth:jev:accounts:sync-jev -- workday:petronascanada
+```
+
+**Agent workflow:** Before Workday sign-in, run `accounts:list` or `accounts:match --url <page>`. Fill email + password from Keychain (`accounts:show`) in the Cursor browser. After successful registration, always run `accounts:save`. Do not put passwords in chat, commits, or `session.json`.
+
 ## Full JEV apply (Google Chrome)
 
 Requirements and Chrome-only CLI flow below.
