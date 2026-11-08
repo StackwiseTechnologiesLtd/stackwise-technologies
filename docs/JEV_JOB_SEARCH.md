@@ -41,10 +41,11 @@ Secrets stay in `~/jev-job-search/data/` and `.env` (gitignored).
 - `.env.local`: `INTEGRATIONS_INGEST_SECRET`, `OPENROUTER_API_KEY` (Growth drafts)
 - See [GROWTH_REAL_DATA.md](./GROWTH_REAL_DATA.md)
 
-### 3. JEV accounts
+### 3. Keys (Cursor or Claude Code)
 
-- Claude Code (Pro/Max) for skills
-- [OpenRouter](https://openrouter.ai/keys) for JEV model (~cents per discover run)
+- [OpenRouter](https://openrouter.ai/keys) in `.env.local` — JEV scoring + Growth drafts
+- **Cursor workflow (no Claude Code):** `ANTHROPIC_API_KEY` + `WRITER_BACKEND=api` — see **[JEV_CURSOR_APPLY.md](./JEV_CURSOR_APPLY.md)**
+- Optional: Claude Code Pro/Max if you prefer the `claude` CLI and `/apply` skills
 
 ## Agency profile (discover → leads)
 
@@ -88,9 +89,9 @@ Job ingest allows **internships and student programs** (social harvest still fil
 
 Use the same JEV clone or a second clone (`~/jev-personal`) so agency discover does not mix with personal queue.
 
-1. `/setup` with **your** resume and work authorization
-2. `/discover` every day or two
-3. `/apply` or `/apply <ashby-url>` — you approve each send in the browser
+1. `npm run growth:jev:sync-profile` — CV → JEV profile; add `JEV_RESUME_PDF` if needed
+2. `npm run growth:jev:discover` every day or two
+3. **Cursor browser:** `npm run growth:jev:browser:pack` + agent (no Chrome). **Or** `growth:jev:apply` if Google Chrome is installed — [JEV_CURSOR_APPLY.md](./JEV_CURSOR_APPLY.md)
 4. Optional: ingest top queue rows into Stackwise to track status next to CRM notes
 
 ## Weekly rhythm
