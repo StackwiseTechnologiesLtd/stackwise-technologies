@@ -4,6 +4,23 @@ export const HARVEST_MAX_POST_AGE_HOURS = 72;
 /** Skip low-fit posts at harvest time (composite 0–100). */
 export const HARVEST_MIN_COMPOSITE_SCORE = 45;
 
+/** Extra title signals for job-board scoring (internships and IC roles are in scope). */
+export const JOB_INGEST_TITLE_KEYWORDS = [
+  "engineer",
+  "developer",
+  "software",
+  "intern",
+  "full stack",
+  "full-stack",
+  "backend",
+  "frontend",
+  "ai",
+  "machine learning",
+];
+
+/** Job ingest ignores intern/student exclusions; social harvest keeps them. */
+export const JOB_INGEST_SKIPPED_TITLE_EXCLUSIONS = new Set(["intern", "student"]);
+
 /** Job-board ingest (freehire / JEV): titles match ICP keywords; intent phrases are rare in JDs. */
 export const JOB_INGEST_MIN_COMPOSITE_SCORE = (() => {
   const raw = process.env.GROWTH_JOB_INGEST_MIN_SCORE?.trim();

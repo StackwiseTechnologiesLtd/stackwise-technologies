@@ -82,7 +82,7 @@ Then in admin:
 
 Do **not** run `/apply` for agency leads unless you are personally applying to a role.
 
-Tune **Growth → Settings → ICP** for job ingest: `contract`, `freelance`, `mvp`, `agency`, `rewrite`, `outsourc`.
+Job ingest allows **internships and student programs** (social harvest still filters `looking for job` / `open to work`). Tune **Growth → Settings → ICP** for extra title keywords; defaults add `engineer`, `developer`, `intern`, etc. for scoring.
 
 ## Personal profile (discover → apply)
 

@@ -3,6 +3,8 @@ import { isPostedWithinHours } from "@/lib/growth/harvest-freshness";
 import {
   JOB_INGEST_MAX_POST_AGE_HOURS,
   JOB_INGEST_MIN_COMPOSITE_SCORE,
+  JOB_INGEST_SKIPPED_TITLE_EXCLUSIONS,
+  JOB_INGEST_TITLE_KEYWORDS,
 } from "@/lib/growth/harvest-config";
 import { scoreLead } from "@/lib/growth/scoring";
 import type { HarvestFilterResult } from "@/lib/growth/harvest-quality";
@@ -25,6 +27,17 @@ const JOB_HINTS = [
   "full-time",
   "full time",
 ];
+
+/** ICP for job boards: internships allowed; engineering titles score fairly. */
+export function icpConfigForJobIngest(config: IcpConfig): IcpConfig {
+  const titleExclusions = config.titleExclusions.filter(
+    (bad) => !JOB_INGEST_SKIPPED_TITLE_EXCLUSIONS.has(bad.toLowerCase()),
+  );
+  const titleKeywords = [
+    ...new Set([...config.titleKeywords, ...JOB_INGEST_TITLE_KEYWORDS]),
+  ];
+  return { ...config, titleExclusions, titleKeywords };
+}
 
 export function looksLikeJobPosting(signal: IngestSignalInput): boolean {
   const body = normalize(signal.bodyText);
@@ -62,11 +75,13 @@ export function evaluateJobIngestCandidate(
     return { ok: false, reason: `Job older than ${maxPostAgeHours}h` };
   }
 
+  const jobConfig = icpConfigForJobIngest(config);
+
   const score = scoreLead({
     roleTitle: signal.roleTitle,
     companyName: signal.companyName,
     bodyText: signal.bodyText,
-    config,
+    config: jobConfig,
   });
 
   if (score.compositeScore < minCompositeScore) {
@@ -76,7 +91,7 @@ export function evaluateJobIngestCandidate(
     };
   }
 
-  for (const bad of config.titleExclusions) {
+  for (const bad of jobConfig.titleExclusions) {
     if (body.includes(normalize(bad))) {
       return { ok: false, reason: `Excluded: ${bad}` };
     }

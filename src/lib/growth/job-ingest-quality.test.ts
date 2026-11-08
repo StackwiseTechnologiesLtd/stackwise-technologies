@@ -31,4 +31,24 @@ describe("evaluateJobIngestCandidate", () => {
     );
     expect(result.ok).toBe(false);
   });
+
+  it("accepts internship titles that social harvest would exclude", () => {
+    const result = evaluateJobIngestCandidate(
+      {
+        platform: "linkedin",
+        authorName: "Notion",
+        bodyText:
+          "Software Engineering Intern, Frontend. Remote-friendly. Build product features with React and TypeScript.",
+        roleTitle: "Software Engineering Intern, Frontend",
+        companyName: "Notion",
+        leadSource: "freehire",
+      },
+      DEFAULT_ICP_CONFIG,
+      { minCompositeScore: 25 },
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.score.compositeScore).toBeGreaterThanOrEqual(25);
+    }
+  });
 });
