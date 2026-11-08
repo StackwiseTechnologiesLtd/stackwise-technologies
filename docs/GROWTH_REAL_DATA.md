@@ -48,7 +48,9 @@ npm run growth:harvest -- x
 - If ICP **search** returns 0 posts, harvest automatically tries your **home feed** and saves matching posts.
 - Watch the activity log DOM line — if all counts are 0, reconnect LinkedIn or run headed.
 
-## 5. Real job listings (freehire)
+## 5. Real job listings (freehire / JEV)
+
+**JEV discover → Growth Jobs:** See [JEV_JOB_SEARCH.md](./JEV_JOB_SEARCH.md). After `/discover` in [jev-job-search](https://github.com/qbeka/jev-job-search), run `npm run growth:jev:ingest -- ~/jev-job-search/data/queue.json`.
 
 This repo does **not** run the freehire app for you.
 
