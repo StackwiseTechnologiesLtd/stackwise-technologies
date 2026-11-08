@@ -25,6 +25,8 @@ export function loadEnvLocal() {
 }
 
 export function defaultIngestUrl() {
+  const explicit = process.env.INGEST_URL?.trim();
+  if (explicit) return explicit;
   const site = process.env.NEXT_PUBLIC_SITE_URL?.trim().replace(/\/$/, "");
   if (site) return `${site}/api/admin/integrations/ingest`;
   return "http://localhost:3000/api/admin/integrations/ingest";

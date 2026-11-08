@@ -20,14 +20,11 @@ const args = process.argv.slice(2);
 const dryRun = args.includes("--dry-run");
 const allQueued = args.includes("--all-queued");
 const minScoreArg = args.find((a) => a.startsWith("--min-score="));
-const minScore = minScoreArg
-  ? Number.parseInt(minScoreArg.split("=")[1], 10)
-  : Number.parseInt(process.env.JEV_INGEST_MIN_SCORE ?? "42", 10);
 const fileArg = args.find((a) => !a.startsWith("-"));
 
-if (!fileArg || !Number.isFinite(minScore)) {
+if (!fileArg) {
   console.error(
-    "Usage: node scripts/jev-queue-ingest.mjs [--dry-run] [--min-score=42] [--all-queued] <queue.json>",
+    "Usage: node scripts/jev-queue-ingest.mjs [--dry-run] [--min-score=0.28] [--all-queued] <queue.json>",
   );
   process.exit(1);
 }
@@ -45,6 +42,19 @@ const raw = JSON.parse(fs.readFileSync(queuePath, "utf8"));
 const entries = Array.isArray(raw) ? raw : raw.entries;
 if (!Array.isArray(entries)) {
   console.error("queue.json must be { entries: [...] } or an array");
+  process.exit(1);
+}
+
+const maxFit = Math.max(0, ...entries.map((e) => e.fit?.score ?? 0));
+const jevFractional = maxFit > 0 && maxFit <= 1;
+const defaultMin = jevFractional
+  ? Number.parseFloat(process.env.JEV_INGEST_MIN_SCORE ?? "0.28")
+  : Number.parseFloat(process.env.JEV_INGEST_MIN_SCORE ?? "42");
+const minScore = minScoreArg
+  ? Number.parseFloat(minScoreArg.split("=")[1])
+  : defaultMin;
+if (!Number.isFinite(minScore)) {
+  console.error("Invalid --min-score");
   process.exit(1);
 }
 
@@ -125,7 +135,9 @@ function toPayload(job) {
   };
 }
 
-console.log(`Selected ${summary.selected} / ${summary.queue} (min-score=${minScore}, all-queued=${allQueued})`);
+console.log(
+  `Selected ${summary.selected} / ${summary.queue} (min-score=${minScore}, scale=${jevFractional ? "jev-0-1" : "composite"}, all-queued=${allQueued})`,
+);
 
 for (const job of jobs) {
   const payload = toPayload(job);

@@ -1,6 +1,9 @@
 import type { IcpConfig, IngestSignalInput } from "@/lib/growth/types";
 import { isPostedWithinHours } from "@/lib/growth/harvest-freshness";
-import { HARVEST_MAX_POST_AGE_HOURS, JOB_INGEST_MIN_COMPOSITE_SCORE } from "@/lib/growth/harvest-config";
+import {
+  JOB_INGEST_MAX_POST_AGE_HOURS,
+  JOB_INGEST_MIN_COMPOSITE_SCORE,
+} from "@/lib/growth/harvest-config";
 import { scoreLead } from "@/lib/growth/scoring";
 import type { HarvestFilterResult } from "@/lib/growth/harvest-quality";
 
@@ -41,7 +44,7 @@ export function evaluateJobIngestCandidate(
 ): HarvestFilterResult {
   const minCompositeScore =
     options?.minCompositeScore ?? JOB_INGEST_MIN_COMPOSITE_SCORE;
-  const maxPostAgeHours = options?.maxPostAgeHours ?? HARVEST_MAX_POST_AGE_HOURS;
+  const maxPostAgeHours = options?.maxPostAgeHours ?? JOB_INGEST_MAX_POST_AGE_HOURS;
 
   const body = normalize(signal.bodyText);
   if (body.length < 15) {
