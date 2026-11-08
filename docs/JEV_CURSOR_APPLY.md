@@ -11,7 +11,10 @@ Use this track when Chrome is missing or you want to watch the tab inside Cursor
 ```bash
 npm run growth:jev:discover          # refill queue (no browser)
 npm run growth:jev:browser:pack -- --count 1
+npm run growth:jev:browser:pack -- --count 3 --remote   # remote postings only
 ```
+
+Set `preferences.remote` / standing answers in `~/jev-job-search/data/profile.json` (or `npm run growth:jev:sync-profile`) so forms get **fully remote**. `~/jev-job-search/data/policy.json` with `"where": ["remote", "international"]` steers JEV’s daily autopilot. Intern lists (e.g. vansh) skew on-site — **discover** company boards (GitLab, Deel, etc.) for roles that literally say Remote.
 
 That writes **`.jev-cursor-apply/session.json`** (gitignored; contains your email/phone for the agent).
 

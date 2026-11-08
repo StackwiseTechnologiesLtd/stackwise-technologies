@@ -3,6 +3,7 @@
  * Prepare JEV queue + profile for apply in Cursor's browser (not JEV's Chrome).
  *
  *   npm run growth:jev:browser:pack -- --count 3
+ *   npm run growth:jev:browser:pack -- --count 3 --remote
  *
  * Writes .jev-cursor-apply/session.json (gitignored). Ask the Cursor agent to
  * apply using the browser panel — see docs/JEV_CURSOR_APPLY.md § Cursor browser.
@@ -22,9 +23,10 @@ if (countArg) {
   count = Number.parseInt(args[countFlag + 1], 10);
 }
 if (!Number.isFinite(count) || count < 1) count = 1;
+const remoteOnly = args.includes("--remote");
 
 try {
-  const { sessionPath, payload } = prepareSession(repoRoot, { count });
+  const { sessionPath, payload } = prepareSession(repoRoot, { count, remoteOnly });
   console.log("Wrote", sessionPath);
   console.log(
     `Queued ${payload.jobs.length} job(s) for Cursor browser apply (newest pack wins).`,

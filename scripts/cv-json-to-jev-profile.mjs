@@ -191,9 +191,9 @@ function buildProfile(cv) {
       earliestStart: "Immediately",
       availability: "Full-time; open to senior IC, lead, and contract roles",
       salaryExpectation: "",
-      willingToRelocate: "yes",
+      willingToRelocate: "no",
       remote: "preferred",
-      preferredLocations: ["Remote", "Cyprus", "United Kingdom", "European Union"],
+      preferredLocations: ["Remote", "Cyprus", "European Union", "United Kingdom"],
       howDidYouHear: "Job board or company careers page",
       references: "skip",
       coverLetter: "when_asked",
@@ -211,7 +211,12 @@ function buildProfile(cv) {
       },
       {
         question: "Can you work on site or relocate?",
-        answer: "Yes for hybrid or on-site in Cyprus and the EU. Remote worldwide when the role allows it.",
+        answer:
+          "Fully remote preferred. Based in Nicosia, Cyprus. I will not relocate for on-site roles; open to occasional travel only when the role is otherwise remote-first.",
+      },
+      {
+        question: "Office, hybrid, or remote?",
+        answer: "Fully remote.",
       },
       {
         question: "Years of professional software experience",
