@@ -8,20 +8,36 @@ import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { loadEnvLocal } from "./lib/load-env-local.mjs";
 
 loadEnvLocal();
+
+const repoRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 
 const jevHome =
   process.env.JEV_HOME?.trim() ||
   path.join(os.homedir(), "jev-job-search");
 
 const profilePath = path.join(jevHome, "data", "profile.json");
-if (!fs.existsSync(profilePath)) {
+const cvDefault = path.join(os.homedir(), "Documents", "my-cv.json.json");
+const cvPath =
+  process.env.STACKWISE_CV_JSON?.trim() ||
+  (fs.existsSync(cvDefault) ? cvDefault : "");
+
+if (cvPath && fs.existsSync(cvPath)) {
+  const converter = path.join(repoRoot, "scripts", "cv-json-to-jev-profile.mjs");
+  const sync = spawnSync(
+    process.execPath,
+    [converter, cvPath, profilePath],
+    { stdio: "inherit" },
+  );
+  if (sync.status !== 0) process.exit(sync.status ?? 1);
+} else if (!fs.existsSync(profilePath)) {
   const example = path.join(jevHome, "data", "profile.example.json");
   if (fs.existsSync(example)) {
     fs.copyFileSync(example, profilePath);
-    console.warn("Copied profile.example.json → profile.json (replace with your real /setup profile).");
+    console.warn("Copied profile.example.json → profile.json (set STACKWISE_CV_JSON or add my-cv.json.json).");
   } else {
     console.error("No JEV profile at", profilePath);
     process.exit(1);

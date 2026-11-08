@@ -48,6 +48,7 @@
     "integrations:firecrawl:status": "node scripts/integrations-firecrawl-status.mjs",
     "growth:firecrawl:discover": "node scripts/growth-firecrawl-discover.mjs",
     "growth:reddit:discover": "node scripts/growth-reddit-discover.mjs",
+    "growth:jev:sync-profile": "node scripts/cv-json-to-jev-profile.mjs",
     "growth:jev:discover": "node scripts/run-jev-discover.mjs",
     "growth:jev:ingest": "node scripts/jev-queue-ingest.mjs",
     "integrations:jobs:demo": "node scripts/integrations-jobs-demo.mjs",
