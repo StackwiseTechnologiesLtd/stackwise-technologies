@@ -1,0 +1,29 @@
+---
+description: Personal job apply via JEV from Cursor (no Claude Code /apply)
+globs: scripts/run-jev-*.mjs,scripts/jev-cursor-browser*.mjs,scripts/lib/jev-*.mjs,docs/JEV*.md,.jev-cursor-apply/**
+---
+
+# JEV from Cursor
+
+Two personal-apply modes:
+
+## A. Cursor browser (preferred when Google Chrome is not installed)
+
+JEV's `npx jev apply` **cannot** connect to Cursor's browser — it only drives its own Chrome via CDP. Use the **browser MCP** instead:
+
+1. `npm run growth:jev:browser:pack -- --count 1` (or `--count=3`)
+2. Read **`.jev-cursor-apply/session.json`** (`applicant` + `jobs[]`)
+3. `browser_navigate` → `browser_lock` → `browser_snapshot` → fill from `applicant` → **do not submit** until the user explicitly asks
+4. User completes CAPTCHA / email codes / file upload if MCP cannot
+5. `npm run growth:jev:browser:mark -- <jobId> applied|skipped|manual`
+
+Never commit `.jev-cursor-apply/` (PII).
+
+## B. Full JEV automation (requires Google Chrome)
+
+- `npm run growth:jev:apply -- --dry --count 3` then `--submit` — see `docs/JEV_CURSOR_APPLY.md`
+- Secrets from Stackwise `.env.local` only
+
+Agency: `growth:jev:ingest` → Growth → Jobs — not apply.
+
+Discovery: `growth:jev:discover` (works without Chrome).

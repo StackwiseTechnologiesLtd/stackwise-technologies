@@ -7,7 +7,8 @@ Use this checklist so **Growth → Inbox**, **Jobs**, and **CRM** reflect live p
 | Variable | Purpose |
 | -------- | ------- |
 | `DATABASE_URL` | Neon — required |
-| `OPENROUTER_API_KEY` | Generate reply drafts on demand |
+| `OPENROUTER_API_KEY` | Generate reply drafts on demand; JEV discover (`growth:jev:discover`) |
+| `ANTHROPIC_API_KEY` | Optional — JEV apply without Claude Code (`growth:jev:apply`); see `docs/JEV_CURSOR_APPLY.md` |
 | `INTEGRATIONS_INGEST_SECRET` | Huginn / freehire → ingest |
 | `GROWTH_CONNECTOR_SECRET` | Optional; connector scripts |
 | `ALLOW_TEST_INGEST=1` | **Dev only** — allow example.com smoke ingest |
