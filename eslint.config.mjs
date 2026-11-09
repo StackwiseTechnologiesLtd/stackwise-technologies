@@ -15,6 +15,8 @@ const eslintConfig = defineConfig([
     // OpenNext / Cloudflare worker output
     ".open-next/**",
     ".wrangler/**",
+    // Vendored third-party trees (own lint/typecheck)
+    "vendor/**",
   ]),
 ]);
 

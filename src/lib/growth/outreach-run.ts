@@ -447,6 +447,9 @@ export async function runOutreachCampaign(
         sent_at: sentAt,
         used_ai: usedAi,
         created_at: now,
+        response_status: "unknown",
+        response_marked_at: null,
+        response_notes: null,
       }),
     );
 
