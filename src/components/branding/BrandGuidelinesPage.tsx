@@ -9,6 +9,7 @@ import {
   type CSSProperties,
   type ReactNode,
 } from "react";
+import Link from "next/link";
 import type { BrandGuidelines } from "@/lib/branding/types";
 import { brandAssetUrl, brandStorageOf } from "@/lib/branding/asset-url";
 import { BrandAssetStorageProvider } from "./brand-asset-context";
@@ -89,13 +90,13 @@ function BrandPortalSignOut() {
 function BrandAdminPreviewFooter() {
   return (
     <p className="PageShell_mainFooterText__uNa6N" style={{ marginTop: "0.5rem" }}>
-      <a href="/branding" style={{ color: "inherit", textDecoration: "underline" }}>
+      <Link href="/branding" style={{ color: "inherit", textDecoration: "underline" }}>
         All brand systems
-      </a>
+      </Link>
       {" · "}
-      <a href="/admin" style={{ color: "inherit", textDecoration: "underline" }}>
+      <Link href="/admin" style={{ color: "inherit", textDecoration: "underline" }}>
         Admin
-      </a>
+      </Link>
     </p>
   );
 }

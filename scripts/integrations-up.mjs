@@ -33,7 +33,7 @@ function run(cmd, args, opts = {}) {
 async function waitForHttp(url, maxMs = 600_000) {
   const start = Date.now();
   process.stdout.write(`Waiting for ${url} …`);
-  while Date.now() - start < maxMs) {
+  while (Date.now() - start < maxMs) {
     try {
       const res = await fetch(url, { redirect: "manual" });
       if (res.status >= 200 && res.status < 500) {
