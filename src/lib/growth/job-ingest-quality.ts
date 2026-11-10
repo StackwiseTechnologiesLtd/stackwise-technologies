@@ -46,7 +46,7 @@ export function looksLikeJobPosting(signal: IngestSignalInput): boolean {
   return JOB_HINTS.some((hint) => body.includes(hint));
 }
 
-/** Quality gate for freehire / job-board ingest (less strict than social harvest). */
+/** Quality gate for freehire / LinkedIn Jobs / job-board ingest (less strict than social harvest). */
 export function evaluateJobIngestCandidate(
   signal: IngestSignalInput,
   config: IcpConfig,

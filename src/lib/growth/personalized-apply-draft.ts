@@ -42,7 +42,7 @@ Job text:
 ${input.bodyText.slice(0, 2500)}
 ${input.profileSummary ? `Applicant context:\n${input.profileSummary.slice(0, 800)}` : ""}`;
 
-  growthAiLog("apply-note", `model=${openRouterModel()}`);
+  growthAiLog("apply-note", { model: openRouterModel() });
   growthAiLogMultiline("apply-note-prompt", user);
 
   const result = await openRouterChat(
@@ -54,7 +54,7 @@ ${input.profileSummary ? `Applicant context:\n${input.profileSummary.slice(0, 80
   );
 
   if ("error" in result) {
-    growthAiLog("apply-note-error", result.error);
+    growthAiLog("apply-note-error", { error: result.error });
     return { body: fallback, usedAi: false, aiError: result.error };
   }
 

@@ -487,10 +487,11 @@ export async function listInbox(options?: {
   const limit = options?.limit ?? 50;
   const platform = options?.platform ?? null;
   const leadSource = options?.leadSource ?? null;
-  const leadSources =
+  const leadSourcesList =
     options?.leadSources && options.leadSources.length > 0
       ? options.leadSources
-      : null;
+      : ([] as LeadSource[]);
+  const useLeadSourcesList = leadSourcesList.length > 0;
   const freshnessHours =
     options?.freshnessHours === undefined
       ? INBOX_DEFAULT_FRESHNESS_HOURS
@@ -509,11 +510,11 @@ export async function listInbox(options?: {
         AND l.pipeline_status <> 'not_a_fit'
         AND (${platform}::text IS NULL OR l.platform = ${platform} OR s.platform = ${platform})
         AND (
-          ${leadSources}::text[] IS NULL
-          OR l.lead_source = ANY(${leadSources}::text[])
+          ${!useLeadSourcesList}
+          OR l.lead_source = ANY(${leadSourcesList}::text[])
         )
         AND (
-          ${leadSources}::text[] IS NOT NULL
+          ${useLeadSourcesList}
           OR ${leadSource}::text IS NULL
           OR l.lead_source = ${leadSource}
         )

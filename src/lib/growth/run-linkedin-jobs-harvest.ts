@@ -179,7 +179,8 @@ export async function runLinkedInJobsHarvest(
   report?: HarvestReporter,
 ): Promise<{ captured: number; ingested: number }> {
   const session = await getPlatformSession("linkedin");
-  if (!session?.cookies?.length) {
+  const cookies = normalizeCookies(session?.cookies);
+  if (!session || cookies.length === 0) {
     throw new Error("Connect LinkedIn first (Growth → Connect)");
   }
 
@@ -190,7 +191,6 @@ export async function runLinkedInJobsHarvest(
     `ICP job titles → ${queries.map((q) => `“${q}”`).join(", ")}`,
   );
 
-  const cookies = normalizeCookies(session.cookies);
   const signals = await harvestJobsWithPlaywright(
     cookies,
     session.userAgent,
