@@ -79,7 +79,7 @@ Record **date + initials** when all manual tests for a phase pass.
 | 1 Integration fabric | ☑      | agent  | 2026-11-10 | Local 1.T1–1.T6 + prod ingest auth (401/400); UI on :3005 |
 | 2 In-repo CRM (data) | ☑      | agent  | 2026-11-10 | Promote/PATCH stage/activity APIs; growth_leads.pipeline_status sync |
 | 2b CRM UI (Twenty-inspired) | ☑ | agent  | 2026-11-10 | Board+record+timeline; fixed Suspense hang from useSearchParams |
-| 3 Huginn             | ☐      |        |      |       |
+| 3 Huginn             | ☑      | agent  | 2026-11-10 | Slim ManualEvent→Format→Post scenario; local :3001→:3005 ingest; 3.T1–3.T6 |
 | 4 freehire           | ☐      |        |      |       |
 
 ---

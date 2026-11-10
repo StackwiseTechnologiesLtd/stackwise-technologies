@@ -51,11 +51,15 @@ Expected: HTTP `200` from Stackwise, lead in **Growth → Inbox** with channel *
 
 Use the imported **Manual test event** agent. Body fields map through **ingest JSON shape** → **POST ingest**.
 
-### RSS + intent filter
+### RSS + intent filter (optional)
 
-1. Enable **RSS (example)** — replace feed URL with your source.
-2. Enable **hiring intent filter** — edit regex for your ICP phrases (`need a developer`, `hiring`, `MVP`, etc.).
-3. Enable both agents and wait for a poll (or run RSS agent manually).
+The shipped scenario is the **manual → format → POST** path only (reliable on current Huginn).
+
+To add RSS later in the Huginn UI:
+
+1. Add an **RssAgent** with your feed URL.
+2. Add a **TriggerAgent** with `expected_receive_period_in_days`, `message`, and JSONPath `rules` (paths must start with `$`, e.g. `$.title`).
+3. Link RSS → Trigger → ingest JSON shape → POST ingest.
 
 Irrelevant posts should not create Growth leads: Stackwise ingest returns **422** when `evaluateHarvestCandidate` fails; Huginn Post Agent may still show the response — check **Growth → Settings → Integrations** for `ingest_rejected` events.
 

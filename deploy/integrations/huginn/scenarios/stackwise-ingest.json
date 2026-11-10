@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "name": "Stackwise Growth ingest",
-  "description": "Manual test event or RSS intent → POST /api/admin/integrations/ingest. After import, edit the Post Agent: post_url and Authorization bearer secret.",
+  "description": "Manual test event → format → POST /api/admin/integrations/ingest. After import, confirm Post Agent post_url and Authorization bearer.",
   "source_url": false,
   "guid": "b4e2c8a17f3d4e9ab2c16d8e0f1a2b3c",
   "tag_fg_color": "#f8fafc",
@@ -15,37 +15,6 @@
       "disabled": false,
       "guid": "c1a2b3c4d5e6f708192a3b4c5d6e7f80",
       "options": {},
-      "schedule": "never",
-      "keep_events_for": 604800
-    },
-    {
-      "type": "Agents::RssAgent",
-      "name": "Stackwise — RSS (example, disabled)",
-      "disabled": true,
-      "guid": "d2b3c4d5e6f708192a3b4c5d6e7f8091",
-      "options": {
-        "url": "https://weworkremotely.com/categories/remote-full-stack-programming-jobs.rss",
-        "expected_update_period_in_days": "2",
-        "clean": "true"
-      },
-      "schedule": "every_1h",
-      "keep_events_for": 604800
-    },
-    {
-      "type": "Agents::TriggerAgent",
-      "name": "Stackwise — hiring intent filter",
-      "disabled": true,
-      "guid": "e3c4d5e6f708192a3b4c5d6e7f8091a2",
-      "options": {
-        "rules": [
-          {
-            "type": "regex",
-            "value": "(need a developer|hiring|looking for (a )?dev|mvp|production launch)",
-            "path": "{{ title }} {{ description }}"
-          }
-        ],
-        "must_match": "1"
-      },
       "schedule": "never",
       "keep_events_for": 604800
     },
@@ -100,19 +69,11 @@
   "links": [
     {
       "source": 0,
-      "receiver": 3
+      "receiver": 1
     },
     {
       "source": 1,
       "receiver": 2
-    },
-    {
-      "source": 2,
-      "receiver": 3
-    },
-    {
-      "source": 3,
-      "receiver": 4
     }
   ],
   "control_links": []
