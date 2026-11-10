@@ -56,7 +56,7 @@ export async function getIntegrationsStatus(): Promise<{
         MAX(created_at) AS last_at,
         MAX(created_at) FILTER (WHERE event_type = 'ingest_ok') AS last_ok
       FROM integration_events
-      WHERE lead_source IN ('huginn', 'freehire', 'manual', 'harvest')
+      WHERE lead_source IN ('huginn', 'freehire', 'linkedin_jobs', 'manual', 'harvest')
       GROUP BY lead_source
     `,
   );
@@ -65,7 +65,7 @@ export async function getIntegrationsStatus(): Promise<{
     await sql`
       SELECT DISTINCT ON (lead_source) lead_source, detail
       FROM integration_events
-      WHERE lead_source IN ('huginn', 'freehire', 'manual', 'harvest')
+      WHERE lead_source IN ('huginn', 'freehire', 'linkedin_jobs', 'manual', 'harvest')
       ORDER BY lead_source, created_at DESC
     `,
   );
@@ -107,6 +107,7 @@ export async function getIntegrationsStatus(): Promise<{
       service("harvest", "LinkedIn / X harvest"),
       service("huginn", "Huginn webhooks"),
       service("freehire", "freehire jobs"),
+      service("linkedin_jobs", "LinkedIn Jobs harvest"),
       service("manual", "Manual capture"),
       {
         id: "crm",

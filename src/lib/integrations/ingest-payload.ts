@@ -31,7 +31,11 @@ export function parseIntegrationIngestBody(
   }
   const b = body as IntegrationIngestBody;
   if (!b.source || !leadSources.includes(b.source)) {
-    return { ok: false, error: "Invalid source (huginn, freehire, manual, harvest)" };
+    return {
+      ok: false,
+      error:
+        "Invalid source (huginn, freehire, linkedin_jobs, manual, harvest, firecrawl)",
+    };
   }
   if (!b.platform || !growthPlatforms.includes(b.platform)) {
     return { ok: false, error: "Invalid platform (linkedin, x)" };

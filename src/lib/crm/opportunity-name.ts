@@ -6,7 +6,7 @@ export function crmOpportunityDisplayName(lead: {
   roleTitle: string | null;
   companyName: string | null;
 }): string {
-  if (lead.leadSource === "freehire") {
+  if (lead.leadSource === "freehire" || lead.leadSource === "linkedin_jobs") {
     const role = lead.roleTitle?.trim() || lead.fullName.trim() || "Role";
     const company = lead.companyName?.trim();
     return company ? `Hiring: ${role} @ ${company}` : `Hiring: ${role}`;

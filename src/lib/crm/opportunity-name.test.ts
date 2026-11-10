@@ -13,6 +13,17 @@ describe("crmOpportunityDisplayName", () => {
     ).toBe("Hiring: Senior Developer @ Acme SaaS Ltd");
   });
 
+  it("formats linkedin_jobs the same way", () => {
+    expect(
+      crmOpportunityDisplayName({
+        leadSource: "linkedin_jobs",
+        fullName: "Remote Co",
+        roleTitle: "Full Stack Engineer",
+        companyName: "Remote Co",
+      }),
+    ).toBe("Hiring: Full Stack Engineer @ Remote Co");
+  });
+
   it("formats harvest leads with company", () => {
     expect(
       crmOpportunityDisplayName({

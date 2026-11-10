@@ -5,6 +5,7 @@ import { recordIntegrationEvent } from "@/lib/integrations/repository";
 import { isTestIngestUrl, testIngestAllowed } from "@/lib/growth/is-test-ingest-url";
 import { evaluateHarvestCandidate } from "@/lib/growth/harvest-quality";
 import { evaluateJobIngestCandidate } from "@/lib/growth/job-ingest-quality";
+import { isJobLeadSource } from "@/lib/growth/types";
 import { getIcpConfig, ingestSignal, signalAlreadyIngested } from "@/lib/growth/repository";
 
 export const dynamic = "force-dynamic";
@@ -48,10 +49,9 @@ export async function POST(request: Request) {
     }
 
     const config = await getIcpConfig();
-    const verdict =
-      leadSource === "freehire"
-        ? evaluateJobIngestCandidate(input, config)
-        : evaluateHarvestCandidate(input, config);
+    const verdict = isJobLeadSource(leadSource)
+      ? evaluateJobIngestCandidate(input, config)
+      : evaluateHarvestCandidate(input, config);
     if (!verdict.ok) {
       await recordIntegrationEvent({
         leadSource,

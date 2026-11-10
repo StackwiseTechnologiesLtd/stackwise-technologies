@@ -6,6 +6,7 @@ const sourceLabels: Record<LeadSource, string> = {
   harvest: "harvest",
   huginn: "Huginn",
   freehire: "Jobs",
+  linkedin_jobs: "LinkedIn Jobs",
   firecrawl: "Firecrawl",
   manual: "manual capture",
 };

@@ -396,6 +396,8 @@ export async function listInbox(options?: {
   minScore?: number;
   platform?: GrowthPlatform | null;
   leadSource?: LeadSource | null;
+  /** When set, match any of these lead sources (Jobs inbox). */
+  leadSources?: LeadSource[] | null;
   limit?: number;
   /** When set, only leads tied to signals this recent (posted or ingested). */
   freshnessHours?: number | null;
@@ -406,6 +408,10 @@ export async function listInbox(options?: {
   const limit = options?.limit ?? 50;
   const platform = options?.platform ?? null;
   const leadSource = options?.leadSource ?? null;
+  const leadSources =
+    options?.leadSources && options.leadSources.length > 0
+      ? options.leadSources
+      : null;
   const freshnessHours =
     options?.freshnessHours === undefined
       ? INBOX_DEFAULT_FRESHNESS_HOURS
@@ -423,7 +429,15 @@ export async function listInbox(options?: {
       WHERE l.composite_score >= ${minScore}
         AND l.pipeline_status <> 'not_a_fit'
         AND (${platform}::text IS NULL OR l.platform = ${platform} OR s.platform = ${platform})
-        AND (${leadSource}::text IS NULL OR l.lead_source = ${leadSource})
+        AND (
+          ${leadSources}::text[] IS NULL
+          OR l.lead_source = ANY(${leadSources}::text[])
+        )
+        AND (
+          ${leadSources}::text[] IS NOT NULL
+          OR ${leadSource}::text IS NULL
+          OR l.lead_source = ${leadSource}
+        )
         AND (
           ${cutoff}::timestamptz IS NULL
           OR COALESCE(s.posted_at, s.ingested_at) >= ${cutoff}::timestamptz

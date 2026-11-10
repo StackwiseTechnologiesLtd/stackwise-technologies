@@ -7,9 +7,18 @@ export const leadSources = [
   "manual",
   "huginn",
   "freehire",
+  "linkedin_jobs",
   "firecrawl",
 ] as const;
 export type LeadSource = (typeof leadSources)[number];
+
+/** Job-board channels shown on Growth → Jobs. */
+export const jobLeadSources = ["freehire", "linkedin_jobs"] as const;
+export type JobLeadSource = (typeof jobLeadSources)[number];
+
+export function isJobLeadSource(value: LeadSource): boolean {
+  return (jobLeadSources as readonly string[]).includes(value);
+}
 
 export function parseLeadSource(value: string | null | undefined): LeadSource {
   if (value && leadSources.includes(value as LeadSource)) {
@@ -93,7 +102,7 @@ export type GrowthDraft = {
   leadId: string | null;
   signalId: string | null;
   platform: GrowthPlatform;
-  draftKind: "reply" | "post" | "dm";
+  draftKind: "reply" | "post" | "dm" | "apply_note";
   bodyText: string;
   imageNotes: string | null;
   status: DraftStatus;

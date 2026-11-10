@@ -14,6 +14,7 @@ import {
 } from "@/components/admin/growth/GrowthPlatformFilter";
 import { GrowthScoreFilter } from "@/components/admin/growth/GrowthScoreFilter";
 import type { GrowthDraft, GrowthInboxItem, LeadSource } from "@/lib/growth/types";
+import { isJobLeadSource, jobLeadSources } from "@/lib/growth/types";
 import { growthFetch } from "@/lib/growth/growth-fetch";
 import { INBOX_DEFAULT_FRESHNESS_HOURS } from "@/lib/growth/harvest-config";
 import { sortInboxItemsByRecency } from "@/lib/growth/lead-sort";
@@ -30,11 +31,16 @@ function inboxQuery(
   platform: PlatformFilter,
   leadSource: LeadSourceFilter,
   freshnessHours: number,
+  leadSources?: LeadSource[] | null,
 ): string {
   const params = new URLSearchParams();
   if (minScore > 0) params.set("minScore", String(minScore));
   if (platform !== "all") params.set("platform", platform);
-  if (leadSource !== "all") params.set("leadSource", leadSource);
+  if (leadSources && leadSources.length > 0) {
+    params.set("leadSources", leadSources.join(","));
+  } else if (leadSource !== "all") {
+    params.set("leadSource", leadSource);
+  }
   if (freshnessHours > 0) {
     params.set("freshnessHours", String(freshnessHours));
   } else {
@@ -58,11 +64,14 @@ export type GrowthInboxPanelProps = {
   fixedPlatform?: Exclude<PlatformFilter, "all">;
   /** Locks the inbox to one lead channel and hides the channel filter. */
   fixedLeadSource?: LeadSource;
+  /** Locks to multiple channels (Jobs: freehire + LinkedIn Jobs). */
+  fixedLeadSources?: LeadSource[];
 };
 
 export function GrowthInboxPanel({
   fixedPlatform,
   fixedLeadSource,
+  fixedLeadSources,
 }: GrowthInboxPanelProps = {}) {
   const toast = useToast();
   const [items, setItems] = useState<GrowthInboxItem[]>([]);
@@ -83,7 +92,21 @@ export function GrowthInboxPanel({
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   const platformFilter: PlatformFilter = fixedPlatform ?? platform;
-  const leadSourceFilter: LeadSourceFilter = fixedLeadSource ?? leadSource;
+  const jobsSources =
+    fixedLeadSources && fixedLeadSources.length > 0
+      ? fixedLeadSources
+      : fixedLeadSource && isJobLeadSource(fixedLeadSource)
+        ? [fixedLeadSource]
+        : fixedLeadSource
+          ? null
+          : null;
+  const lockedJobSources =
+    fixedLeadSources && fixedLeadSources.length > 0
+      ? fixedLeadSources
+      : null;
+  const leadSourceFilter: LeadSourceFilter = lockedJobSources
+    ? "all"
+    : (fixedLeadSource ?? leadSource);
 
   const load = useCallback(
     async (opts?: { silent?: boolean }) => {
@@ -91,7 +114,13 @@ export function GrowthInboxPanel({
       else setRefreshing(true);
       try {
         const res = await growthFetch(
-          `/api/admin/growth/inbox${inboxQuery(minScore, platformFilter, leadSourceFilter, freshnessHours)}`,
+          `/api/admin/growth/inbox${inboxQuery(
+            minScore,
+            platformFilter,
+            leadSourceFilter,
+            freshnessHours,
+            lockedJobSources ?? jobsSources,
+          )}`,
         );
         if (!res.ok) throw new Error("Could not load inbox");
         const json = (await res.json()) as { items: GrowthInboxItem[] };
@@ -109,11 +138,19 @@ export function GrowthInboxPanel({
         setRefreshing(false);
       }
     },
-    [toast, minScore, platformFilter, leadSourceFilter, freshnessHours],
+    [
+      toast,
+      minScore,
+      platformFilter,
+      leadSourceFilter,
+      freshnessHours,
+      lockedJobSources,
+      jobsSources,
+    ],
   );
 
   const linkedInInbox = fixedPlatform === "linkedin";
-  const jobsInbox = fixedLeadSource === "freehire";
+  const jobsInbox = Boolean(lockedJobSources) || fixedLeadSource === "freehire";
 
   useDeferredEffect(() => {
     void load();
@@ -215,7 +252,7 @@ export function GrowthInboxPanel({
           </p>
           <p className="mt-1 max-w-xl text-xs text-muted">
             {jobsInbox
-              ? "Job postings from freehire. Qualified roles sync to CRM as Hiring opportunities."
+              ? "Job postings from freehire and LinkedIn Jobs. Generate an apply note, open the posting, and submit yourself — no auto Easy Apply."
               : linkedInInbox
                 ? "Expand a lead to draft a comment, then copy and paste it on the LinkedIn post. Mark posted when you are done."
                 : "Expand a lead to read the post and generate a reply. Use the LinkedIn tab for comment workflows; X supports one-click post from here."}
@@ -225,7 +262,7 @@ export function GrowthInboxPanel({
           {fixedPlatform ? null : (
             <GrowthPlatformFilter value={platform} onChange={setPlatform} />
           )}
-          {fixedLeadSource ? null : (
+          {fixedLeadSource || lockedJobSources ? null : (
             <GrowthLeadSourceFilter value={leadSource} onChange={setLeadSource} />
           )}
           <GrowthFreshnessFilter

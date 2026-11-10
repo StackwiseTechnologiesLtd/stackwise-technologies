@@ -37,11 +37,23 @@ export async function GET(request: Request) {
       leadSourceParam && leadSources.includes(leadSourceParam as LeadSource)
         ? (leadSourceParam as LeadSource)
         : null;
+    const leadSourcesParam = searchParams.get("leadSources");
+    const leadSourcesFilter =
+      leadSourcesParam
+        ?.split(",")
+        .map((s) => s.trim())
+        .filter((s): s is LeadSource =>
+          leadSources.includes(s as LeadSource),
+        ) ?? null;
 
     const inbox = await listInbox({
       minScore: Number.isFinite(minScore) ? minScore : 0,
       platform,
-      leadSource,
+      leadSource: leadSourcesFilter?.length ? null : leadSource,
+      leadSources:
+        leadSourcesFilter && leadSourcesFilter.length > 0
+          ? leadSourcesFilter
+          : null,
       freshnessHours,
     });
     return NextResponse.json(inbox);

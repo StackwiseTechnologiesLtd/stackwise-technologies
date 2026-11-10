@@ -24,8 +24,25 @@ describe("parseIntegrationIngestBody", () => {
     });
     expect(result).toEqual({
       ok: false,
-      error: "Invalid source (huginn, freehire, manual, harvest)",
+      error:
+        "Invalid source (huginn, freehire, linkedin_jobs, manual, harvest, firecrawl)",
     });
+  });
+
+  it("accepts linkedin_jobs", () => {
+    const result = parseIntegrationIngestBody({
+      source: "linkedin_jobs",
+      platform: "linkedin",
+      authorName: "Acme",
+      roleTitle: "Engineer",
+      companyName: "Acme",
+      bodyText: "Remote full-stack role shipping product.",
+      sourceUrl: "https://www.linkedin.com/jobs/view/123",
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.input.leadSource).toBe("linkedin_jobs");
+    }
   });
 
   it("rejects empty author", () => {

@@ -7,7 +7,8 @@ export type LeadSourceFilter = "all" | LeadSource;
 const labels: Record<LeadSource, string> = {
   harvest: "Harvest",
   huginn: "Huginn",
-  freehire: "Jobs",
+  freehire: "Jobs (freehire)",
+  linkedin_jobs: "Jobs (LinkedIn)",
   firecrawl: "Web scrape",
   manual: "Manual",
 };
