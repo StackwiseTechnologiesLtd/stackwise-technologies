@@ -43,7 +43,7 @@ export function platformSearchUrl(
 /** LinkedIn Jobs search. `remote: true` sets workplace type Remote (`f_WT=2`). */
 export function linkedinJobsSearchUrl(
   query: string,
-  options?: { remote?: boolean },
+  options?: { remote?: boolean; easyApply?: boolean },
 ): string {
   const params = new URLSearchParams();
   params.set("keywords", query.trim());
@@ -51,17 +51,28 @@ export function linkedinJobsSearchUrl(
   if (options?.remote !== false) {
     params.set("f_WT", "2");
   }
-  return `https://www.linkedin.com/jobs/search/?${params.toString()}`;
+  if (options?.easyApply) {
+    params.set("f_AL", "true");
+  }
+  // New Jobs UI lives on /jobs/search-results/; /jobs/search/ redirects there.
+  return `https://www.linkedin.com/jobs/search-results/?${params.toString()}`;
 }
 
-/** Title-oriented queries for job boards (intent phrases are rare in JDs). */
+const PERSON_TITLE_RE =
+  /\b(founder|co-?founder|ceo|cto|cpo|coo|cfo|owner|partner|director|vp|vice president|head of)\b/i;
+
+/**
+ * Title-oriented queries for job boards.
+ * ICP titleKeywords often name *people* (founder, CTO); those make weak Jobs
+ * searches, so we prefer role keywords and fall back to engineering defaults.
+ */
 export function buildJobSearchQueriesFromIcp(
   config: IcpConfig,
   maxQueries = DEFAULT_MAX_QUERIES,
 ): string[] {
   const titles = config.titleKeywords
     .map((p) => p.trim())
-    .filter((p) => p.length >= 3);
+    .filter((p) => p.length >= 3 && !PERSON_TITLE_RE.test(p));
   const queries: string[] = [];
   for (const title of titles) {
     if (queries.length >= maxQueries) break;
@@ -69,8 +80,17 @@ export function buildJobSearchQueriesFromIcp(
       queries.push(title);
     }
   }
-  if (queries.length === 0) {
-    queries.push("full stack developer", "software engineer");
+  const defaults = [
+    "full stack developer",
+    "software engineer",
+    "founding engineer",
+    "senior developer",
+  ];
+  for (const d of defaults) {
+    if (queries.length >= maxQueries) break;
+    if (!queries.some((q) => q.toLowerCase() === d.toLowerCase())) {
+      queries.push(d);
+    }
   }
   return queries.slice(0, maxQueries);
 }

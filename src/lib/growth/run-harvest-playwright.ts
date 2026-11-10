@@ -7,7 +7,7 @@ import {
 import { enrichSignalsWithProfiles } from "@/lib/growth/harvest-enrich-signals";
 import { dedupeSignals, platformSearchUrl } from "@/lib/growth/harvest-search";
 import type { GrowthSessionCookie } from "@/lib/growth/growth-session-cookie";
-import { loadPlaywrightModule } from "@/lib/growth/playwright-loader";
+import { launchGrowthChromium } from "@/lib/growth/playwright-launch";
 import type { BrowserPage } from "@/lib/growth/profile-enrich";
 import { reportSessionHealth } from "@/lib/growth/repository";
 import type { HarvestReporter } from "@/lib/growth/harvest-progress";
@@ -62,7 +62,6 @@ export async function harvestSearchesWithPlaywright(
   report?: HarvestReporter,
 ): Promise<IngestSignalInput[]> {
   await report?.("browser", "Starting browser (read-only)…");
-  const { chromium } = await loadPlaywrightModule();
   const forceHeadless = process.env.GROWTH_HARVEST_HEADLESS === "1";
   const forceHeaded = process.env.GROWTH_HARVEST_HEADED === "1";
   const harvestHeaded =
@@ -73,9 +72,8 @@ export async function harvestSearchesWithPlaywright(
       "Using visible browser (LinkedIn often blocks headless search). Set GROWTH_HARVEST_HEADLESS=1 to force headless.",
     );
   }
-  const browser = await chromium.launch({
+  const browser = await launchGrowthChromium({
     headless: !harvestHeaded,
-    args: ["--disable-blink-features=AutomationControlled"],
   });
   const collected: IngestSignalInput[] = [];
 

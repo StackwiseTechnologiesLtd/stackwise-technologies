@@ -12,7 +12,7 @@ import {
   linkedinJobsSearchUrl,
 } from "@/lib/growth/harvest-search";
 import type { GrowthSessionCookie } from "@/lib/growth/growth-session-cookie";
-import { loadPlaywrightModule } from "@/lib/growth/playwright-loader";
+import { launchGrowthChromium } from "@/lib/growth/playwright-launch";
 import {
   getIcpConfig,
   getPlatformSession,
@@ -35,10 +35,13 @@ function humanDelay(minMs = 800, maxMs = 2800) {
 
 async function applyStealth(page: Page) {
   await page.setExtraHTTPHeaders({
-    "Accept-Language": "en-US,en;q=0.9",
+    "Accept-Language": "en-US,en;q=0.9,de;q=0.8",
   });
   await page.addInitScript(() => {
     Object.defineProperty(navigator, "webdriver", { get: () => false });
+    Object.defineProperty(navigator, "languages", {
+      get: () => ["en-US", "en", "de"],
+    });
     // @ts-expect-error page context
     window.chrome = { runtime: {} };
   });
@@ -61,11 +64,16 @@ async function scrollResults(
 ) {
   for (let i = 0; i < passes; i++) {
     await report?.("scroll", `Scrolling job results (${i + 1} of ${passes})…`);
-    const delta = 280 + Math.floor(Math.random() * 520);
+    const delta = 180 + Math.floor(Math.random() * 420);
     await page.mouse.wheel(0, delta);
-    await humanDelay(1200, 3400);
+    await humanDelay(1400, 3600);
+    // Occasional small upward nudge (reading back)
+    if (Math.random() < 0.3) {
+      await page.mouse.wheel(0, -(40 + Math.floor(Math.random() * 80)));
+      await humanDelay(500, 1100);
+    }
   }
-  await humanDelay(1500, 3500);
+  await humanDelay(1800, 4000);
 }
 
 function normalizeCookies(cookies: unknown): GrowthSessionCookie[] {
@@ -80,7 +88,6 @@ async function harvestJobsWithPlaywright(
   report?: HarvestReporter,
 ): Promise<IngestSignalInput[]> {
   await report?.("browser", "Starting browser for LinkedIn Jobs…");
-  const { chromium } = await loadPlaywrightModule();
   const forceHeadless = process.env.GROWTH_HARVEST_HEADLESS === "1";
   const forceHeaded = process.env.GROWTH_HARVEST_HEADED === "1";
   const harvestHeaded = forceHeaded || !forceHeadless;
@@ -90,15 +97,21 @@ async function harvestJobsWithPlaywright(
       "Using visible browser (LinkedIn often blocks headless). Set GROWTH_HARVEST_HEADLESS=1 to force headless.",
     );
   }
-  const browser = await chromium.launch({
+  const browser = await launchGrowthChromium({
     headless: !harvestHeaded,
-    args: ["--disable-blink-features=AutomationControlled"],
+    slowMo: harvestHeaded ? 30 + Math.floor(Math.random() * 25) : 0,
   });
   const collected: IngestSignalInput[] = [];
 
   try {
     const context = await browser.newContext({
       userAgent: userAgent ?? undefined,
+      locale: "en-US",
+      timezoneId: "Europe/Nicosia",
+      viewport: {
+        width: 1280 + Math.floor(Math.random() * 80) - 20,
+        height: 800 + Math.floor(Math.random() * 60) - 20,
+      },
     });
     await context.addCookies(cookies);
     const page = await context.newPage();
