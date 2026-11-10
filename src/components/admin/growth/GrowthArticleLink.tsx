@@ -5,7 +5,12 @@ import type { GrowthPlatform } from "@/lib/growth/types";
 function articleLinkLabel(
   platform: GrowthPlatform | null | undefined,
   href: string,
+  variant: "post" | "job",
 ): string {
+  if (variant === "job") {
+    if (platform === "linkedin") return "View job on LinkedIn";
+    return "View job posting";
+  }
   if (!isDirectPostUrl(platform, href)) {
     if (platform === "linkedin") return "View author on LinkedIn";
     if (platform === "x") return "View author on X";
@@ -19,6 +24,8 @@ function articleLinkLabel(
 type GrowthArticleLinkProps = {
   href: string;
   platform?: GrowthPlatform | null;
+  /** Job leads use posting wording (LinkedIn-only Connect is enough). */
+  variant?: "post" | "job";
   className?: string;
   onClick?: (event: MouseEvent<HTMLAnchorElement>) => void;
 };
@@ -26,6 +33,7 @@ type GrowthArticleLinkProps = {
 export function GrowthArticleLink({
   href,
   platform,
+  variant = "post",
   className = "text-xs font-medium text-accent hover:underline",
   onClick,
 }: GrowthArticleLinkProps) {
@@ -37,7 +45,7 @@ export function GrowthArticleLink({
       className={className}
       onClick={onClick}
     >
-      {articleLinkLabel(platform, href)}
+      {articleLinkLabel(platform, href, variant)}
     </a>
   );
 }

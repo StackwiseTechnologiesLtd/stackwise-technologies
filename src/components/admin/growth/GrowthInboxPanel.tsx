@@ -366,12 +366,15 @@ export function GrowthInboxPanel({
                         <GrowthArticleLink
                           href={articleUrl}
                           platform={lead.platform ?? signal?.platform}
+                          variant={isJobLead ? "job" : "post"}
                           onClick={(e) => e.stopPropagation()}
                         />
                       </p>
                     ) : (
                       <p className="mt-1.5 text-[11px] text-muted">
-                        No post link saved — re-harvest or add a URL when capturing.
+                        {isJobLead
+                          ? "No job link saved — re-run LinkedIn Jobs harvest."
+                          : "No post link saved — re-harvest or add a URL when capturing."}
                       </p>
                     )}
                   </div>
@@ -403,6 +406,7 @@ export function GrowthInboxPanel({
                             <GrowthArticleLink
                               href={articleUrl}
                               platform={lead.platform}
+                              variant={isJobLead ? "job" : "post"}
                             />
                           ) : null}
                         </div>
