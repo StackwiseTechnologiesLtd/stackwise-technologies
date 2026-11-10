@@ -14,7 +14,7 @@ import {
 } from "@/components/admin/growth/GrowthPlatformFilter";
 import { GrowthScoreFilter } from "@/components/admin/growth/GrowthScoreFilter";
 import type { GrowthDraft, GrowthInboxItem, LeadSource } from "@/lib/growth/types";
-import { isJobLeadSource, jobLeadSources } from "@/lib/growth/types";
+import { isJobLeadSource } from "@/lib/growth/types";
 import { growthFetch } from "@/lib/growth/growth-fetch";
 import { INBOX_DEFAULT_FRESHNESS_HOURS } from "@/lib/growth/harvest-config";
 import { sortInboxItemsByRecency } from "@/lib/growth/lead-sort";
@@ -50,9 +50,16 @@ function inboxQuery(
   return qs ? `?${qs}` : "";
 }
 
-function draftStatusLabel(item: GrowthInboxItem): string {
+function draftStatusLabel(item: GrowthInboxItem, jobsMode: boolean): string {
   const draft = item.draft;
-  if (!draft) return "No reply yet";
+  if (!draft) return jobsMode ? "No apply note" : "No reply yet";
+  if (draft.draftKind === "apply_note") {
+    if (draft.status === "published") return "Submitted (manual)";
+    if (draft.status === "approved") return "Apply opened";
+    if (draft.reviewNotes === "drafted" || draft.status === "pending_review") {
+      return "Apply note ready";
+    }
+  }
   if (draft.status === "pending_review" || draft.status === "failed") {
     return draft.status === "failed" ? "Post failed — review" : "Draft ready";
   }
@@ -92,18 +99,12 @@ export function GrowthInboxPanel({
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   const platformFilter: PlatformFilter = fixedPlatform ?? platform;
-  const jobsSources =
+  const lockedJobSources =
     fixedLeadSources && fixedLeadSources.length > 0
       ? fixedLeadSources
       : fixedLeadSource && isJobLeadSource(fixedLeadSource)
         ? [fixedLeadSource]
-        : fixedLeadSource
-          ? null
-          : null;
-  const lockedJobSources =
-    fixedLeadSources && fixedLeadSources.length > 0
-      ? fixedLeadSources
-      : null;
+        : null;
   const leadSourceFilter: LeadSourceFilter = lockedJobSources
     ? "all"
     : (fixedLeadSource ?? leadSource);
@@ -119,7 +120,7 @@ export function GrowthInboxPanel({
             platformFilter,
             leadSourceFilter,
             freshnessHours,
-            lockedJobSources ?? jobsSources,
+            lockedJobSources,
           )}`,
         );
         if (!res.ok) throw new Error("Could not load inbox");
@@ -145,12 +146,11 @@ export function GrowthInboxPanel({
       leadSourceFilter,
       freshnessHours,
       lockedJobSources,
-      jobsSources,
     ],
   );
 
   const linkedInInbox = fixedPlatform === "linkedin";
-  const jobsInbox = Boolean(lockedJobSources) || fixedLeadSource === "freehire";
+  const jobsInbox = Boolean(lockedJobSources);
 
   useDeferredEffect(() => {
     void load();
@@ -296,8 +296,15 @@ export function GrowthInboxPanel({
             const { lead, signal, draft } = item;
             const isOpen = expanded.has(lead.id);
             const score = lead.compositeScore;
+            const isJobLead =
+              jobsInbox || isJobLeadSource(lead.leadSource);
+            const applyDraft =
+              draft?.draftKind === "apply_note" ? draft : null;
             const draftBusy =
-              draft && busyKey?.startsWith(`${draft.id}:`) ? true : busyKey === `${lead.id}:generate`;
+              draft && busyKey?.startsWith(`${draft.id}:`)
+                ? true
+                : busyKey === `${lead.id}:generate` ||
+                  busyKey === `${lead.id}:generate-apply`;
             const articleUrl =
               lead.sourceUrl?.trim() ||
               signal?.sourceUrl?.trim() ||
@@ -308,6 +315,8 @@ export function GrowthInboxPanel({
                   signal?.authorProfileUrl ?? lead.profileUrl,
                 authorHandle: signal?.authorHandle ?? null,
               });
+            const applyUrl =
+              applyDraft?.imageNotes?.trim() || articleUrl || null;
             const activityTime = formatShortRelativeTime(
               signal?.postedAt ?? signal?.ingestedAt ?? lead.createdAt,
             );
@@ -338,7 +347,10 @@ export function GrowthInboxPanel({
                         {lead.platform ?? "unknown"}
                       </span>
                       <span className="rounded-md bg-black/40 px-2 py-0.5 text-[10px] text-muted ring-1 ring-line">
-                        {draftStatusLabel(item)}
+                        {draftStatusLabel(
+                          item,
+                          jobsInbox || isJobLeadSource(lead.leadSource),
+                        )}
                       </span>
                     </div>
                     <p className="mt-1 truncate text-base font-semibold tracking-tight">
@@ -439,7 +451,197 @@ export function GrowthInboxPanel({
                       </div>
 
                       <div className="flex flex-col p-5">
-                        {!draft ? (
+                        {isJobLead && !applyDraft ? (
+                          <div className="flex flex-1 flex-col items-start justify-center gap-3 py-6">
+                            <p className="text-sm text-muted">
+                              Generate a short apply note, copy it, then open the
+                              job posting and submit yourself. We never auto-fill
+                              Easy Apply.
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {applyUrl ? (
+                                <AdminActionButton
+                                  onClick={() =>
+                                    window.open(
+                                      applyUrl,
+                                      "_blank",
+                                      "noopener,noreferrer",
+                                    )
+                                  }
+                                >
+                                  Open job
+                                </AdminActionButton>
+                              ) : null}
+                              <AdminActionButton
+                                variant="primary"
+                                busy={busyKey === `${lead.id}:generate-apply`}
+                                busyLabel="Generating…"
+                                disabled={draftBusy}
+                                onClick={() =>
+                                  void runAction(
+                                    `${lead.id}:generate-apply`,
+                                    async () => {
+                                      const res = await growthFetch(
+                                        `/api/admin/growth/leads/${lead.id}/generate-apply-note`,
+                                        { method: "POST" },
+                                      );
+                                      const json = (await res.json()) as {
+                                        draft?: GrowthDraft;
+                                        usedAi?: boolean;
+                                        aiError?: string;
+                                        error?: string;
+                                      };
+                                      if (!res.ok) {
+                                        throw new Error(
+                                          json.error ?? "Generate failed",
+                                        );
+                                      }
+                                      if (json.draft) {
+                                        setEditing((prev) => ({
+                                          ...prev,
+                                          [json.draft!.id]: json.draft!.bodyText,
+                                        }));
+                                      }
+                                      if (json.aiError) {
+                                        toast.error(`OpenRouter: ${json.aiError}`);
+                                      } else if (json.usedAi) {
+                                        toast.success("Apply note generated");
+                                      } else {
+                                        toast.toast(
+                                          "Generated template apply note",
+                                        );
+                                      }
+                                      await load({ silent: true });
+                                      setExpanded((prev) =>
+                                        new Set(prev).add(lead.id),
+                                      );
+                                    },
+                                  )
+                                }
+                              >
+                                Generate apply note
+                              </AdminActionButton>
+                            </div>
+                          </div>
+                        ) : isJobLead && applyDraft ? (
+                          <>
+                            <p className="text-[10px] font-semibold uppercase tracking-wide text-muted">
+                              Apply note (paste yourself)
+                            </p>
+                            <textarea
+                              className="mt-2 min-h-[11rem] flex-1 w-full rounded-xl border border-line bg-black/45 px-3 py-2.5 text-sm leading-relaxed text-foreground"
+                              value={
+                                editing[applyDraft.id] ?? applyDraft.bodyText
+                              }
+                              onChange={(e) =>
+                                setEditing((prev) => ({
+                                  ...prev,
+                                  [applyDraft.id]: e.target.value,
+                                }))
+                              }
+                              disabled={draftBusy}
+                            />
+                            <div className="mt-4 flex flex-wrap gap-2">
+                              <AdminActionButton
+                                variant="primary"
+                                busy={busyKey === `${applyDraft.id}:open-apply`}
+                                busyLabel="Opening…"
+                                disabled={
+                                  !applyUrl ||
+                                  (draftBusy &&
+                                    busyKey !== `${applyDraft.id}:open-apply`)
+                                }
+                                onClick={() =>
+                                  void runAction(
+                                    `${applyDraft.id}:open-apply`,
+                                    async () => {
+                                      const text =
+                                        editing[applyDraft.id] ??
+                                        applyDraft.bodyText;
+                                      await navigator.clipboard.writeText(text);
+                                      if (applyUrl) {
+                                        window.open(
+                                          applyUrl,
+                                          "_blank",
+                                          "noopener,noreferrer",
+                                        );
+                                      }
+                                      await patchDraft(applyDraft.id, {
+                                        bodyText: text,
+                                        status: "approved",
+                                      });
+                                      toast.success(
+                                        "Note copied — paste into the application",
+                                      );
+                                      await load({ silent: true });
+                                    },
+                                  )
+                                }
+                              >
+                                Copy & open apply
+                              </AdminActionButton>
+                              <AdminActionButton
+                                busy={
+                                  busyKey === `${applyDraft.id}:mark-submitted`
+                                }
+                                busyLabel="Saving…"
+                                disabled={
+                                  draftBusy &&
+                                  busyKey !== `${applyDraft.id}:mark-submitted`
+                                }
+                                onClick={() =>
+                                  void runAction(
+                                    `${applyDraft.id}:mark-submitted`,
+                                    async () => {
+                                      await patchDraft(applyDraft.id, {
+                                        bodyText: editing[applyDraft.id],
+                                        status: "published",
+                                        markPublished: true,
+                                      });
+                                      toast.success(
+                                        "Marked as submitted (manual)",
+                                      );
+                                      await load({ silent: true });
+                                    },
+                                  )
+                                }
+                              >
+                                Mark submitted
+                              </AdminActionButton>
+                              <AdminActionButton
+                                busy={busyKey === `${applyDraft.id}:regen-apply`}
+                                busyLabel="Regenerating…"
+                                disabled={
+                                  draftBusy &&
+                                  busyKey !== `${applyDraft.id}:regen-apply`
+                                }
+                                onClick={() =>
+                                  void runAction(
+                                    `${lead.id}:generate-apply`,
+                                    async () => {
+                                      const res = await growthFetch(
+                                        `/api/admin/growth/leads/${lead.id}/generate-apply-note`,
+                                        { method: "POST" },
+                                      );
+                                      const json = (await res.json()) as {
+                                        draft?: GrowthDraft;
+                                        error?: string;
+                                      };
+                                      if (!res.ok) {
+                                        throw new Error(
+                                          json.error ?? "Generate failed",
+                                        );
+                                      }
+                                      await load({ silent: true });
+                                    },
+                                  )
+                                }
+                              >
+                                Regenerate note
+                              </AdminActionButton>
+                            </div>
+                          </>
+                        ) : !draft ? (
                           <div className="flex flex-1 flex-col items-start justify-center gap-3 py-6">
                             <p className="text-sm text-muted">
                               No reply drafted yet. Generate one with OpenRouter

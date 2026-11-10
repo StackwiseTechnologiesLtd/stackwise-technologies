@@ -81,6 +81,7 @@ Record **date + initials** when all manual tests for a phase pass.
 | 2b CRM UI (Twenty-inspired) | ☑ | agent  | 2026-11-10 | Board+record+timeline; fixed Suspense hang from useSearchParams |
 | 3 Huginn             | ☑      | agent  | 2026-11-10 | Slim ManualEvent→Format→Post scenario; local :3001→:3005 ingest; 3.T1–3.T6 |
 | 4 freehire           | ☑      | agent  | 2026-11-10 | Export→ingest from freehire.me; Jobs inbox + freshness; Hiring: title; URL dedupe |
+| 5 LinkedIn Jobs      | ☐      |        |      | Connect harvest + assisted apply (no auto Easy Apply) |
 
 ---
 
@@ -300,6 +301,38 @@ Job postings as **hiring-intent** leads, same inbox freshness and CRM pipeline.
 
 ---
 
+## Phase 5 — LinkedIn Jobs + assisted apply
+
+### Objective
+
+Discover **remote** LinkedIn Jobs via the existing Growth Connect session, land them in **Growth → Jobs** next to freehire, and support **human-assisted** apply (draft note + open posting — never unattended Easy Apply).
+
+### Build tasks
+
+| ID  | Task | Path / artifact |
+| --- | ---- | --------------- |
+| 5.1 | `linkedin_jobs` lead source + job quality gate + `Hiring:` CRM titles | `types.ts`, ingest, `opportunity-name.ts` |
+| 5.2 | Remote Jobs search URL + Playwright extract/harvest | `harvest-search.ts`, `harvest-extract-jobs.ts`, `run-linkedin-jobs-harvest.ts` |
+| 5.3 | Admin trigger + Jobs inbox aggregate (freehire + LinkedIn) | `/api/admin/growth/harvest-jobs`, `/admin/growth/jobs` |
+| 5.4 | Apply note draft + Copy & open apply + Mark submitted | `generate-apply-note`, Jobs inbox actions |
+
+### Manual test flow — Phase 5
+
+**Prerequisites:** LinkedIn Connect session active; ICP `titleKeywords` set; `npm run dev` locally (Playwright).
+
+| Step | Action | Expected |
+| ---- | ------ | -------- |
+| 5.T1 | Growth → Jobs → **Harvest LinkedIn jobs** | Activity log shows searches; N captured / M ingested (or clear skip reasons) |
+| 5.T2 | Jobs inbox shows new rows with company + role | Badge **Jobs (LinkedIn)**; job URL opens |
+| 5.T3 | Freshness **Last 72h** vs **All time** | Same behavior as freehire rows |
+| 5.T4 | Promote a ≥45% job lead | Opportunity `Hiring: {role} @ {company}` |
+| 5.T5 | **Generate apply note** → **Copy & open apply** → **Mark submitted** | Note copied; status progresses; no auto form fill |
+| 5.T6 | Re-harvest / re-ingest same job URL | Duplicate skipped |
+
+**Mark Phase 5 complete when:** 5.T1–5.T6 pass; Progress log updated.
+
+---
+
 ## Branding checklist (all phases)
 
 Use for any new UI page before marking a phase complete:
@@ -336,6 +369,7 @@ Never commit values; use `.env.local` / `.env.prod` + `npm run cf:secrets`.
 2. **Sprint B:** Phase 2 + **2b** (CRM data + Twenty-inspired `/admin/crm` UI)  
 3. **Sprint C:** Phase 3 (Huginn compose + scenario)
 4. **Sprint D:** Phase 4 (freehire adapter + Jobs nav)
+5. **Sprint E:** Phase 5 (LinkedIn Jobs harvest + assisted apply)
 
 Each sprint ends only when the **Manual test flow** for that phase is signed off in the Progress log.
 
@@ -360,5 +394,6 @@ Each sprint ends only when the **Manual test flow** for that phase is signed off
 | 2b | `/admin/crm` board + table, record, timeline, Growth links | 2.T4–2.T7, 2.U1–2.U6 |
 | 3 | Huginn scenario + README + smoke script | 3.T1–3.T6 |
 | 4 | `freehire-ingest.mjs`, Jobs inbox, job scoring, CRM titles | 4.T1–4.T5 |
+| 5 | LinkedIn Jobs harvest, `linkedin_jobs`, assisted apply notes | 5.T1–5.T6 |
 
 **Next for operators:** run each phase’s manual test flow; check boxes in the Progress log above when green.

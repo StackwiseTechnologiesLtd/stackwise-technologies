@@ -83,9 +83,10 @@ Optional: `npm run growth:connect-server` is a legacy standalone helper. `GROWTH
 
 1. **Connect** — Settings → **Connect** (or connect page). Production uses Cloudflare Browser Rendering; local dev opens Chromium on your machine.
 2. **Harvest** — `/admin/growth` → **Harvest** (runs up to 4 ICP intent-phrase searches on X/LinkedIn, then scores and saves leads). Tune phrases in Settings → ICP JSON (`intentPhrases`). If LinkedIn search returns 0 posts, check the activity log for DOM counts; try `GROWTH_HARVEST_HEADED=1` in `.env.local` and reconnect LinkedIn.
-3. **Review** — **Inbox**: filter by **Source** (X / LinkedIn) and fit score, expand a lead, **Generate reply**, then approve / post / copy.
-4. **Pipeline** — **Leads**: filter by score, update pipeline status.
-5. **Tune scoring** — **Settings**: edit ICP JSON and connect platforms.
+3. **Jobs (optional)** — `/admin/growth/jobs` → **Harvest LinkedIn jobs** uses the same Connect session to search **remote** LinkedIn Jobs from ICP `titleKeywords` (plus freehire ingest). Expand a job → **Generate apply note** → **Copy & open apply** → submit yourself on LinkedIn/ATS → **Mark submitted**. There is no unattended Easy Apply.
+4. **Review** — **Inbox**: filter by **Source** (X / LinkedIn) and fit score, expand a lead, **Generate reply**, then approve / post / copy.
+5. **Pipeline** — **Leads** / **CRM**: filter by score, update pipeline status.
+6. **Tune scoring** — **Settings**: edit ICP JSON and connect platforms.
 
 If the UI shows **Session expired** or **Login or verification needed**, run `growth-connect` again for that platform.
 
@@ -136,7 +137,7 @@ GROWTH_AUTO_PUBLISH_X=1
 
 Use with care — posts go live immediately when a tweet URL is present.
 
-LinkedIn auto-post is not supported yet; use **Copy** and post manually.
+LinkedIn auto-post is not supported yet; use **Copy** and post manually. LinkedIn Jobs apply is the same model: assisted copy/open only.
 
 ## HTTP API
 

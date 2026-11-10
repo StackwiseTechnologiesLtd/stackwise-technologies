@@ -91,10 +91,14 @@ export async function getIntegrationsStatus(): Promise<{
     label: string,
   ): IntegrationServiceStatus {
     const row = bySource.get(id);
+    const configured =
+      id === "harvest" || id === "linkedin_jobs"
+        ? true
+        : ingestSecretConfigured;
     return {
       id,
       label,
-      configured: id === "harvest" ? true : ingestSecretConfigured,
+      configured,
       lastEventAt: row?.last_at ?? null,
       lastSuccessAt: row?.last_ok ?? null,
       lastDetail: row?.last_detail ?? null,

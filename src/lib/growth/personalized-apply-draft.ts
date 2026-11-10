@@ -45,18 +45,20 @@ ${input.profileSummary ? `Applicant context:\n${input.profileSummary.slice(0, 80
   growthAiLog("apply-note", `model=${openRouterModel()}`);
   growthAiLogMultiline("apply-note-prompt", user);
 
-  try {
-    const { text } = await openRouterChat({
-      system,
-      user,
-      maxTokens: 400,
-    });
-    const body = text.trim() || fallback;
-    growthAiLogMultiline("apply-note-out", body);
-    return { body, usedAi: Boolean(text.trim()) };
-  } catch (error) {
-    const aiError = error instanceof Error ? error.message : "OpenRouter failed";
-    growthAiLog("apply-note-error", aiError);
-    return { body: fallback, usedAi: false, aiError };
+  const result = await openRouterChat(
+    [
+      { role: "system", content: system },
+      { role: "user", content: user },
+    ],
+    { maxTokens: 400, temperature: 0.7 },
+  );
+
+  if ("error" in result) {
+    growthAiLog("apply-note-error", result.error);
+    return { body: fallback, usedAi: false, aiError: result.error };
   }
+
+  const body = result.text.trim() || fallback;
+  growthAiLogMultiline("apply-note-out", body);
+  return { body, usedAi: Boolean(result.text.trim()) };
 }

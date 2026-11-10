@@ -1,6 +1,7 @@
 import { ensureSchema } from "@/lib/db/ensure-schema";
 import { asRows, getSql, isDatabaseConfigured } from "@/lib/db/postgres";
 import { decryptJson, encryptJson } from "@/lib/growth/crypto";
+import { buildPersonalizedApplyNote } from "@/lib/growth/personalized-apply-draft";
 import { buildPersonalizedReplyDraft } from "@/lib/growth/personalized-draft";
 import { DEFAULT_ICP_CONFIG } from "@/lib/growth/icp-default";
 import { INBOX_DEFAULT_FRESHNESS_HOURS } from "@/lib/growth/harvest-config";
@@ -392,6 +393,84 @@ export async function generateDraftForLead(
   return { draft, usedAi, aiError };
 }
 
+export async function generateApplyNoteForLead(
+  leadId: string,
+): Promise<{
+  draft: GrowthDraft;
+  usedAi: boolean;
+  aiError?: string;
+  applyUrl: string | null;
+} | null> {
+  const ctx = await loadLeadSignalContext(leadId);
+  if (!ctx) return null;
+
+  const sql = getSql();
+  const { lead, signal } = ctx;
+  if (lead.lead_source !== "freehire" && lead.lead_source !== "linkedin_jobs") {
+    throw new Error("Apply notes are only for job leads");
+  }
+
+  const applyUrl = signal.source_url?.trim() || null;
+  const { body, usedAi, aiError } = await buildPersonalizedApplyNote({
+    roleTitle: lead.role_title,
+    companyName: lead.company_name,
+    bodyText: signal.body_text,
+    profileSummary: lead.profile_summary,
+  });
+
+  const existingRows = asRows<DraftRow>(
+    await sql`
+      SELECT * FROM growth_drafts
+      WHERE lead_id = ${leadId}::uuid
+        AND draft_kind = 'apply_note'
+        AND status IN ('pending_review', 'approved', 'failed')
+      ORDER BY created_at DESC
+      LIMIT 1
+    `,
+  );
+  const existing = existingRows[0];
+  const now = new Date().toISOString();
+
+  let draft: GrowthDraft;
+  if (existing) {
+    const updated = await updateDraft(existing.id, {
+      bodyText: body,
+      imageNotes: applyUrl,
+      status: "pending_review",
+      reviewNotes: "drafted",
+      publishError: null,
+    });
+    if (!updated) return null;
+    draft = updated;
+  } else {
+    const draftId = crypto.randomUUID();
+    await sql`
+      INSERT INTO growth_drafts (
+        id, lead_id, signal_id, platform, draft_kind, body_text, image_notes,
+        status, review_notes, created_at, updated_at
+      ) VALUES (
+        ${draftId}::uuid,
+        ${leadId}::uuid,
+        ${lead.signal_id}::uuid,
+        ${(lead.platform ?? signal.platform) as string},
+        'apply_note',
+        ${body},
+        ${applyUrl},
+        'pending_review',
+        'drafted',
+        ${now}::timestamptz,
+        ${now}::timestamptz
+      )
+    `;
+    const draftRows = asRows<DraftRow>(
+      await sql`SELECT * FROM growth_drafts WHERE id = ${draftId}::uuid`,
+    );
+    draft = mapDraft(draftRows[0]);
+  }
+
+  return { draft, usedAi, aiError, applyUrl };
+}
+
 export async function listInbox(options?: {
   minScore?: number;
   platform?: GrowthPlatform | null;
@@ -470,7 +549,9 @@ export async function listInbox(options?: {
             SELECT DISTINCT ON (lead_id) d.*
             FROM growth_drafts d
             WHERE d.lead_id = ANY(${leadIds}::uuid[])
-            ORDER BY d.lead_id, d.created_at DESC
+            ORDER BY d.lead_id,
+              CASE WHEN d.draft_kind = 'apply_note' THEN 0 ELSE 1 END,
+              d.created_at DESC
           `,
         )
       : [];
