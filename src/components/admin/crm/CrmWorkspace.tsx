@@ -3,26 +3,24 @@
 import { CrmOpportunityModal } from "@/components/admin/crm/CrmOpportunityModal";
 import { CrmPipelineBoard } from "@/components/admin/crm/CrmPipelineBoard";
 import { CrmRecordTable } from "@/components/admin/crm/CrmRecordTable";
-import { useDeferredEffect } from "@/lib/use-deferred-effect";
-import { useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
 
 type CrmView = "board" | "table";
 
-export function CrmWorkspace() {
-  const searchParams = useSearchParams();
+export function CrmWorkspace({
+  initialOpportunityId = null,
+}: {
+  initialOpportunityId?: string | null;
+}) {
   const [view, setView] = useState<CrmView>("board");
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(
+    initialOpportunityId,
+  );
   const [listVersion, setListVersion] = useState(0);
 
   const bumpList = useCallback(() => {
     setListVersion((v) => v + 1);
   }, []);
-
-  useDeferredEffect(() => {
-    const fromQuery = searchParams.get("o")?.trim();
-    if (fromQuery) setSelectedId(fromQuery);
-  }, [searchParams]);
 
   return (
     <div className="space-y-4">
