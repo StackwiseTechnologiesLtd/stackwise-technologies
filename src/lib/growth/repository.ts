@@ -8,6 +8,7 @@ import { INBOX_DEFAULT_FRESHNESS_HOURS } from "@/lib/growth/harvest-config";
 import { freshnessCutoffIso } from "@/lib/growth/harvest-freshness";
 import { resolveGrowthPostUrl } from "@/lib/growth/post-url";
 import { syncIngestedLeadToCrm } from "@/lib/crm/sync-from-ingest";
+import { icpConfigForJobIngest } from "@/lib/growth/job-ingest-quality";
 import { scoreLead } from "@/lib/growth/scoring";
 import {
   parseLeadSource,
@@ -223,15 +224,20 @@ export async function ingestSignal(
   const leadId = crypto.randomUUID();
   const now = new Date().toISOString();
 
+  const leadSource: LeadSource = input.leadSource ?? "harvest";
+  // Job boards use a broader title keyword set than social ICP harvest.
+  const scoreConfig =
+    leadSource === "linkedin_jobs" || leadSource === "freehire"
+      ? icpConfigForJobIngest(config)
+      : config;
   const scored = scoreLead({
     roleTitle: input.roleTitle,
     companyName: input.companyName,
     bodyText: input.bodyText,
-    config,
+    config: scoreConfig,
   });
 
   const profileSummary = input.profileContext?.trim() || null;
-  const leadSource: LeadSource = input.leadSource ?? "harvest";
   const postedAt = input.postedAt?.trim() || null;
 
   await sql`

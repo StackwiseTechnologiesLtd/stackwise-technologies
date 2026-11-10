@@ -8,14 +8,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = (await request.json()) as { leadId?: string };
+  const body = (await request.json()) as { leadId?: string; force?: boolean };
   const leadId = body.leadId?.trim();
   if (!leadId) {
     return NextResponse.json({ error: "leadId is required" }, { status: 400 });
   }
 
   try {
-    const detail = await promoteGrowthLeadToCrm(leadId);
+    // Explicit admin "Add to CRM" may promote below auto-pipeline fit threshold.
+    const detail = await promoteGrowthLeadToCrm(leadId, {
+      force: body.force !== false,
+    });
     return NextResponse.json(detail);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Promote failed";

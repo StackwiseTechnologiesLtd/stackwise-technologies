@@ -81,7 +81,7 @@ Record **date + initials** when all manual tests for a phase pass.
 | 2b CRM UI (Twenty-inspired) | ☑ | agent  | 2026-11-10 | Board+record+timeline; fixed Suspense hang from useSearchParams |
 | 3 Huginn             | ☑      | agent  | 2026-11-10 | Slim ManualEvent→Format→Post scenario; local :3001→:3005 ingest; 3.T1–3.T6 |
 | 4 freehire           | ☑      | agent  | 2026-11-10 | Export→ingest from freehire.me; Jobs inbox + freshness; Hiring: title; URL dedupe |
-| 5 LinkedIn Jobs      | ☐      |        |      | Connect harvest + assisted apply (no auto Easy Apply) |
+| 5 LinkedIn Jobs      | ☑      | agent  | 2026-11-10 | Connect harvest (new Jobs UI selectors); assisted apply notes; Hiring: CRM titles; URL dedupe |
 
 ---
 

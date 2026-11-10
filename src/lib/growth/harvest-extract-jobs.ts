@@ -39,15 +39,9 @@ function dedupeRepeatedTitle(raw: string): string {
   return words;
 }
 
-/**
- * Parse card innerText from the new Jobs search-results UI.
- * Example: "Full-Stack Developer Statkraft Düsseldorf (Hybrid) Posted 3 weeks ago · Easy Apply"
- */
-export function parseLinkedInJobCardText(text: string): {
-  title: string;
-  company: string;
-  location: string;
-  snippet: string;
+function cleanJobCardText(text: string): {
+  cleaned: string;
+  snippetBits: string[];
 } {
   let t = text.replace(/\s+/g, " ").trim();
   const snippetBits: string[] = [];
@@ -58,50 +52,74 @@ export function parseLinkedInJobCardText(text: string): {
     .replace(/\s*·\s*Easy Apply/gi, "")
     .replace(/\s+Easy Apply$/gi, "")
     .replace(/\s*Actively reviewing applicants/gi, "")
+    .replace(/\s*Be an early applicant/gi, "")
+    .replace(/\s*\d+\s+connections?\s+work\s+here/gi, "")
     .replace(/\s*Viewed/gi, "")
     .replace(/\s*Posted\s+\d+\s+\w+(?:\s+ago)?/gi, "")
     .replace(/\s+\d+\s+(?:day|days|week|weeks|month|months)\s+ago/gi, "")
+    .replace(/\s*\d+\s*K\s*EUR\/yr(?:\s*-\s*\d+\s*K\s*EUR\/yr)?/gi, "")
     .replace(/\s*\(Verified job\)/gi, "")
+    .replace(/\s*·\s*/g, " ")
     .trim();
 
-  const locMatch = t.match(
-    /^(.*)\s+((?:Greater\s+)?[^()]+?\((?:Remote|Hybrid|On-?site)[^)]*\))(?:\s+.*)?$/i,
-  );
+  return { cleaned: t, snippetBits };
+}
+
+function splitTitleCompany(
+  beforeLoc: string,
+): { title: string; company: string } {
+  const title = dedupeRepeatedTitle(beforeLoc);
+  let company = "Unknown";
+  if (title && beforeLoc.startsWith(title)) {
+    company = beforeLoc.slice(title.length).trim();
+    if (company.startsWith(title)) {
+      company = company.slice(title.length).trim();
+    }
+  }
+  if (!company || company === "Unknown") {
+    const parts = beforeLoc.split(/\s+/);
+    if (parts.length >= 2) {
+      return {
+        title: parts.slice(0, -1).join(" ").slice(0, 160),
+        company: parts[parts.length - 1]!,
+      };
+    }
+  }
+  return { title: title.slice(0, 160), company: company || "Unknown" };
+}
+
+/**
+ * Parse card innerText from the new Jobs search-results UI.
+ * Example: "Full-Stack Developer Statkraft Düsseldorf (Hybrid) Posted 3 weeks ago · Easy Apply"
+ */
+export function parseLinkedInJobCardText(text: string): {
+  title: string;
+  company: string;
+  location: string;
+  snippet: string;
+} {
+  const { cleaned, snippetBits } = cleanJobCardText(text);
+  let t = cleaned;
+
+  // Prefer explicit workplace-type locations, then plain city / metro labels.
+  const locMatch =
+    t.match(
+      /^(.*)\s+((?:Greater\s+)?[^()]+?\((?:Remote|Hybrid|On-?site)[^)]*\))(?:\s+.*)?$/i,
+    ) ??
+    t.match(/^(.*)\s+((?:Greater\s+)?\p{Lu}[\p{L}\p{M}.]*)$/u);
+
   if (locMatch) {
     const beforeLoc = (locMatch[1] ?? "").trim();
     const location = (locMatch[2] ?? "").trim();
-    const title = dedupeRepeatedTitle(beforeLoc);
-    let company = "Unknown";
-    if (title && beforeLoc.startsWith(title)) {
-      company = beforeLoc.slice(title.length).trim();
-      // Card text often repeats the title twice before the company.
-      if (company.startsWith(title)) {
-        company = company.slice(title.length).trim();
-      }
-      company = company || "Unknown";
-    }
-    // If dedupe failed and company empty, split last 1–4 tokens as company
-    if (company === "Unknown" || !company) {
-      const parts = beforeLoc.split(/\s+/);
-      if (parts.length >= 2) {
-        company = parts.slice(-2).join(" ");
-        return {
-          title: parts.slice(0, -2).join(" ").slice(0, 160),
-          company,
-          location,
-          snippet: snippetBits.join(" · "),
-        };
-      }
-    }
+    const { title, company } = splitTitleCompany(beforeLoc);
     return {
-      title: title.slice(0, 160),
+      title,
       company,
       location,
       snippet: snippetBits.join(" · "),
     };
   }
 
-  // Fallback: title only
   return {
     title: dedupeRepeatedTitle(t).slice(0, 160),
     company: "Unknown",
@@ -109,6 +127,7 @@ export function parseLinkedInJobCardText(text: string): {
     snippet: snippetBits.join(" · "),
   };
 }
+
 /**
  * Read LinkedIn Jobs search result cards from the current page.
  * Selectors target the 2025+ search-results UI (`componentkey=job-card-component-ref-*`).
@@ -200,6 +219,7 @@ export async function extractLinkedInJobCards(
         applyUrl: sourceUrl,
         location: parsed.location || null,
         easyApply: /easy apply/i.test(parsed.snippet),
+        cardText: job.snippet.slice(0, 500),
       },
     });
     debug.parsed += 1;

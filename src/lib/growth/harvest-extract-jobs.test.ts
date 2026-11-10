@@ -11,4 +11,13 @@ describe("parseLinkedInJobCardText", () => {
     expect(parsed.location).toContain("Hybrid");
     expect(parsed.snippet).toMatch(/Easy Apply/);
   });
+
+  it("parses city-only location without workplace type", () => {
+    const parsed = parseLinkedInJobCardText(
+      "DevOps Engineer (all genders) PRODYNA Düsseldorf 1 month ago · Be an early applicant",
+    );
+    expect(parsed.title).toBe("DevOps Engineer (all genders)");
+    expect(parsed.company).toBe("PRODYNA");
+    expect(parsed.location).toBe("Düsseldorf");
+  });
 });
