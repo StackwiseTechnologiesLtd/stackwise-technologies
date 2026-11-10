@@ -62,10 +62,7 @@ export async function launchGrowthChromium(
   options: GrowthBrowserLaunchOptions = {},
 ) {
   const { chromium } = await loadPlaywrightModule();
-  const args = [
-    "--disable-blink-features=AutomationControlled",
-    ...(options.args ?? []),
-  ];
+  const args = [...DEFAULT_ARGS, ...(options.args ?? [])];
   const base = {
     headless: options.headless ?? false,
     slowMo: options.slowMo,
