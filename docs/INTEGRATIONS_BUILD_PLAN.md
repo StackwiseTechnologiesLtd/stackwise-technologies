@@ -76,7 +76,7 @@ Record **date + initials** when all manual tests for a phase pass.
 | Phase                | Status | Tester | Date | Notes |
 | -------------------- | ------ | ------ | ---- | ----- |
 | 0 Ponytail           | ☐      |        |      |       |
-| 1 Integration fabric | ☐      |        |      |       |
+| 1 Integration fabric | ☑      | agent  | 2026-11-10 | Local 1.T1–1.T6 + prod ingest auth (401/400); UI on :3005 |
 | 2 In-repo CRM (data) | ☐      |        |      |       |
 | 2b CRM UI (Twenty-inspired) | ☐ |        |      | Tier A in UI doc |
 | 3 Huginn             | ☐      |        |      |       |
