@@ -25,10 +25,19 @@ export default function AdminLoginPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
-      const data = (await res.json()) as { error?: string };
+      const data = (await res.json()) as {
+        error?: string;
+        dispatched?: boolean;
+      };
       if (!res.ok) throw new Error(data.error ?? "Unable to send code");
+      if (data.dispatched === false) {
+        toast.error(
+          "This email is not authorized for admin access. Use your allowlisted work email or ask an owner to add it in ADMIN_EMAILS.",
+        );
+        return;
+      }
       setStep("otp");
-      toast.toast("If your email is authorized, a verification code was sent.");
+      toast.toast("Verification code sent — check your inbox.");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Unable to send code");
     } finally {
