@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { commentMatchesKeyword, renderInstagramTemplate } from "@/lib/instagram/keyword";
+import {
+  commentMatchesKeyword,
+  renderInstagramTemplate,
+  triggerMatchesKeyword,
+} from "@/lib/instagram/keyword";
 
 describe("commentMatchesKeyword", () => {
   it("matches standalone keyword", () => {
@@ -11,6 +15,14 @@ describe("commentMatchesKeyword", () => {
   it("rejects unrelated text", () => {
     expect(commentMatchesKeyword("guidelines", "GUIDE")).toBe(false);
     expect(commentMatchesKeyword("hello", "GUIDE")).toBe(false);
+  });
+});
+
+describe("triggerMatchesKeyword", () => {
+  it("matches DM keywords case-insensitively", () => {
+    expect(triggerMatchesKeyword("dm", "LOOIAL", "looial")).toBe(true);
+    expect(triggerMatchesKeyword("dm", "hey LOOIAL there", "looial")).toBe(true);
+    expect(triggerMatchesKeyword("story_reply", "LoOiAl", "looial")).toBe(true);
   });
 });
 

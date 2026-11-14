@@ -167,9 +167,9 @@ export function InstagramInboxPanel() {
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted">
-        Threads sync from Meta <code className="text-xs">messages</code> webhooks. Manual
-        replies use the Instagram messaging API and must fall inside the active messaging
-        window.
+        Only participants who triggered a campaign (keyword DMs and replies in that thread) appear
+        here. Manual replies use the Instagram messaging API and must fall inside the active
+        messaging window.
       </p>
 
       <div className="grid min-h-[28rem] gap-4 lg:grid-cols-[minmax(12rem,16rem)_1fr]">
@@ -182,7 +182,7 @@ export function InstagramInboxPanel() {
               <li className="px-3 py-4 text-sm text-muted">Loading…</li>
             ) : conversations.length === 0 ? (
               <li className="px-3 py-4 text-sm text-muted">
-                No threads yet. Inbound DMs appear here after webhooks deliver.
+                No campaign threads yet. Someone must message your keyword first.
               </li>
             ) : (
               conversations.map((c) => (

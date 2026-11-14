@@ -332,10 +332,16 @@ export async function getInstagramConversation(
     last_message_preview: string | null;
   }>(
     await sql`
-      SELECT id, account_id, participant_igsid, participant_username,
-             last_message_at, last_message_preview
-      FROM instagram_conversations
-      WHERE id = ${conversationId}::uuid
+      SELECT c.id, c.account_id, c.participant_igsid, c.participant_username,
+             c.last_message_at, c.last_message_preview
+      FROM instagram_conversations c
+      WHERE c.id = ${conversationId}::uuid
+        AND EXISTS (
+          SELECT 1 FROM instagram_deliveries d
+          WHERE d.account_id = c.account_id
+            AND d.recipient_igsid = c.participant_igsid
+            AND d.campaign_id IS NOT NULL
+        )
       LIMIT 1
     `,
   );
