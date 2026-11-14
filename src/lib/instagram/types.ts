@@ -101,6 +101,17 @@ export type InstagramConversation = {
   lastMessagePreview: string | null;
 };
 
+/** Inbox list row: one person per connected account (grouped by @username when known). */
+export type InstagramContactThread = {
+  id: string;
+  accountId: string;
+  participantIgsid: string;
+  participantUsername: string | null;
+  lastMessageAt: string;
+  lastMessagePreview: string | null;
+  conversationIds: string[];
+};
+
 export type InstagramInboxMessage = {
   id: string;
   conversationId: string;

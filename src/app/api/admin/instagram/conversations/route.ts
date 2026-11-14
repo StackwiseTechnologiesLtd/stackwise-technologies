@@ -6,7 +6,7 @@ import {
 } from "@/lib/instagram/api-auth";
 import {
   findInstagramConversationByParticipant,
-  listInstagramConversations,
+  listInstagramContactThreads,
 } from "@/lib/instagram/inbox-repository";
 
 export const dynamic = "force-dynamic";
@@ -34,13 +34,22 @@ export async function GET(request: Request) {
       Math.max(1, Number(url.searchParams.get("limit") ?? url.searchParams.get("pageSize") ?? "25")),
     );
     const offset = (page - 1) * pageSize;
-    const { conversations, total } = await listInstagramConversations({
+    const search = url.searchParams.get("q")?.trim() || null;
+    const { threads, total } = await listInstagramContactThreads({
       accountIds: ctx.access.accountIds,
       limit: pageSize,
       offset,
+      search,
     });
     const totalPages = total === 0 ? 1 : Math.ceil(total / pageSize);
-    return NextResponse.json({ conversations, total, page, pageSize, totalPages });
+    return NextResponse.json({
+      threads,
+      conversations: threads,
+      total,
+      page,
+      pageSize,
+      totalPages,
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Load failed";
     return NextResponse.json({ error: message }, { status: 500 });
