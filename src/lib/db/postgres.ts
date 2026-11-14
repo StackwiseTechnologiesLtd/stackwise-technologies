@@ -18,6 +18,11 @@ export function getSql(): SqlClient {
   return sqlClient;
 }
 
+/** Drop pooled client after Neon HTTP connect blips (webhook retries). */
+export function resetSqlClient(): void {
+  sqlClient = null;
+}
+
 export function asRows<T>(result: unknown): T[] {
   return result as T[];
 }

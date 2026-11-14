@@ -1,4 +1,5 @@
 import { after, NextResponse } from "next/server";
+import { withDbRetry } from "@/lib/db/retry";
 import { handleInstagramWebhook } from "@/lib/instagram/handle-instagram-webhook";
 import {
   timingSafeEqualString,
@@ -67,16 +68,24 @@ export async function POST(request: Request, context: RouteContext) {
 
   const queue: string[] = [];
 
-  const { handled } = await handleInstagramWebhook({
-    metaAppId: app.id,
-    body,
-    processQueued: (deliveryId) => {
-      queue.push(deliveryId);
-    },
-  });
+  const { handled } = await withDbRetry("meta-webhook", async () =>
+    handleInstagramWebhook({
+      metaAppId: app.id,
+      body,
+      processQueued: (deliveryId) => {
+        queue.push(deliveryId);
+      },
+    }),
+  );
 
   for (const deliveryId of queue) {
-    after(() => processInstagramDelivery(deliveryId));
+    after(() =>
+      withDbRetry(`delivery:${deliveryId}`, () =>
+        processInstagramDelivery(deliveryId),
+      ).catch((error) => {
+        console.error(`[meta-webhook] delivery ${deliveryId}`, error);
+      }),
+    );
   }
 
   return NextResponse.json({ ok: true, handled });
