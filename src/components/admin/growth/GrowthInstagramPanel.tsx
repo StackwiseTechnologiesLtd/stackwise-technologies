@@ -82,7 +82,9 @@ export function GrowthInstagramPanel({
     publicOrigin?: string;
   } | null>(null);
   const [access, setAccess] = useState<{
+    kind: "owner" | "operator";
     canManageMetaApps: boolean;
+    canManageTeam: boolean;
   } | null>(null);
 
   const [appForm, setAppForm] = useState({
@@ -176,7 +178,11 @@ export function GrowthInstagramPanel({
         setOauthSetup(data);
       }
       if (accessRes.ok) {
-        const data = (await accessRes.json()) as { canManageMetaApps: boolean };
+        const data = (await accessRes.json()) as {
+          kind: "owner" | "operator";
+          canManageMetaApps: boolean;
+          canManageTeam: boolean;
+        };
         setAccess(data);
       }
     } catch (error) {
@@ -356,9 +362,18 @@ export function GrowthInstagramPanel({
               </code>
             </p>
             <p className="mt-2 text-xs text-muted">
-              Meta apps: {status?.metaAppCount ?? 0} · Connected accounts:{" "}
-              {status?.connectedAccounts ?? 0} · Active campaigns:{" "}
-              {status?.activeCampaigns ?? 0}
+              {access?.kind === "owner" ? (
+                <>
+                  Meta apps: {status?.metaAppCount ?? 0} · Connected accounts:{" "}
+                  {status?.connectedAccounts ?? 0} · Active campaigns:{" "}
+                  {status?.activeCampaigns ?? 0}
+                </>
+              ) : (
+                <>
+                  Your accounts: {status?.connectedAccounts ?? 0} · Active campaigns:{" "}
+                  {status?.activeCampaigns ?? 0}
+                </>
+              )}
             </p>
             <p className="mt-1 text-xs text-muted">
               Last webhook: {formatWhen(status?.lastWebhookAt ?? null)} · Last send:{" "}
@@ -425,7 +440,12 @@ export function GrowthInstagramPanel({
                 <code className="text-foreground">{oauthSetup.adminReturnOrigin ?? "…"}</code> — only
                 Meta needs the ngrok Redirect URL above.
               </p>
-            ) : null}
+            ) : (
+              <p className="text-muted">
+                Live mode: register the Redirect URL and webhook host on{" "}
+                <strong>{oauthSetup.publicOrigin}</strong> in Meta (not localhost).
+              </p>
+            )}
           </div>
         )}
         {apps.length > 0 && (
@@ -605,28 +625,30 @@ export function GrowthInstagramPanel({
                   {a.webhookSubscribed ? " · webhooks on" : " · webhooks off"}
                   {a.tokenExpiresAt ? ` · expires ${formatWhen(a.tokenExpiresAt)}` : ""}
                 </span>
-                <span className="flex flex-wrap gap-2">
-                  {a.hasAccessToken && (
-                    <>
-                      <button
-                        type="button"
-                        className="text-xs text-accent underline"
-                        onClick={() => void testAccountToken(a.id)}
-                      >
-                        Test token
-                      </button>
-                      {!a.webhookSubscribed && (
+                {canConfigureMeta ? (
+                  <span className="flex flex-wrap gap-2">
+                    {a.hasAccessToken && (
+                      <>
                         <button
                           type="button"
                           className="text-xs text-accent underline"
-                          onClick={() => void subscribeAccountWebhooks(a.id)}
+                          onClick={() => void testAccountToken(a.id)}
                         >
-                          Subscribe webhooks
+                          Test token
                         </button>
-                      )}
-                    </>
-                  )}
-                </span>
+                        {!a.webhookSubscribed && (
+                          <button
+                            type="button"
+                            className="text-xs text-accent underline"
+                            onClick={() => void subscribeAccountWebhooks(a.id)}
+                          >
+                            Subscribe webhooks
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </span>
+                ) : null}
               </li>
             ))}
           </ul>

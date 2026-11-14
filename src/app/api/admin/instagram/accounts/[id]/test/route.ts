@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
-import { getAdminSession } from "@/lib/auth/session";
+import { filterByAccountAccess } from "@/lib/instagram/access";
+import {
+  isInstagramApiError,
+  requireAccountScope,
+  requireInstagramApiAccess,
+} from "@/lib/instagram/api-auth";
 import { debugInstagramToken } from "@/lib/instagram/meta-oauth";
 import {
   getAccountAccessToken,
@@ -12,16 +17,18 @@ export const dynamic = "force-dynamic";
 type RouteParams = { params: Promise<{ id: string }> };
 
 export async function POST(_request: Request, context: RouteParams) {
-  const session = await getAdminSession();
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const ctx = await requireInstagramApiAccess({ manageMeta: true });
+  if (isInstagramApiError(ctx)) return ctx;
 
   const { id } = await context.params;
-  const account = (await listAccounts()).find((a) => a.id === id);
+  const account = filterByAccountAccess(await listAccounts(), ctx.access).find(
+    (a) => a.id === id,
+  );
   if (!account) {
     return NextResponse.json({ error: "Account not found" }, { status: 404 });
   }
+  const scopeErr = requireAccountScope(ctx.access, account.id);
+  if (scopeErr) return scopeErr;
 
   const token = await getAccountAccessToken(id);
   if (!token) {

@@ -1,5 +1,8 @@
 import { after, NextResponse } from "next/server";
-import { getAdminSession } from "@/lib/auth/session";
+import {
+  isInstagramApiError,
+  requireInstagramApiAccess,
+} from "@/lib/instagram/api-auth";
 import { handleInstagramWebhook } from "@/lib/instagram/handle-instagram-webhook";
 import { processInstagramDelivery } from "@/lib/instagram/process-delivery";
 
@@ -11,10 +14,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Not available" }, { status: 404 });
   }
 
-  const session = await getAdminSession();
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const ctx = await requireInstagramApiAccess({ manageMeta: true });
+  if (isInstagramApiError(ctx)) return ctx;
 
   const body = await request.json();
   const queue: string[] = [];

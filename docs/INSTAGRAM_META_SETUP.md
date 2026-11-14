@@ -17,6 +17,28 @@ Use **Instagram → API setup with Instagram business login** (not legacy Basic 
 
 Optional: **Facebook App secret** from **App settings → Basic** — add in admin if webhook `POST` signature verification fails (Meta may sign with either secret).
 
+## Go live (production)
+
+Set Cloudflare Worker secrets (`npm run cf:secrets` from `.env.prod`) — at minimum:
+
+| Variable | Value (example) |
+|----------|-----------------|
+| `NEXT_PUBLIC_SITE_URL` | `https://stackwisetechnologies.com` |
+| `INSTAGRAM_OAUTH_REDIRECT_BASE` | same origin |
+| `INSTAGRAM_PUBLIC_BASE_URL` | same origin (tracked `/r/ig/` links) |
+| `INSTAGRAM_DRY_RUN` | `0` or unset |
+
+**Meta console**
+
+| Field | URL |
+|-------|-----|
+| Business login → **Redirect URL** | `https://stackwisetechnologies.com/api/admin/instagram/oauth/callback` |
+| Webhooks → **Callback URL** | `https://stackwisetechnologies.com/api/webhooks/meta/<slug>` |
+
+Owners copy exact values from **Connection** in `/admin/instagram` (includes Copy buttons). Turn off ngrok; point Meta to the live host only.
+
+**Operators** — invite on **Team access** (`ADMIN_EMAILS` only). They sign in via OTP, land on `/admin/instagram`, cannot open payments/growth/CRM, and cannot view Meta app secrets or connect tokens (API returns 403).
+
 ## Environment
 
 | Variable | Purpose |

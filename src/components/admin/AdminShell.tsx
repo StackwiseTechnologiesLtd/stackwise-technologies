@@ -233,6 +233,20 @@ export function AdminShell({
     setMenuOpen(false);
   }, [pathname]);
 
+  useDeferredEffect(() => {
+    if (!user || isLogin || isInstagramPortal) return;
+    void fetch("/api/admin/instagram/access")
+      .then(async (res) => {
+        if (!res.ok) return null;
+        return (await res.json()) as { kind?: string };
+      })
+      .then((data) => {
+        if (data?.kind === "operator") {
+          router.replace("/admin/instagram");
+        }
+      });
+  }, [user, isLogin, isInstagramPortal, pathname, router]);
+
   useEffect(() => {
     if (!menuOpen) return;
     const onKey = (e: KeyboardEvent) => {
