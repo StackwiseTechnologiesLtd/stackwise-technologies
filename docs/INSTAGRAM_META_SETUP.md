@@ -12,8 +12,31 @@ Stackwise stores Meta app credentials in admin (**Growth → Instagram**) and co
 3. **Facebook Login → Settings → Valid OAuth Redirect URIs**  
    Copy the exact URL from the admin panel (**OAuth callback**), e.g.  
    `https://your-domain.com/api/admin/instagram/oauth/callback`  
-   For local dev the panel uses the current origin (e.g. `http://localhost:3002/...`).  
-   Override with `INSTAGRAM_OAUTH_REDIRECT_BASE=https://your-domain.com` in production.
+   For local dev without a tunnel, the panel uses the current origin (e.g. `http://localhost:3002/...`).  
+   Override with `INSTAGRAM_OAUTH_REDIRECT_BASE` in production or **ngrok** (below).
+
+## Local testing with ngrok
+
+Meta requires a **public HTTPS** callback. Point ngrok at your dev server, then pin Stackwise to that URL.
+
+1. Start dev: `npm run dev` (note the port, e.g. `3002`).
+2. Tunnel: `ngrok http 3002` (or your port).
+3. In `.env.local`:
+
+   ```bash
+   INSTAGRAM_OAUTH_REDIRECT_BASE=https://YOUR-SUBDOMAIN.ngrok-free.app
+   NEXT_PUBLIC_SITE_URL=http://localhost:3002
+   ```
+
+   `INSTAGRAM_OAUTH_REDIRECT_BASE` must be **origin only** (no path). The admin panel shows the full callback URL to paste into Meta.
+
+4. Restart dev so env loads. In Meta → Facebook Login → **Valid OAuth Redirect URIs**, paste the panel’s **OAuth callback** (under the ngrok host).
+5. Optional: subscribe webhooks to `https://YOUR-SUBDOMAIN.ngrok-free.app/api/webhooks/meta/<slug>` using the same tunnel.
+6. Open admin at `http://localhost:3002/admin/...` (your `NEXT_PUBLIC_SITE_URL`), click **Connect Instagram**. Facebook redirects to ngrok → your machine; you land back on localhost with `?oauth=ok`.
+
+To use the ngrok URL for admin as well, set `NEXT_PUBLIC_SITE_URL` to the ngrok origin (and sign in there).
+
+Override return URL after OAuth with `INSTAGRAM_OAUTH_ADMIN_RETURN_BASE` if needed.
 4. **App roles:** add your Facebook user as **Admin** or **Developer** (required for testing before App Review).
 
 ## 2. Stackwise admin

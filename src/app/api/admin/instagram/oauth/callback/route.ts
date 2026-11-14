@@ -5,7 +5,10 @@ import {
   listFacebookPagesWithInstagram,
   pickFacebookPage,
 } from "@/lib/instagram/meta-oauth";
-import { instagramOAuthRedirectBase } from "@/lib/instagram/oauth-url";
+import {
+  instagramAdminReturnOrigin,
+  instagramOAuthRedirectBase,
+} from "@/lib/instagram/oauth-url";
 import { verifyInstagramOAuthState } from "@/lib/instagram/oauth-state";
 import {
   getMetaAppBySlug,
@@ -21,11 +24,13 @@ export async function GET(request: Request) {
   const state = url.searchParams.get("state");
   const oauthError = url.searchParams.get("error_description") ?? url.searchParams.get("error");
 
+  const returnOrigin = instagramAdminReturnOrigin(request);
+
   const fail = (message: string) =>
     NextResponse.redirect(
       new URL(
         `/admin/growth/instagram?oauth_error=${encodeURIComponent(message)}`,
-        request.url,
+        returnOrigin,
       ),
     );
 
@@ -103,7 +108,7 @@ export async function GET(request: Request) {
       ig: page.igUsername ?? page.igUserId,
     });
     return NextResponse.redirect(
-      new URL(`/admin/growth/instagram?${qs.toString()}`, request.url),
+      new URL(`/admin/growth/instagram?${qs.toString()}`, returnOrigin),
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : "OAuth failed";

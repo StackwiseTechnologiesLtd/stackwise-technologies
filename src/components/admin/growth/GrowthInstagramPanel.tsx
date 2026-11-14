@@ -40,6 +40,9 @@ export function GrowthInstagramPanel() {
     redirectUri: string;
     scopes: string[];
     webhookHint: string;
+    usesTunnel?: boolean;
+    adminReturnOrigin?: string;
+    publicOrigin?: string;
   } | null>(null);
 
   const [appForm, setAppForm] = useState({
@@ -107,6 +110,9 @@ export function GrowthInstagramPanel() {
           redirectUri: string;
           scopes: string[];
           webhookHint: string;
+          usesTunnel?: boolean;
+          adminReturnOrigin?: string;
+          publicOrigin?: string;
         };
         setOauthSetup(data);
       }
@@ -248,10 +254,19 @@ export function GrowthInstagramPanel() {
         </p>
         {oauthSetup && (
           <div className="mt-3 rounded-lg border border-line bg-black/30 px-3 py-2 text-xs">
-            <p className="text-muted">OAuth callback (copy into Meta app settings)</p>
+            <p className="text-muted">OAuth callback (copy into Meta → Facebook Login → Valid OAuth Redirect URIs)</p>
             <code className="mt-1 block break-all text-foreground">{oauthSetup.redirectUri}</code>
+            {oauthSetup.usesTunnel ? (
+              <p className="mt-2 text-amber-200/90">
+                Tunnel mode (<code>INSTAGRAM_OAUTH_REDIRECT_BASE</code>): Meta hits ngrok; after connect you
+                return to{" "}
+                <code className="text-foreground">{oauthSetup.adminReturnOrigin ?? "…"}</code> — keep
+                that origin in <code>NEXT_PUBLIC_SITE_URL</code> so the admin session cookie matches.
+              </p>
+            ) : null}
             <p className="mt-2 text-muted">
-              Webhooks: <code className="text-foreground">{oauthSetup.webhookHint}</code>
+              Webhooks (same public origin):{" "}
+              <code className="text-foreground">{oauthSetup.webhookHint}</code>
             </p>
           </div>
         )}

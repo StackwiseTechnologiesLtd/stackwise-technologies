@@ -22,19 +22,46 @@ export function buildMetaInstagramOAuthUrl(input: {
   return url.toString();
 }
 
-export function instagramOAuthRedirectBase(request?: Request): string {
-  const override = process.env.INSTAGRAM_OAUTH_REDIRECT_BASE?.trim();
-  if (override) {
-    return `${override.replace(/\/$/, "")}/api/admin/instagram/oauth/callback`;
-  }
-  if (request) {
-    return `${new URL(request.url).origin}/api/admin/instagram/oauth/callback`;
-  }
+/** Public HTTPS/origin Meta and webhooks must reach (ngrok, prod domain, or local). */
+export function instagramPublicOrigin(request?: Request): string {
+  const tunnel = process.env.INSTAGRAM_OAUTH_REDIRECT_BASE?.trim();
+  if (tunnel) return tunnel.replace(/\/$/, "");
+  if (request) return new URL(request.url).origin;
   const base =
     process.env.NEXT_PUBLIC_SITE_URL?.trim() || "http://localhost:3000";
-  return `${base.replace(/\/$/, "")}/api/admin/instagram/oauth/callback`;
+  return base.replace(/\/$/, "");
+}
+
+export function instagramOAuthRedirectBase(request?: Request): string {
+  return `${instagramPublicOrigin(request)}/api/admin/instagram/oauth/callback`;
+}
+
+/**
+ * Where to send the browser after OAuth (admin UI).
+ * With ngrok callback + local dev: set tunnel in INSTAGRAM_OAUTH_REDIRECT_BASE and
+ * NEXT_PUBLIC_SITE_URL=http://localhost:PORT (or INSTAGRAM_OAUTH_ADMIN_RETURN_BASE).
+ */
+export function instagramAdminReturnOrigin(request?: Request): string {
+  const explicit = process.env.INSTAGRAM_OAUTH_ADMIN_RETURN_BASE?.trim();
+  if (explicit) return explicit.replace(/\/$/, "");
+
+  const tunnel = process.env.INSTAGRAM_OAUTH_REDIRECT_BASE?.trim();
+  if (tunnel) {
+    const local = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+    if (local) return local.replace(/\/$/, "");
+    return tunnel.replace(/\/$/, "");
+  }
+
+  if (request) return new URL(request.url).origin;
+  const base =
+    process.env.NEXT_PUBLIC_SITE_URL?.trim() || "http://localhost:3000";
+  return base.replace(/\/$/, "");
 }
 
 export function instagramOAuthScopes(): string {
   return SCOPES;
+}
+
+export function instagramOAuthUsesTunnel(): boolean {
+  return Boolean(process.env.INSTAGRAM_OAUTH_REDIRECT_BASE?.trim());
 }
