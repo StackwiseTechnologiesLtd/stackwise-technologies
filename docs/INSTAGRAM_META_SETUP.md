@@ -4,16 +4,27 @@ Stackwise stores Meta app credentials in admin (**Growth → Instagram**) and co
 
 ## 1. Meta for Developers
 
+### Map: “Instagram API” dashboard vs Stackwise
+
+| What you see in Meta (Instagram → API setup) | Stackwise uses it? | What to do |
+|---------------------------------------------|-------------------|------------|
+| **1. Generate access tokens** | No (we use **Connect Instagram** in admin) | Still add your IG as **Instagram Tester** under **App roles → Roles** so Dev mode can call the API |
+| **2. Configure webhooks** | Yes | Callback + verify token below; subscribe **comments** / **messages** when offered |
+| **3. Set up Instagram business login** | Partially | Add the same OAuth callback here **if** the console offers **OAuth redirect URIs**; our connect flow also needs **Facebook Login** (next row) |
+| **4. Complete app review** | Only for client apps | Skip if you only automate **your own** business |
+
+**App ID in Stackwise admin:** use **App settings → Basic → App ID** and **App secret**. The “Instagram app ID” on the Instagram card is often the same number; if Basic shows a different ID, use **Basic** for **Connect Instagram** (Facebook Login).
+
 1. Create or open your **Meta app** (type: Business).
 2. Add products:
-   - **Facebook Login for Business** (or Facebook Login)
-   - **Webhooks**
-   - **Instagram** (Graph API)
+   - **Facebook Login for Business** (or Facebook Login) — **required for Stackwise Connect**
+   - **Instagram** (API setup with Instagram business login — what you see now)
 3. **Facebook Login → Settings → Valid OAuth Redirect URIs**  
    Copy the exact URL from the admin panel (**OAuth callback**), e.g.  
    `https://your-domain.com/api/admin/instagram/oauth/callback`  
    For local dev without a tunnel, the panel uses the current origin (e.g. `http://localhost:3002/...`).  
-   Override with `INSTAGRAM_OAUTH_REDIRECT_BASE` in production or **ngrok** (below).
+   Override with `INSTAGRAM_OAUTH_REDIRECT_BASE` in production or **ngrok** (below).  
+   Mirror the same URL under **Instagram → Set up Instagram business login → OAuth redirect URIs** if that section exists.
 
 ## Local testing with ngrok
 
@@ -50,12 +61,14 @@ Override return URL after OAuth with `INSTAGRAM_OAUTH_ADMIN_RETURN_BASE` if need
 
 ## 3. Webhooks
 
-In Meta app → **Webhooks**, subscribe object **Instagram**:
+Use **Instagram → Configure webhooks** (step 2 on your screen) **or** the global **Webhooks** product:
 
-- Callback: `https://<domain>/api/webhooks/meta/<slug>`  
-  (`<slug>` matches the row you created in admin.)
-- Verify token: same string you saved on the Meta app row.
-- Fields (Phase 6.1–6.2): `comments`, `messages`, `messaging_postbacks` (as needed).
+- **Callback URL:** `https://<domain>/api/webhooks/meta/<slug>`  
+  (`<slug>` = the slug you chose when adding the Meta app in Stackwise admin, e.g. `stackwise-ig`.)
+- **Verify token:** the exact random string you typed into Stackwise **Webhook verify token** (not the app secret).
+- Subscribe fields: **comments**, **messages** (and **messaging_postbacks** if listed).
+
+Meta’s UI may say webhooks require **Live** mode. For your own accounts in **Development**, verification often still works; switch to **Live** only when you need production traffic outside testers.
 
 Use the app secret from admin for **signature validation** on `POST` (already implemented).
 
@@ -82,3 +95,5 @@ Standard access is enough for apps you own; other businesses’ accounts need **
 | No Instagram Business account | Link IG Professional/Business to a Facebook Page; grant Page access to the logging-in user |
 | Several Pages listed in error | Set `INSTAGRAM_FACEBOOK_PAGE_ID` to the correct Page ID |
 | DMs not sending | Turn off `INSTAGRAM_DRY_RUN`; confirm `instagram_manage_messages` approved |
+| Only see Instagram login setup, no Facebook Login | Left menu → **Add product** → **Facebook Login for Business** → add redirect URI there |
+| Webhook verify fails | Meta app row must exist in Stackwise first (slug in URL); verify token must match exactly |
