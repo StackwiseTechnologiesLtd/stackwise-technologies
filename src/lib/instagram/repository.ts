@@ -330,10 +330,26 @@ export async function findAccountByIgUserId(
   return accounts.find((a) => a.igUserId === igUserId) ?? null;
 }
 
-export async function deleteInstagramAccount(accountId: string): Promise<void> {
+/** Soft-remove: keeps campaigns, deliveries, and inbox rows tied to this id. */
+export async function softRemoveInstagramAccount(accountId: string): Promise<void> {
   await ready();
   const sql = getSql();
-  await sql`DELETE FROM instagram_accounts WHERE id = ${accountId}::uuid AND status = 'active'`;
+  const rows = asRows<{ id: string }>(
+    await sql`
+      UPDATE instagram_accounts SET
+        status = 'removed',
+        access_token_ciphertext = NULL,
+        access_token_iv = NULL,
+        token_expires_at = NULL,
+        webhook_subscribed = FALSE,
+        updated_at = NOW()
+      WHERE id = ${accountId}::uuid AND status = 'active'
+      RETURNING id
+    `,
+  );
+  if (!rows[0]) {
+    throw new Error("Account not found or already removed");
+  }
 }
 
 type CampaignRow = {

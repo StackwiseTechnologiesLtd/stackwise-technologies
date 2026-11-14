@@ -5,7 +5,7 @@ import {
   requireAccountScope,
   requireInstagramApiAccess,
 } from "@/lib/instagram/api-auth";
-import { deleteInstagramAccount, listAccounts } from "@/lib/instagram/repository";
+import { listAccounts, softRemoveInstagramAccount } from "@/lib/instagram/repository";
 
 export const dynamic = "force-dynamic";
 
@@ -26,10 +26,10 @@ export async function DELETE(
   if (scopeErr) return scopeErr;
 
   try {
-    await deleteInstagramAccount(id);
-    return NextResponse.json({ ok: true });
+    await softRemoveInstagramAccount(id);
+    return NextResponse.json({ ok: true, removed: true });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Delete failed";
+    const message = error instanceof Error ? error.message : "Remove failed";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

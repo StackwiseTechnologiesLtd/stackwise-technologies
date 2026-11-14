@@ -1,6 +1,7 @@
 "use client";
 
 import { AdminActionButton } from "@/components/admin/AdminActionButton";
+import { AdminConfirmDialog } from "@/components/admin/AdminConfirmDialog";
 import { TablePagination } from "@/components/admin/TablePagination";
 import { useToast } from "@/components/ToastProvider";
 import type { InstagramAccount } from "@/lib/instagram/types";
@@ -29,6 +30,11 @@ export function InstagramTeamPanel({
     label: "",
     instagramAccountId: "",
   });
+  const [revokeTarget, setRevokeTarget] = useState<{
+    id: string;
+    email: string;
+  } | null>(null);
+  const [revokeBusy, setRevokeBusy] = useState(false);
 
   async function load() {
     const res = await fetch("/api/admin/instagram/grants");
@@ -67,21 +73,39 @@ export function InstagramTeamPanel({
     return grants.slice(start, start + GRANT_PAGE_SIZE);
   }, [grantPage, grants]);
 
-  async function remove(id: string) {
+  async function confirmRevokeGrant() {
+    if (!revokeTarget) return;
+    setRevokeBusy(true);
     try {
-      const res = await fetch(`/api/admin/instagram/grants?id=${encodeURIComponent(id)}`, {
-        method: "DELETE",
-      });
+      const res = await fetch(
+        `/api/admin/instagram/grants?id=${encodeURIComponent(revokeTarget.id)}`,
+        { method: "DELETE" },
+      );
       if (!res.ok) throw new Error("Delete failed");
-      toast.success("Removed");
+      toast.success("Access removed");
+      setRevokeTarget(null);
       await load();
     } catch {
       toast.error("Could not remove");
+    } finally {
+      setRevokeBusy(false);
     }
   }
 
   return (
     <div className="space-y-6">
+      <AdminConfirmDialog
+        open={revokeTarget !== null}
+        title={revokeTarget ? `Revoke access for ${revokeTarget.email}?` : ""}
+        description="They will no longer be able to sign in to the Instagram portal with this email."
+        confirmLabel="Revoke access"
+        destructive
+        busy={revokeBusy}
+        onClose={() => {
+          if (!revokeBusy) setRevokeTarget(null);
+        }}
+        onConfirm={() => void confirmRevokeGrant()}
+      />
       <section className="rounded-xl border border-line bg-panel p-5 sm:p-6">
         <h2 className="text-base font-semibold">Invite operator</h2>
         <p className="mt-1 text-sm text-muted">
@@ -161,7 +185,9 @@ export function InstagramTeamPanel({
                       <button
                         type="button"
                         className="text-xs text-red-300 underline"
-                        onClick={() => void remove(g.id)}
+                        onClick={() =>
+                          setRevokeTarget({ id: g.id, email: g.email })
+                        }
                       >
                         Remove
                       </button>

@@ -2,6 +2,7 @@
 
 import { useToast } from "@/components/ToastProvider";
 import { AdminActionButton } from "@/components/admin/AdminActionButton";
+import { AdminConfirmDialog } from "@/components/admin/AdminConfirmDialog";
 import { TablePagination } from "@/components/admin/TablePagination";
 import type {
   InstagramAccount,
@@ -80,6 +81,12 @@ export function GrowthInstagramPanel({
     canManageMetaApps: boolean;
     canManageTeam: boolean;
   } | null>(null);
+  const [confirmBusy, setConfirmBusy] = useState(false);
+  const [pendingConfirm, setPendingConfirm] = useState<
+    | { kind: "account"; accountId: string; label: string }
+    | { kind: "campaign"; id: string; name: string }
+    | null
+  >(null);
 
   const [appForm, setAppForm] = useState({
     label: "",
@@ -291,23 +298,34 @@ export function GrowthInstagramPanel({
     }
   }
 
-  async function removeAccount(accountId: string, label: string) {
-    if (
-      !confirm(
-        `Remove ${label}? This deletes the connection, campaigns, delivery history, and inbox threads for this account in Stackwise. Meta may still send webhooks until you disconnect in Meta or unsubscribe — we will ignore them.`,
-      )
-    ) {
-      return;
-    }
+  function requestRemoveAccount(accountId: string, label: string) {
+    setPendingConfirm({ kind: "account", accountId, label });
+  }
+
+  async function runPendingConfirm() {
+    if (!pendingConfirm) return;
+    setConfirmBusy(true);
     try {
-      const res = await fetch(`/api/admin/instagram/accounts/${accountId}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) throw new Error("Remove failed");
-      toast.toast("Account removed.");
+      if (pendingConfirm.kind === "account") {
+        const res = await fetch(
+          `/api/admin/instagram/accounts/${pendingConfirm.accountId}`,
+          { method: "DELETE" },
+        );
+        if (!res.ok) throw new Error("Remove failed");
+        toast.toast("Account disconnected. Historical data is kept.");
+      } else {
+        const res = await fetch(`/api/admin/instagram/campaigns/${pendingConfirm.id}`, {
+          method: "DELETE",
+        });
+        if (!res.ok) throw new Error("Delete failed");
+        toast.toast("Campaign deleted.");
+      }
+      setPendingConfirm(null);
       await load();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Remove failed");
+      toast.error(error instanceof Error ? error.message : "Action failed");
+    } finally {
+      setConfirmBusy(false);
     }
   }
 
@@ -340,30 +358,45 @@ export function GrowthInstagramPanel({
     }
   }
 
-  async function deleteCampaign(id: string, name: string) {
-    if (
-      !confirm(
-        `Delete “${name}”? Delivery log rows for this automation are kept; they will no longer link to this campaign.`,
-      )
-    ) {
-      return;
-    }
-    try {
-      const res = await fetch(`/api/admin/instagram/campaigns/${id}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) throw new Error("Delete failed");
-      toast.toast("Campaign deleted.");
-      await load();
-    } catch {
-      toast.error("Could not delete campaign");
-    }
+  function requestDeleteCampaign(id: string, name: string) {
+    setPendingConfirm({ kind: "campaign", id, name });
   }
 
   const canConfigureMeta = access?.canManageMetaApps !== false;
 
+  const confirmCopy =
+    pendingConfirm?.kind === "account"
+      ? {
+          title: `Disconnect ${pendingConfirm.label}?`,
+          description:
+            "This soft-removes the account: tokens are cleared and it disappears from the portal, but campaigns, delivery history, and inbox rows stay linked to the same id. Meta may still send webhooks until you disconnect there — we ignore them.",
+          confirmLabel: "Disconnect account",
+          destructive: true,
+        }
+      : pendingConfirm?.kind === "campaign"
+        ? {
+            title: `Delete “${pendingConfirm.name}”?`,
+            description:
+              "The automation is removed. Delivery log rows are kept; they may show without a campaign name.",
+            confirmLabel: "Delete campaign",
+            destructive: true,
+          }
+        : null;
+
   return (
     <div className="space-y-6">
+      <AdminConfirmDialog
+        open={pendingConfirm !== null}
+        title={confirmCopy?.title ?? ""}
+        description={confirmCopy?.description}
+        confirmLabel={confirmCopy?.confirmLabel}
+        destructive={confirmCopy?.destructive}
+        busy={confirmBusy}
+        onClose={() => {
+          if (!confirmBusy) setPendingConfirm(null);
+        }}
+        onConfirm={() => void runPendingConfirm()}
+      />
       {show("connection") && canConfigureMeta ? (
       <section className="rounded-xl border border-line bg-panel p-5 sm:p-6">
         <h3 className="text-base font-semibold tracking-tight">Meta apps</h3>
@@ -621,13 +654,13 @@ export function GrowthInstagramPanel({
                       type="button"
                       className="text-xs text-red-400 underline hover:text-red-300"
                       onClick={() =>
-                        void removeAccount(
+                        requestRemoveAccount(
                           a.id,
                           a.username ? `@${a.username}` : a.igUserId,
                         )
                       }
                     >
-                      Remove
+                      Disconnect
                     </button>
                   </span>
                 ) : null}
@@ -768,7 +801,7 @@ export function GrowthInstagramPanel({
                 </AdminActionButton>
                 <AdminActionButton
                   className="text-red-400 hover:text-red-300"
-                  onClick={() => void deleteCampaign(c.id, c.name)}
+                  onClick={() => requestDeleteCampaign(c.id, c.name)}
                 >
                   Delete
                 </AdminActionButton>
