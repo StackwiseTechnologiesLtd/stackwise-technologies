@@ -1,10 +1,10 @@
-# Integrations build plan — Ponytail, in-repo CRM, Huginn, freehire
+# Integrations build plan — Ponytail, in-repo CRM, Huginn, freehire, Instagram DM
 
 Ship external capabilities **inside** [Stackwise admin](https://stackwisetechnologies.com/admin): same auth, same branding (`globals.css` admin tokens), same Neon database. No separate CRM product login and **no Twenty Cloud / self-hosted Twenty server**.
 
 This document is the source of truth for implementation order, manual validation, and completion sign-off.
 
-**Related:** [GROWTH_ENGINE.md](./GROWTH_ENGINE.md) (X / LinkedIn harvest and inbox). **Local setup:** [INTEGRATIONS_LOCAL.md](./INTEGRATIONS_LOCAL.md).
+**Related:** [GROWTH_ENGINE.md](./GROWTH_ENGINE.md) (X / LinkedIn harvest and inbox). **Local setup:** [INTEGRATIONS_LOCAL.md](./INTEGRATIONS_LOCAL.md). **Instagram:** in-repo on the Cloudflare Worker (OpenReply / ManyChat **slice** — not the [OpenReply](https://github.com/diwenne/openreply) container).
 
 ---
 
@@ -16,6 +16,7 @@ This document is the source of truth for implementation order, manual validation
 | Track X + LinkedIn leads through pipeline | **In-repo CRM** — Neon + `/admin/crm` UI **inspired by Twenty** (layout/features); [copy policy](./vendor/TWENTY_UI_AND_FEATURES.md) |
 | More signal sources                       | **[Huginn](https://github.com/huginn/huginn)** → webhook → unified ingest                                                        |
 | Job-posting intent                        | **[freehire](https://github.com/strelov1/freehire/)** harvest → adapter → unified ingest                                         |
+| Instagram comment/DM automation           | **In-repo** on the Worker — Meta webhooks → Cloudflare Queue → Graph API; Neon delivery log + inbox; **multi Meta app** rows       |
 | Single operator experience                | Admin shell only; sidecars are headless (webhooks/cron), not second dashboards                                                   |
 
 ---
@@ -63,9 +64,15 @@ We **do**:
     (existing harvest)              ▲           ▲
                                     │           │
                               Huginn webhook   freehire adapter (cron)
+
+    Meta (per app) ──webhook──► POST /api/webhooks/meta/instagram
+                                      │
+                                 Queue ──► Graph API (private reply / inbox send)
+                                      │
+                                 instagram_* tables (Neon) ──optional──► growth_leads / CRM
 ```
 
-**Deployment:** Marketing + admin stay on **Cloudflare Workers** (current). Huginn + freehire run on **one optional VPS / Docker Compose** (`deploy/integrations/`); production secrets via `scripts/sync-cloudflare-env.mjs`, never `wrangler.jsonc` keys.
+**Deployment:** Marketing + admin stay on **Cloudflare Workers** (current). **Instagram automation runs on the same Worker** (webhooks, queue consumer, admin UI). Huginn + freehire run on **one optional VPS / Docker Compose** (`deploy/integrations/`); production secrets via `scripts/sync-cloudflare-env.mjs`, never `wrangler.jsonc` keys.
 
 ---
 
@@ -82,6 +89,12 @@ Record **date + initials** when all manual tests for a phase pass.
 | 3 Huginn             | ☑      | agent  | 2026-11-10 | Slim ManualEvent→Format→Post scenario; local :3001→:3005 ingest; 3.T1–3.T6 |
 | 4 freehire           | ☑      | agent  | 2026-11-10 | Export→ingest from freehire.me; Jobs inbox + freshness; Hiring: title; URL dedupe |
 | 5 LinkedIn Jobs      | ☑      | agent  | 2026-11-10 | Connect harvest (new Jobs UI selectors); assisted apply notes; Hiring: CRM titles; URL dedupe |
+| 6.1 IG comment-to-DM | ☐      |        |      | Migrations + webhook + queue + delivery log |
+| 6.2 IG triggers/links | ☐     |        |      | DM/story triggers, buttons, click tracking |
+| 6.3 IG inbox         | ☐      |        |      | Thread sync + manual reply in messaging window |
+| 6.4 IG CRM bridge    | ☐      |        |      | growth_leads, tags, one-step follow-up |
+
+**Phase 6 rule:** Do not start **6.1** migrations until this section is reviewed. Each milestone is signed off only when its manual tests pass (in order).
 
 ---
 
@@ -333,6 +346,162 @@ Discover **remote** LinkedIn Jobs via the existing Growth Connect session, land 
 
 ---
 
+## Phase 6 — Instagram DM automation (Worker-native)
+
+### Objective
+
+[OpenReply](https://openreply.diwen.dev/)-class **comment-to-DM**, **delivery tracking**, and (in later milestones) **inbox** and **CRM bridge** — all on the **same Cloudflare Worker** as this app. Supports **multiple Meta apps** (credential rows in Neon, not one global secret). **No** self-hosted OpenReply container, **no** ManyChat login, **no** visual flow builder.
+
+### OpenReply / ManyChat parity (explicit scope)
+
+| Capability | Target milestone | Notes |
+| ---------- | ---------------- | ----- |
+| Comment keyword → private DM | 6.1 | Meta `comments` webhook + queued Graph send |
+| Public reply on comment | 6.1 | Same handler, optional per campaign |
+| Delivery log (sent / skipped / failed + reason) | 6.1 | Admin filterable table |
+| Queue, retries, per-account rate limit | 6.1 | Cloudflare Queue + KV or DO |
+| DM + story text triggers | 6.2 | `messages` (and story fields App Review allows) |
+| `{username}` templates, up to 2 link buttons | 6.2 | Template at send; buttons per Meta message rules |
+| Tracked link clicks | 6.2 | `/r/ig/:token` redirect + `instagram_link_events` |
+| Inbox + manual reply in messaging window | 6.3 | Webhook sync + admin thread UI |
+| Promote responder to Growth / CRM + tags | 6.4 | Optional auto-lead; CRM activity notes |
+| Simple follow-up (one delayed step in window) | 6.4 | Queue or Workflow — not a flow canvas |
+| Visual flow builder, broadcasts, omnichannel | — | **Out of scope** (ManyChat full product) |
+
+### Shared build tasks (reference paths — implement in 6.1+)
+
+| ID | Task | Path / artifact |
+| -- | ---- | --------------- |
+| 6.0 | Design + parity table (this doc) | `docs/INTEGRATIONS_BUILD_PLAN.md` Phase 6 |
+| 6.x | Encrypted tokens | Reuse `src/lib/growth/crypto.ts` patterns |
+| 6.x | Wrangler queue binding + consumer | `wrangler.jsonc`, OpenNext queue handler as needed |
+| 6.x | Secrets sync | `scripts/sync-cloudflare-env.mjs` (Meta app secrets never in `vars`) |
+
+---
+
+### Phase 6.1 — Comment-to-DM + delivery log
+
+#### Build tasks
+
+| ID | Task | Path / artifact |
+| -- | ---- | --------------- |
+| 6.1.1 | Migrations: `instagram_meta_apps`, `instagram_accounts`, `instagram_campaigns`, `instagram_deliveries` | `migrations/00xx_instagram_*.sql` |
+| 6.1.2 | Meta webhook: verify `X-Hub-Signature-256`, route by app | `src/app/api/webhooks/meta/[appSlug]/route.ts` or single route + app lookup |
+| 6.1.3 | Keyword match + enqueue (no Graph in webhook request) | `src/lib/instagram/webhook.ts`, Queue producer |
+| 6.1.4 | Queue consumer: private reply (+ optional public comment) | `src/lib/instagram/send-private-reply.ts` |
+| 6.1.5 | Admin: Meta apps, connect IG account (OAuth), campaigns CRUD | `/admin/growth/instagram` (or Integrations subsection) |
+| 6.1.6 | Admin: **Delivery log** with status + skip reason | table component + API |
+| 6.1.7 | Integrations status: last webhook / last successful send | extend status endpoint |
+
+#### Manual test flow — Phase 6.1
+
+**Prerequisites:** Phase 1 complete; at least one Meta app with Instagram messaging permissions; **test** IG Business/Creator account; production or tunneled HTTPS URL registered in Meta; Cloudflare Queue bound in preview/prod; migration applied.
+
+| Step | Action | Expected |
+| ---- | ------ | -------- |
+| 6.1.T1 | Register webhook URL on Meta app; complete verify (`hub.challenge`) | Meta shows subscribed fields; challenge returns 200 |
+| 6.1.T2 | Admin: add Meta app row (app id; secret via env/encrypted); connect IG account | Account shows connected; token stored encrypted |
+| 6.1.T3 | Create campaign: choose media, keyword `GUIDE`, private reply template | Campaign saved as active |
+| 6.1.T4 | From a **second** IG account, comment `GUIDE` on the post | Webhook received; delivery row `queued` → `sent` (or `failed` with Meta error text) |
+| 6.1.T5 | Delivery log: filter by campaign + status | Row shows trigger comment id, recipient, template snippet, timestamps |
+| 6.1.T6 | Comment same keyword again (or duplicate webhook payload) | Second row `skipped` with reason `duplicate` / idempotent constraint |
+| 6.1.T7 | Comment non-matching text | No send; optional row `skipped` reason `no_keyword_match` |
+| 6.1.T8 | Toggle campaign off; comment keyword again | `skipped` reason `campaign_inactive` |
+| 6.1.T9 | Integrations / Instagram status panel | `lastWebhookAt` and `lastSendAt` updated |
+
+**Mark Phase 6.1 complete when:** 6.1.T1–6.1.T9 pass; Progress log **6.1** updated.
+
+---
+
+### Phase 6.2 — DM/story triggers, buttons, tracked links
+
+#### Build tasks
+
+| ID | Task | Path / artifact |
+| -- | ---- | --------------- |
+| 6.2.1 | Campaign trigger types: `comment`, `dm`, `story_reply` | schema + admin form |
+| 6.2.2 | Message templates with `{username}` substitution | send path |
+| 6.2.3 | Up to two CTA URLs / buttons per Meta rules | template builder + send |
+| 6.2.4 | Tracked redirects + click events | `src/app/r/ig/[token]/route.ts`, `instagram_link_events` |
+| 6.2.5 | Delivery log columns: link tokens, click count | admin + API |
+
+#### Manual test flow — Phase 6.2
+
+**Prerequisites:** 6.1 signed off; App Review permissions for DM/story if required.
+
+| Step | Action | Expected |
+| ---- | ------ | -------- |
+| 6.2.T1 | Campaign: DM keyword `PRICING` on inbound DM | Matching DM enqueues send; delivery log `sent` |
+| 6.2.T2 | Campaign: story reply keyword (if enabled) | Same as 6.2.T1 for story webhook shape |
+| 6.2.T3 | Template uses `{username}`; trigger from named account | Received DM contains correct handle |
+| 6.2.T4 | Button / tracked URL in DM; open link in browser | `instagram_link_events` row; redirect lands on target URL |
+| 6.2.T5 | Delivery log shows click count ≥ 1 for that send | Admin updates without manual SQL |
+| 6.2.T6 | Rate limit: burst triggers faster than policy | Some rows `skipped` or retried with reason / retry count — no silent drops |
+
+**Mark Phase 6.2 complete when:** 6.2.T1–6.2.T6 pass; Progress log **6.2** updated.
+
+---
+
+### Phase 6.3 — Inbox sync + manual reply
+
+#### Build tasks
+
+| ID | Task | Path / artifact |
+| -- | ---- | --------------- |
+| 6.3.1 | Migrations: `instagram_conversations`, `instagram_messages` | Neon |
+| 6.3.2 | Inbound `messages` webhook → append thread rows | webhook handler |
+| 6.3.3 | Admin inbox: thread list, message history, compose reply | `/admin/growth/instagram/inbox` |
+| 6.3.4 | Send manual reply via Graph (within messaging window) | API + log outbound row |
+| 6.3.5 | Link thread to delivery rows for same IGSID | record show side panel |
+
+#### Manual test flow — Phase 6.3
+
+**Prerequisites:** 6.2 signed off; conversation exists from 6.1/6.2 sends or organic DM.
+
+| Step | Action | Expected |
+| ---- | ------ | -------- |
+| 6.3.T1 | User replies to auto-DM from test account | Inbound message appears in inbox within webhook latency |
+| 6.3.T2 | Open thread in admin | History shows auto-DM (outbound) + user reply (inbound) in order |
+| 6.3.T3 | Send manual reply from admin | Delivered in Instagram app; outbound row stored |
+| 6.3.T4 | Attempt reply when window closed (test account or wait) | API error surfaced; row `failed` or UI blocks with clear policy message |
+| 6.3.T5 | From delivery log, jump to conversation for recipient | Same thread opens |
+
+**Mark Phase 6.3 complete when:** 6.3.T1–6.3.T5 pass; Progress log **6.3** updated.
+
+---
+
+### Phase 6.4 — Growth/CRM bridge, tags, follow-up
+
+#### Build tasks
+
+| ID | Task | Path / artifact |
+| -- | ---- | --------------- |
+| 6.4.1 | Optional `leadSource: instagram_dm` ingest on first send or first reply | hook in send path / webhook |
+| 6.4.2 | `instagram_contact_tags` (or JSON on account) + admin assign | Neon + UI |
+| 6.4.3 | Promote to CRM from Instagram lead / thread | reuse promote flow; activity “IG auto-DM: {campaign}” |
+| 6.4.4 | One-step follow-up: delay N minutes if no reply, still in window | Queue delayed job or Workflow |
+| 6.4.5 | Skip follow-up if inbound message after first send | idempotent check on thread |
+
+#### Manual test flow — Phase 6.4
+
+**Prerequisites:** 6.3 signed off; Phase 2 CRM data + 2b UI available.
+
+| Step | Action | Expected |
+| ---- | ------ | -------- |
+| 6.4.T1 | Successful auto-DM (or first inbound reply) with bridge enabled | `growth_leads` row `platform: instagram` (or filterable source) |
+| 6.4.T2 | Open Growth Inbox filter for Instagram source | Lead shows campaign + profile handle |
+| 6.4.T3 | Promote to CRM | Opportunity + activity note referencing campaign |
+| 6.4.T4 | Apply tag `interested` on contact; filter admin list | Tag persists; filter works |
+| 6.4.T5 | Configure follow-up 15m, no user reply | Second DM sends once; delivery log shows `follow_up` |
+| 6.4.T6 | User replies before follow-up fires | Follow-up `skipped` reason `replied` |
+| 6.4.T7 | CRM opportunity timeline | Shows promote + optional “link clicked” if 6.2 event linked |
+
+**Mark Phase 6.4 complete when:** 6.4.T1–6.4.T7 pass; Progress log **6.4** updated.
+
+**Mark Phase 6 complete when:** 6.1–6.4 all signed off.
+
+---
+
 ## Branding checklist (all phases)
 
 Use for any new UI page before marking a phase complete:
@@ -357,6 +526,10 @@ Use for any new UI page before marking a phase complete:
 | `INGEST_URL`                                    | 3–4   | Target for `huginn-ingest-smoke` / `freehire-ingest` scripts |
 | `CRM_AUTO_PIPELINE`                             | 2     | Set `false` to disable auto CRM on ingest |
 | `CRM_AUTO_PIPELINE_MIN_SCORE`                   | 2     | Min fit % for CRM board + auto-sync (default 45) |
+| `META_*` / per-app secrets (via sync script)    | 6.1   | App id + secret + verify token; encrypt in DB where stored |
+| `INSTAGRAM_QUEUE` (binding name)                | 6.1   | Cloudflare Queue for DM jobs                    |
+| `INSTAGRAM_OAUTH_REDIRECT_BASE`                 | 6.1   | Must match Meta Login redirect (prod URL)       |
+| `INSTAGRAM_AUTO_CRM`                            | 6.4   | Optional `1` to create Growth lead on DM/reply  |
 | Existing `GROWTH_*`, `DATABASE_URL`, OpenRouter | —     | Unchanged                               |
 
 Never commit values; use `.env.local` / `.env.prod` + `npm run cf:secrets`.
@@ -370,6 +543,7 @@ Never commit values; use `.env.local` / `.env.prod` + `npm run cf:secrets`.
 3. **Sprint C:** Phase 3 (Huginn compose + scenario)
 4. **Sprint D:** Phase 4 (freehire adapter + Jobs nav)
 5. **Sprint E:** Phase 5 (LinkedIn Jobs harvest + assisted apply)
+6. **Sprint F:** Phase 6.1 → 6.4 (Instagram DM — one milestone per deploy where possible)
 
 Each sprint ends only when the **Manual test flow** for that phase is signed off in the Progress log.
 
@@ -380,6 +554,8 @@ Each sprint ends only when the **Manual test flow** for that phase is signed off
 - Hosting Twenty Cloud or running full `twentyhq/twenty` server in production
 - Embedding third-party CRM UI in iframe
 - Putting Huginn/freehire inside the Cloudflare Worker bundle
+- Self-hosted [OpenReply](https://github.com/diwenne/openreply) or hosted ManyChat as a second product login
+- ManyChat-class visual flow builder, SMS/email broadcasts, omnichannel (Messenger/WhatsApp) in Phase 6
 - Replacing Paystack / contracts / growth harvest—integrations **extend** them
 
 ---
@@ -395,5 +571,9 @@ Each sprint ends only when the **Manual test flow** for that phase is signed off
 | 3 | Huginn scenario + README + smoke script | 3.T1–3.T6 |
 | 4 | `freehire-ingest.mjs`, Jobs inbox, job scoring, CRM titles | 4.T1–4.T5 |
 | 5 | LinkedIn Jobs harvest, `linkedin_jobs`, assisted apply notes | 5.T1–5.T6 |
+| 6.1 | (planned) Webhook, queue, campaigns, delivery log | 6.1.T1–6.1.T9 |
+| 6.2 | (planned) DM/story triggers, buttons, link tracking | 6.2.T1–6.2.T6 |
+| 6.3 | (planned) Inbox tables + manual reply UI | 6.3.T1–6.3.T5 |
+| 6.4 | (planned) Growth/CRM bridge, tags, follow-up | 6.4.T1–6.4.T7 |
 
-**Next for operators:** run each phase’s manual test flow; check boxes in the Progress log above when green.
+**Next for operators:** run each phase’s manual test flow; check boxes in the Progress log above when green. **Instagram:** complete 6.1 before 6.2, etc.; migrations start only after Phase 6 review.
