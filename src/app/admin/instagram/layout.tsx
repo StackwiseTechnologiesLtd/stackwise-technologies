@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { InstagramAppShell } from "@/components/admin/instagram/InstagramAppShell";
 import { InstagramPortalExtras } from "@/components/admin/instagram/InstagramPortalExtras";
@@ -28,7 +29,11 @@ export default async function InstagramPortalLayout({
         canManageTeam: access.canManageTeam,
       }}
     >
-      <InstagramPortalExtras>{children}</InstagramPortalExtras>
+      <InstagramPortalExtras>
+        <Suspense fallback={<div className="text-sm text-muted">Loading…</div>}>
+          {children}
+        </Suspense>
+      </InstagramPortalExtras>
     </InstagramAppShell>
   );
 }

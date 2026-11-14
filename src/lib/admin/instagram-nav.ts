@@ -8,7 +8,7 @@ export const instagramPortalNav: InstagramNavItem[] = [
   {
     href: "/admin/instagram",
     label: "Overview",
-    description: "Health, recent sends, quick stats",
+    description: "Dashboard, pipeline, recent activity",
   },
   {
     href: "/admin/instagram/campaigns",
@@ -38,7 +38,7 @@ export const instagramPortalNav: InstagramNavItem[] = [
 ];
 
 export function instagramPageTitle(pathname: string): string {
-  if (pathname === "/admin/instagram") return "Overview";
+  if (pathname === "/admin/instagram") return "Dashboard";
   if (pathname.startsWith("/admin/instagram/campaigns")) return "Automations";
   if (pathname.startsWith("/admin/instagram/activity")) return "Activity";
   if (pathname.startsWith("/admin/instagram/inbox")) return "Inbox";

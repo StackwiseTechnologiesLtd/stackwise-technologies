@@ -11,7 +11,9 @@ import type {
 } from "@/lib/instagram/types";
 import Link from "next/link";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
+import { instagramDeliveryStatuses } from "@/lib/instagram/types";
 
 function formatWhen(iso: string | null): string {
   if (!iso) return "Never";
@@ -54,6 +56,7 @@ export function GrowthInstagramPanel({
 }) {
   const show = (section: InstagramPortalView) =>
     view === "full" || view === section;
+  const searchParams = useSearchParams();
   const toast = useToast();
   const [apps, setApps] = useState<InstagramMetaApp[]>([]);
   const [accounts, setAccounts] = useState<InstagramAccount[]>([]);
@@ -180,6 +183,19 @@ export function GrowthInstagramPanel({
   useDeferredEffect(() => {
     void load();
   }, [load]);
+
+  useDeferredEffect(() => {
+    if (!show("activity")) return;
+    const statusParam = searchParams.get("status")?.trim() ?? "";
+    if (
+      statusParam &&
+      instagramDeliveryStatuses.includes(
+        statusParam as (typeof instagramDeliveryStatuses)[number],
+      )
+    ) {
+      setDeliveryFilter(statusParam);
+    }
+  }, [searchParams, view]);
 
   useDeferredEffect(() => {
     setDeliveryPage(1);
