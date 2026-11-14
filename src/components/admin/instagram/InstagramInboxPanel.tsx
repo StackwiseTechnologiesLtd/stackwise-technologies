@@ -1,5 +1,6 @@
 "use client";
 
+import { TablePagination } from "@/components/admin/TablePagination";
 import { useToast } from "@/components/ToastProvider";
 import type {
   InstagramConversation,
@@ -9,6 +10,9 @@ import { BTN_PRIMARY } from "@/lib/ui/buttons";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
+
+const CONVERSATION_PAGE_SIZE = 20;
+const MESSAGE_PAGE_SIZE = 50;
 
 function formatWhen(iso: string): string {
   try {
@@ -28,32 +32,61 @@ export function InstagramInboxPanel() {
   const [loadingThread, setLoadingThread] = useState(false);
   const [compose, setCompose] = useState("");
   const [sending, setSending] = useState(false);
+  const [conversationPage, setConversationPage] = useState(1);
+  const [conversationTotal, setConversationTotal] = useState(0);
+  const [conversationTotalPages, setConversationTotalPages] = useState(1);
+  const [messagePage, setMessagePage] = useState(1);
+  const [messageTotal, setMessageTotal] = useState(0);
+  const [messageTotalPages, setMessageTotalPages] = useState(1);
 
   const loadList = useCallback(async () => {
     setLoadingList(true);
     try {
-      const res = await fetch("/api/admin/instagram/conversations");
+      const params = new URLSearchParams({
+        page: String(conversationPage),
+        limit: String(CONVERSATION_PAGE_SIZE),
+      });
+      const res = await fetch(`/api/admin/instagram/conversations?${params}`);
       if (!res.ok) throw new Error("Could not load conversations");
-      const data = (await res.json()) as { conversations: InstagramConversation[] };
+      const data = (await res.json()) as {
+        conversations: InstagramConversation[];
+        total: number;
+        totalPages: number;
+      };
       setConversations(data.conversations);
-      setSelectedId((prev) => prev ?? data.conversations[0]?.id ?? null);
+      setConversationTotal(data.total);
+      setConversationTotalPages(data.totalPages);
+      setSelectedId((prev) => {
+        if (prev && data.conversations.some((c) => c.id === prev)) return prev;
+        return data.conversations[0]?.id ?? null;
+      });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Load failed");
     } finally {
       setLoadingList(false);
     }
-  }, [toast]);
+  }, [conversationPage, toast]);
 
   const loadThread = useCallback(
     async (conversationId: string) => {
       setLoadingThread(true);
       try {
+        const params = new URLSearchParams({
+          page: String(messagePage),
+          limit: String(MESSAGE_PAGE_SIZE),
+        });
         const res = await fetch(
-          `/api/admin/instagram/conversations/${conversationId}/messages`,
+          `/api/admin/instagram/conversations/${conversationId}/messages?${params}`,
         );
         if (!res.ok) throw new Error("Could not load thread");
-        const data = (await res.json()) as { messages: InstagramInboxMessage[] };
+        const data = (await res.json()) as {
+          messages: InstagramInboxMessage[];
+          total: number;
+          totalPages: number;
+        };
         setMessages(data.messages);
+        setMessageTotal(data.total);
+        setMessageTotalPages(data.totalPages);
       } catch (err) {
         toast.error(err instanceof Error ? err.message : "Load failed");
         setMessages([]);
@@ -61,7 +94,7 @@ export function InstagramInboxPanel() {
         setLoadingThread(false);
       }
     },
-    [toast],
+    [messagePage, toast],
   );
 
   useDeferredEffect(() => {
@@ -86,6 +119,10 @@ export function InstagramInboxPanel() {
       }
     })();
   }, [searchParams]);
+
+  useDeferredEffect(() => {
+    setMessagePage(1);
+  }, [selectedId]);
 
   useDeferredEffect(() => {
     if (selectedId) void loadThread(selectedId);
@@ -171,6 +208,15 @@ export function InstagramInboxPanel() {
               ))
             )}
           </ul>
+          <div className="border-t border-line p-2">
+            <TablePagination
+              currentPage={conversationPage}
+              totalPages={conversationTotalPages}
+              totalItems={conversationTotal}
+              pageSize={CONVERSATION_PAGE_SIZE}
+              onPageChange={setConversationPage}
+            />
+          </div>
         </aside>
 
         <section className="flex min-h-[28rem] flex-col rounded-xl border border-line bg-panel">
@@ -200,6 +246,20 @@ export function InstagramInboxPanel() {
                   ))
                 )}
               </ul>
+              {messageTotal > MESSAGE_PAGE_SIZE ? (
+                <div className="border-t border-line px-3 py-2">
+                  <p className="mb-2 text-center text-[10px] text-muted">
+                    Page {messagePage}: newer ← → older messages
+                  </p>
+                  <TablePagination
+                    currentPage={messagePage}
+                    totalPages={messageTotalPages}
+                    totalItems={messageTotal}
+                    pageSize={MESSAGE_PAGE_SIZE}
+                    onPageChange={setMessagePage}
+                  />
+                </div>
+              ) : null}
               <form
                 onSubmit={sendReply}
                 className="flex gap-2 border-t border-line p-3"

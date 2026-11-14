@@ -2,6 +2,7 @@
 
 import { useToast } from "@/components/ToastProvider";
 import { AdminActionButton } from "@/components/admin/AdminActionButton";
+import { TablePagination } from "@/components/admin/TablePagination";
 import type {
   InstagramAccount,
   InstagramCampaign,
@@ -36,6 +37,8 @@ function formatDeliveryReason(d: InstagramDelivery): string {
   return d.skipReason ?? d.errorDetail ?? "—";
 }
 
+const DELIVERY_PAGE_SIZE = 25;
+
 function webhookPatternForDisplay(pattern: string | undefined): string {
   if (!pattern) return "…";
   if (typeof window === "undefined") return pattern;
@@ -64,6 +67,10 @@ export function GrowthInstagramPanel({
   const [accounts, setAccounts] = useState<InstagramAccount[]>([]);
   const [campaigns, setCampaigns] = useState<InstagramCampaign[]>([]);
   const [deliveries, setDeliveries] = useState<InstagramDelivery[]>([]);
+  const [deliveryPage, setDeliveryPage] = useState(1);
+  const [deliveryTotal, setDeliveryTotal] = useState(0);
+  const [deliveryTotalPages, setDeliveryTotalPages] = useState(1);
+  const [deliveriesLoading, setDeliveriesLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [deliveryFilter, setDeliveryFilter] = useState<string>("");
   const [oauthSetup, setOauthSetup] = useState<{
@@ -107,20 +114,39 @@ export function GrowthInstagramPanel({
     buttonUrl2: "",
   });
 
+  const loadDeliveries = useCallback(async () => {
+    setDeliveriesLoading(true);
+    try {
+      const params = new URLSearchParams({
+        page: String(deliveryPage),
+        limit: String(DELIVERY_PAGE_SIZE),
+      });
+      if (deliveryFilter) params.set("status", deliveryFilter);
+      const res = await fetch(`/api/admin/instagram/deliveries?${params}`);
+      if (!res.ok) throw new Error("Delivery log load failed");
+      const data = (await res.json()) as {
+        deliveries: InstagramDelivery[];
+        total: number;
+        totalPages: number;
+      };
+      setDeliveries(data.deliveries);
+      setDeliveryTotal(data.total);
+      setDeliveryTotalPages(data.totalPages);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Delivery log load failed");
+    } finally {
+      setDeliveriesLoading(false);
+    }
+  }, [deliveryFilter, deliveryPage, toast]);
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [st, appsRes, accRes, campRes, delUrl, oauthCfg, accessRes] =
-        await Promise.all([
+      const [st, appsRes, accRes, campRes, oauthCfg, accessRes] = await Promise.all([
         fetch("/api/admin/instagram/status"),
         fetch("/api/admin/instagram/meta-apps"),
         fetch("/api/admin/instagram/accounts"),
         fetch("/api/admin/instagram/campaigns"),
-        fetch(
-          `/api/admin/instagram/deliveries${
-            deliveryFilter ? `?status=${encodeURIComponent(deliveryFilter)}` : ""
-          }`,
-        ),
         fetch("/api/admin/instagram/oauth/config"),
         fetch("/api/admin/instagram/access"),
       ]);
@@ -137,10 +163,6 @@ export function GrowthInstagramPanel({
       if (campRes.ok) {
         const data = (await campRes.json()) as { campaigns: InstagramCampaign[] };
         setCampaigns(data.campaigns);
-      }
-      if (delUrl.ok) {
-        const data = (await delUrl.json()) as { deliveries: InstagramDelivery[] };
-        setDeliveries(data.deliveries);
       }
       if (oauthCfg.ok) {
         const data = (await oauthCfg.json()) as {
@@ -162,11 +184,19 @@ export function GrowthInstagramPanel({
     } finally {
       setLoading(false);
     }
-  }, [deliveryFilter, toast]);
+  }, [toast]);
 
   useDeferredEffect(() => {
     void load();
   }, [load]);
+
+  useDeferredEffect(() => {
+    setDeliveryPage(1);
+  }, [deliveryFilter]);
+
+  useDeferredEffect(() => {
+    if (show("activity")) void loadDeliveries();
+  }, [loadDeliveries, view]);
 
   async function saveMetaApp() {
     try {
@@ -335,7 +365,14 @@ export function GrowthInstagramPanel({
               {formatWhen(status?.lastSendAt ?? null)}
             </p>
           </div>
-          <AdminActionButton busy={loading} busyLabel="Refreshing…" onClick={() => void load()}>
+          <AdminActionButton
+            busy={loading}
+            busyLabel="Refreshing…"
+            onClick={() => {
+              void load();
+              if (show("activity")) void loadDeliveries();
+            }}
+          >
             Refresh
           </AdminActionButton>
         </div>
@@ -745,7 +782,10 @@ export function GrowthInstagramPanel({
           <select
             className="rounded-lg border border-line bg-black/40 px-2 py-1 text-sm"
             value={deliveryFilter}
-            onChange={(e) => setDeliveryFilter(e.target.value)}
+            onChange={(e) => {
+              setDeliveryFilter(e.target.value);
+              setDeliveryPage(1);
+            }}
           >
             <option value="">All statuses</option>
             <option value="queued">queued</option>
@@ -794,9 +834,21 @@ export function GrowthInstagramPanel({
               ))}
             </tbody>
           </table>
-          {deliveries.length === 0 && (
+          {!deliveriesLoading && deliveries.length === 0 && (
             <p className="mt-2 text-sm text-muted">No deliveries yet.</p>
           )}
+          {deliveriesLoading ? (
+            <p className="mt-2 text-sm text-muted">Loading deliveries…</p>
+          ) : null}
+        </div>
+        <div className="mt-4">
+          <TablePagination
+            currentPage={deliveryPage}
+            totalPages={deliveryTotalPages}
+            totalItems={deliveryTotal}
+            pageSize={DELIVERY_PAGE_SIZE}
+            onPageChange={setDeliveryPage}
+          />
         </div>
       </section>
       ) : null}

@@ -699,92 +699,29 @@ export async function getDeliveryWithCampaign(deliveryId: string): Promise<{
   return { delivery, campaign };
 }
 
-export async function listDeliveries(input?: {
-  status?: InstagramDeliveryStatus;
-  campaignId?: string;
-  limit?: number;
-}): Promise<InstagramDelivery[]> {
-  await ready();
-  const sql = getSql();
-  const limit = Math.min(input?.limit ?? 50, 200);
+type DeliveryListRow = {
+  id: string;
+  campaign_id: string | null;
+  account_id: string;
+  status: string;
+  skip_reason: string | null;
+  trigger_type: string;
+  trigger_external_id: string;
+  recipient_igsid: string | null;
+  recipient_username: string | null;
+  trigger_text: string | null;
+  private_reply_preview: string | null;
+  meta_message_id: string | null;
+  error_detail: string | null;
+  queued_at: string;
+  sent_at: string | null;
+  created_at: string;
+  campaign_name: string | null;
+  click_count: number;
+};
 
-  const rows = asRows<{
-    id: string;
-    campaign_id: string | null;
-    account_id: string;
-    status: string;
-    skip_reason: string | null;
-    trigger_type: string;
-    trigger_external_id: string;
-    recipient_igsid: string | null;
-    recipient_username: string | null;
-    trigger_text: string | null;
-    private_reply_preview: string | null;
-    meta_message_id: string | null;
-    error_detail: string | null;
-    queued_at: string;
-    sent_at: string | null;
-    created_at: string;
-    campaign_name: string | null;
-    click_count: number;
-  }>(
-    input?.status && input.campaignId
-      ? await sql`
-          SELECT d.*, c.name AS campaign_name,
-            (
-              SELECT COUNT(*)::int FROM instagram_link_clicks lc
-              INNER JOIN instagram_tracked_links tl ON tl.token = lc.link_token
-              WHERE tl.delivery_id = d.id
-            ) AS click_count
-          FROM instagram_deliveries d
-          LEFT JOIN instagram_campaigns c ON c.id = d.campaign_id
-          WHERE d.status = ${input.status} AND d.campaign_id = ${input.campaignId}::uuid
-          ORDER BY d.created_at DESC
-          LIMIT ${limit}
-        `
-      : input?.status
-        ? await sql`
-            SELECT d.*, c.name AS campaign_name,
-              (
-                SELECT COUNT(*)::int FROM instagram_link_clicks lc
-                INNER JOIN instagram_tracked_links tl ON tl.token = lc.link_token
-                WHERE tl.delivery_id = d.id
-              ) AS click_count
-            FROM instagram_deliveries d
-            LEFT JOIN instagram_campaigns c ON c.id = d.campaign_id
-            WHERE d.status = ${input.status}
-            ORDER BY d.created_at DESC
-            LIMIT ${limit}
-          `
-        : input?.campaignId
-          ? await sql`
-              SELECT d.*, c.name AS campaign_name,
-                (
-                  SELECT COUNT(*)::int FROM instagram_link_clicks lc
-                  INNER JOIN instagram_tracked_links tl ON tl.token = lc.link_token
-                  WHERE tl.delivery_id = d.id
-                ) AS click_count
-              FROM instagram_deliveries d
-              LEFT JOIN instagram_campaigns c ON c.id = d.campaign_id
-              WHERE d.campaign_id = ${input.campaignId}::uuid
-              ORDER BY d.created_at DESC
-              LIMIT ${limit}
-            `
-          : await sql`
-              SELECT d.*, c.name AS campaign_name,
-                (
-                  SELECT COUNT(*)::int FROM instagram_link_clicks lc
-                  INNER JOIN instagram_tracked_links tl ON tl.token = lc.link_token
-                  WHERE tl.delivery_id = d.id
-                ) AS click_count
-              FROM instagram_deliveries d
-              LEFT JOIN instagram_campaigns c ON c.id = d.campaign_id
-              ORDER BY d.created_at DESC
-              LIMIT ${limit}
-            `,
-  );
-
-  return rows.map((row) => ({
+function mapDeliveryRow(row: DeliveryListRow): InstagramDelivery {
+  return {
     id: row.id,
     campaignId: row.campaign_id,
     accountId: row.account_id,
@@ -803,7 +740,64 @@ export async function listDeliveries(input?: {
     createdAt: row.created_at,
     campaignName: row.campaign_name,
     clickCount: row.click_count ?? 0,
-  }));
+  };
+}
+
+export async function listDeliveries(input?: {
+  status?: InstagramDeliveryStatus;
+  campaignId?: string;
+  limit?: number;
+  offset?: number;
+  accountIds?: string[] | null;
+}): Promise<{ deliveries: InstagramDelivery[]; total: number }> {
+  await ready();
+  const sql = getSql();
+  const limit = Math.min(input?.limit ?? 50, 200);
+  const offset = Math.max(0, input?.offset ?? 0);
+  const status = input?.status ?? null;
+  const campaignId = input?.campaignId ?? null;
+  const accountIds = input?.accountIds?.length ? input.accountIds : null;
+
+  const countRows = asRows<{ total: number }>(
+    await sql`
+      SELECT COUNT(*)::int AS total
+      FROM instagram_deliveries d
+      WHERE (${status}::text IS NULL OR d.status = ${status})
+        AND (${campaignId}::uuid IS NULL OR d.campaign_id = ${campaignId}::uuid)
+        AND (
+          ${accountIds}::uuid[] IS NULL
+          OR d.account_id = ANY(${accountIds}::uuid[])
+        )
+    `,
+  );
+  const total = countRows[0]?.total ?? 0;
+
+  const rows = asRows<DeliveryListRow>(
+    await sql`
+      SELECT d.*, c.name AS campaign_name,
+        (
+          SELECT COUNT(*)::int FROM instagram_link_clicks lc
+          INNER JOIN instagram_tracked_links tl ON tl.token = lc.link_token
+          WHERE tl.delivery_id = d.id
+        ) AS click_count
+      FROM instagram_deliveries d
+      LEFT JOIN instagram_campaigns c ON c.id = d.campaign_id
+      WHERE (${status}::text IS NULL OR d.status = ${status})
+        AND (${campaignId}::uuid IS NULL OR d.campaign_id = ${campaignId}::uuid)
+        AND (
+          ${accountIds}::uuid[] IS NULL
+          OR d.account_id = ANY(${accountIds}::uuid[])
+        )
+      ORDER BY d.created_at DESC
+      LIMIT ${limit}
+      OFFSET ${offset}
+    `,
+  );
+
+  return {
+    deliveries: rows.map(mapDeliveryRow),
+    total,
+  };
 }
 
 export async function countRecentAccountDeliveries(

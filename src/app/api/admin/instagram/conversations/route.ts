@@ -28,8 +28,19 @@ export async function GET(request: Request) {
       });
       return NextResponse.json({ conversation });
     }
-    const conversations = await listInstagramConversations(ctx.access.accountIds);
-    return NextResponse.json({ conversations });
+    const page = Math.max(1, Number(url.searchParams.get("page") ?? "1"));
+    const pageSize = Math.min(
+      100,
+      Math.max(1, Number(url.searchParams.get("limit") ?? url.searchParams.get("pageSize") ?? "25")),
+    );
+    const offset = (page - 1) * pageSize;
+    const { conversations, total } = await listInstagramConversations({
+      accountIds: ctx.access.accountIds,
+      limit: pageSize,
+      offset,
+    });
+    const totalPages = total === 0 ? 1 : Math.ceil(total / pageSize);
+    return NextResponse.json({ conversations, total, page, pageSize, totalPages });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Load failed";
     return NextResponse.json({ error: message }, { status: 500 });

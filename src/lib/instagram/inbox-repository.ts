@@ -145,11 +145,29 @@ export async function recordOutboundInstagramMessage(input: {
   `;
 }
 
-export async function listInstagramConversations(
-  accountIds: string[] | null,
-): Promise<InstagramConversation[]> {
+export async function listInstagramConversations(input: {
+  accountIds: string[] | null;
+  limit?: number;
+  offset?: number;
+}): Promise<{ conversations: InstagramConversation[]; total: number }> {
   await ready();
   const sql = getSql();
+  const limit = Math.min(input.limit ?? 25, 100);
+  const offset = Math.max(0, input.offset ?? 0);
+  const accountIds = input.accountIds?.length ? input.accountIds : null;
+
+  const countRows = asRows<{ total: number }>(
+    await sql`
+      SELECT COUNT(*)::int AS total
+      FROM instagram_conversations
+      WHERE (
+        ${accountIds}::uuid[] IS NULL
+        OR account_id = ANY(${accountIds}::uuid[])
+      )
+    `,
+  );
+  const total = countRows[0]?.total ?? 0;
+
   const rows = asRows<{
     id: string;
     account_id: string;
@@ -158,38 +176,50 @@ export async function listInstagramConversations(
     last_message_at: string;
     last_message_preview: string | null;
   }>(
-    accountIds?.length
-      ? await sql`
-          SELECT id, account_id, participant_igsid, participant_username,
-                 last_message_at, last_message_preview
-          FROM instagram_conversations
-          WHERE account_id = ANY(${accountIds}::uuid[])
-          ORDER BY last_message_at DESC
-          LIMIT 100
-        `
-      : await sql`
-          SELECT id, account_id, participant_igsid, participant_username,
-                 last_message_at, last_message_preview
-          FROM instagram_conversations
-          ORDER BY last_message_at DESC
-          LIMIT 100
-        `,
+    await sql`
+      SELECT id, account_id, participant_igsid, participant_username,
+             last_message_at, last_message_preview
+      FROM instagram_conversations
+      WHERE (
+        ${accountIds}::uuid[] IS NULL
+        OR account_id = ANY(${accountIds}::uuid[])
+      )
+      ORDER BY last_message_at DESC
+      LIMIT ${limit}
+      OFFSET ${offset}
+    `,
   );
-  return rows.map((row) => ({
-    id: row.id,
-    accountId: row.account_id,
-    participantIgsid: row.participant_igsid,
-    participantUsername: row.participant_username,
-    lastMessageAt: row.last_message_at,
-    lastMessagePreview: row.last_message_preview,
-  }));
+  return {
+    total,
+    conversations: rows.map((row) => ({
+      id: row.id,
+      accountId: row.account_id,
+      participantIgsid: row.participant_igsid,
+      participantUsername: row.participant_username,
+      lastMessageAt: row.last_message_at,
+      lastMessagePreview: row.last_message_preview,
+    })),
+  };
 }
 
 export async function listInstagramMessages(
   conversationId: string,
-): Promise<InstagramInboxMessage[]> {
+  input?: { limit?: number; offset?: number },
+): Promise<{ messages: InstagramInboxMessage[]; total: number }> {
   await ready();
   const sql = getSql();
+  const limit = Math.min(input?.limit ?? 50, 200);
+  const offset = Math.max(0, input?.offset ?? 0);
+
+  const countRows = asRows<{ total: number }>(
+    await sql`
+      SELECT COUNT(*)::int AS total
+      FROM instagram_messages
+      WHERE conversation_id = ${conversationId}::uuid
+    `,
+  );
+  const total = countRows[0]?.total ?? 0;
+
   const rows = asRows<{
     id: string;
     conversation_id: string;
@@ -206,21 +236,26 @@ export async function listInstagramMessages(
              delivery_id, send_status, error_detail, created_at
       FROM instagram_messages
       WHERE conversation_id = ${conversationId}::uuid
-      ORDER BY created_at ASC
-      LIMIT 200
+      ORDER BY created_at DESC
+      LIMIT ${limit}
+      OFFSET ${offset}
     `,
   );
-  return rows.map((row) => ({
-    id: row.id,
-    conversationId: row.conversation_id,
-    direction: row.direction === "outbound" ? "outbound" : "inbound",
-    externalMessageId: row.external_message_id,
-    bodyText: row.body_text,
-    deliveryId: row.delivery_id,
-    sendStatus: row.send_status,
-    errorDetail: row.error_detail,
-    createdAt: row.created_at,
-  }));
+  const chronological = [...rows].reverse();
+  return {
+    total,
+    messages: chronological.map((row) => ({
+      id: row.id,
+      conversationId: row.conversation_id,
+      direction: row.direction === "outbound" ? "outbound" : "inbound",
+      externalMessageId: row.external_message_id,
+      bodyText: row.body_text,
+      deliveryId: row.delivery_id,
+      sendStatus: row.send_status,
+      errorDetail: row.error_detail,
+      createdAt: row.created_at,
+    })),
+  };
 }
 
 export async function findInstagramConversationByParticipant(input: {

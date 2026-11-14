@@ -1,10 +1,13 @@
 "use client";
 
 import { AdminActionButton } from "@/components/admin/AdminActionButton";
+import { TablePagination } from "@/components/admin/TablePagination";
 import { useToast } from "@/components/ToastProvider";
 import type { InstagramAccount } from "@/lib/instagram/types";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+
+const GRANT_PAGE_SIZE = 10;
 
 type Grant = {
   id: string;
@@ -20,6 +23,7 @@ export function InstagramTeamPanel({
 }) {
   const toast = useToast();
   const [grants, setGrants] = useState<Grant[]>([]);
+  const [grantPage, setGrantPage] = useState(1);
   const [form, setForm] = useState({
     email: "",
     label: "",
@@ -56,6 +60,12 @@ export function InstagramTeamPanel({
       toast.error("Could not save grant");
     }
   }
+
+  const grantTotalPages = Math.max(1, Math.ceil(grants.length / GRANT_PAGE_SIZE));
+  const pagedGrants = useMemo(() => {
+    const start = (grantPage - 1) * GRANT_PAGE_SIZE;
+    return grants.slice(start, start + GRANT_PAGE_SIZE);
+  }, [grantPage, grants]);
 
   async function remove(id: string) {
     try {
@@ -121,33 +131,57 @@ export function InstagramTeamPanel({
 
       <section className="rounded-xl border border-line bg-panel p-5 sm:p-6">
         <h2 className="text-base font-semibold">Active grants</h2>
-        <ul className="mt-3 space-y-2 text-sm">
-          {grants.length === 0 ? (
-            <li className="text-muted">No operators yet</li>
-          ) : (
-            grants.map((g) => (
-              <li
-                key={g.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-line bg-black/20 px-3 py-2"
-              >
-                <span>
-                  {g.email}
-                  {g.label ? ` · ${g.label}` : ""}
-                  {g.instagramAccountId
-                    ? " · scoped account"
-                    : " · all accounts"}
-                </span>
-                <button
-                  type="button"
-                  className="text-xs text-red-300 underline"
-                  onClick={() => void remove(g.id)}
-                >
-                  Remove
-                </button>
-              </li>
-            ))
-          )}
-        </ul>
+        <div className="mt-3 overflow-x-auto">
+          <table className="w-full min-w-[480px] text-left text-sm">
+            <thead className="text-xs text-muted">
+              <tr>
+                <th className="pb-2 pr-3">Email</th>
+                <th className="pb-2 pr-3">Label</th>
+                <th className="pb-2 pr-3">Scope</th>
+                <th className="pb-2 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {grants.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="py-4 text-muted">
+                    No operators yet
+                  </td>
+                </tr>
+              ) : (
+                pagedGrants.map((g) => (
+                  <tr key={g.id} className="border-t border-line/60">
+                    <td className="py-2 pr-3">{g.email}</td>
+                    <td className="py-2 pr-3">{g.label ?? "—"}</td>
+                    <td className="py-2 pr-3">
+                      {g.instagramAccountId ? "Single account" : "All accounts"}
+                    </td>
+                    <td className="py-2 text-right">
+                      <button
+                        type="button"
+                        className="text-xs text-red-300 underline"
+                        onClick={() => void remove(g.id)}
+                      >
+                        Remove
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+        {grants.length > GRANT_PAGE_SIZE ? (
+          <div className="mt-4">
+            <TablePagination
+              currentPage={grantPage}
+              totalPages={grantTotalPages}
+              totalItems={grants.length}
+              pageSize={GRANT_PAGE_SIZE}
+              onPageChange={setGrantPage}
+            />
+          </div>
+        ) : null}
       </section>
     </div>
   );
