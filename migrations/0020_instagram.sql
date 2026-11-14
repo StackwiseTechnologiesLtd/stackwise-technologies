@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS instagram_deliveries (
   status VARCHAR(24) NOT NULL,
   skip_reason VARCHAR(64),
   trigger_type VARCHAR(24) NOT NULL DEFAULT 'comment',
-  trigger_external_id VARCHAR(128) NOT NULL,
+  trigger_external_id TEXT NOT NULL,
   recipient_igsid VARCHAR(64),
   recipient_username TEXT,
   trigger_text TEXT,

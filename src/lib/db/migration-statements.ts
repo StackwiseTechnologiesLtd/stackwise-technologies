@@ -502,7 +502,7 @@ CREATE TABLE IF NOT EXISTS instagram_deliveries (
   status VARCHAR(24) NOT NULL,
   skip_reason VARCHAR(64),
   trigger_type VARCHAR(24) NOT NULL DEFAULT 'comment',
-  trigger_external_id VARCHAR(128) NOT NULL,
+  trigger_external_id TEXT NOT NULL,
   recipient_igsid VARCHAR(64),
   recipient_username TEXT,
   trigger_text TEXT,
@@ -579,6 +579,11 @@ CREATE INDEX IF NOT EXISTS idx_instagram_operator_grants_account
   ON instagram_operator_grants (instagram_account_id);
 `;
 
+const INSTAGRAM_DELIVERY_TRIGGER_ID_SQL = `
+ALTER TABLE instagram_deliveries
+  ALTER COLUMN trigger_external_id TYPE TEXT;
+`;
+
 const INSTAGRAM_INBOX_SQL = `
 CREATE TABLE IF NOT EXISTS instagram_conversations (
   id UUID PRIMARY KEY,
@@ -636,4 +641,5 @@ export const MIGRATION_STATEMENTS = [
   ...splitStatements(INSTAGRAM_ACCOUNT_WEBHOOKS_SQL),
   ...splitStatements(INSTAGRAM_OPERATOR_GRANTS_SQL),
   ...splitStatements(INSTAGRAM_INBOX_SQL),
+  ...splitStatements(INSTAGRAM_DELIVERY_TRIGGER_ID_SQL),
 ];

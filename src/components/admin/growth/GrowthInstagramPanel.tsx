@@ -331,26 +331,41 @@ export function GrowthInstagramPanel({
           <code className="text-foreground">/api/webhooks/meta/[slug]</code>.
         </p>
         {oauthSetup && (
-          <div className="mt-3 space-y-3 rounded-lg border border-line bg-black/30 px-3 py-2 text-xs">
+          <div className="mt-3 space-y-4 rounded-lg border border-line bg-black/30 px-3 py-3 text-xs">
             <div>
-              <p className="font-medium text-amber-200/95">
-                Webhook callback — Meta step 3 “Configure webhooks” (not OAuth)
+              <p className="font-medium text-foreground">
+                Set up Instagram business login → Redirect URL
               </p>
               <p className="mt-1 text-muted">
-                Pick the URL under your app slug below. Must return plain text on verify — do not use
-                the OAuth callback path.
+                Paste this in Meta (exact match; no trailing slash). This is not the webhook URL.
               </p>
+              <div className="mt-2 flex flex-wrap items-start gap-2">
+                <code className="min-w-0 flex-1 break-all rounded-md border border-line bg-black/40 px-2 py-1.5 text-foreground">
+                  {oauthSetup.redirectUri}
+                </code>
+                <AdminActionButton
+                  onClick={() => {
+                    void navigator.clipboard.writeText(oauthSetup.redirectUri);
+                    toast.success("Redirect URL copied");
+                  }}
+                >
+                  Copy
+                </AdminActionButton>
+              </div>
             </div>
             <div>
-              <p className="text-muted">
-                OAuth redirect — Meta step “Set up Instagram business login” only
+              <p className="font-medium text-amber-200/95">
+                Configure webhooks → Callback URL
               </p>
-              <code className="mt-1 block break-all text-foreground">{oauthSetup.redirectUri}</code>
+              <p className="mt-1 text-muted">
+                Use the per-app webhook URL under your slug below (not the Redirect URL).
+              </p>
             </div>
             {oauthSetup.usesTunnel ? (
               <p className="text-amber-200/90">
                 Tunnel mode: after Connect you return to{" "}
-                <code className="text-foreground">{oauthSetup.adminReturnOrigin ?? "…"}</code>
+                <code className="text-foreground">{oauthSetup.adminReturnOrigin ?? "…"}</code> — only
+                Meta needs the ngrok Redirect URL above.
               </p>
             ) : null}
           </div>
