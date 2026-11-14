@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { createSessionToken, setSessionCookie } from "@/lib/auth/session";
+import { getInstagramAccessForEmail } from "@/lib/instagram/access";
 import { OtpLockedError } from "@/lib/otp/lockout";
 import { verifyAdminLoginOtp } from "@/lib/otp/admin";
+import { isAllowedAdminEmail, normalizeAdminEmail } from "@/lib/otp/identity";
 
 export async function POST(request: Request) {
   try {
@@ -19,7 +21,17 @@ export async function POST(request: Request) {
     const verified = await verifyAdminLoginOtp(email, otp);
     const token = await createSessionToken(verified.email);
     await setSessionCookie(token);
-    return NextResponse.json({ ok: true });
+
+    const normalized = normalizeAdminEmail(verified.email);
+    const igAccess = normalized
+      ? await getInstagramAccessForEmail(normalized)
+      : null;
+    const redirectTo =
+      igAccess && normalized && !isAllowedAdminEmail(normalized)
+        ? "/admin/instagram"
+        : "/admin";
+
+    return NextResponse.json({ ok: true, redirectTo });
   } catch (error) {
     if (error instanceof OtpLockedError) {
       return NextResponse.json({ error: error.message }, { status: 429 });

@@ -83,3 +83,24 @@ export type InstagramOpsStatus = {
   lastSendAt: string | null;
   webhookUrlPattern: string;
 };
+
+export type InstagramConversation = {
+  id: string;
+  accountId: string;
+  participantIgsid: string;
+  participantUsername: string | null;
+  lastMessageAt: string;
+  lastMessagePreview: string | null;
+};
+
+export type InstagramInboxMessage = {
+  id: string;
+  conversationId: string;
+  direction: "inbound" | "outbound";
+  externalMessageId: string | null;
+  bodyText: string | null;
+  deliveryId: string | null;
+  sendStatus: string | null;
+  errorDetail: string | null;
+  createdAt: string;
+};

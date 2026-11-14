@@ -1,3 +1,4 @@
+import { recordInboundInstagramMessage } from "@/lib/instagram/inbox-repository";
 import { parseInstagramInboundMessages } from "@/lib/instagram/parse-message-webhook";
 import { processInstagramKeywordTrigger } from "@/lib/instagram/process-trigger";
 import { findAccountByIgUserId } from "@/lib/instagram/repository";
@@ -12,6 +13,16 @@ export async function handleInstagramMessageWebhook(input: {
   for (const msg of messages) {
     const account = await findAccountByIgUserId(msg.igAccountId);
     if (!account) continue;
+
+    if (msg.text) {
+      await recordInboundInstagramMessage({
+        accountId: account.id,
+        participantIgsid: msg.fromId,
+        participantUsername: msg.fromUsername,
+        externalMessageId: msg.messageId,
+        bodyText: msg.text,
+      });
+    }
 
     const did = await processInstagramKeywordTrigger({
       accountId: account.id,

@@ -53,9 +53,9 @@ export default function AdminLoginPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, otp: code }),
       });
-      const data = (await res.json()) as { error?: string };
+      const data = (await res.json()) as { error?: string; redirectTo?: string };
       if (!res.ok) throw new Error(data.error ?? "Invalid code");
-      router.push("/admin");
+      router.push(data.redirectTo ?? "/admin");
       router.refresh();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Invalid code");

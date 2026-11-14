@@ -4,6 +4,7 @@ import {
   sendInstagramPrivateReply,
   sendInstagramPublicCommentReply,
 } from "@/lib/instagram/graph-send";
+import { recordOutboundInstagramMessage } from "@/lib/instagram/inbox-repository";
 import { renderInstagramTemplate } from "@/lib/instagram/keyword";
 import { appendTrackedButtonsToMessage } from "@/lib/instagram/tracked-links";
 import {
@@ -51,12 +52,31 @@ export async function processInstagramDelivery(deliveryId: string): Promise<void
     deliveryId,
   });
 
+  async function logOutbound(send: {
+    externalMessageId: string | null;
+    sendStatus: string;
+    errorDetail?: string | null;
+  }) {
+    if (!delivery.recipientIgsid) return;
+    await recordOutboundInstagramMessage({
+      accountId: delivery.accountId,
+      participantIgsid: delivery.recipientIgsid,
+      participantUsername: delivery.recipientUsername,
+      bodyText: message,
+      externalMessageId: send.externalMessageId,
+      deliveryId,
+      sendStatus: send.sendStatus,
+      errorDetail: send.errorDetail ?? null,
+    });
+  }
+
   if (isInstagramDryRun()) {
     await updateDeliveryStatus(deliveryId, {
       status: "sent",
       metaMessageId: "dry_run",
       sentAt: new Date().toISOString(),
     });
+    await logOutbound({ externalMessageId: "dry_run", sendStatus: "sent" });
     return;
   }
 
@@ -94,6 +114,11 @@ export async function processInstagramDelivery(deliveryId: string): Promise<void
       status: "failed",
       errorDetail: result.error,
     });
+    await logOutbound({
+      externalMessageId: null,
+      sendStatus: "failed",
+      errorDetail: result.error,
+    });
     return;
   }
 
@@ -102,6 +127,7 @@ export async function processInstagramDelivery(deliveryId: string): Promise<void
     metaMessageId: result.messageId,
     sentAt: new Date().toISOString(),
   });
+  await logOutbound({ externalMessageId: result.messageId, sendStatus: "sent" });
 
   if (isComment && campaign.publicReplyTemplate?.trim()) {
     const publicText = renderInstagramTemplate(campaign.publicReplyTemplate, {

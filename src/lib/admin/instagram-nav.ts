@@ -21,6 +21,11 @@ export const instagramPortalNav: InstagramNavItem[] = [
     description: "Delivery log and failures",
   },
   {
+    href: "/admin/instagram/inbox",
+    label: "Inbox",
+    description: "DM threads and manual replies",
+  },
+  {
     href: "/admin/instagram/connection",
     label: "Connection",
     description: "Account, token, webhooks",
@@ -36,6 +41,7 @@ export function instagramPageTitle(pathname: string): string {
   if (pathname === "/admin/instagram") return "Overview";
   if (pathname.startsWith("/admin/instagram/campaigns")) return "Automations";
   if (pathname.startsWith("/admin/instagram/activity")) return "Activity";
+  if (pathname.startsWith("/admin/instagram/inbox")) return "Inbox";
   if (pathname.startsWith("/admin/instagram/connection")) return "Connection";
   if (pathname.startsWith("/admin/instagram/team")) return "Team";
   return "Instagram";

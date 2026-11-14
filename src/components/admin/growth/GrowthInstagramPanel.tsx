@@ -9,6 +9,7 @@ import type {
   InstagramMetaApp,
   InstagramOpsStatus,
 } from "@/lib/instagram/types";
+import Link from "next/link";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 import { useCallback, useState } from "react";
 
@@ -711,7 +712,18 @@ export function GrowthInstagramPanel({
                   <td className="py-2 pr-3">{d.triggerType}</td>
                   <td className="py-2 pr-3">{d.campaignName ?? "—"}</td>
                   <td className="py-2 pr-3">{d.clickCount ?? 0}</td>
-                  <td className="py-2 pr-3">{d.recipientUsername ?? d.recipientIgsid ?? "—"}</td>
+                  <td className="py-2 pr-3">
+                    {d.recipientIgsid ? (
+                      <Link
+                        href={`/admin/instagram/inbox?accountId=${encodeURIComponent(d.accountId)}&participantIgsid=${encodeURIComponent(d.recipientIgsid)}`}
+                        className="text-accent underline"
+                      >
+                        {d.recipientUsername ?? d.recipientIgsid}
+                      </Link>
+                    ) : (
+                      (d.recipientUsername ?? "—")
+                    )}
+                  </td>
                   <td className="py-2 pr-3 max-w-[160px] truncate">{d.triggerText ?? "—"}</td>
                   <td className="py-2 text-muted">{d.skipReason ?? d.errorDetail ?? "—"}</td>
                 </tr>
