@@ -32,6 +32,7 @@
     "integrations:down": "node scripts/integrations-down.mjs",
     "integrations:check": "node scripts/integrations-local-check.mjs",
     "integrations:smoke": "node scripts/huginn-ingest-smoke.mjs",
+    "integrations:instagram:smoke": "INSTAGRAM_DRY_RUN=1 node scripts/instagram-smoke.mjs",
     "integrations:freehire:sample": "node scripts/freehire-ingest.mjs deploy/integrations/freehire/sample-jobs.json",
     "integrations:freehire:clone": "node scripts/freehire-clone.mjs",
     "integrations:freehire:up": "node scripts/integrations-freehire-up.mjs",

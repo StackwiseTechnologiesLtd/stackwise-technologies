@@ -21,6 +21,12 @@ function formatWhen(iso: string | null): string {
   }
 }
 
+function webhookPatternForDisplay(pattern: string | undefined): string {
+  if (!pattern) return "…";
+  if (typeof window === "undefined") return pattern;
+  return pattern.replace(/^https?:\/\/[^/]+/, window.location.origin);
+}
+
 export function GrowthInstagramPanel() {
   const toast = useToast();
   const [status, setStatus] = useState<InstagramOpsStatus | null>(null);
@@ -174,7 +180,9 @@ export function GrowthInstagramPanel() {
             <h3 className="text-base font-semibold tracking-tight">Instagram status</h3>
             <p className="mt-1 text-sm text-muted">
               Webhook URL pattern:{" "}
-              <code className="text-foreground">{status?.webhookUrlPattern ?? "…"}</code>
+              <code className="text-foreground">
+                {webhookPatternForDisplay(status?.webhookUrlPattern)}
+              </code>
             </p>
             <p className="mt-2 text-xs text-muted">
               Meta apps: {status?.metaAppCount ?? 0} · Connected accounts:{" "}
@@ -202,9 +210,20 @@ export function GrowthInstagramPanel() {
         {apps.length > 0 && (
           <ul className="mt-3 space-y-2 text-sm">
             {apps.map((app) => (
-              <li key={app.id} className="rounded-lg border border-line bg-black/30 px-3 py-2">
-                <span className="font-medium">{app.label}</span>{" "}
-                <span className="text-muted">({app.slug})</span>
+              <li
+                key={app.id}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-line bg-black/30 px-3 py-2"
+              >
+                <span>
+                  <span className="font-medium">{app.label}</span>{" "}
+                  <span className="text-muted">({app.slug})</span>
+                </span>
+                <a
+                  className="text-xs text-accent underline"
+                  href={`/api/admin/instagram/oauth/start?metaAppId=${encodeURIComponent(app.id)}`}
+                >
+                  Connect with Meta OAuth
+                </a>
               </li>
             ))}
           </ul>
@@ -263,7 +282,7 @@ export function GrowthInstagramPanel() {
       <section className="rounded-xl border border-line bg-panel p-5 sm:p-6">
         <h3 className="text-base font-semibold tracking-tight">Instagram account</h3>
         <p className="mt-1 text-sm text-muted">
-          Paste a long-lived token for now (OAuth connect in a later milestone).{" "}
+          Use <strong>Connect with Meta OAuth</strong> above or paste a long-lived token.{" "}
           <code className="text-foreground">ig_user_id</code> must match webhook{" "}
           <code className="text-foreground">entry.id</code>.
         </p>
