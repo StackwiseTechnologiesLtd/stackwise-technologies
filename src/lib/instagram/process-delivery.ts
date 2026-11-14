@@ -72,11 +72,15 @@ export async function processInstagramDelivery(deliveryId: string): Promise<void
 
   if (isInstagramDryRun()) {
     await updateDeliveryStatus(deliveryId, {
-      status: "sent",
+      status: "skipped",
+      skipReason: "dry_run",
       metaMessageId: "dry_run",
-      sentAt: new Date().toISOString(),
     });
-    await logOutbound({ externalMessageId: "dry_run", sendStatus: "sent" });
+    await logOutbound({
+      externalMessageId: "dry_run",
+      sendStatus: "skipped",
+      errorDetail: "INSTAGRAM_DRY_RUN=1 — message not sent to Meta",
+    });
     return;
   }
 

@@ -10,6 +10,7 @@ import type {
   InstagramMetaApp,
   InstagramOpsStatus,
 } from "@/lib/instagram/types";
+import { isInstagramDryRun } from "@/lib/instagram/graph-send";
 import { instagramCampaignTriggers } from "@/lib/instagram/types";
 
 async function ready() {
@@ -927,6 +928,7 @@ export async function getInstagramOpsStatus(): Promise<InstagramOpsStatus> {
     activeCampaigns: counts[0]?.campaigns ?? 0,
     lastWebhookAt: times[0]?.last_webhook ?? null,
     lastSendAt: times[0]?.last_send ?? null,
+    dryRunMode: isInstagramDryRun(),
     webhookUrlPattern: `${base}/api/webhooks/meta/{appSlug}`,
   };
 }

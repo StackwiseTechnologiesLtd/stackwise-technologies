@@ -22,6 +22,20 @@ function formatWhen(iso: string | null): string {
   }
 }
 
+function formatDeliveryStatus(d: InstagramDelivery): string {
+  if (d.metaMessageId === "dry_run" || d.skipReason === "dry_run") {
+    return "dry run";
+  }
+  return d.status;
+}
+
+function formatDeliveryReason(d: InstagramDelivery): string {
+  if (d.metaMessageId === "dry_run") {
+    return "Not sent to Instagram (INSTAGRAM_DRY_RUN)";
+  }
+  return d.skipReason ?? d.errorDetail ?? "—";
+}
+
 function webhookPatternForDisplay(pattern: string | undefined): string {
   if (!pattern) return "…";
   if (typeof window === "undefined") return pattern;
@@ -295,6 +309,13 @@ export function GrowthInstagramPanel({
     <div className="space-y-6">
       {show("overview") ? (
       <section className="rounded-xl border border-line bg-panel p-5 sm:p-6">
+        {status?.dryRunMode ? (
+          <p className="mb-4 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-100">
+            <strong>Dry run is on</strong> (<code className="text-foreground">INSTAGRAM_DRY_RUN=1</code>
+            ). Automations log deliveries but do not send real Instagram DMs. Set{" "}
+            <code className="text-foreground">INSTAGRAM_DRY_RUN=0</code> and restart the dev server.
+          </p>
+        ) : null}
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h3 className="text-base font-semibold tracking-tight">Instagram status</h3>
@@ -751,7 +772,7 @@ export function GrowthInstagramPanel({
               {deliveries.map((d) => (
                 <tr key={d.id} className="border-t border-line/60 align-top">
                   <td className="py-2 pr-3 whitespace-nowrap">{formatWhen(d.createdAt)}</td>
-                  <td className="py-2 pr-3">{d.status}</td>
+                  <td className="py-2 pr-3">{formatDeliveryStatus(d)}</td>
                   <td className="py-2 pr-3">{d.triggerType}</td>
                   <td className="py-2 pr-3">{d.campaignName ?? "—"}</td>
                   <td className="py-2 pr-3">{d.clickCount ?? 0}</td>
@@ -768,7 +789,7 @@ export function GrowthInstagramPanel({
                     )}
                   </td>
                   <td className="py-2 pr-3 max-w-[160px] truncate">{d.triggerText ?? "—"}</td>
-                  <td className="py-2 text-muted">{d.skipReason ?? d.errorDetail ?? "—"}</td>
+                  <td className="py-2 text-muted">{formatDeliveryReason(d)}</td>
                 </tr>
               ))}
             </tbody>

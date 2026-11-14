@@ -82,6 +82,7 @@ export type InstagramOpsStatus = {
   lastWebhookAt: string | null;
   lastSendAt: string | null;
   webhookUrlPattern: string;
+  dryRunMode: boolean;
 };
 
 export type InstagramConversation = {
