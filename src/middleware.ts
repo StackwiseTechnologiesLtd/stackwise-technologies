@@ -28,6 +28,7 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/admin") ||
     pathname.startsWith("/branding") ||
     pathname.startsWith("/pay") ||
+    pathname.startsWith("/r/") ||
     pathname.includes(".")
   ) {
     return NextResponse.next();

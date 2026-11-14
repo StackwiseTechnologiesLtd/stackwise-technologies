@@ -1,6 +1,6 @@
 import { after, NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth/session";
-import { handleInstagramCommentWebhook } from "@/lib/instagram/handle-comment-webhook";
+import { handleInstagramWebhook } from "@/lib/instagram/handle-instagram-webhook";
 import { processInstagramDelivery } from "@/lib/instagram/process-delivery";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
   const body = await request.json();
   const queue: string[] = [];
 
-  const { handled } = await handleInstagramCommentWebhook({
+  const { handled } = await handleInstagramWebhook({
     metaAppId: null,
     body,
     processQueued: (deliveryId) => {

@@ -90,7 +90,7 @@ Record **date + initials** when all manual tests for a phase pass.
 | 4 freehire           | ☑      | agent  | 2026-11-10 | Export→ingest from freehire.me; Jobs inbox + freshness; Hiring: title; URL dedupe |
 | 5 LinkedIn Jobs      | ☑      | agent  | 2026-11-10 | Connect harvest (new Jobs UI selectors); assisted apply notes; Hiring: CRM titles; URL dedupe |
 | 6.1 IG comment-to-DM | ☐      |        |      | Migrations + webhook + queue + delivery log |
-| 6.2 IG triggers/links | ☐     |        |      | DM/story triggers, buttons, click tracking |
+| 6.2 IG triggers/links | ☐     |        |      | Code shipped; run smoke + Meta 6.2.T* |
 | 6.3 IG inbox         | ☐      |        |      | Thread sync + manual reply in messaging window |
 | 6.4 IG CRM bridge    | ☐      |        |      | growth_leads, tags, one-step follow-up |
 
@@ -572,7 +572,7 @@ Each sprint ends only when the **Manual test flow** for that phase is signed off
 | 4 | `freehire-ingest.mjs`, Jobs inbox, job scoring, CRM titles | 4.T1–4.T5 |
 | 5 | LinkedIn Jobs harvest, `linkedin_jobs`, assisted apply notes | 5.T1–5.T6 |
 | 6.1 | Webhook, `after()` delivery worker, campaigns UI, delivery log | 6.1.T1–6.1.T9 (manual Meta still required) |
-| 6.2 | (planned) DM/story triggers, buttons, link tracking | 6.2.T1–6.2.T6 |
+| 6.2 | DM/story webhooks, buttons, /r/ig tracking, rate limit | 6.2.T1–6.2.T6 |
 | 6.3 | (planned) Inbox tables + manual reply UI | 6.3.T1–6.3.T5 |
 | 6.4 | (planned) Growth/CRM bridge, tags, follow-up | 6.4.T1–6.4.T7 |
 

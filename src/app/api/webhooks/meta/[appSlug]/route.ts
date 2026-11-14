@@ -1,5 +1,5 @@
 import { after, NextResponse } from "next/server";
-import { handleInstagramCommentWebhook } from "@/lib/instagram/handle-comment-webhook";
+import { handleInstagramWebhook } from "@/lib/instagram/handle-instagram-webhook";
 import {
   timingSafeEqualString,
   verifyMetaWebhookSignature,
@@ -65,7 +65,7 @@ export async function POST(request: Request, context: RouteContext) {
 
   const queue: string[] = [];
 
-  const { handled } = await handleInstagramCommentWebhook({
+  const { handled } = await handleInstagramWebhook({
     metaAppId: app.id,
     body,
     processQueued: (deliveryId) => {

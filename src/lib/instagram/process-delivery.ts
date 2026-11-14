@@ -1,11 +1,14 @@
 import {
   isInstagramDryRun,
+  sendInstagramDirectMessage,
   sendInstagramPrivateReply,
   sendInstagramPublicCommentReply,
 } from "@/lib/instagram/graph-send";
 import { renderInstagramTemplate } from "@/lib/instagram/keyword";
+import { appendTrackedButtonsToMessage } from "@/lib/instagram/tracked-links";
 import {
   getAccountAccessToken,
+  getAccountIgUserId,
   getDeliveryWithCampaign,
   updateDeliveryStatus,
 } from "@/lib/instagram/repository";
@@ -36,11 +39,17 @@ export async function processInstagramDelivery(deliveryId: string): Promise<void
     return;
   }
 
-  const message =
+  let message =
     delivery.privateReplyPreview ??
     renderInstagramTemplate(campaign.privateReplyTemplate, {
       username: delivery.recipientUsername,
     });
+
+  message = await appendTrackedButtonsToMessage({
+    message,
+    campaign,
+    deliveryId,
+  });
 
   if (isInstagramDryRun()) {
     await updateDeliveryStatus(deliveryId, {
@@ -60,11 +69,25 @@ export async function processInstagramDelivery(deliveryId: string): Promise<void
     return;
   }
 
-  const result = await sendInstagramPrivateReply({
-    commentId: delivery.triggerExternalId,
-    message,
-    accessToken: token,
-  });
+  const isComment = delivery.triggerType === "comment";
+  const result = isComment
+    ? await sendInstagramPrivateReply({
+        commentId: delivery.triggerExternalId,
+        message,
+        accessToken: token,
+      })
+    : await (async () => {
+        const igAccountId = await getAccountIgUserId(delivery.accountId);
+        if (!igAccountId || !delivery.recipientIgsid) {
+          return { ok: false as const, error: "Missing IG account or recipient for DM send" };
+        }
+        return sendInstagramDirectMessage({
+          igAccountId,
+          recipientIgsid: delivery.recipientIgsid,
+          message,
+          accessToken: token,
+        });
+      })();
 
   if (!result.ok) {
     await updateDeliveryStatus(deliveryId, {
@@ -80,7 +103,7 @@ export async function processInstagramDelivery(deliveryId: string): Promise<void
     sentAt: new Date().toISOString(),
   });
 
-  if (campaign.publicReplyTemplate?.trim()) {
+  if (isComment && campaign.publicReplyTemplate?.trim()) {
     const publicText = renderInstagramTemplate(campaign.publicReplyTemplate, {
       username: delivery.recipientUsername,
     });

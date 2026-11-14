@@ -7,6 +7,7 @@
  */
 import "dotenv/config";
 import { config } from "dotenv";
+import { neon } from "@neondatabase/serverless";
 import { existsSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -115,6 +116,8 @@ console.log("3. Create campaign…");
     mediaId,
     keyword,
     privateReplyTemplate: "Hey {username}! Here is your link.",
+    buttonLabel1: "Shop",
+    buttonUrl1: "https://cal.com/stackwise-technologies/30min",
   }),
 }));
 assert(res.ok, `campaigns POST ${res.status} ${JSON.stringify(json)}`);
@@ -170,6 +173,62 @@ const verifyRes = await fetch(verifyUrl, { signal: AbortSignal.timeout(60_000) }
 const challengeBody = await verifyRes.text();
 assert(verifyRes.ok && challengeBody === challenge, "webhook verify failed");
 
-console.log("OK — Instagram 6.1 smoke passed");
+console.log("7. DM campaign + simulate…");
+({ res, json } = await api(cookie, "/api/admin/instagram/campaigns", {
+  method: "POST",
+  body: JSON.stringify({
+    accountId,
+    name: "DM PRICING",
+    triggerType: "dm",
+    keyword: "PRICING",
+    privateReplyTemplate: "Hi {username} — booking link below.",
+    buttonLabel1: "Book",
+    buttonUrl1: "https://example.com/book",
+  }),
+}));
+assert(res.ok, `dm campaign POST ${res.status}`);
+
+const dmMid = `mid-${stamp}`;
+({ res, json } = await api(cookie, "/api/admin/instagram/simulate", {
+  method: "POST",
+  body: JSON.stringify({
+    object: "instagram",
+    entry: [
+      {
+        id: igUserId,
+        messaging: [
+          {
+            sender: { id: "444555666", username: "maya.creates" },
+            message: { mid: dmMid, text: "PRICING please" },
+          },
+        ],
+      },
+    ],
+  }),
+}));
+assert(res.ok, `dm simulate ${res.status}`);
+await new Promise((r) => setTimeout(r, 1200));
+({ res, json } = await api(cookie, "/api/admin/instagram/deliveries?limit=20"));
+const dmRow = (json.deliveries || []).find((d) => d.triggerExternalId === dmMid);
+assert(dmRow?.status === "sent", "dm delivery should be sent in dry run");
+
+console.log("8. Tracked link click…");
+assert(row?.id, "delivery id for link test");
+const sql = neon(process.env.DATABASE_URL);
+const linkRows = await sql`
+  SELECT token FROM instagram_tracked_links
+  WHERE delivery_id = ${row.id}::uuid
+  LIMIT 1
+`;
+assert(linkRows[0]?.token, "tracked link token expected");
+const clickRes = await fetch(`${base}/r/ig/${linkRows[0].token}`, {
+  redirect: "manual",
+});
+assert(clickRes.status === 302, "tracked redirect should 302");
+({ res, json } = await api(cookie, `/api/admin/instagram/deliveries?limit=20`));
+const rowAfterClick = (json.deliveries || []).find((d) => d.id === row.id);
+assert((rowAfterClick?.clickCount ?? 0) >= 1, "click count should increment");
+
+console.log("OK — Instagram 6.1 + 6.2 smoke passed");
 console.log(`   Admin UI: ${base}/admin/growth/instagram`);
 console.log(`   Webhook:  ${base}/api/webhooks/meta/${appSlug}`);

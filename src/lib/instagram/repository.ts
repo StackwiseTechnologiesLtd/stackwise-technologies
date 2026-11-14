@@ -4,11 +4,13 @@ import { decryptJson, encryptJson } from "@/lib/growth/crypto";
 import type {
   InstagramAccount,
   InstagramCampaign,
+  InstagramCampaignTrigger,
   InstagramDelivery,
   InstagramDeliveryStatus,
   InstagramMetaApp,
   InstagramOpsStatus,
 } from "@/lib/instagram/types";
+import { instagramCampaignTriggers } from "@/lib/instagram/types";
 
 async function ready() {
   if (!isDatabaseConfigured()) {
@@ -219,6 +221,19 @@ export async function upsertAccount(input: {
   return row;
 }
 
+export async function getAccountIgUserId(accountId: string): Promise<string | null> {
+  await ready();
+  const sql = getSql();
+  const rows = asRows<{ ig_user_id: string }>(
+    await sql`
+      SELECT ig_user_id FROM instagram_accounts
+      WHERE id = ${accountId}::uuid
+      LIMIT 1
+    `,
+  );
+  return rows[0]?.ig_user_id ?? null;
+}
+
 export async function getAccountAccessToken(
   accountId: string,
 ): Promise<string | null> {
@@ -251,48 +266,73 @@ export async function findAccountByIgUserId(
   return accounts.find((a) => a.igUserId === igUserId && a.status === "active") ?? null;
 }
 
-export async function listCampaigns(accountId?: string): Promise<InstagramCampaign[]> {
-  await ready();
-  const sql = getSql();
-  const rows = asRows<{
-    id: string;
-    account_id: string;
-    name: string;
-    media_id: string;
-    keyword: string;
-    private_reply_template: string;
-    public_reply_template: string | null;
-    active: boolean;
-    created_at: string;
-    updated_at: string;
-  }>(
-    accountId
-      ? await sql`
-          SELECT id, account_id, name, media_id, keyword, private_reply_template,
-                 public_reply_template, active, created_at, updated_at
-          FROM instagram_campaigns
-          WHERE account_id = ${accountId}::uuid
-          ORDER BY updated_at DESC
-        `
-      : await sql`
-          SELECT id, account_id, name, media_id, keyword, private_reply_template,
-                 public_reply_template, active, created_at, updated_at
-          FROM instagram_campaigns
-          ORDER BY updated_at DESC
-        `,
-  );
-  return rows.map((row) => ({
+type CampaignRow = {
+  id: string;
+  account_id: string;
+  name: string;
+  media_id: string | null;
+  keyword: string;
+  trigger_type: string;
+  private_reply_template: string;
+  public_reply_template: string | null;
+  button_label_1: string | null;
+  button_url_1: string | null;
+  button_label_2: string | null;
+  button_url_2: string | null;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+function mapCampaign(row: CampaignRow): InstagramCampaign {
+  const trigger = instagramCampaignTriggers.includes(
+    row.trigger_type as InstagramCampaignTrigger,
+  )
+    ? (row.trigger_type as InstagramCampaignTrigger)
+    : "comment";
+  return {
     id: row.id,
     accountId: row.account_id,
     name: row.name,
     mediaId: row.media_id,
     keyword: row.keyword,
+    triggerType: trigger,
     privateReplyTemplate: row.private_reply_template,
     publicReplyTemplate: row.public_reply_template,
+    buttonLabel1: row.button_label_1,
+    buttonUrl1: row.button_url_1,
+    buttonLabel2: row.button_label_2,
+    buttonUrl2: row.button_url_2,
     active: row.active,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
-  }));
+  };
+}
+
+export async function listCampaigns(accountId?: string): Promise<InstagramCampaign[]> {
+  await ready();
+  const sql = getSql();
+  const rows = asRows<CampaignRow>(
+    accountId
+      ? await sql`
+          SELECT id, account_id, name, media_id, keyword, trigger_type,
+                 private_reply_template, public_reply_template,
+                 button_label_1, button_url_1, button_label_2, button_url_2,
+                 active, created_at, updated_at
+          FROM instagram_campaigns
+          WHERE account_id = ${accountId}::uuid
+          ORDER BY updated_at DESC
+        `
+      : await sql`
+          SELECT id, account_id, name, media_id, keyword, trigger_type,
+                 private_reply_template, public_reply_template,
+                 button_label_1, button_url_1, button_label_2, button_url_2,
+                 active, created_at, updated_at
+          FROM instagram_campaigns
+          ORDER BY updated_at DESC
+        `,
+  );
+  return rows.map(mapCampaign);
 }
 
 export async function findActiveCampaignForMedia(input: {
@@ -306,27 +346,43 @@ export async function findActiveCampaignForMedia(input: {
 export async function createCampaign(input: {
   accountId: string;
   name: string;
-  mediaId: string;
+  mediaId?: string | null;
   keyword: string;
+  triggerType?: InstagramCampaignTrigger;
   privateReplyTemplate: string;
   publicReplyTemplate?: string | null;
+  buttonLabel1?: string | null;
+  buttonUrl1?: string | null;
+  buttonLabel2?: string | null;
+  buttonUrl2?: string | null;
   active?: boolean;
 }): Promise<InstagramCampaign> {
   await ready();
   const sql = getSql();
   const id = crypto.randomUUID();
+  const trigger = input.triggerType ?? "comment";
+  const media =
+    input.mediaId?.trim() ||
+    (trigger === "comment" ? "" : null);
   await sql`
     INSERT INTO instagram_campaigns (
-      id, account_id, name, media_id, keyword,
-      private_reply_template, public_reply_template, active
+      id, account_id, name, media_id, keyword, trigger_type,
+      private_reply_template, public_reply_template,
+      button_label_1, button_url_1, button_label_2, button_url_2,
+      active
     ) VALUES (
       ${id}::uuid,
       ${input.accountId}::uuid,
       ${input.name.trim()},
-      ${input.mediaId.trim()},
+      ${media || null},
       ${input.keyword.trim()},
+      ${trigger},
       ${input.privateReplyTemplate},
       ${input.publicReplyTemplate ?? null},
+      ${input.buttonLabel1 ?? null},
+      ${input.buttonUrl1 ?? null},
+      ${input.buttonLabel2 ?? null},
+      ${input.buttonUrl2 ?? null},
       ${input.active ?? true}
     )
   `;
@@ -377,6 +433,7 @@ export async function insertDelivery(input: {
   triggerText?: string | null;
   privateReplyPreview?: string | null;
   errorDetail?: string | null;
+  triggerType?: string;
 }): Promise<string> {
   await ready();
   const sql = getSql();
@@ -386,7 +443,7 @@ export async function insertDelivery(input: {
     await sql`
       INSERT INTO instagram_deliveries (
         id, campaign_id, account_id, status, skip_reason,
-        trigger_external_id, recipient_igsid, recipient_username,
+        trigger_type, trigger_external_id, recipient_igsid, recipient_username,
         trigger_text, private_reply_preview, error_detail
       ) VALUES (
         ${id}::uuid,
@@ -394,6 +451,7 @@ export async function insertDelivery(input: {
         ${input.accountId}::uuid,
         ${input.status},
         ${input.skipReason ?? null},
+        ${input.triggerType ?? "comment"},
         ${input.triggerExternalId},
         ${input.recipientIgsid ?? null},
         ${input.recipientUsername ?? null},
@@ -406,7 +464,7 @@ export async function insertDelivery(input: {
     await sql`
       INSERT INTO instagram_deliveries (
         id, campaign_id, account_id, status, skip_reason,
-        trigger_external_id, recipient_igsid, recipient_username,
+        trigger_type, trigger_external_id, recipient_igsid, recipient_username,
         trigger_text, private_reply_preview, error_detail
       ) VALUES (
         ${id}::uuid,
@@ -414,6 +472,7 @@ export async function insertDelivery(input: {
         ${input.accountId}::uuid,
         ${input.status},
         ${input.skipReason ?? null},
+        ${input.triggerType ?? "comment"},
         ${input.triggerExternalId},
         ${input.recipientIgsid ?? null},
         ${input.recipientUsername ?? null},
@@ -476,6 +535,14 @@ export async function getDeliveryWithCampaign(deliveryId: string): Promise<{
     private_reply_template: string | null;
     public_reply_template: string | null;
     campaign_active: boolean | null;
+    media_id: string | null;
+    keyword: string | null;
+    trigger_type_campaign: string | null;
+    button_label_1: string | null;
+    button_url_1: string | null;
+    button_label_2: string | null;
+    button_url_2: string | null;
+    click_count: number;
   }>(
     await sql`
       SELECT
@@ -486,7 +553,19 @@ export async function getDeliveryWithCampaign(deliveryId: string): Promise<{
         c.name AS campaign_name,
         c.private_reply_template,
         c.public_reply_template,
-        c.active AS campaign_active
+        c.active AS campaign_active,
+        c.media_id,
+        c.keyword,
+        c.trigger_type AS trigger_type_campaign,
+        c.button_label_1,
+        c.button_url_1,
+        c.button_label_2,
+        c.button_url_2,
+        (
+          SELECT COUNT(*)::int FROM instagram_link_clicks lc
+          INNER JOIN instagram_tracked_links tl ON tl.token = lc.link_token
+          WHERE tl.delivery_id = d.id
+        ) AS click_count
       FROM instagram_deliveries d
       LEFT JOIN instagram_campaigns c ON c.id = d.campaign_id
       WHERE d.id = ${deliveryId}::uuid
@@ -514,18 +593,29 @@ export async function getDeliveryWithCampaign(deliveryId: string): Promise<{
     sentAt: row.sent_at,
     createdAt: row.created_at,
     campaignName: row.campaign_name,
+    clickCount: row.click_count ?? 0,
   };
 
   let campaign: InstagramCampaign | null = null;
   if (row.campaign_id && row.private_reply_template) {
+    const trigger = instagramCampaignTriggers.includes(
+      (row.trigger_type_campaign ?? "comment") as InstagramCampaignTrigger,
+    )
+      ? (row.trigger_type_campaign as InstagramCampaignTrigger)
+      : "comment";
     campaign = {
       id: row.campaign_id,
       accountId: row.account_id,
       name: row.campaign_name ?? "",
-      mediaId: "",
-      keyword: "",
+      mediaId: row.media_id,
+      keyword: row.keyword ?? "",
+      triggerType: trigger,
       privateReplyTemplate: row.private_reply_template,
       publicReplyTemplate: row.public_reply_template,
+      buttonLabel1: row.button_label_1,
+      buttonUrl1: row.button_url_1,
+      buttonLabel2: row.button_label_2,
+      buttonUrl2: row.button_url_2,
       active: Boolean(row.campaign_active),
       createdAt: row.created_at,
       updatedAt: row.created_at,
@@ -562,10 +652,16 @@ export async function listDeliveries(input?: {
     sent_at: string | null;
     created_at: string;
     campaign_name: string | null;
+    click_count: number;
   }>(
     input?.status && input.campaignId
       ? await sql`
-          SELECT d.*, c.name AS campaign_name
+          SELECT d.*, c.name AS campaign_name,
+            (
+              SELECT COUNT(*)::int FROM instagram_link_clicks lc
+              INNER JOIN instagram_tracked_links tl ON tl.token = lc.link_token
+              WHERE tl.delivery_id = d.id
+            ) AS click_count
           FROM instagram_deliveries d
           LEFT JOIN instagram_campaigns c ON c.id = d.campaign_id
           WHERE d.status = ${input.status} AND d.campaign_id = ${input.campaignId}::uuid
@@ -574,7 +670,12 @@ export async function listDeliveries(input?: {
         `
       : input?.status
         ? await sql`
-            SELECT d.*, c.name AS campaign_name
+            SELECT d.*, c.name AS campaign_name,
+              (
+                SELECT COUNT(*)::int FROM instagram_link_clicks lc
+                INNER JOIN instagram_tracked_links tl ON tl.token = lc.link_token
+                WHERE tl.delivery_id = d.id
+              ) AS click_count
             FROM instagram_deliveries d
             LEFT JOIN instagram_campaigns c ON c.id = d.campaign_id
             WHERE d.status = ${input.status}
@@ -583,7 +684,12 @@ export async function listDeliveries(input?: {
           `
         : input?.campaignId
           ? await sql`
-              SELECT d.*, c.name AS campaign_name
+              SELECT d.*, c.name AS campaign_name,
+                (
+                  SELECT COUNT(*)::int FROM instagram_link_clicks lc
+                  INNER JOIN instagram_tracked_links tl ON tl.token = lc.link_token
+                  WHERE tl.delivery_id = d.id
+                ) AS click_count
               FROM instagram_deliveries d
               LEFT JOIN instagram_campaigns c ON c.id = d.campaign_id
               WHERE d.campaign_id = ${input.campaignId}::uuid
@@ -591,7 +697,12 @@ export async function listDeliveries(input?: {
               LIMIT ${limit}
             `
           : await sql`
-              SELECT d.*, c.name AS campaign_name
+              SELECT d.*, c.name AS campaign_name,
+                (
+                  SELECT COUNT(*)::int FROM instagram_link_clicks lc
+                  INNER JOIN instagram_tracked_links tl ON tl.token = lc.link_token
+                  WHERE tl.delivery_id = d.id
+                ) AS click_count
               FROM instagram_deliveries d
               LEFT JOIN instagram_campaigns c ON c.id = d.campaign_id
               ORDER BY d.created_at DESC
@@ -617,7 +728,90 @@ export async function listDeliveries(input?: {
     sentAt: row.sent_at,
     createdAt: row.created_at,
     campaignName: row.campaign_name,
+    clickCount: row.click_count ?? 0,
   }));
+}
+
+export async function countRecentAccountDeliveries(
+  accountId: string,
+  windowSeconds: number,
+): Promise<number> {
+  await ready();
+  const sql = getSql();
+  const rows = asRows<{ count: number }>(
+    await sql`
+      SELECT COUNT(*)::int AS count
+      FROM instagram_deliveries
+      WHERE account_id = ${accountId}::uuid
+        AND created_at > NOW() - (${windowSeconds} * INTERVAL '1 second')
+        AND status IN ('queued', 'sent')
+    `,
+  );
+  return rows[0]?.count ?? 0;
+}
+
+export function trackedLinkBaseUrl(): string {
+  return (
+    process.env.INSTAGRAM_PUBLIC_BASE_URL?.replace(/\/$/, "") ||
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
+    "http://localhost:3000"
+  );
+}
+
+export async function createTrackedLinks(input: {
+  deliveryId: string;
+  campaignId: string;
+  baseUrl: string;
+  buttons: { label: string; url: string }[];
+}): Promise<{ token: string; label: string }[]> {
+  await ready();
+  const sql = getSql();
+  const out: { token: string; label: string }[] = [];
+  for (const btn of input.buttons) {
+    const token = crypto.randomUUID().replace(/-/g, "").slice(0, 24);
+    await sql`
+      INSERT INTO instagram_tracked_links (
+        token, delivery_id, campaign_id, label, target_url
+      ) VALUES (
+        ${token},
+        ${input.deliveryId}::uuid,
+        ${input.campaignId}::uuid,
+        ${btn.label},
+        ${btn.url}
+      )
+    `;
+    out.push({ token, label: btn.label });
+  }
+  return out;
+}
+
+export async function getTrackedLinkTarget(
+  token: string,
+): Promise<{ targetUrl: string } | null> {
+  await ready();
+  const sql = getSql();
+  const rows = asRows<{ target_url: string }>(
+    await sql`
+      SELECT target_url FROM instagram_tracked_links
+      WHERE token = ${token}
+      LIMIT 1
+    `,
+  );
+  const row = rows[0];
+  if (!row) return null;
+  return { targetUrl: row.target_url };
+}
+
+export async function recordTrackedLinkClick(
+  token: string,
+  userAgent: string | null,
+): Promise<void> {
+  await ready();
+  const sql = getSql();
+  await sql`
+    INSERT INTO instagram_link_clicks (id, link_token, user_agent)
+    VALUES (${crypto.randomUUID()}::uuid, ${token}, ${userAgent})
+  `;
 }
 
 export async function recordWebhookReceipt(metaAppId: string | null): Promise<void> {

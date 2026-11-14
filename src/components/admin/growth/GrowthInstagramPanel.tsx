@@ -53,10 +53,15 @@ export function GrowthInstagramPanel() {
   const [campaignForm, setCampaignForm] = useState({
     accountId: "",
     name: "",
+    triggerType: "comment" as "comment" | "dm" | "story_reply",
     mediaId: "",
     keyword: "",
     privateReplyTemplate: "Hey {username}! Thanks — here's the link: …",
     publicReplyTemplate: "",
+    buttonLabel1: "",
+    buttonUrl1: "",
+    buttonLabel2: "",
+    buttonUrl2: "",
   });
 
   const load = useCallback(async () => {
@@ -148,6 +153,10 @@ export function GrowthInstagramPanel() {
         body: JSON.stringify({
           ...campaignForm,
           publicReplyTemplate: campaignForm.publicReplyTemplate || null,
+          buttonLabel1: campaignForm.buttonLabel1 || null,
+          buttonUrl1: campaignForm.buttonUrl1 || null,
+          buttonLabel2: campaignForm.buttonLabel2 || null,
+          buttonUrl2: campaignForm.buttonUrl2 || null,
         }),
       });
       if (!res.ok) throw new Error("Save failed");
@@ -370,7 +379,24 @@ export function GrowthInstagramPanel() {
             />
           </label>
           <label className="text-sm">
-            Media ID
+            Trigger
+            <select
+              className="mt-1 w-full rounded-lg border border-line bg-black/40 px-3 py-2"
+              value={campaignForm.triggerType}
+              onChange={(e) =>
+                setCampaignForm((f) => ({
+                  ...f,
+                  triggerType: e.target.value as typeof f.triggerType,
+                }))
+              }
+            >
+              <option value="comment">Comment on post</option>
+              <option value="dm">Inbound DM</option>
+              <option value="story_reply">Story reply</option>
+            </select>
+          </label>
+          <label className="text-sm">
+            Media ID {campaignForm.triggerType === "comment" ? "(required)" : "(optional)"}
             <input
               className="mt-1 w-full rounded-lg border border-line bg-black/40 px-3 py-2"
               value={campaignForm.mediaId}
@@ -396,6 +422,38 @@ export function GrowthInstagramPanel() {
               }
             />
           </label>
+          <label className="text-sm">
+            Button 1 label
+            <input
+              className="mt-1 w-full rounded-lg border border-line bg-black/40 px-3 py-2"
+              value={campaignForm.buttonLabel1}
+              onChange={(e) => setCampaignForm((f) => ({ ...f, buttonLabel1: e.target.value }))}
+            />
+          </label>
+          <label className="text-sm">
+            Button 1 URL
+            <input
+              className="mt-1 w-full rounded-lg border border-line bg-black/40 px-3 py-2"
+              value={campaignForm.buttonUrl1}
+              onChange={(e) => setCampaignForm((f) => ({ ...f, buttonUrl1: e.target.value }))}
+            />
+          </label>
+          <label className="text-sm">
+            Button 2 label
+            <input
+              className="mt-1 w-full rounded-lg border border-line bg-black/40 px-3 py-2"
+              value={campaignForm.buttonLabel2}
+              onChange={(e) => setCampaignForm((f) => ({ ...f, buttonLabel2: e.target.value }))}
+            />
+          </label>
+          <label className="text-sm">
+            Button 2 URL
+            <input
+              className="mt-1 w-full rounded-lg border border-line bg-black/40 px-3 py-2"
+              value={campaignForm.buttonUrl2}
+              onChange={(e) => setCampaignForm((f) => ({ ...f, buttonUrl2: e.target.value }))}
+            />
+          </label>
         </div>
         <AdminActionButton className="mt-4" onClick={() => void saveCampaign()}>
           Create campaign
@@ -408,7 +466,9 @@ export function GrowthInstagramPanel() {
             >
               <span>
                 <span className="font-medium">{c.name}</span> ·{" "}
-                <code className="text-xs">{c.keyword}</code> on media {c.mediaId}
+                <code className="text-xs">{c.triggerType}</code> ·{" "}
+                <code className="text-xs">{c.keyword}</code>
+                {c.mediaId ? ` on ${c.mediaId}` : ""}
               </span>
               <AdminActionButton onClick={() => void toggleCampaign(c.id, !c.active)}>
                 {c.active ? "Deactivate" : "Activate"}
@@ -439,7 +499,9 @@ export function GrowthInstagramPanel() {
               <tr>
                 <th className="pb-2 pr-3">Time</th>
                 <th className="pb-2 pr-3">Status</th>
+                <th className="pb-2 pr-3">Trigger</th>
                 <th className="pb-2 pr-3">Campaign</th>
+                <th className="pb-2 pr-3">Clicks</th>
                 <th className="pb-2 pr-3">User</th>
                 <th className="pb-2 pr-3">Comment</th>
                 <th className="pb-2">Reason / error</th>
@@ -450,7 +512,9 @@ export function GrowthInstagramPanel() {
                 <tr key={d.id} className="border-t border-line/60 align-top">
                   <td className="py-2 pr-3 whitespace-nowrap">{formatWhen(d.createdAt)}</td>
                   <td className="py-2 pr-3">{d.status}</td>
+                  <td className="py-2 pr-3">{d.triggerType}</td>
                   <td className="py-2 pr-3">{d.campaignName ?? "—"}</td>
+                  <td className="py-2 pr-3">{d.clickCount ?? 0}</td>
                   <td className="py-2 pr-3">{d.recipientUsername ?? d.recipientIgsid ?? "—"}</td>
                   <td className="py-2 pr-3 max-w-[160px] truncate">{d.triggerText ?? "—"}</td>
                   <td className="py-2 text-muted">{d.skipReason ?? d.errorDetail ?? "—"}</td>

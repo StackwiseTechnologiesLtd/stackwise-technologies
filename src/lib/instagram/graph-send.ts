@@ -53,6 +53,35 @@ export async function sendInstagramPublicCommentReply(input: {
   return { ok: true };
 }
 
+export async function sendInstagramDirectMessage(input: {
+  igAccountId: string;
+  recipientIgsid: string;
+  message: string;
+  accessToken: string;
+}): Promise<{ ok: true; messageId: string } | { ok: false; error: string }> {
+  const url = new URL(
+    `https://graph.instagram.com/${GRAPH_VERSION}/${encodeURIComponent(input.igAccountId)}/messages`,
+  );
+  url.searchParams.set("access_token", input.accessToken);
+
+  const res = await fetch(url.toString(), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      recipient: { id: input.recipientIgsid },
+      message: { text: input.message },
+    }),
+  });
+
+  const json = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+  if (!res.ok) {
+    const err = json.error as GraphError | undefined;
+    return { ok: false, error: err?.message ?? res.statusText };
+  }
+  const messageId = String(json.message_id ?? json.id ?? "unknown");
+  return { ok: true, messageId };
+}
+
 export function isInstagramDryRun(): boolean {
   return process.env.INSTAGRAM_DRY_RUN === "1";
 }

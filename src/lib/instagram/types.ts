@@ -6,6 +6,13 @@ export const instagramDeliveryStatuses = [
 ] as const;
 export type InstagramDeliveryStatus = (typeof instagramDeliveryStatuses)[number];
 
+export const instagramCampaignTriggers = [
+  "comment",
+  "dm",
+  "story_reply",
+] as const;
+export type InstagramCampaignTrigger = (typeof instagramCampaignTriggers)[number];
+
 export type InstagramMetaApp = {
   id: string;
   slug: string;
@@ -32,10 +39,15 @@ export type InstagramCampaign = {
   id: string;
   accountId: string;
   name: string;
-  mediaId: string;
+  mediaId: string | null;
   keyword: string;
+  triggerType: InstagramCampaignTrigger;
   privateReplyTemplate: string;
   publicReplyTemplate: string | null;
+  buttonLabel1: string | null;
+  buttonUrl1: string | null;
+  buttonLabel2: string | null;
+  buttonUrl2: string | null;
   active: boolean;
   createdAt: string;
   updatedAt: string;
@@ -59,6 +71,7 @@ export type InstagramDelivery = {
   sentAt: string | null;
   createdAt: string;
   campaignName: string | null;
+  clickCount: number;
 };
 
 export type InstagramOpsStatus = {
