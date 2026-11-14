@@ -571,7 +571,7 @@ Each sprint ends only when the **Manual test flow** for that phase is signed off
 | 3 | Huginn scenario + README + smoke script | 3.T1–3.T6 |
 | 4 | `freehire-ingest.mjs`, Jobs inbox, job scoring, CRM titles | 4.T1–4.T5 |
 | 5 | LinkedIn Jobs harvest, `linkedin_jobs`, assisted apply notes | 5.T1–5.T6 |
-| 6.1 | (planned) Webhook, queue, campaigns, delivery log | 6.1.T1–6.1.T9 |
+| 6.1 | Webhook, `after()` delivery worker, campaigns UI, delivery log | 6.1.T1–6.1.T9 (manual Meta still required) |
 | 6.2 | (planned) DM/story triggers, buttons, link tracking | 6.2.T1–6.2.T6 |
 | 6.3 | (planned) Inbox tables + manual reply UI | 6.3.T1–6.3.T5 |
 | 6.4 | (planned) Growth/CRM bridge, tags, follow-up | 6.4.T1–6.4.T7 |

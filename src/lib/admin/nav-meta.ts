@@ -26,6 +26,7 @@ export const adminGrowthNavChildren: AdminNavChild[] = [
   { href: "/admin/growth/inbox", label: "Inbox", match: "prefix" },
   { href: "/admin/growth/linkedin", label: "LinkedIn", match: "prefix" },
   { href: "/admin/growth/jobs", label: "Jobs", match: "prefix" },
+  { href: "/admin/growth/instagram", label: "Instagram", match: "prefix" },
   { href: "/admin/growth/discover", label: "Web discover", match: "prefix" },
   { href: "/admin/growth/outreach", label: "Email outreach", match: "prefix" },
   { href: "/admin/crm", label: "CRM pipeline", match: "prefix" },

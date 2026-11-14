@@ -1,6 +1,7 @@
 import { ensureSchema } from "@/lib/db/ensure-schema";
 import { asRows, getSql, isDatabaseConfigured } from "@/lib/db/postgres";
 import type { LeadSource } from "@/lib/growth/types";
+import { getInstagramOpsStatus } from "@/lib/instagram/repository";
 
 async function ready() {
   if (!isDatabaseConfigured()) {
@@ -30,7 +31,7 @@ export async function recordIntegrationEvent(input: {
 }
 
 export type IntegrationServiceStatus = {
-  id: LeadSource | "crm";
+  id: LeadSource | "crm" | "instagram";
   label: string;
   configured: boolean;
   lastEventAt: string | null;
@@ -105,6 +106,8 @@ export async function getIntegrationsStatus(): Promise<{
     };
   }
 
+  const ig = await getInstagramOpsStatus();
+
   return {
     ingestSecretConfigured,
     services: [
@@ -113,6 +116,17 @@ export async function getIntegrationsStatus(): Promise<{
       service("freehire", "freehire jobs"),
       service("linkedin_jobs", "LinkedIn Jobs harvest"),
       service("manual", "Manual capture"),
+      {
+        id: "instagram",
+        label: "Instagram DM",
+        configured: ig.metaAppCount > 0 && ig.connectedAccounts > 0,
+        lastEventAt: ig.lastWebhookAt,
+        lastSuccessAt: ig.lastSendAt,
+        lastDetail:
+          ig.activeCampaigns > 0
+            ? `${ig.activeCampaigns} active campaign(s) · webhook ${ig.webhookUrlPattern}`
+            : ig.webhookUrlPattern,
+      },
       {
         id: "crm",
         label: "CRM (in-repo)",
