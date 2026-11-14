@@ -757,7 +757,8 @@ export async function listDeliveries(input?: {
   const offset = Math.max(0, input?.offset ?? 0);
   const status = input?.status ?? null;
   const campaignId = input?.campaignId ?? null;
-  const accountIds = input?.accountIds?.length ? input.accountIds : null;
+  const scopeAccounts = input?.accountIds;
+  const restrictAccounts = scopeAccounts != null;
 
   const countRows = asRows<{ total: number }>(
     await sql`
@@ -766,8 +767,8 @@ export async function listDeliveries(input?: {
       WHERE (${status}::text IS NULL OR d.status = ${status})
         AND (${campaignId}::uuid IS NULL OR d.campaign_id = ${campaignId}::uuid)
         AND (
-          ${accountIds}::uuid[] IS NULL
-          OR d.account_id = ANY(${accountIds}::uuid[])
+          NOT ${restrictAccounts}::boolean
+          OR d.account_id = ANY(${scopeAccounts ?? []}::uuid[])
         )
     `,
   );
@@ -786,8 +787,8 @@ export async function listDeliveries(input?: {
       WHERE (${status}::text IS NULL OR d.status = ${status})
         AND (${campaignId}::uuid IS NULL OR d.campaign_id = ${campaignId}::uuid)
         AND (
-          ${accountIds}::uuid[] IS NULL
-          OR d.account_id = ANY(${accountIds}::uuid[])
+          NOT ${restrictAccounts}::boolean
+          OR d.account_id = ANY(${scopeAccounts ?? []}::uuid[])
         )
       ORDER BY d.created_at DESC
       LIMIT ${limit}
@@ -799,6 +800,25 @@ export async function listDeliveries(input?: {
     deliveries: rows.map(mapDeliveryRow),
     total,
   };
+}
+
+export async function hasInstagramCampaignParticipant(
+  accountId: string,
+  participantIgsid: string,
+): Promise<boolean> {
+  await ready();
+  const sql = getSql();
+  const rows = asRows<{ ok: boolean }>(
+    await sql`
+      SELECT EXISTS (
+        SELECT 1 FROM instagram_deliveries d
+        WHERE d.account_id = ${accountId}::uuid
+          AND d.recipient_igsid = ${participantIgsid}
+          AND d.campaign_id IS NOT NULL
+      ) AS ok
+    `,
+  );
+  return Boolean(rows[0]?.ok);
 }
 
 export async function countRecentAccountDeliveries(
@@ -897,23 +917,24 @@ export async function getInstagramOpsStatus(input?: {
 }): Promise<InstagramOpsStatus> {
   await ready();
   const sql = getSql();
-  const accountIds = input?.accountIds?.length ? input.accountIds : null;
+  const scopeAccounts = input?.accountIds;
+  const restrictAccounts = scopeAccounts != null;
   const counts = asRows<{
     meta_apps: number;
     accounts: number;
     campaigns: number;
   }>(
-    accountIds
+    restrictAccounts
       ? await sql`
           SELECT
             (SELECT COUNT(*)::int FROM instagram_meta_apps) AS meta_apps,
             (
               SELECT COUNT(*)::int FROM instagram_accounts
-              WHERE status = 'active' AND id = ANY(${accountIds}::uuid[])
+              WHERE status = 'active' AND id = ANY(${scopeAccounts ?? []}::uuid[])
             ) AS accounts,
             (
               SELECT COUNT(*)::int FROM instagram_campaigns
-              WHERE active = TRUE AND account_id = ANY(${accountIds}::uuid[])
+              WHERE active = TRUE AND account_id = ANY(${scopeAccounts ?? []}::uuid[])
             ) AS campaigns
         `
       : await sql`
@@ -924,15 +945,25 @@ export async function getInstagramOpsStatus(input?: {
         `,
   );
   const times = asRows<{ last_webhook: string | null; last_send: string | null }>(
-    await sql`
-      SELECT
-        (SELECT MAX(received_at) FROM instagram_webhook_receipts) AS last_webhook,
-        (SELECT MAX(sent_at) FROM instagram_deliveries WHERE status = 'sent') AS last_send
-    `,
+    restrictAccounts
+      ? await sql`
+          SELECT
+            (SELECT MAX(received_at) FROM instagram_webhook_receipts) AS last_webhook,
+            (
+              SELECT MAX(sent_at) FROM instagram_deliveries
+              WHERE status = 'sent'
+                AND account_id = ANY(${scopeAccounts ?? []}::uuid[])
+            ) AS last_send
+        `
+      : await sql`
+          SELECT
+            (SELECT MAX(received_at) FROM instagram_webhook_receipts) AS last_webhook,
+            (SELECT MAX(sent_at) FROM instagram_deliveries WHERE status = 'sent') AS last_send
+        `,
   );
   const { webhookUrlPattern } = instagramMetaRegistrationUrls();
   return {
-    metaAppCount: input?.accountIds ? 0 : counts[0]?.meta_apps ?? 0,
+    metaAppCount: restrictAccounts ? 0 : counts[0]?.meta_apps ?? 0,
     connectedAccounts: counts[0]?.accounts ?? 0,
     activeCampaigns: counts[0]?.campaigns ?? 0,
     lastWebhookAt: times[0]?.last_webhook ?? null,

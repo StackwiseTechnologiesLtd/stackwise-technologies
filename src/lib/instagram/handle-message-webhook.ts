@@ -1,7 +1,10 @@
 import { recordInboundInstagramMessage } from "@/lib/instagram/inbox-repository";
 import { parseInstagramInboundMessages } from "@/lib/instagram/parse-message-webhook";
 import { processInstagramKeywordTrigger } from "@/lib/instagram/process-trigger";
-import { findAccountByIgUserId } from "@/lib/instagram/repository";
+import {
+  findAccountByIgUserId,
+  hasInstagramCampaignParticipant,
+} from "@/lib/instagram/repository";
 
 export async function handleInstagramMessageWebhook(input: {
   body: unknown;
@@ -14,17 +17,12 @@ export async function handleInstagramMessageWebhook(input: {
     const account = await findAccountByIgUserId(msg.igAccountId);
     if (!account) continue;
 
-    if (msg.text) {
-      await recordInboundInstagramMessage({
-        accountId: account.id,
-        participantIgsid: msg.fromId,
-        participantUsername: msg.fromUsername,
-        externalMessageId: msg.messageId,
-        bodyText: msg.text,
-      });
-    }
+    const inCampaignThread = await hasInstagramCampaignParticipant(
+      account.id,
+      msg.fromId,
+    );
 
-    const did = await processInstagramKeywordTrigger({
+    const outcome = await processInstagramKeywordTrigger({
       accountId: account.id,
       campaignTrigger: msg.triggerType,
       mediaId: null,
@@ -35,7 +33,21 @@ export async function handleInstagramMessageWebhook(input: {
       deliveryTriggerType: msg.triggerType,
       processQueued: input.processQueued,
     });
-    if (did) handled += 1;
+
+    if (
+      msg.text &&
+      (inCampaignThread || outcome.matchedCampaign)
+    ) {
+      await recordInboundInstagramMessage({
+        accountId: account.id,
+        participantIgsid: msg.fromId,
+        participantUsername: msg.fromUsername,
+        externalMessageId: msg.messageId,
+        bodyText: msg.text,
+      });
+    }
+
+    if (outcome.handled) handled += 1;
   }
 
   return { handled };

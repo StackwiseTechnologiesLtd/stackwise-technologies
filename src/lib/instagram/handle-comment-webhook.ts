@@ -14,7 +14,7 @@ export async function handleInstagramCommentWebhook(input: {
     const account = await findAccountByIgUserId(comment.igAccountId);
     if (!account) continue;
 
-    const did = await processInstagramKeywordTrigger({
+    const outcome = await processInstagramKeywordTrigger({
       accountId: account.id,
       campaignTrigger: "comment",
       mediaId: comment.mediaId,
@@ -25,7 +25,7 @@ export async function handleInstagramCommentWebhook(input: {
       deliveryTriggerType: "comment",
       processQueued: input.processQueued,
     });
-    if (did) handled += 1;
+    if (outcome.handled) handled += 1;
   }
 
   return { handled };

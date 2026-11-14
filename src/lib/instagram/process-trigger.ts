@@ -1,4 +1,4 @@
-import { commentMatchesKeyword, renderInstagramTemplate } from "@/lib/instagram/keyword";
+import { renderInstagramTemplate, triggerMatchesKeyword } from "@/lib/instagram/keyword";
 import { isInstagramAccountRateLimited } from "@/lib/instagram/rate-limit";
 import type { InstagramCampaign, InstagramCampaignTrigger } from "@/lib/instagram/types";
 import {
@@ -17,7 +17,7 @@ export async function processInstagramKeywordTrigger(input: {
   recipientUsername: string | null;
   deliveryTriggerType: string;
   processQueued: (deliveryId: string) => void;
-}): Promise<boolean> {
+}): Promise<{ handled: boolean; matchedCampaign: boolean }> {
   if (await isInstagramAccountRateLimited(input.accountId)) {
     await insertDelivery({
       campaignId: null,
@@ -30,7 +30,7 @@ export async function processInstagramKeywordTrigger(input: {
       recipientUsername: input.recipientUsername,
       triggerText: input.text,
     });
-    return true;
+    return { handled: true, matchedCampaign: false };
   }
 
   const campaignsForAccount = await listCampaigns(input.accountId);
@@ -40,7 +40,9 @@ export async function processInstagramKeywordTrigger(input: {
     ? eligible.filter((c) => c.mediaId === input.mediaId)
     : eligible.filter((c) => !c.mediaId);
 
-  const keywordMatch = scoped.find((c) => commentMatchesKeyword(input.text, c.keyword));
+  const keywordMatch = scoped.find((c) =>
+    triggerMatchesKeyword(input.campaignTrigger, input.text, c.keyword),
+  );
 
   if (keywordMatch && !keywordMatch.active) {
     await insertDelivery({
@@ -54,7 +56,7 @@ export async function processInstagramKeywordTrigger(input: {
       triggerText: input.text,
       triggerType: input.deliveryTriggerType,
     });
-    return true;
+    return { handled: true, matchedCampaign: true };
   }
 
   if (scoped.length > 0 && !keywordMatch) {
@@ -69,11 +71,11 @@ export async function processInstagramKeywordTrigger(input: {
       triggerText: input.text,
       triggerType: input.deliveryTriggerType,
     });
-    return true;
+    return { handled: true, matchedCampaign: false };
   }
 
   if (!keywordMatch?.active) {
-    return false;
+    return { handled: false, matchedCampaign: false };
   }
 
   if (await getDeliveryByTriggerId(input.externalId)) {
@@ -88,7 +90,7 @@ export async function processInstagramKeywordTrigger(input: {
       triggerText: input.text,
       triggerType: input.deliveryTriggerType,
     });
-    return true;
+    return { handled: true, matchedCampaign: true };
   }
 
   const preview = buildPreviewMessage(keywordMatch, input.recipientUsername);
@@ -105,7 +107,7 @@ export async function processInstagramKeywordTrigger(input: {
     triggerType: input.deliveryTriggerType,
   });
   input.processQueued(deliveryId);
-  return true;
+  return { handled: true, matchedCampaign: true };
 }
 
 function buildPreviewMessage(

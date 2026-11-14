@@ -10,6 +10,13 @@ async function ready() {
   await ensureSchema();
 }
 
+function campaignThreadScopeSql(restrictAccounts: boolean, accountIds: string[] | null) {
+  return {
+    restrictAccounts,
+    accountIds: accountIds ?? [],
+  };
+}
+
 export async function recordInboundInstagramMessage(input: {
   accountId: string;
   participantIgsid: string;
@@ -154,16 +161,22 @@ export async function listInstagramConversations(input: {
   const sql = getSql();
   const limit = Math.min(input.limit ?? 25, 100);
   const offset = Math.max(0, input.offset ?? 0);
-  const accountIds = input.accountIds?.length ? input.accountIds : null;
+  const scope = campaignThreadScopeSql(input.accountIds != null, input.accountIds);
 
   const countRows = asRows<{ total: number }>(
     await sql`
       SELECT COUNT(*)::int AS total
-      FROM instagram_conversations
+      FROM instagram_conversations c
       WHERE (
-        ${accountIds}::uuid[] IS NULL
-        OR account_id = ANY(${accountIds}::uuid[])
+        NOT ${scope.restrictAccounts}::boolean
+        OR c.account_id = ANY(${scope.accountIds}::uuid[])
       )
+        AND EXISTS (
+          SELECT 1 FROM instagram_deliveries d
+          WHERE d.account_id = c.account_id
+            AND d.recipient_igsid = c.participant_igsid
+            AND d.campaign_id IS NOT NULL
+        )
     `,
   );
   const total = countRows[0]?.total ?? 0;
@@ -177,14 +190,20 @@ export async function listInstagramConversations(input: {
     last_message_preview: string | null;
   }>(
     await sql`
-      SELECT id, account_id, participant_igsid, participant_username,
-             last_message_at, last_message_preview
-      FROM instagram_conversations
+      SELECT c.id, c.account_id, c.participant_igsid, c.participant_username,
+             c.last_message_at, c.last_message_preview
+      FROM instagram_conversations c
       WHERE (
-        ${accountIds}::uuid[] IS NULL
-        OR account_id = ANY(${accountIds}::uuid[])
+        NOT ${scope.restrictAccounts}::boolean
+        OR c.account_id = ANY(${scope.accountIds}::uuid[])
       )
-      ORDER BY last_message_at DESC
+        AND EXISTS (
+          SELECT 1 FROM instagram_deliveries d
+          WHERE d.account_id = c.account_id
+            AND d.recipient_igsid = c.participant_igsid
+            AND d.campaign_id IS NOT NULL
+        )
+      ORDER BY c.last_message_at DESC
       LIMIT ${limit}
       OFFSET ${offset}
     `,
@@ -273,11 +292,17 @@ export async function findInstagramConversationByParticipant(input: {
     last_message_preview: string | null;
   }>(
     await sql`
-      SELECT id, account_id, participant_igsid, participant_username,
-             last_message_at, last_message_preview
-      FROM instagram_conversations
-      WHERE account_id = ${input.accountId}::uuid
-        AND participant_igsid = ${input.participantIgsid}
+      SELECT c.id, c.account_id, c.participant_igsid, c.participant_username,
+             c.last_message_at, c.last_message_preview
+      FROM instagram_conversations c
+      WHERE c.account_id = ${input.accountId}::uuid
+        AND c.participant_igsid = ${input.participantIgsid}
+        AND EXISTS (
+          SELECT 1 FROM instagram_deliveries d
+          WHERE d.account_id = c.account_id
+            AND d.recipient_igsid = c.participant_igsid
+            AND d.campaign_id IS NOT NULL
+        )
       LIMIT 1
     `,
   );

@@ -32,7 +32,7 @@ export async function getInstagramAccessForEmail(
   return {
     kind: "operator",
     email: normalized,
-    accountIds: grant.instagramAccountId ? [grant.instagramAccountId] : null,
+    accountIds: grant.instagramAccountId ? [grant.instagramAccountId] : [],
     canManageMetaApps: false,
     canManageTeam: false,
   };
