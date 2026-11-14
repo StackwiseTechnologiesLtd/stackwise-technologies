@@ -1,30 +1,19 @@
 import { NextResponse } from "next/server";
-import { getMetaAppBySlug } from "@/lib/instagram/repository";
-import { listMetaApps, upsertAccount } from "@/lib/instagram/repository";
+import {
+  exchangeCodeForUserToken,
+  exchangeLongLivedUserToken,
+  listFacebookPagesWithInstagram,
+  pickFacebookPage,
+} from "@/lib/instagram/meta-oauth";
 import { instagramOAuthRedirectBase } from "@/lib/instagram/oauth-url";
 import { verifyInstagramOAuthState } from "@/lib/instagram/oauth-state";
+import {
+  getMetaAppBySlug,
+  listMetaApps,
+  upsertAccount,
+} from "@/lib/instagram/repository";
 
 export const dynamic = "force-dynamic";
-
-async function exchangeCodeForToken(input: {
-  metaAppId: string;
-  appSecret: string;
-  code: string;
-  redirectUri: string;
-}): Promise<{ access_token: string }> {
-  const url = new URL("https://graph.facebook.com/v21.0/oauth/access_token");
-  url.searchParams.set("client_id", input.metaAppId);
-  url.searchParams.set("client_secret", input.appSecret);
-  url.searchParams.set("redirect_uri", input.redirectUri);
-  url.searchParams.set("code", input.code);
-  const res = await fetch(url.toString());
-  const json = (await res.json()) as Record<string, unknown>;
-  if (!res.ok) {
-    const err = json.error as { message?: string } | undefined;
-    throw new Error(err?.message ?? "Token exchange failed");
-  }
-  return json as { access_token: string };
-}
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -49,7 +38,7 @@ export async function GET(request: Request) {
 
   const statePayload = await verifyInstagramOAuthState(state);
   if (!statePayload) {
-    return fail("Invalid or expired OAuth state");
+    return fail("Invalid or expired OAuth state — click Connect again");
   }
 
   const apps = await listMetaApps();
@@ -63,62 +52,59 @@ export async function GET(request: Request) {
     return fail("App credentials missing");
   }
 
-  const redirectUri = instagramOAuthRedirectBase();
+  const redirectUri = instagramOAuthRedirectBase(request);
+  const preferredPageId =
+    process.env.INSTAGRAM_FACEBOOK_PAGE_ID?.trim() || null;
 
   try {
-    const tokens = await exchangeCodeForToken({
+    const short = await exchangeCodeForUserToken({
       metaAppId: appWithSecret.metaAppId,
       appSecret: appWithSecret.appSecret,
       code,
       redirectUri,
     });
 
-    const meUrl = new URL("https://graph.facebook.com/v21.0/me/accounts");
-    meUrl.searchParams.set("access_token", tokens.access_token);
-    const meRes = await fetch(meUrl.toString());
-    const meJson = (await meRes.json()) as Record<string, unknown>;
-    if (!meRes.ok) {
-      throw new Error("Could not load Facebook pages for this token");
-    }
+    const long = await exchangeLongLivedUserToken({
+      metaAppId: appWithSecret.metaAppId,
+      appSecret: appWithSecret.appSecret,
+      shortLivedToken: short.accessToken,
+    });
 
-    const data = Array.isArray(meJson.data) ? meJson.data : [];
-    const page = data[0] as Record<string, unknown> | undefined;
-    const pageAccessToken = page ? String(page.access_token ?? "") : tokens.access_token;
-    const igUrl = page
-      ? `https://graph.facebook.com/v21.0/${String(page.id)}?fields=instagram_business_account&access_token=${encodeURIComponent(pageAccessToken)}`
-      : null;
+    const pages = await listFacebookPagesWithInstagram(long.accessToken);
+    const page = pickFacebookPage(pages, preferredPageId);
 
-    let igUserId = "";
-    let username: string | null = null;
-
-    if (igUrl) {
-      const igRes = await fetch(igUrl);
-      const igJson = (await igRes.json()) as Record<string, unknown>;
-      const iba = igJson.instagram_business_account as { id?: string } | undefined;
-      igUserId = iba?.id ? String(iba.id) : "";
-      if (igUserId) {
-        const profRes = await fetch(
-          `https://graph.instagram.com/v21.0/${igUserId}?fields=username&access_token=${encodeURIComponent(pageAccessToken)}`,
+    if (!page) {
+      if (pages.length > 1) {
+        const names = pages.map((p) => `${p.pageName} (${p.pageId})`).join(", ");
+        return fail(
+          `Several Facebook Pages have Instagram linked. Set INSTAGRAM_FACEBOOK_PAGE_ID to one of: ${names}`,
         );
-        const prof = (await profRes.json()) as { username?: string };
-        username = prof.username ?? null;
       }
-    }
-
-    if (!igUserId) {
       return fail(
-        "No Instagram Business account linked to this Facebook user. Connect IG to a Page first.",
+        "No Instagram Business account found. Link IG to a Facebook Page, then try Connect again.",
       );
     }
 
+    const expiresAt =
+      long.expiresIn != null
+        ? new Date(Date.now() + long.expiresIn * 1000).toISOString()
+        : null;
+
     await upsertAccount({
       metaAppId: statePayload.metaAppRowId,
-      igUserId,
-      username,
-      accessToken: pageAccessToken,
+      igUserId: page.igUserId,
+      username: page.igUsername,
+      accessToken: page.pageAccessToken,
+      tokenExpiresAt: expiresAt,
     });
 
-    return NextResponse.redirect(new URL("/admin/growth/instagram?oauth=ok", request.url));
+    const qs = new URLSearchParams({
+      oauth: "ok",
+      ig: page.igUsername ?? page.igUserId,
+    });
+    return NextResponse.redirect(
+      new URL(`/admin/growth/instagram?${qs.toString()}`, request.url),
+    );
   } catch (error) {
     const message = error instanceof Error ? error.message : "OAuth failed";
     return fail(message);

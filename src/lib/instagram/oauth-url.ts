@@ -4,6 +4,7 @@ const SCOPES = [
   "instagram_manage_messages",
   "pages_show_list",
   "pages_read_engagement",
+  "pages_manage_metadata",
 ].join(",");
 
 /** Build Facebook Login URL for Instagram Business/Creator connect (direct Meta app). */
@@ -21,10 +22,19 @@ export function buildMetaInstagramOAuthUrl(input: {
   return url.toString();
 }
 
-export function instagramOAuthRedirectBase(): string {
+export function instagramOAuthRedirectBase(request?: Request): string {
+  const override = process.env.INSTAGRAM_OAUTH_REDIRECT_BASE?.trim();
+  if (override) {
+    return `${override.replace(/\/$/, "")}/api/admin/instagram/oauth/callback`;
+  }
+  if (request) {
+    return `${new URL(request.url).origin}/api/admin/instagram/oauth/callback`;
+  }
   const base =
-    process.env.INSTAGRAM_OAUTH_REDIRECT_BASE?.trim() ||
-    process.env.NEXT_PUBLIC_SITE_URL?.trim() ||
-    "http://localhost:3000";
+    process.env.NEXT_PUBLIC_SITE_URL?.trim() || "http://localhost:3000";
   return `${base.replace(/\/$/, "")}/api/admin/instagram/oauth/callback`;
+}
+
+export function instagramOAuthScopes(): string {
+  return SCOPES;
 }

@@ -29,9 +29,10 @@ export async function GET(request: Request) {
     email: session.email,
   });
 
+  const redirectUri = instagramOAuthRedirectBase(request);
   const oauthUrl = buildMetaInstagramOAuthUrl({
     metaAppId: app.metaAppId,
-    redirectUri: instagramOAuthRedirectBase(),
+    redirectUri,
     state,
   });
 

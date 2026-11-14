@@ -36,6 +36,11 @@ export function GrowthInstagramPanel() {
   const [deliveries, setDeliveries] = useState<InstagramDelivery[]>([]);
   const [loading, setLoading] = useState(true);
   const [deliveryFilter, setDeliveryFilter] = useState<string>("");
+  const [oauthSetup, setOauthSetup] = useState<{
+    redirectUri: string;
+    scopes: string[];
+    webhookHint: string;
+  } | null>(null);
 
   const [appForm, setAppForm] = useState({
     label: "",
@@ -67,7 +72,7 @@ export function GrowthInstagramPanel() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [st, appsRes, accRes, campRes, delUrl] = await Promise.all([
+      const [st, appsRes, accRes, campRes, delUrl, oauthCfg] = await Promise.all([
         fetch("/api/admin/instagram/status"),
         fetch("/api/admin/instagram/meta-apps"),
         fetch("/api/admin/instagram/accounts"),
@@ -77,6 +82,7 @@ export function GrowthInstagramPanel() {
             deliveryFilter ? `?status=${encodeURIComponent(deliveryFilter)}` : ""
           }`,
         ),
+        fetch("/api/admin/instagram/oauth/config"),
       ]);
       if (!st.ok) throw new Error("Status load failed");
       setStatus((await st.json()) as InstagramOpsStatus);
@@ -95,6 +101,14 @@ export function GrowthInstagramPanel() {
       if (delUrl.ok) {
         const data = (await delUrl.json()) as { deliveries: InstagramDelivery[] };
         setDeliveries(data.deliveries);
+      }
+      if (oauthCfg.ok) {
+        const data = (await oauthCfg.json()) as {
+          redirectUri: string;
+          scopes: string[];
+          webhookHint: string;
+        };
+        setOauthSetup(data);
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Load failed");
@@ -167,6 +181,21 @@ export function GrowthInstagramPanel() {
     }
   }
 
+  async function testAccountToken(accountId: string) {
+    try {
+      const res = await fetch(`/api/admin/instagram/accounts/${accountId}/test`, {
+        method: "POST",
+      });
+      const data = (await res.json()) as { ok?: boolean; detail?: string };
+      if (!res.ok || !data.ok) {
+        throw new Error(data.detail ?? "Token check failed");
+      }
+      toast.success(data.detail ?? "Token looks valid");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Token check failed");
+    }
+  }
+
   async function toggleCampaign(id: string, active: boolean) {
     try {
       const res = await fetch(`/api/admin/instagram/campaigns/${id}`, {
@@ -212,10 +241,20 @@ export function GrowthInstagramPanel() {
       <section className="rounded-xl border border-line bg-panel p-5 sm:p-6">
         <h3 className="text-base font-semibold tracking-tight">Meta apps</h3>
         <p className="mt-1 text-sm text-muted">
-          One row per Meta app. Register webhook callback{" "}
-          <code className="text-foreground">/api/webhooks/meta/[slug]</code> in the developer
-          console.
+          One row per Meta app. In Meta for Developers → Facebook Login → Valid OAuth redirect
+          URIs, paste the callback URL below. Webhooks:{" "}
+          <code className="text-foreground">/api/webhooks/meta/[slug]</code> (see{" "}
+          <code className="text-foreground">docs/INSTAGRAM_META_SETUP.md</code>).
         </p>
+        {oauthSetup && (
+          <div className="mt-3 rounded-lg border border-line bg-black/30 px-3 py-2 text-xs">
+            <p className="text-muted">OAuth callback (copy into Meta app settings)</p>
+            <code className="mt-1 block break-all text-foreground">{oauthSetup.redirectUri}</code>
+            <p className="mt-2 text-muted">
+              Webhooks: <code className="text-foreground">{oauthSetup.webhookHint}</code>
+            </p>
+          </div>
+        )}
         {apps.length > 0 && (
           <ul className="mt-3 space-y-2 text-sm">
             {apps.map((app) => (
@@ -228,10 +267,10 @@ export function GrowthInstagramPanel() {
                   <span className="text-muted">({app.slug})</span>
                 </span>
                 <a
-                  className="text-xs text-accent underline"
+                  className="rounded-lg border border-accent/40 px-2 py-1 text-xs font-medium text-accent hover:bg-accent/10"
                   href={`/api/admin/instagram/oauth/start?metaAppId=${encodeURIComponent(app.id)}`}
                 >
-                  Connect with Meta OAuth
+                  Connect Instagram
                 </a>
               </li>
             ))}
@@ -341,8 +380,24 @@ export function GrowthInstagramPanel() {
         {accounts.length > 0 && (
           <ul className="mt-3 text-sm text-muted">
             {accounts.map((a) => (
-              <li key={a.id}>
-                {a.username ?? a.igUserId} · token {a.hasAccessToken ? "set" : "missing"}
+              <li
+                key={a.id}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-line bg-black/20 px-3 py-2"
+              >
+                <span className="text-sm">
+                  {a.username ? `@${a.username}` : a.igUserId} ·{" "}
+                  {a.hasAccessToken ? "token set" : "no token"}
+                  {a.tokenExpiresAt ? ` · expires ${formatWhen(a.tokenExpiresAt)}` : ""}
+                </span>
+                {a.hasAccessToken && (
+                  <button
+                    type="button"
+                    className="text-xs text-accent underline"
+                    onClick={() => void testAccountToken(a.id)}
+                  >
+                    Test token
+                  </button>
+                )}
               </li>
             ))}
           </ul>

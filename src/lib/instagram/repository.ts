@@ -27,6 +27,64 @@ function slugify(value: string): string {
     .slice(0, 64);
 }
 
+async function getMetaAppWithSecret(
+  row: {
+    id: string;
+    slug: string;
+    label: string;
+    meta_app_id: string;
+    app_secret_ciphertext: string;
+    app_secret_iv: string;
+    webhook_verify_token: string;
+    created_at: string;
+    updated_at: string;
+  },
+): Promise<InstagramMetaApp & { appSecret: string }> {
+  const secret = await decryptJson<{ secret: string }>(
+    row.app_secret_ciphertext,
+    row.app_secret_iv,
+  );
+  return {
+    id: row.id,
+    slug: row.slug,
+    label: row.label,
+    metaAppId: row.meta_app_id,
+    webhookVerifyToken: row.webhook_verify_token,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    appSecret: secret.secret,
+  };
+}
+
+export async function getMetaAppById(
+  id: string,
+): Promise<(InstagramMetaApp & { appSecret: string }) | null> {
+  await ready();
+  const sql = getSql();
+  const rows = asRows<{
+    id: string;
+    slug: string;
+    label: string;
+    meta_app_id: string;
+    app_secret_ciphertext: string;
+    app_secret_iv: string;
+    webhook_verify_token: string;
+    created_at: string;
+    updated_at: string;
+  }>(
+    await sql`
+      SELECT id, slug, label, meta_app_id, app_secret_ciphertext, app_secret_iv,
+             webhook_verify_token, created_at, updated_at
+      FROM instagram_meta_apps
+      WHERE id = ${id}::uuid
+      LIMIT 1
+    `,
+  );
+  const row = rows[0];
+  if (!row) return null;
+  return getMetaAppWithSecret(row);
+}
+
 export async function getMetaAppBySlug(
   slug: string,
 ): Promise<(InstagramMetaApp & { appSecret: string }) | null> {
@@ -53,20 +111,7 @@ export async function getMetaAppBySlug(
   );
   const row = rows[0];
   if (!row) return null;
-  const secret = await decryptJson<{ secret: string }>(
-    row.app_secret_ciphertext,
-    row.app_secret_iv,
-  );
-  return {
-    id: row.id,
-    slug: row.slug,
-    label: row.label,
-    metaAppId: row.meta_app_id,
-    webhookVerifyToken: row.webhook_verify_token,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-    appSecret: secret.secret,
-  };
+  return getMetaAppWithSecret(row);
 }
 
 export async function listMetaApps(): Promise<InstagramMetaApp[]> {
@@ -167,6 +212,7 @@ export async function upsertAccount(input: {
   igUserId: string;
   username?: string | null;
   accessToken?: string;
+  tokenExpiresAt?: string | null;
 }): Promise<InstagramAccount> {
   await ready();
   const sql = getSql();
@@ -192,6 +238,7 @@ export async function upsertAccount(input: {
         username = COALESCE(${input.username ?? null}, username),
         access_token_ciphertext = COALESCE(${access_token_ciphertext}, access_token_ciphertext),
         access_token_iv = COALESCE(${access_token_iv}, access_token_iv),
+        token_expires_at = COALESCE(${input.tokenExpiresAt ?? null}::timestamptz, token_expires_at),
         status = 'active',
         updated_at = NOW()
       WHERE id = ${id}::uuid
@@ -203,7 +250,7 @@ export async function upsertAccount(input: {
     await sql`
       INSERT INTO instagram_accounts (
         id, meta_app_id, ig_user_id, username,
-        access_token_ciphertext, access_token_iv, status
+        access_token_ciphertext, access_token_iv, token_expires_at, status
       ) VALUES (
         ${id}::uuid,
         ${input.metaAppId}::uuid,
@@ -211,6 +258,7 @@ export async function upsertAccount(input: {
         ${input.username ?? null},
         ${access_token_ciphertext},
         ${access_token_iv},
+        ${input.tokenExpiresAt ?? null}::timestamptz,
         'active'
       )
     `;
