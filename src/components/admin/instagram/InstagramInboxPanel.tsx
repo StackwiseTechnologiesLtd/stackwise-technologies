@@ -38,6 +38,7 @@ export function InstagramInboxPanel() {
   const [messagePage, setMessagePage] = useState(1);
   const [messageTotal, setMessageTotal] = useState(0);
   const [messageTotalPages, setMessageTotalPages] = useState(1);
+  const [contactSearch, setContactSearch] = useState("");
 
   const loadList = useCallback(async () => {
     setLoadingList(true);
@@ -46,6 +47,8 @@ export function InstagramInboxPanel() {
         page: String(conversationPage),
         limit: String(CONVERSATION_PAGE_SIZE),
       });
+      const q = contactSearch.trim();
+      if (q) params.set("q", q);
       const res = await fetch(`/api/admin/instagram/conversations?${params}`);
       if (!res.ok) throw new Error("Could not load conversations");
       const data = (await res.json()) as {
@@ -65,7 +68,11 @@ export function InstagramInboxPanel() {
     } finally {
       setLoadingList(false);
     }
-  }, [conversationPage, toast]);
+  }, [contactSearch, conversationPage, toast]);
+
+  useDeferredEffect(() => {
+    setConversationPage(1);
+  }, [contactSearch]);
 
   const loadThread = useCallback(
     async (conversationId: string) => {
@@ -167,15 +174,22 @@ export function InstagramInboxPanel() {
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted">
-        Only participants who triggered a campaign (keyword DMs and replies in that thread) appear
-        here. Manual replies use the Instagram messaging API and must fall inside the active
-        messaging window.
+        People are grouped by Instagram @username on each connected account (one row per contact).
+        Only campaign triggers and replies in that thread are stored. Replies must fall inside
+        Meta’s messaging window.
       </p>
 
       <div className="grid min-h-[28rem] gap-4 lg:grid-cols-[minmax(12rem,16rem)_1fr]">
         <aside className="rounded-xl border border-line bg-panel">
-          <div className="border-b border-line px-3 py-2 text-xs font-medium text-muted">
-            Conversations
+          <div className="space-y-2 border-b border-line px-3 py-2">
+            <p className="text-xs font-medium text-muted">Contacts</p>
+            <input
+              type="search"
+              placeholder="Search @username…"
+              className="w-full rounded-lg border border-line bg-black/40 px-2.5 py-1.5 text-sm"
+              value={contactSearch}
+              onChange={(e) => setContactSearch(e.target.value)}
+            />
           </div>
           <ul className="max-h-[26rem] overflow-y-auto">
             {loadingList ? (

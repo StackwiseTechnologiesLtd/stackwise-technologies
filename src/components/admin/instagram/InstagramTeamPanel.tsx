@@ -85,9 +85,10 @@ export function InstagramTeamPanel({
       <section className="rounded-xl border border-line bg-panel p-5 sm:p-6">
         <h2 className="text-base font-semibold">Invite operator</h2>
         <p className="mt-1 text-sm text-muted">
-          Operators sign in at the same admin login with OTP. They only see Instagram
-          automations — not billing or other growth tools. Scope to one account or leave all
-          accounts if you only have one connected.
+          Adding someone whitelists their email — we do not send an invite email. They sign in at{" "}
+          <strong>/admin/login</strong> with that exact email, request a one-time code, then land in
+          the Instagram portal only (not billing or other admin areas). Pick one connected account
+          or leave scope empty to allow every connected Instagram account.
         </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <label className="text-sm sm:col-span-2">
