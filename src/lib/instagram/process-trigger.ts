@@ -60,18 +60,7 @@ export async function processInstagramKeywordTrigger(input: {
   }
 
   if (scoped.length > 0 && !keywordMatch) {
-    await insertDelivery({
-      campaignId: null,
-      accountId: input.accountId,
-      status: "skipped",
-      skipReason: "no_keyword_match",
-      triggerExternalId: input.externalId,
-      recipientIgsid: input.recipientIgsid,
-      recipientUsername: input.recipientUsername,
-      triggerText: input.text,
-      triggerType: input.deliveryTriggerType,
-    });
-    return { handled: true, matchedCampaign: false };
+    return { handled: false, matchedCampaign: false };
   }
 
   if (!keywordMatch?.active) {

@@ -495,7 +495,7 @@ export function InstagramOverviewDashboard() {
                           href="/admin/instagram/connection"
                           className="text-xs font-medium text-accent hover:underline"
                         >
-                          Settings
+                          Manage
                         </Link>
                       ) : null}
                     </li>
@@ -570,6 +570,9 @@ export function InstagramOverviewDashboard() {
                 </Link>
               }
             />
+            <p className="border-b border-line/60 px-5 py-2 text-[11px] text-muted">
+              Keyword matches on connected accounts only.
+            </p>
             <ul className="max-h-[28rem] divide-y divide-line/60 overflow-y-auto">
               {(data?.recentDeliveries ?? []).length === 0 ? (
                 <li className="px-5 py-12 text-center text-sm text-muted">

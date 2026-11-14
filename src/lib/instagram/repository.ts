@@ -201,6 +201,7 @@ export async function listAccounts(): Promise<InstagramAccount[]> {
       SELECT id, meta_app_id, ig_user_id, username, status, token_expires_at,
              access_token_ciphertext, webhook_subscribed, created_at, updated_at
       FROM instagram_accounts
+      WHERE status = 'active'
       ORDER BY username ASC NULLS LAST, created_at DESC
     `,
   );
@@ -326,7 +327,13 @@ export async function findAccountByIgUserId(
   igUserId: string,
 ): Promise<InstagramAccount | null> {
   const accounts = await listAccounts();
-  return accounts.find((a) => a.igUserId === igUserId && a.status === "active") ?? null;
+  return accounts.find((a) => a.igUserId === igUserId) ?? null;
+}
+
+export async function deleteInstagramAccount(accountId: string): Promise<void> {
+  await ready();
+  const sql = getSql();
+  await sql`DELETE FROM instagram_accounts WHERE id = ${accountId}::uuid AND status = 'active'`;
 }
 
 type CampaignRow = {
@@ -378,21 +385,23 @@ export async function listCampaigns(accountId?: string): Promise<InstagramCampai
   const rows = asRows<CampaignRow>(
     accountId
       ? await sql`
-          SELECT id, account_id, name, media_id, keyword, trigger_type,
-                 private_reply_template, public_reply_template,
-                 button_label_1, button_url_1, button_label_2, button_url_2,
-                 active, created_at, updated_at
-          FROM instagram_campaigns
-          WHERE account_id = ${accountId}::uuid
-          ORDER BY updated_at DESC
+          SELECT c.id, c.account_id, c.name, c.media_id, c.keyword, c.trigger_type,
+                 c.private_reply_template, c.public_reply_template,
+                 c.button_label_1, c.button_url_1, c.button_label_2, c.button_url_2,
+                 c.active, c.created_at, c.updated_at
+          FROM instagram_campaigns c
+          INNER JOIN instagram_accounts a ON a.id = c.account_id AND a.status = 'active'
+          WHERE c.account_id = ${accountId}::uuid
+          ORDER BY c.updated_at DESC
         `
       : await sql`
-          SELECT id, account_id, name, media_id, keyword, trigger_type,
-                 private_reply_template, public_reply_template,
-                 button_label_1, button_url_1, button_label_2, button_url_2,
-                 active, created_at, updated_at
-          FROM instagram_campaigns
-          ORDER BY updated_at DESC
+          SELECT c.id, c.account_id, c.name, c.media_id, c.keyword, c.trigger_type,
+                 c.private_reply_template, c.public_reply_template,
+                 c.button_label_1, c.button_url_1, c.button_label_2, c.button_url_2,
+                 c.active, c.created_at, c.updated_at
+          FROM instagram_campaigns c
+          INNER JOIN instagram_accounts a ON a.id = c.account_id AND a.status = 'active'
+          ORDER BY c.updated_at DESC
         `,
   );
   return rows.map(mapCampaign);
@@ -765,7 +774,9 @@ export async function listDeliveries(input?: {
     await sql`
       SELECT COUNT(*)::int AS total
       FROM instagram_deliveries d
-      WHERE (${status}::text IS NULL OR d.status = ${status})
+      INNER JOIN instagram_accounts a ON a.id = d.account_id AND a.status = 'active'
+      WHERE d.campaign_id IS NOT NULL
+        AND (${status}::text IS NULL OR d.status = ${status})
         AND (${campaignId}::uuid IS NULL OR d.campaign_id = ${campaignId}::uuid)
         AND (
           NOT ${restrictAccounts}::boolean
@@ -784,8 +795,10 @@ export async function listDeliveries(input?: {
           WHERE tl.delivery_id = d.id
         ) AS click_count
       FROM instagram_deliveries d
+      INNER JOIN instagram_accounts a ON a.id = d.account_id AND a.status = 'active'
       LEFT JOIN instagram_campaigns c ON c.id = d.campaign_id
-      WHERE (${status}::text IS NULL OR d.status = ${status})
+      WHERE d.campaign_id IS NOT NULL
+        AND (${status}::text IS NULL OR d.status = ${status})
         AND (${campaignId}::uuid IS NULL OR d.campaign_id = ${campaignId}::uuid)
         AND (
           NOT ${restrictAccounts}::boolean
@@ -985,19 +998,21 @@ export async function getCampaignSentCounts(input?: {
   const rows = asRows<{ campaign_id: string; sent: number }>(
     restrictAccounts
       ? await sql`
-          SELECT campaign_id, COUNT(*)::int AS sent
-          FROM instagram_deliveries
-          WHERE campaign_id IS NOT NULL
-            AND status = 'sent'
-            AND account_id = ANY(${scopeAccounts ?? []}::uuid[])
-          GROUP BY campaign_id
+          SELECT d.campaign_id, COUNT(*)::int AS sent
+          FROM instagram_deliveries d
+          INNER JOIN instagram_accounts a ON a.id = d.account_id AND a.status = 'active'
+          WHERE d.campaign_id IS NOT NULL
+            AND d.status = 'sent'
+            AND d.account_id = ANY(${scopeAccounts ?? []}::uuid[])
+          GROUP BY d.campaign_id
         `
       : await sql`
-          SELECT campaign_id, COUNT(*)::int AS sent
-          FROM instagram_deliveries
-          WHERE campaign_id IS NOT NULL
-            AND status = 'sent'
-          GROUP BY campaign_id
+          SELECT d.campaign_id, COUNT(*)::int AS sent
+          FROM instagram_deliveries d
+          INNER JOIN instagram_accounts a ON a.id = d.account_id AND a.status = 'active'
+          WHERE d.campaign_id IS NOT NULL
+            AND d.status = 'sent'
+          GROUP BY d.campaign_id
         `,
   );
   const out: Record<string, number> = {};
@@ -1025,47 +1040,71 @@ export async function getInstagramDeliveryMetrics(input?: {
       ? await sql`
           SELECT
             (
-              SELECT COUNT(*)::int FROM instagram_deliveries
-              WHERE status = 'sent'
-                AND sent_at > NOW() - INTERVAL '7 days'
-                AND account_id = ANY(${scopeAccounts ?? []}::uuid[])
+              SELECT COUNT(*)::int
+              FROM instagram_deliveries d
+              INNER JOIN instagram_accounts a ON a.id = d.account_id AND a.status = 'active'
+              WHERE d.campaign_id IS NOT NULL
+                AND d.status = 'sent'
+                AND d.sent_at > NOW() - INTERVAL '7 days'
+                AND d.account_id = ANY(${scopeAccounts ?? []}::uuid[])
             ) AS sent_week,
             (
-              SELECT COUNT(*)::int FROM instagram_deliveries
-              WHERE status = 'failed'
-                AND created_at > NOW() - INTERVAL '7 days'
-                AND account_id = ANY(${scopeAccounts ?? []}::uuid[])
+              SELECT COUNT(*)::int
+              FROM instagram_deliveries d
+              INNER JOIN instagram_accounts a ON a.id = d.account_id AND a.status = 'active'
+              WHERE d.campaign_id IS NOT NULL
+                AND d.status = 'failed'
+                AND d.created_at > NOW() - INTERVAL '7 days'
+                AND d.account_id = ANY(${scopeAccounts ?? []}::uuid[])
             ) AS failed_week,
             (
-              SELECT COUNT(*)::int FROM instagram_deliveries
-              WHERE status = 'queued'
-                AND account_id = ANY(${scopeAccounts ?? []}::uuid[])
+              SELECT COUNT(*)::int
+              FROM instagram_deliveries d
+              INNER JOIN instagram_accounts a ON a.id = d.account_id AND a.status = 'active'
+              WHERE d.campaign_id IS NOT NULL
+                AND d.status = 'queued'
+                AND d.account_id = ANY(${scopeAccounts ?? []}::uuid[])
             ) AS queued,
             (
               SELECT COUNT(*)::int FROM instagram_campaigns
               WHERE active = FALSE
                 AND account_id = ANY(${scopeAccounts ?? []}::uuid[])
+                AND account_id IN (
+                  SELECT id FROM instagram_accounts WHERE status = 'active'
+                )
             ) AS paused
         `
       : await sql`
           SELECT
             (
-              SELECT COUNT(*)::int FROM instagram_deliveries
-              WHERE status = 'sent'
-                AND sent_at > NOW() - INTERVAL '7 days'
+              SELECT COUNT(*)::int
+              FROM instagram_deliveries d
+              INNER JOIN instagram_accounts a ON a.id = d.account_id AND a.status = 'active'
+              WHERE d.campaign_id IS NOT NULL
+                AND d.status = 'sent'
+                AND d.sent_at > NOW() - INTERVAL '7 days'
             ) AS sent_week,
             (
-              SELECT COUNT(*)::int FROM instagram_deliveries
-              WHERE status = 'failed'
-                AND created_at > NOW() - INTERVAL '7 days'
+              SELECT COUNT(*)::int
+              FROM instagram_deliveries d
+              INNER JOIN instagram_accounts a ON a.id = d.account_id AND a.status = 'active'
+              WHERE d.campaign_id IS NOT NULL
+                AND d.status = 'failed'
+                AND d.created_at > NOW() - INTERVAL '7 days'
             ) AS failed_week,
             (
-              SELECT COUNT(*)::int FROM instagram_deliveries
-              WHERE status = 'queued'
+              SELECT COUNT(*)::int
+              FROM instagram_deliveries d
+              INNER JOIN instagram_accounts a ON a.id = d.account_id AND a.status = 'active'
+              WHERE d.campaign_id IS NOT NULL
+                AND d.status = 'queued'
             ) AS queued,
             (
               SELECT COUNT(*)::int FROM instagram_campaigns
               WHERE active = FALSE
+                AND account_id IN (
+                  SELECT id FROM instagram_accounts WHERE status = 'active'
+                )
             ) AS paused
         `,
   );

@@ -291,6 +291,26 @@ export function GrowthInstagramPanel({
     }
   }
 
+  async function removeAccount(accountId: string, label: string) {
+    if (
+      !confirm(
+        `Remove ${label}? This deletes the connection, campaigns, delivery history, and inbox threads for this account in Stackwise. Meta may still send webhooks until you disconnect in Meta or unsubscribe — we will ignore them.`,
+      )
+    ) {
+      return;
+    }
+    try {
+      const res = await fetch(`/api/admin/instagram/accounts/${accountId}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Remove failed");
+      toast.toast("Account removed.");
+      await load();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Remove failed");
+    }
+  }
+
   async function testAccountToken(accountId: string) {
     try {
       const res = await fetch(`/api/admin/instagram/accounts/${accountId}/test`, {
@@ -597,6 +617,18 @@ export function GrowthInstagramPanel({
                         )}
                       </>
                     )}
+                    <button
+                      type="button"
+                      className="text-xs text-red-400 underline hover:text-red-300"
+                      onClick={() =>
+                        void removeAccount(
+                          a.id,
+                          a.username ? `@${a.username}` : a.igUserId,
+                        )
+                      }
+                    >
+                      Remove
+                    </button>
                   </span>
                 ) : null}
               </li>
@@ -749,7 +781,11 @@ export function GrowthInstagramPanel({
 
       {show("activity") ? (
       <section className="rounded-xl border border-line bg-panel p-5 sm:p-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-muted">
+          Only keyword-matched campaign events on connected accounts. Unmatched DMs and removed
+          accounts are omitted.
+        </p>
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
           <h3 className="text-base font-semibold tracking-tight">Delivery log</h3>
           <select
             className="rounded-lg border border-line bg-black/40 px-2 py-1 text-sm"
