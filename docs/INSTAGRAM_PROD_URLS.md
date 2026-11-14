@@ -6,7 +6,7 @@ Meta app slug in Neon: **`looial-ig`** (webhook path segment).
 |---------------|-----|
 | **Business login → Redirect URL** | `https://stackwisetechnologies.com/api/admin/instagram/oauth/callback` |
 | **Webhooks → Callback URL** | `https://stackwisetechnologies.com/api/webhooks/meta/looial-ig` |
-| **Verify token** | Same string stored on the Meta app row in admin (not the OAuth path) |
+| **Verify token** | `fDOjCPBJ` (must match Meta app row in admin / Neon) |
 
 **After OAuth (browser only, not a Meta field):** users return to  
 `https://stackwisetechnologies.com/admin/instagram/connection?oauth=ok`
