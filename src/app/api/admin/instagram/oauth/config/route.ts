@@ -40,8 +40,7 @@ export async function GET(request: Request) {
         "INSTAGRAM_OAUTH_REDIRECT_BASE — ngrok or prod origin (no path), e.g. https://abc.ngrok-free.app",
       instagramOAuthAdminReturnBase:
         "INSTAGRAM_OAUTH_ADMIN_RETURN_BASE — optional; defaults to NEXT_PUBLIC_SITE_URL when tunnel is set",
-      instagramFacebookPageId:
-        "INSTAGRAM_FACEBOOK_PAGE_ID — when multiple Pages link to IG",
+      metaGraphApiVersion: "META_GRAPH_API_VERSION — Graph host version (v21.0 default)",
       instagramPublicBaseUrl:
         "INSTAGRAM_PUBLIC_BASE_URL — tracked short links + smoke tests",
     },

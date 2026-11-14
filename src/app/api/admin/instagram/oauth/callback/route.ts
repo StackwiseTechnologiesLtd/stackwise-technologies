@@ -1,28 +1,26 @@
 import { NextResponse } from "next/server";
 import {
-  exchangeCodeForUserToken,
-  exchangeLongLivedUserToken,
-  listFacebookPagesWithInstagram,
-  pickFacebookPage,
+  exchangeInstagramCodeForToken,
+  exchangeInstagramLongLivedToken,
+  getInstagramProfessionalUser,
+  normalizeInstagramOAuthCode,
+  subscribeInstagramAccountToWebhooks,
 } from "@/lib/instagram/meta-oauth";
 import {
   instagramAdminReturnOrigin,
   instagramOAuthRedirectBase,
 } from "@/lib/instagram/oauth-url";
 import { verifyInstagramOAuthState } from "@/lib/instagram/oauth-state";
-import {
-  getMetaAppBySlug,
-  listMetaApps,
-  upsertAccount,
-} from "@/lib/instagram/repository";
+import { getMetaAppById, upsertAccount } from "@/lib/instagram/repository";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  const code = url.searchParams.get("code");
+  const code = normalizeInstagramOAuthCode(url.searchParams.get("code"));
   const state = url.searchParams.get("state");
-  const oauthError = url.searchParams.get("error_description") ?? url.searchParams.get("error");
+  const oauthError =
+    url.searchParams.get("error_description") ?? url.searchParams.get("error");
 
   const returnOrigin = instagramAdminReturnOrigin(request);
 
@@ -46,66 +44,53 @@ export async function GET(request: Request) {
     return fail("Invalid or expired OAuth state — click Connect again");
   }
 
-  const apps = await listMetaApps();
-  const appMeta = apps.find((a) => a.id === statePayload.metaAppRowId);
-  if (!appMeta) {
-    return fail("Meta app not found");
-  }
-
-  const appWithSecret = await getMetaAppBySlug(appMeta.slug);
+  const appWithSecret = await getMetaAppById(statePayload.metaAppRowId);
   if (!appWithSecret) {
-    return fail("App credentials missing");
+    return fail("Meta app not found or credentials missing");
   }
 
   const redirectUri = instagramOAuthRedirectBase(request);
-  const preferredPageId =
-    process.env.INSTAGRAM_FACEBOOK_PAGE_ID?.trim() || null;
 
   try {
-    const short = await exchangeCodeForUserToken({
-      metaAppId: appWithSecret.metaAppId,
+    const short = await exchangeInstagramCodeForToken({
+      instagramAppId: appWithSecret.metaAppId,
       appSecret: appWithSecret.appSecret,
       code,
       redirectUri,
     });
 
-    const long = await exchangeLongLivedUserToken({
-      metaAppId: appWithSecret.metaAppId,
-      appSecret: appWithSecret.appSecret,
+    const long = await exchangeInstagramLongLivedToken({
       shortLivedToken: short.accessToken,
+      appSecret: appWithSecret.appSecret,
     });
 
-    const pages = await listFacebookPagesWithInstagram(long.accessToken);
-    const page = pickFacebookPage(pages, preferredPageId);
+    const profile = await getInstagramProfessionalUser(long.accessToken);
+    const webhookIgId = profile.userId;
 
-    if (!page) {
-      if (pages.length > 1) {
-        const names = pages.map((p) => `${p.pageName} (${p.pageId})`).join(", ");
-        return fail(
-          `Several Facebook Pages have Instagram linked. Set INSTAGRAM_FACEBOOK_PAGE_ID to one of: ${names}`,
-        );
-      }
-      return fail(
-        "No Instagram Business account found. Link IG to a Facebook Page, then try Connect again.",
-      );
+    try {
+      await subscribeInstagramAccountToWebhooks({
+        instagramUserId: webhookIgId,
+        accessToken: long.accessToken,
+      });
+    } catch (subscriptionError) {
+      console.warn("[instagram-oauth] Webhook subscription:", subscriptionError);
     }
 
-    const expiresAt =
-      long.expiresIn != null
-        ? new Date(Date.now() + long.expiresIn * 1000).toISOString()
-        : null;
+    const expiresAt = new Date(
+      Date.now() + long.expiresIn * 1000,
+    ).toISOString();
 
     await upsertAccount({
       metaAppId: statePayload.metaAppRowId,
-      igUserId: page.igUserId,
-      username: page.igUsername,
-      accessToken: page.pageAccessToken,
+      igUserId: webhookIgId,
+      username: profile.username,
+      accessToken: long.accessToken,
       tokenExpiresAt: expiresAt,
     });
 
     const qs = new URLSearchParams({
       oauth: "ok",
-      ig: page.igUsername ?? page.igUserId,
+      ig: profile.username ?? webhookIgId,
     });
     return NextResponse.redirect(
       new URL(`/admin/growth/instagram?${qs.toString()}`, returnOrigin),

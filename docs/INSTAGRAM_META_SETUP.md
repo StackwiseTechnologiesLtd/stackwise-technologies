@@ -1,99 +1,71 @@
-# Instagram / Meta connect session
+# Instagram / Meta setup (official API — OpenReply-class)
 
-Stackwise stores Meta app credentials in admin (**Growth → Instagram**) and connects accounts via **Facebook Login** (Page access token for the linked Instagram Business account).
+Stackwise connects Instagram **Professional** accounts with **Instagram Business Login** (unified Instagram API), exchanges long-lived tokens on `graph.instagram.com`, sends DMs/comments via the same Graph endpoints as [OpenReply](https://github.com/diwenne/openreply), and receives **comments** + **messages** webhooks.
 
-## 1. Meta for Developers
+## Meta dashboard (what you see)
 
-### Map: “Instagram API” dashboard vs Stackwise
+Use **Instagram → API setup with Instagram business login** (not legacy Basic Display).
 
-| What you see in Meta (Instagram → API setup) | Stackwise uses it? | What to do |
-|---------------------------------------------|-------------------|------------|
-| **1. Generate access tokens** | No (we use **Connect Instagram** in admin) | Still add your IG as **Instagram Tester** under **App roles → Roles** so Dev mode can call the API |
-| **2. Configure webhooks** | Yes | Callback + verify token below; subscribe **comments** / **messages** when offered |
-| **3. Set up Instagram business login** | Partially | Add the same OAuth callback here **if** the console offers **OAuth redirect URIs**; our connect flow also needs **Facebook Login** (next row) |
-| **4. Complete app review** | Only for client apps | Skip if you only automate **your own** business |
+| Step in Meta | Stackwise |
+|--------------|-----------|
+| **Instagram App ID / secret** | Admin → Meta apps: **Instagram App ID** + **Instagram App secret** |
+| **Configure webhooks** — Callback URL + Verify token | `https://<public-host>/api/webhooks/meta/<slug>` + same verify token as admin |
+| Subscribe **comments** and **messages** | Required for comment-to-DM and DM/story triggers (6.2) |
+| **Set up Instagram business login** → OAuth redirect URIs | `https://<public-host>/api/admin/instagram/oauth/callback` (exact; no trailing slash) |
+| **Roles** → Instagram Tester | Your IG account before App Review |
+| **App Review** | Skip if you only automate your own business |
 
-**App ID in Stackwise admin:** use **App settings → Basic → App ID** and **App secret**. The “Instagram app ID” on the Instagram card is often the same number; if Basic shows a different ID, use **Basic** for **Connect Instagram** (Facebook Login).
+Optional: **Facebook App secret** from **App settings → Basic** — add in admin if webhook `POST` signature verification fails (Meta may sign with either secret).
 
-1. Create or open your **Meta app** (type: Business).
-2. Add products:
-   - **Facebook Login for Business** (or Facebook Login) — **required for Stackwise Connect**
-   - **Instagram** (API setup with Instagram business login — what you see now)
-3. **Facebook Login → Settings → Valid OAuth Redirect URIs**  
-   Copy the exact URL from the admin panel (**OAuth callback**), e.g.  
-   `https://your-domain.com/api/admin/instagram/oauth/callback`  
-   For local dev without a tunnel, the panel uses the current origin (e.g. `http://localhost:3002/...`).  
-   Override with `INSTAGRAM_OAUTH_REDIRECT_BASE` in production or **ngrok** (below).  
-   Mirror the same URL under **Instagram → Set up Instagram business login → OAuth redirect URIs** if that section exists.
+## Environment
+
+| Variable | Purpose |
+|----------|---------|
+| `INSTAGRAM_OAUTH_REDIRECT_BASE` | Public origin (ngrok/prod), no path |
+| `NEXT_PUBLIC_SITE_URL` | Admin origin when callback is ngrok |
+| `INSTAGRAM_PUBLIC_BASE_URL` | Tracked `/r/ig/` links |
+| `META_GRAPH_API_VERSION` | e.g. `v21.0` or `v25.0` (default `v21.0`) |
+| `INSTAGRAM_DRY_RUN=1` | Local: skip Graph sends |
 
 ## Local testing with ngrok
 
-Meta requires a **public HTTPS** callback. Point ngrok at your dev server, then pin Stackwise to that URL.
-
-1. Start dev: `npm run dev` (note the port, e.g. `3002`).
-2. Tunnel: `ngrok http 3002` (or your port).
-3. In `.env.local`:
+1. `ngrok http <dev-port>`
+2. `.env.local`:
 
    ```bash
-   INSTAGRAM_OAUTH_REDIRECT_BASE=https://YOUR-SUBDOMAIN.ngrok-free.app
+   INSTAGRAM_OAUTH_REDIRECT_BASE=https://YOUR.ngrok-free.app
    NEXT_PUBLIC_SITE_URL=http://localhost:3002
    ```
 
-   `INSTAGRAM_OAUTH_REDIRECT_BASE` must be **origin only** (no path). The admin panel shows the full callback URL to paste into Meta.
+3. Meta → **Business login** OAuth URIs + **Configure webhooks** use the ngrok host.
+4. Admin on localhost → **Connect Instagram** → returns with `?oauth=ok`.
 
-4. Restart dev so env loads. In Meta → Facebook Login → **Valid OAuth Redirect URIs**, paste the panel’s **OAuth callback** (under the ngrok host).
-5. Optional: subscribe webhooks to `https://YOUR-SUBDOMAIN.ngrok-free.app/api/webhooks/meta/<slug>` using the same tunnel.
-6. Open admin at `http://localhost:3002/admin/...` (your `NEXT_PUBLIC_SITE_URL`), click **Connect Instagram**. Facebook redirects to ngrok → your machine; you land back on localhost with `?oauth=ok`.
+After connect, Stackwise calls `subscribed_apps` for **comments** + **messages** (same as OpenReply’s programmatic subscribe). You still verify the callback URL in the Meta UI.
 
-To use the ngrok URL for admin as well, set `NEXT_PUBLIC_SITE_URL` to the ngrok origin (and sign in there).
+## Stackwise admin flow
 
-Override return URL after OAuth with `INSTAGRAM_OAUTH_ADMIN_RETURN_BASE` if needed.
-4. **App roles:** add your Facebook user as **Admin** or **Developer** (required for testing before App Review).
+1. **Add Meta app** — Instagram App ID, Instagram App secret, webhook verify token, slug.
+2. **Connect Instagram** — user signs in with the professional account.
+3. Account row stores `user_id` (matches webhook `entry.id`), long-lived token, expiry.
+4. **Test token** — Meta `debug_token` with app credentials.
+5. Create campaigns; disable `INSTAGRAM_DRY_RUN` for real sends.
 
-## 2. Stackwise admin
+## Permissions (App Review)
 
-1. **Add Meta app** — Meta app ID, app secret, webhook verify token, slug (used in webhook URL).
-2. Click **Connect Instagram** — sign in with a user that **manages the Facebook Page** linked to the IG account.
-3. Optional env:
-   - `INSTAGRAM_FACEBOOK_PAGE_ID` — if multiple Pages have Instagram, pick one Page ID.
-   - `INSTAGRAM_PUBLIC_BASE_URL` — public origin for tracked short links.
-4. **Test token** on the connected account row (uses Meta `debug_token` with your stored app secret).
+OAuth scopes (Business Login):
 
-## 3. Webhooks
+- `instagram_business_basic`
+- `instagram_business_manage_comments`
+- `instagram_business_manage_messages`
 
-Use **Instagram → Configure webhooks** (step 2 on your screen) **or** the global **Webhooks** product:
-
-- **Callback URL:** `https://<domain>/api/webhooks/meta/<slug>`  
-  (`<slug>` = the slug you chose when adding the Meta app in Stackwise admin, e.g. `stackwise-ig`.)
-- **Verify token:** the exact random string you typed into Stackwise **Webhook verify token** (not the app secret).
-- Subscribe fields: **comments**, **messages** (and **messaging_postbacks** if listed).
-
-Meta’s UI may say webhooks require **Live** mode. For your own accounts in **Development**, verification often still works; switch to **Live** only when you need production traffic outside testers.
-
-Use the app secret from admin for **signature validation** on `POST` (already implemented).
-
-## 4. Permissions (App Review for production)
-
-OAuth scopes requested by Stackwise:
-
-- `instagram_basic`, `instagram_manage_comments`, `instagram_manage_messages`
-- `pages_show_list`, `pages_read_engagement`, `pages_manage_metadata`
-
-Standard access is enough for apps you own; other businesses’ accounts need **Advanced Access** and App Review.
-
-## 5. Manual test checklist (Phase 6.1.T)
-
-- [ ] Webhook verify `GET` succeeds in Meta console  
-- [ ] Connect session completes; account shows `@username` and **Test token** passes  
-- [ ] Comment on a post with campaign keyword → delivery log + DM (disable `INSTAGRAM_DRY_RUN` in prod)
+Use the justifications in OpenReply’s `META_APP_REVIEW.md` as a template.
 
 ## Troubleshooting
 
 | Symptom | Fix |
 |--------|-----|
-| Redirect URI mismatch | Callback in Meta must match admin **OAuth callback** byte-for-byte |
-| No Instagram Business account | Link IG Professional/Business to a Facebook Page; grant Page access to the logging-in user |
-| Several Pages listed in error | Set `INSTAGRAM_FACEBOOK_PAGE_ID` to the correct Page ID |
-| DMs not sending | Turn off `INSTAGRAM_DRY_RUN`; confirm `instagram_manage_messages` approved |
-| Only see Instagram login setup, no Facebook Login | Left menu → **Add product** → **Facebook Login for Business** → add redirect URI there |
-| Webhook verify fails | Meta app row must exist in Stackwise first (slug in URL); verify token must match exactly |
+| Redirect URI mismatch | OAuth URI in Meta must match admin **OAuth callback** exactly |
+| Webhook verify OK but POST 401 | Add **Facebook App secret** on the Meta app row; subscribe **comments** + **messages** |
+| Graph `Unsupported request` after connect | Use **Instagram** App ID/secret (Business Login), not Facebook Login Page tokens |
+| Webhooks never arrive | Callback URL on primary domain (no redirect); app tester role; Live vs Dev per Meta |
+| `entry.id` mismatch | Re-connect; stored ID must be `user_id` from `/me`, not app-scoped `id` |

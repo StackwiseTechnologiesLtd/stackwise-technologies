@@ -32,6 +32,20 @@ export async function verifyMetaWebhookSignature(
   return mismatch === 0;
 }
 
+export async function verifyMetaWebhookSignatureWithSecrets(
+  rawBody: string,
+  signatureHeader: string | null,
+  appSecrets: string[],
+): Promise<boolean> {
+  const unique = [...new Set(appSecrets.map((s) => s.trim()).filter(Boolean))];
+  for (const secret of unique) {
+    if (await verifyMetaWebhookSignature(rawBody, signatureHeader, secret)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 export function timingSafeEqualString(a: string, b: string): boolean {
   if (a.length !== b.length) return false;
   let mismatch = 0;

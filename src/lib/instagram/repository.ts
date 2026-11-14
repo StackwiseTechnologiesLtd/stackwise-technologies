@@ -27,23 +27,35 @@ function slugify(value: string): string {
     .slice(0, 64);
 }
 
+type MetaAppSecretRow = {
+  id: string;
+  slug: string;
+  label: string;
+  meta_app_id: string;
+  app_secret_ciphertext: string;
+  app_secret_iv: string;
+  facebook_app_secret_ciphertext: string | null;
+  facebook_app_secret_iv: string | null;
+  webhook_verify_token: string;
+  created_at: string;
+  updated_at: string;
+};
+
 async function getMetaAppWithSecret(
-  row: {
-    id: string;
-    slug: string;
-    label: string;
-    meta_app_id: string;
-    app_secret_ciphertext: string;
-    app_secret_iv: string;
-    webhook_verify_token: string;
-    created_at: string;
-    updated_at: string;
-  },
-): Promise<InstagramMetaApp & { appSecret: string }> {
+  row: MetaAppSecretRow,
+): Promise<InstagramMetaApp & { appSecret: string; facebookAppSecret: string | null }> {
   const secret = await decryptJson<{ secret: string }>(
     row.app_secret_ciphertext,
     row.app_secret_iv,
   );
+  let facebookAppSecret: string | null = null;
+  if (row.facebook_app_secret_ciphertext && row.facebook_app_secret_iv) {
+    const fb = await decryptJson<{ secret: string }>(
+      row.facebook_app_secret_ciphertext,
+      row.facebook_app_secret_iv,
+    );
+    facebookAppSecret = fb.secret;
+  }
   return {
     id: row.id,
     slug: row.slug,
@@ -53,27 +65,19 @@ async function getMetaAppWithSecret(
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     appSecret: secret.secret,
+    facebookAppSecret,
   };
 }
 
 export async function getMetaAppById(
   id: string,
-): Promise<(InstagramMetaApp & { appSecret: string }) | null> {
+): Promise<(InstagramMetaApp & { appSecret: string; facebookAppSecret: string | null }) | null> {
   await ready();
   const sql = getSql();
-  const rows = asRows<{
-    id: string;
-    slug: string;
-    label: string;
-    meta_app_id: string;
-    app_secret_ciphertext: string;
-    app_secret_iv: string;
-    webhook_verify_token: string;
-    created_at: string;
-    updated_at: string;
-  }>(
+  const rows = asRows<MetaAppSecretRow>(
     await sql`
       SELECT id, slug, label, meta_app_id, app_secret_ciphertext, app_secret_iv,
+             facebook_app_secret_ciphertext, facebook_app_secret_iv,
              webhook_verify_token, created_at, updated_at
       FROM instagram_meta_apps
       WHERE id = ${id}::uuid
@@ -87,22 +91,13 @@ export async function getMetaAppById(
 
 export async function getMetaAppBySlug(
   slug: string,
-): Promise<(InstagramMetaApp & { appSecret: string }) | null> {
+): Promise<(InstagramMetaApp & { appSecret: string; facebookAppSecret: string | null }) | null> {
   await ready();
   const sql = getSql();
-  const rows = asRows<{
-    id: string;
-    slug: string;
-    label: string;
-    meta_app_id: string;
-    app_secret_ciphertext: string;
-    app_secret_iv: string;
-    webhook_verify_token: string;
-    created_at: string;
-    updated_at: string;
-  }>(
+  const rows = asRows<MetaAppSecretRow>(
     await sql`
       SELECT id, slug, label, meta_app_id, app_secret_ciphertext, app_secret_iv,
+             facebook_app_secret_ciphertext, facebook_app_secret_iv,
              webhook_verify_token, created_at, updated_at
       FROM instagram_meta_apps
       WHERE slug = ${slug}
@@ -147,6 +142,7 @@ export async function createMetaApp(input: {
   label: string;
   metaAppId: string;
   appSecret: string;
+  facebookAppSecret?: string;
   webhookVerifyToken: string;
   slug?: string;
 }): Promise<InstagramMetaApp> {
@@ -155,9 +151,17 @@ export async function createMetaApp(input: {
   const id = crypto.randomUUID();
   const slug = input.slug?.trim() || slugify(input.label) || `app-${id.slice(0, 8)}`;
   const enc = await encryptJson({ secret: input.appSecret.trim() });
+  let facebook_app_secret_ciphertext: string | null = null;
+  let facebook_app_secret_iv: string | null = null;
+  if (input.facebookAppSecret?.trim()) {
+    const fbEnc = await encryptJson({ secret: input.facebookAppSecret.trim() });
+    facebook_app_secret_ciphertext = fbEnc.ciphertext;
+    facebook_app_secret_iv = fbEnc.iv;
+  }
   await sql`
     INSERT INTO instagram_meta_apps (
-      id, slug, label, meta_app_id, app_secret_ciphertext, app_secret_iv, webhook_verify_token
+      id, slug, label, meta_app_id, app_secret_ciphertext, app_secret_iv,
+      facebook_app_secret_ciphertext, facebook_app_secret_iv, webhook_verify_token
     ) VALUES (
       ${id}::uuid,
       ${slug},
@@ -165,6 +169,8 @@ export async function createMetaApp(input: {
       ${input.metaAppId.trim()},
       ${enc.ciphertext},
       ${enc.iv},
+      ${facebook_app_secret_ciphertext},
+      ${facebook_app_secret_iv},
       ${input.webhookVerifyToken.trim()}
     )
   `;

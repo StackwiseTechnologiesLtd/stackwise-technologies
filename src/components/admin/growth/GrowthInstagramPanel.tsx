@@ -50,6 +50,7 @@ export function GrowthInstagramPanel() {
     slug: "",
     metaAppId: "",
     appSecret: "",
+    facebookAppSecret: "",
     webhookVerifyToken: "",
   });
   const [accountForm, setAccountForm] = useState({
@@ -141,6 +142,7 @@ export function GrowthInstagramPanel() {
         slug: "",
         metaAppId: "",
         appSecret: "",
+        facebookAppSecret: "",
         webhookVerifyToken: "",
       });
       await load();
@@ -247,10 +249,10 @@ export function GrowthInstagramPanel() {
       <section className="rounded-xl border border-line bg-panel p-5 sm:p-6">
         <h3 className="text-base font-semibold tracking-tight">Meta apps</h3>
         <p className="mt-1 text-sm text-muted">
-          One row per Meta app. In Meta for Developers → Facebook Login → Valid OAuth redirect
-          URIs, paste the callback URL below. Webhooks:{" "}
-          <code className="text-foreground">/api/webhooks/meta/[slug]</code> (see{" "}
-          <code className="text-foreground">docs/INSTAGRAM_META_SETUP.md</code>).
+          Instagram Business Login + Graph API (OpenReply-class). Register OAuth redirect and
+          webhooks in Meta → Instagram → API setup (see{" "}
+          <code className="text-foreground">docs/INSTAGRAM_META_SETUP.md</code>). Webhook path:{" "}
+          <code className="text-foreground">/api/webhooks/meta/[slug]</code>.
         </p>
         {oauthSetup && (
           <div className="mt-3 rounded-lg border border-line bg-black/30 px-3 py-2 text-xs">
@@ -309,11 +311,12 @@ export function GrowthInstagramPanel() {
             />
           </label>
           <label className="text-sm">
-            Meta app ID
+            Instagram App ID
             <input
               className="mt-1 w-full rounded-lg border border-line bg-black/40 px-3 py-2"
               value={appForm.metaAppId}
               onChange={(e) => setAppForm((f) => ({ ...f, metaAppId: e.target.value }))}
+              placeholder="974253428666592"
             />
           </label>
           <label className="text-sm">
@@ -327,13 +330,25 @@ export function GrowthInstagramPanel() {
             />
           </label>
           <label className="text-sm sm:col-span-2">
-            App secret
+            Instagram App secret
             <input
               type="password"
               autoComplete="off"
               className="mt-1 w-full rounded-lg border border-line bg-black/40 px-3 py-2"
               value={appForm.appSecret}
               onChange={(e) => setAppForm((f) => ({ ...f, appSecret: e.target.value }))}
+            />
+          </label>
+          <label className="text-sm sm:col-span-2">
+            Facebook App secret (optional — webhook signature)
+            <input
+              type="password"
+              autoComplete="off"
+              className="mt-1 w-full rounded-lg border border-line bg-black/40 px-3 py-2"
+              value={appForm.facebookAppSecret}
+              onChange={(e) =>
+                setAppForm((f) => ({ ...f, facebookAppSecret: e.target.value }))
+              }
             />
           </label>
         </div>
@@ -345,9 +360,9 @@ export function GrowthInstagramPanel() {
       <section className="rounded-xl border border-line bg-panel p-5 sm:p-6">
         <h3 className="text-base font-semibold tracking-tight">Instagram account</h3>
         <p className="mt-1 text-sm text-muted">
-          Use <strong>Connect with Meta OAuth</strong> above or paste a long-lived token.{" "}
-          <code className="text-foreground">ig_user_id</code> must match webhook{" "}
-          <code className="text-foreground">entry.id</code>.
+          Use <strong>Connect Instagram</strong> (Business Login) or paste a long-lived token.{" "}
+          Stored <code className="text-foreground">ig_user_id</code> is the professional{" "}
+          <code className="text-foreground">user_id</code> (webhook <code className="text-foreground">entry.id</code>).
         </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <label className="text-sm sm:col-span-2">

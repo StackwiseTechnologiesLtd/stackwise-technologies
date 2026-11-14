@@ -1,25 +1,19 @@
-const SCOPES = [
-  "instagram_basic",
-  "instagram_manage_comments",
-  "instagram_manage_messages",
-  "pages_show_list",
-  "pages_read_engagement",
-  "pages_manage_metadata",
-].join(",");
+import { INSTAGRAM_BUSINESS_SCOPES } from "@/lib/instagram/meta-oauth";
 
-/** Build Facebook Login URL for Instagram Business/Creator connect (direct Meta app). */
+/** Build Instagram Business Login URL (official API; OpenReply-class flow). */
 export function buildMetaInstagramOAuthUrl(input: {
   metaAppId: string;
   redirectUri: string;
   state: string;
 }): string {
-  const url = new URL("https://www.facebook.com/v21.0/dialog/oauth");
-  url.searchParams.set("client_id", input.metaAppId);
-  url.searchParams.set("redirect_uri", input.redirectUri);
-  url.searchParams.set("scope", SCOPES);
-  url.searchParams.set("response_type", "code");
-  url.searchParams.set("state", input.state);
-  return url.toString();
+  const params = new URLSearchParams({
+    client_id: input.metaAppId,
+    redirect_uri: input.redirectUri,
+    scope: INSTAGRAM_BUSINESS_SCOPES.join(","),
+    response_type: "code",
+    state: input.state,
+  });
+  return `https://www.instagram.com/oauth/authorize?${params.toString()}`;
 }
 
 /** Public HTTPS/origin Meta and webhooks must reach (ngrok, prod domain, or local). */
@@ -59,7 +53,7 @@ export function instagramAdminReturnOrigin(request?: Request): string {
 }
 
 export function instagramOAuthScopes(): string {
-  return SCOPES;
+  return INSTAGRAM_BUSINESS_SCOPES.join(",");
 }
 
 export function instagramOAuthUsesTunnel(): boolean {

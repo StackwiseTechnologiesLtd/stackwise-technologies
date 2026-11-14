@@ -30,6 +30,9 @@ export async function POST(request: Request) {
     const appSecret = String(body.appSecret ?? "").trim();
     const webhookVerifyToken = String(body.webhookVerifyToken ?? "").trim();
     const slug = body.slug ? String(body.slug).trim() : undefined;
+    const facebookAppSecret = body.facebookAppSecret
+      ? String(body.facebookAppSecret).trim()
+      : undefined;
 
     if (!label || !metaAppId || !appSecret || !webhookVerifyToken) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -39,6 +42,7 @@ export async function POST(request: Request) {
       label,
       metaAppId,
       appSecret,
+      facebookAppSecret,
       webhookVerifyToken,
       slug,
     });

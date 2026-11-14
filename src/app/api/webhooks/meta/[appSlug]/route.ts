@@ -2,7 +2,7 @@ import { after, NextResponse } from "next/server";
 import { handleInstagramWebhook } from "@/lib/instagram/handle-instagram-webhook";
 import {
   timingSafeEqualString,
-  verifyMetaWebhookSignature,
+  verifyMetaWebhookSignatureWithSecrets,
 } from "@/lib/instagram/meta-signature";
 import { processInstagramDelivery } from "@/lib/instagram/process-delivery";
 import { getMetaAppBySlug } from "@/lib/instagram/repository";
@@ -47,10 +47,12 @@ export async function POST(request: Request, context: RouteContext) {
 
   const rawBody = await request.text();
   const signature = request.headers.get("x-hub-signature-256");
-  const valid = await verifyMetaWebhookSignature(
+  const webhookSecrets = [app.appSecret];
+  if (app.facebookAppSecret) webhookSecrets.push(app.facebookAppSecret);
+  const valid = await verifyMetaWebhookSignatureWithSecrets(
     rawBody,
     signature,
-    app.appSecret,
+    webhookSecrets,
   );
   if (!valid) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
