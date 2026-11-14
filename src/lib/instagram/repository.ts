@@ -974,6 +974,39 @@ export async function getInstagramOpsStatus(input?: {
   };
 }
 
+export async function getCampaignSentCounts(input?: {
+  accountIds?: string[] | null;
+}): Promise<Record<string, number>> {
+  await ready();
+  const sql = getSql();
+  const scopeAccounts = input?.accountIds;
+  const restrictAccounts = scopeAccounts != null;
+
+  const rows = asRows<{ campaign_id: string; sent: number }>(
+    restrictAccounts
+      ? await sql`
+          SELECT campaign_id, COUNT(*)::int AS sent
+          FROM instagram_deliveries
+          WHERE campaign_id IS NOT NULL
+            AND status = 'sent'
+            AND account_id = ANY(${scopeAccounts ?? []}::uuid[])
+          GROUP BY campaign_id
+        `
+      : await sql`
+          SELECT campaign_id, COUNT(*)::int AS sent
+          FROM instagram_deliveries
+          WHERE campaign_id IS NOT NULL
+            AND status = 'sent'
+          GROUP BY campaign_id
+        `,
+  );
+  const out: Record<string, number> = {};
+  for (const row of rows) {
+    out[row.campaign_id] = row.sent;
+  }
+  return out;
+}
+
 export async function getInstagramDeliveryMetrics(input?: {
   accountIds?: string[] | null;
 }): Promise<InstagramDeliveryMetrics> {
