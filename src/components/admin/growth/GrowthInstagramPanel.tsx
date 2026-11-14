@@ -58,6 +58,7 @@ export function GrowthInstagramPanel() {
     igUserId: "",
     username: "",
     accessToken: "",
+    subscribeWebhooks: true,
   });
   const [campaignForm, setCampaignForm] = useState({
     accountId: "",
@@ -158,12 +159,37 @@ export function GrowthInstagramPanel() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(accountForm),
       });
-      if (!res.ok) throw new Error("Save failed");
-      toast.success("Instagram account saved");
+      const data = (await res.json()) as {
+        error?: string;
+        webhookSubscribed?: boolean;
+      };
+      if (!res.ok) throw new Error(data.error ?? "Save failed");
+      const subNote =
+        accountForm.accessToken && data.webhookSubscribed === false
+          ? " (token ok; webhook subscribe off — use Subscribe below or Meta console)"
+          : accountForm.accessToken && data.webhookSubscribed
+            ? " · webhooks subscribed"
+            : "";
+      toast.success(`Instagram account saved${subNote}`);
       setAccountForm((prev) => ({ ...prev, accessToken: "" }));
       await load();
-    } catch {
-      toast.error("Could not save account");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not save account");
+    }
+  }
+
+  async function subscribeAccountWebhooks(accountId: string) {
+    try {
+      const res = await fetch(
+        `/api/admin/instagram/accounts/${accountId}/subscribe-webhooks`,
+        { method: "POST" },
+      );
+      const data = (await res.json()) as { ok?: boolean; error?: string };
+      if (!res.ok || !data.ok) throw new Error(data.error ?? "Subscribe failed");
+      toast.success("Webhook subscription updated for this account");
+      await load();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Subscribe failed");
     }
   }
 
@@ -374,9 +400,12 @@ export function GrowthInstagramPanel() {
       <section className="rounded-xl border border-line bg-panel p-5 sm:p-6">
         <h3 className="text-base font-semibold tracking-tight">Instagram account</h3>
         <p className="mt-1 text-sm text-muted">
-          Use <strong>Connect Instagram</strong> (Business Login) or paste a long-lived token.{" "}
-          Stored <code className="text-foreground">ig_user_id</code> is the professional{" "}
-          <code className="text-foreground">user_id</code> (webhook <code className="text-foreground">entry.id</code>).
+          Meta console step 2: copy the account’s numeric ID and paste the token from{" "}
+          <em>Generate token</em> below (encrypted in Neon). Or use{" "}
+          <strong>Connect Instagram</strong>.{" "}
+          <code className="text-foreground">ig_user_id</code> must match webhook{" "}
+          <code className="text-foreground">entry.id</code> (e.g.{" "}
+          <code className="text-foreground">17841447839356666</code> for @just.one.teddy).
         </p>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <label className="text-sm sm:col-span-2">
@@ -411,7 +440,7 @@ export function GrowthInstagramPanel() {
             />
           </label>
           <label className="text-sm sm:col-span-2">
-            Access token
+            Access token (from Meta → Generate token)
             <input
               type="password"
               autoComplete="off"
@@ -419,6 +448,16 @@ export function GrowthInstagramPanel() {
               value={accountForm.accessToken}
               onChange={(e) => setAccountForm((f) => ({ ...f, accessToken: e.target.value }))}
             />
+          </label>
+          <label className="flex items-center gap-2 text-sm sm:col-span-2">
+            <input
+              type="checkbox"
+              checked={accountForm.subscribeWebhooks}
+              onChange={(e) =>
+                setAccountForm((f) => ({ ...f, subscribeWebhooks: e.target.checked }))
+              }
+            />
+            After save, subscribe this account to comments + messages webhooks (Graph API)
           </label>
         </div>
         {accounts.length > 0 && (
@@ -431,17 +470,31 @@ export function GrowthInstagramPanel() {
                 <span className="text-sm">
                   {a.username ? `@${a.username}` : a.igUserId} ·{" "}
                   {a.hasAccessToken ? "token set" : "no token"}
+                  {a.webhookSubscribed ? " · webhooks on" : " · webhooks off"}
                   {a.tokenExpiresAt ? ` · expires ${formatWhen(a.tokenExpiresAt)}` : ""}
                 </span>
-                {a.hasAccessToken && (
-                  <button
-                    type="button"
-                    className="text-xs text-accent underline"
-                    onClick={() => void testAccountToken(a.id)}
-                  >
-                    Test token
-                  </button>
-                )}
+                <span className="flex flex-wrap gap-2">
+                  {a.hasAccessToken && (
+                    <>
+                      <button
+                        type="button"
+                        className="text-xs text-accent underline"
+                        onClick={() => void testAccountToken(a.id)}
+                      >
+                        Test token
+                      </button>
+                      {!a.webhookSubscribed && (
+                        <button
+                          type="button"
+                          className="text-xs text-accent underline"
+                          onClick={() => void subscribeAccountWebhooks(a.id)}
+                        >
+                          Subscribe webhooks
+                        </button>
+                      )}
+                    </>
+                  )}
+                </span>
               </li>
             ))}
           </ul>

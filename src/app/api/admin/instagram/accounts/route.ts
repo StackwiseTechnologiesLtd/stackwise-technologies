@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/auth/session";
+import { prepareInstagramAccountToken } from "@/lib/instagram/save-account-token";
 import { listAccounts, upsertAccount } from "@/lib/instagram/repository";
 
 export const dynamic = "force-dynamic";
@@ -31,16 +32,41 @@ export async function POST(request: Request) {
     const accessToken = body.accessToken
       ? String(body.accessToken).trim()
       : undefined;
+    const subscribeWebhooks = body.subscribeWebhooks !== false;
 
     if (!metaAppId || !igUserId) {
-      return NextResponse.json({ error: "metaAppId and igUserId required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "metaAppId and igUserId required" },
+        { status: 400 },
+      );
+    }
+
+    if (accessToken) {
+      const prepared = await prepareInstagramAccountToken({
+        metaAppRowId: metaAppId,
+        igUserId,
+        username,
+        accessToken,
+        subscribeWebhooks,
+      });
+      const account = await upsertAccount({
+        metaAppId,
+        igUserId: prepared.igUserId,
+        username: prepared.username,
+        accessToken: prepared.accessToken,
+        tokenExpiresAt: prepared.tokenExpiresAt,
+        webhookSubscribed: prepared.webhookSubscribed,
+      });
+      return NextResponse.json({
+        account,
+        webhookSubscribed: prepared.webhookSubscribed,
+      });
     }
 
     const account = await upsertAccount({
       metaAppId,
       igUserId,
       username,
-      accessToken,
     });
     return NextResponse.json({ account });
   } catch (error) {

@@ -31,6 +31,7 @@ export type InstagramAccount = {
   status: string;
   tokenExpiresAt: string | null;
   hasAccessToken: boolean;
+  webhookSubscribed: boolean;
   createdAt: string;
   updatedAt: string;
 };

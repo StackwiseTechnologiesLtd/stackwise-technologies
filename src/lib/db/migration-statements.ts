@@ -561,6 +561,11 @@ ALTER TABLE instagram_meta_apps
   ADD COLUMN IF NOT EXISTS facebook_app_secret_iv TEXT;
 `;
 
+const INSTAGRAM_ACCOUNT_WEBHOOKS_SQL = `
+ALTER TABLE instagram_accounts
+  ADD COLUMN IF NOT EXISTS webhook_subscribed BOOLEAN NOT NULL DEFAULT false;
+`;
+
 export const MIGRATION_STATEMENTS = [
   ...splitStatements(INIT_SQL),
   ...splitStatements(KPAY_IS_TEST_SQL),
@@ -586,4 +591,5 @@ export const MIGRATION_STATEMENTS = [
   ...splitStatements(INSTAGRAM_SQL),
   ...splitStatements(INSTAGRAM_PHASE62_SQL),
   ...splitStatements(INSTAGRAM_FACEBOOK_SECRET_SQL),
+  ...splitStatements(INSTAGRAM_ACCOUNT_WEBHOOKS_SQL),
 ];

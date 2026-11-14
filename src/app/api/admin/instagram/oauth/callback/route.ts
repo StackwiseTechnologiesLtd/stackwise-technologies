@@ -67,11 +67,13 @@ export async function GET(request: Request) {
     const profile = await getInstagramProfessionalUser(long.accessToken);
     const webhookIgId = profile.userId;
 
+    let webhookSubscribed = false;
     try {
-      await subscribeInstagramAccountToWebhooks({
+      const sub = await subscribeInstagramAccountToWebhooks({
         instagramUserId: webhookIgId,
         accessToken: long.accessToken,
       });
+      webhookSubscribed = sub.success;
     } catch (subscriptionError) {
       console.warn("[instagram-oauth] Webhook subscription:", subscriptionError);
     }
@@ -86,6 +88,7 @@ export async function GET(request: Request) {
       username: profile.username,
       accessToken: long.accessToken,
       tokenExpiresAt: expiresAt,
+      webhookSubscribed,
     });
 
     const qs = new URLSearchParams({

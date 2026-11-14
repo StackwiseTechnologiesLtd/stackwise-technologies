@@ -190,12 +190,13 @@ export async function listAccounts(): Promise<InstagramAccount[]> {
     status: string;
     token_expires_at: string | null;
     access_token_ciphertext: string | null;
+    webhook_subscribed: boolean;
     created_at: string;
     updated_at: string;
   }>(
     await sql`
       SELECT id, meta_app_id, ig_user_id, username, status, token_expires_at,
-             access_token_ciphertext, created_at, updated_at
+             access_token_ciphertext, webhook_subscribed, created_at, updated_at
       FROM instagram_accounts
       ORDER BY username ASC NULLS LAST, created_at DESC
     `,
@@ -208,6 +209,7 @@ export async function listAccounts(): Promise<InstagramAccount[]> {
     status: row.status,
     tokenExpiresAt: row.token_expires_at,
     hasAccessToken: Boolean(row.access_token_ciphertext),
+    webhookSubscribed: row.webhook_subscribed,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   }));
@@ -219,6 +221,7 @@ export async function upsertAccount(input: {
   username?: string | null;
   accessToken?: string;
   tokenExpiresAt?: string | null;
+  webhookSubscribed?: boolean;
 }): Promise<InstagramAccount> {
   await ready();
   const sql = getSql();
@@ -245,6 +248,7 @@ export async function upsertAccount(input: {
         access_token_ciphertext = COALESCE(${access_token_ciphertext}, access_token_ciphertext),
         access_token_iv = COALESCE(${access_token_iv}, access_token_iv),
         token_expires_at = COALESCE(${input.tokenExpiresAt ?? null}::timestamptz, token_expires_at),
+        webhook_subscribed = COALESCE(${input.webhookSubscribed ?? null}, webhook_subscribed),
         status = 'active',
         updated_at = NOW()
       WHERE id = ${id}::uuid
@@ -256,7 +260,8 @@ export async function upsertAccount(input: {
     await sql`
       INSERT INTO instagram_accounts (
         id, meta_app_id, ig_user_id, username,
-        access_token_ciphertext, access_token_iv, token_expires_at, status
+        access_token_ciphertext, access_token_iv, token_expires_at,
+        webhook_subscribed, status
       ) VALUES (
         ${id}::uuid,
         ${input.metaAppId}::uuid,
@@ -265,6 +270,7 @@ export async function upsertAccount(input: {
         ${access_token_ciphertext},
         ${access_token_iv},
         ${input.tokenExpiresAt ?? null}::timestamptz,
+        ${input.webhookSubscribed ?? false},
         'active'
       )
     `;
