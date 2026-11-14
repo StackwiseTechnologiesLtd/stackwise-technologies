@@ -11,6 +11,7 @@ import type {
   InstagramOpsStatus,
 } from "@/lib/instagram/types";
 import { isInstagramDryRun } from "@/lib/instagram/graph-send";
+import { instagramMetaRegistrationUrls } from "@/lib/instagram/public-endpoints";
 import { instagramCampaignTriggers } from "@/lib/instagram/types";
 
 async function ready() {
@@ -891,20 +892,36 @@ export async function recordWebhookReceipt(metaAppId: string | null): Promise<vo
   `;
 }
 
-export async function getInstagramOpsStatus(): Promise<InstagramOpsStatus> {
+export async function getInstagramOpsStatus(input?: {
+  accountIds?: string[] | null;
+}): Promise<InstagramOpsStatus> {
   await ready();
   const sql = getSql();
+  const accountIds = input?.accountIds?.length ? input.accountIds : null;
   const counts = asRows<{
     meta_apps: number;
     accounts: number;
     campaigns: number;
   }>(
-    await sql`
-      SELECT
-        (SELECT COUNT(*)::int FROM instagram_meta_apps) AS meta_apps,
-        (SELECT COUNT(*)::int FROM instagram_accounts WHERE status = 'active') AS accounts,
-        (SELECT COUNT(*)::int FROM instagram_campaigns WHERE active = TRUE) AS campaigns
-    `,
+    accountIds
+      ? await sql`
+          SELECT
+            (SELECT COUNT(*)::int FROM instagram_meta_apps) AS meta_apps,
+            (
+              SELECT COUNT(*)::int FROM instagram_accounts
+              WHERE status = 'active' AND id = ANY(${accountIds}::uuid[])
+            ) AS accounts,
+            (
+              SELECT COUNT(*)::int FROM instagram_campaigns
+              WHERE active = TRUE AND account_id = ANY(${accountIds}::uuid[])
+            ) AS campaigns
+        `
+      : await sql`
+          SELECT
+            (SELECT COUNT(*)::int FROM instagram_meta_apps) AS meta_apps,
+            (SELECT COUNT(*)::int FROM instagram_accounts WHERE status = 'active') AS accounts,
+            (SELECT COUNT(*)::int FROM instagram_campaigns WHERE active = TRUE) AS campaigns
+        `,
   );
   const times = asRows<{ last_webhook: string | null; last_send: string | null }>(
     await sql`
@@ -913,16 +930,14 @@ export async function getInstagramOpsStatus(): Promise<InstagramOpsStatus> {
         (SELECT MAX(sent_at) FROM instagram_deliveries WHERE status = 'sent') AS last_send
     `,
   );
-  const base =
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ??
-    "https://stackwisetechnologies.com";
+  const { webhookUrlPattern } = instagramMetaRegistrationUrls();
   return {
-    metaAppCount: counts[0]?.meta_apps ?? 0,
+    metaAppCount: input?.accountIds ? 0 : counts[0]?.meta_apps ?? 0,
     connectedAccounts: counts[0]?.accounts ?? 0,
     activeCampaigns: counts[0]?.campaigns ?? 0,
     lastWebhookAt: times[0]?.last_webhook ?? null,
     lastSendAt: times[0]?.last_send ?? null,
     dryRunMode: isInstagramDryRun(),
-    webhookUrlPattern: `${base}/api/webhooks/meta/{appSlug}`,
+    webhookUrlPattern,
   };
 }

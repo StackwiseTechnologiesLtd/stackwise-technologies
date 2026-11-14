@@ -1,23 +1,24 @@
 import { NextResponse } from "next/server";
-import { getAdminSession } from "@/lib/auth/session";
+import {
+  isInstagramApiError,
+  requireInstagramApiAccess,
+} from "@/lib/instagram/api-auth";
+import { instagramMetaRegistrationUrls } from "@/lib/instagram/public-endpoints";
 import {
   instagramAdminReturnOrigin,
-  instagramOAuthRedirectBase,
   instagramOAuthScopes,
   instagramOAuthUsesTunnel,
-  instagramPublicOrigin,
 } from "@/lib/instagram/oauth-url";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  const session = await getAdminSession();
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const ctx = await requireInstagramApiAccess({ manageMeta: true });
+  if (isInstagramApiError(ctx)) return ctx;
 
-  const redirectUri = instagramOAuthRedirectBase(request);
-  const publicOrigin = instagramPublicOrigin(request);
+  const urls = instagramMetaRegistrationUrls(request);
+  const redirectUri = urls.oauthRedirectUri;
+  const publicOrigin = urls.publicOrigin;
   const adminReturnOrigin = instagramAdminReturnOrigin(request);
   const usesTunnel = instagramOAuthUsesTunnel();
 

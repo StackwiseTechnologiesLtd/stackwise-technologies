@@ -11,8 +11,14 @@ export async function GET() {
   const ctx = await requireInstagramApiAccess();
   if (isInstagramApiError(ctx)) return ctx;
   try {
-    const status = await getInstagramOpsStatus();
-    return NextResponse.json(status);
+    const status = await getInstagramOpsStatus({
+      accountIds: ctx.access.accountIds,
+    });
+    return NextResponse.json({
+      ...status,
+      kind: ctx.access.kind,
+      canManageMetaApps: ctx.access.canManageMetaApps,
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Status failed";
     return NextResponse.json({ error: message }, { status: 500 });
