@@ -255,21 +255,28 @@ export function GrowthInstagramPanel() {
           <code className="text-foreground">/api/webhooks/meta/[slug]</code>.
         </p>
         {oauthSetup && (
-          <div className="mt-3 rounded-lg border border-line bg-black/30 px-3 py-2 text-xs">
-            <p className="text-muted">OAuth callback (copy into Meta → Facebook Login → Valid OAuth Redirect URIs)</p>
-            <code className="mt-1 block break-all text-foreground">{oauthSetup.redirectUri}</code>
+          <div className="mt-3 space-y-3 rounded-lg border border-line bg-black/30 px-3 py-2 text-xs">
+            <div>
+              <p className="font-medium text-amber-200/95">
+                Webhook callback — Meta step 3 “Configure webhooks” (not OAuth)
+              </p>
+              <p className="mt-1 text-muted">
+                Pick the URL under your app slug below. Must return plain text on verify — do not use
+                the OAuth callback path.
+              </p>
+            </div>
+            <div>
+              <p className="text-muted">
+                OAuth redirect — Meta step “Set up Instagram business login” only
+              </p>
+              <code className="mt-1 block break-all text-foreground">{oauthSetup.redirectUri}</code>
+            </div>
             {oauthSetup.usesTunnel ? (
-              <p className="mt-2 text-amber-200/90">
-                Tunnel mode (<code>INSTAGRAM_OAUTH_REDIRECT_BASE</code>): Meta hits ngrok; after connect you
-                return to{" "}
-                <code className="text-foreground">{oauthSetup.adminReturnOrigin ?? "…"}</code> — keep
-                that origin in <code>NEXT_PUBLIC_SITE_URL</code> so the admin session cookie matches.
+              <p className="text-amber-200/90">
+                Tunnel mode: after Connect you return to{" "}
+                <code className="text-foreground">{oauthSetup.adminReturnOrigin ?? "…"}</code>
               </p>
             ) : null}
-            <p className="mt-2 text-muted">
-              Webhooks (same public origin):{" "}
-              <code className="text-foreground">{oauthSetup.webhookHint}</code>
-            </p>
           </div>
         )}
         {apps.length > 0 && (
@@ -277,8 +284,9 @@ export function GrowthInstagramPanel() {
             {apps.map((app) => (
               <li
                 key={app.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-line bg-black/30 px-3 py-2"
+                className="flex flex-col gap-2 rounded-lg border border-line bg-black/30 px-3 py-2"
               >
+                <div className="flex flex-wrap items-center justify-between gap-2">
                 <span>
                   <span className="font-medium">{app.label}</span>{" "}
                   <span className="text-muted">({app.slug})</span>
@@ -289,6 +297,12 @@ export function GrowthInstagramPanel() {
                 >
                   Connect Instagram
                 </a>
+                </div>
+                {oauthSetup?.publicOrigin ? (
+                  <code className="block break-all text-[11px] text-muted">
+                    Webhook URL: {oauthSetup.publicOrigin}/api/webhooks/meta/{app.slug}
+                  </code>
+                ) : null}
               </li>
             ))}
           </ul>
