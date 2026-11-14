@@ -6,6 +6,7 @@ import type {
   InstagramCampaign,
   InstagramCampaignTrigger,
   InstagramDelivery,
+  InstagramDeliveryMetrics,
   InstagramDeliveryStatus,
   InstagramMetaApp,
   InstagramOpsStatus,
@@ -970,5 +971,76 @@ export async function getInstagramOpsStatus(input?: {
     lastSendAt: times[0]?.last_send ?? null,
     dryRunMode: isInstagramDryRun(),
     webhookUrlPattern,
+  };
+}
+
+export async function getInstagramDeliveryMetrics(input?: {
+  accountIds?: string[] | null;
+}): Promise<InstagramDeliveryMetrics> {
+  await ready();
+  const sql = getSql();
+  const scopeAccounts = input?.accountIds;
+  const restrictAccounts = scopeAccounts != null;
+
+  const rows = asRows<{
+    sent_week: number;
+    failed_week: number;
+    queued: number;
+    paused: number;
+  }>(
+    restrictAccounts
+      ? await sql`
+          SELECT
+            (
+              SELECT COUNT(*)::int FROM instagram_deliveries
+              WHERE status = 'sent'
+                AND sent_at > NOW() - INTERVAL '7 days'
+                AND account_id = ANY(${scopeAccounts ?? []}::uuid[])
+            ) AS sent_week,
+            (
+              SELECT COUNT(*)::int FROM instagram_deliveries
+              WHERE status = 'failed'
+                AND created_at > NOW() - INTERVAL '7 days'
+                AND account_id = ANY(${scopeAccounts ?? []}::uuid[])
+            ) AS failed_week,
+            (
+              SELECT COUNT(*)::int FROM instagram_deliveries
+              WHERE status = 'queued'
+                AND account_id = ANY(${scopeAccounts ?? []}::uuid[])
+            ) AS queued,
+            (
+              SELECT COUNT(*)::int FROM instagram_campaigns
+              WHERE active = FALSE
+                AND account_id = ANY(${scopeAccounts ?? []}::uuid[])
+            ) AS paused
+        `
+      : await sql`
+          SELECT
+            (
+              SELECT COUNT(*)::int FROM instagram_deliveries
+              WHERE status = 'sent'
+                AND sent_at > NOW() - INTERVAL '7 days'
+            ) AS sent_week,
+            (
+              SELECT COUNT(*)::int FROM instagram_deliveries
+              WHERE status = 'failed'
+                AND created_at > NOW() - INTERVAL '7 days'
+            ) AS failed_week,
+            (
+              SELECT COUNT(*)::int FROM instagram_deliveries
+              WHERE status = 'queued'
+            ) AS queued,
+            (
+              SELECT COUNT(*)::int FROM instagram_campaigns
+              WHERE active = FALSE
+            ) AS paused
+        `,
+  );
+  const row = rows[0];
+  return {
+    sentThisWeek: row?.sent_week ?? 0,
+    failedThisWeek: row?.failed_week ?? 0,
+    queuedNow: row?.queued ?? 0,
+    pausedCampaigns: row?.paused ?? 0,
   };
 }

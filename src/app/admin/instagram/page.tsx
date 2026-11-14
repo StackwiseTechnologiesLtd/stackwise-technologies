@@ -1,5 +1,5 @@
-import { GrowthInstagramPanel } from "@/components/admin/growth/GrowthInstagramPanel";
+import { InstagramOverviewDashboard } from "@/components/admin/instagram/InstagramOverviewDashboard";
 
 export default function InstagramPortalOverviewPage() {
-  return <GrowthInstagramPanel view="overview" />;
+  return <InstagramOverviewDashboard />;
 }

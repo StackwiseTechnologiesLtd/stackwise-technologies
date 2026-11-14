@@ -85,6 +85,13 @@ export type InstagramOpsStatus = {
   dryRunMode: boolean;
 };
 
+export type InstagramDeliveryMetrics = {
+  sentThisWeek: number;
+  failedThisWeek: number;
+  queuedNow: number;
+  pausedCampaigns: number;
+};
+
 export type InstagramConversation = {
   id: string;
   accountId: string;

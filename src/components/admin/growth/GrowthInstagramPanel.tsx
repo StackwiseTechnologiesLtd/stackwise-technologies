@@ -8,7 +8,6 @@ import type {
   InstagramCampaign,
   InstagramDelivery,
   InstagramMetaApp,
-  InstagramOpsStatus,
 } from "@/lib/instagram/types";
 import Link from "next/link";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
@@ -39,12 +38,6 @@ function formatDeliveryReason(d: InstagramDelivery): string {
 
 const DELIVERY_PAGE_SIZE = 25;
 
-function webhookPatternForDisplay(pattern: string | undefined): string {
-  if (!pattern) return "…";
-  if (typeof window === "undefined") return pattern;
-  return pattern.replace(/^https?:\/\/[^/]+/, window.location.origin);
-}
-
 export type InstagramPortalView =
   | "full"
   | "overview"
@@ -62,7 +55,6 @@ export function GrowthInstagramPanel({
   const show = (section: InstagramPortalView) =>
     view === "full" || view === section;
   const toast = useToast();
-  const [status, setStatus] = useState<InstagramOpsStatus | null>(null);
   const [apps, setApps] = useState<InstagramMetaApp[]>([]);
   const [accounts, setAccounts] = useState<InstagramAccount[]>([]);
   const [campaigns, setCampaigns] = useState<InstagramCampaign[]>([]);
@@ -71,7 +63,6 @@ export function GrowthInstagramPanel({
   const [deliveryTotal, setDeliveryTotal] = useState(0);
   const [deliveryTotalPages, setDeliveryTotalPages] = useState(1);
   const [deliveriesLoading, setDeliveriesLoading] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [deliveryFilter, setDeliveryFilter] = useState<string>("");
   const [oauthSetup, setOauthSetup] = useState<{
     redirectUri: string;
@@ -142,18 +133,14 @@ export function GrowthInstagramPanel({
   }, [deliveryFilter, deliveryPage, toast]);
 
   const load = useCallback(async () => {
-    setLoading(true);
     try {
-      const [st, appsRes, accRes, campRes, oauthCfg, accessRes] = await Promise.all([
-        fetch("/api/admin/instagram/status"),
+      const [appsRes, accRes, campRes, oauthCfg, accessRes] = await Promise.all([
         fetch("/api/admin/instagram/meta-apps"),
         fetch("/api/admin/instagram/accounts"),
         fetch("/api/admin/instagram/campaigns"),
         fetch("/api/admin/instagram/oauth/config"),
         fetch("/api/admin/instagram/access"),
       ]);
-      if (!st.ok) throw new Error("Status load failed");
-      setStatus((await st.json()) as InstagramOpsStatus);
       if (appsRes.ok) {
         const data = (await appsRes.json()) as { apps: InstagramMetaApp[] };
         setApps(data.apps);
@@ -187,8 +174,6 @@ export function GrowthInstagramPanel({
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Load failed");
-    } finally {
-      setLoading(false);
     }
   }, [toast]);
 
@@ -343,57 +328,6 @@ export function GrowthInstagramPanel({
 
   return (
     <div className="space-y-6">
-      {show("overview") ? (
-      <section className="rounded-xl border border-line bg-panel p-5 sm:p-6">
-        {status?.dryRunMode ? (
-          <p className="mb-4 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-100">
-            <strong>Dry run is on</strong> (<code className="text-foreground">INSTAGRAM_DRY_RUN=1</code>
-            ). Automations log deliveries but do not send real Instagram DMs. Set{" "}
-            <code className="text-foreground">INSTAGRAM_DRY_RUN=0</code> and restart the dev server.
-          </p>
-        ) : null}
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h3 className="text-base font-semibold tracking-tight">Instagram status</h3>
-            <p className="mt-1 text-sm text-muted">
-              Webhook URL pattern:{" "}
-              <code className="text-foreground">
-                {webhookPatternForDisplay(status?.webhookUrlPattern)}
-              </code>
-            </p>
-            <p className="mt-2 text-xs text-muted">
-              {access?.kind === "owner" ? (
-                <>
-                  Meta apps: {status?.metaAppCount ?? 0} · Connected accounts:{" "}
-                  {status?.connectedAccounts ?? 0} · Active campaigns:{" "}
-                  {status?.activeCampaigns ?? 0}
-                </>
-              ) : (
-                <>
-                  Your accounts: {status?.connectedAccounts ?? 0} · Active campaigns:{" "}
-                  {status?.activeCampaigns ?? 0}
-                </>
-              )}
-            </p>
-            <p className="mt-1 text-xs text-muted">
-              Last webhook: {formatWhen(status?.lastWebhookAt ?? null)} · Last send:{" "}
-              {formatWhen(status?.lastSendAt ?? null)}
-            </p>
-          </div>
-          <AdminActionButton
-            busy={loading}
-            busyLabel="Refreshing…"
-            onClick={() => {
-              void load();
-              if (show("activity")) void loadDeliveries();
-            }}
-          >
-            Refresh
-          </AdminActionButton>
-        </div>
-      </section>
-      ) : null}
-
       {show("connection") && canConfigureMeta ? (
       <section className="rounded-xl border border-line bg-panel p-5 sm:p-6">
         <h3 className="text-base font-semibold tracking-tight">Meta apps</h3>
