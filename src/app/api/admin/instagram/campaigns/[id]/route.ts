@@ -5,7 +5,11 @@ import {
   requireAccountScope,
   requireInstagramApiAccess,
 } from "@/lib/instagram/api-auth";
-import { listCampaigns, patchCampaign } from "@/lib/instagram/repository";
+import {
+  deleteCampaign,
+  listCampaigns,
+  patchCampaign,
+} from "@/lib/instagram/repository";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +38,30 @@ export async function PATCH(request: Request, context: RouteContext) {
     return NextResponse.json({ campaign });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Update failed";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+export async function DELETE(_request: Request, context: RouteContext) {
+  const ctx = await requireInstagramApiAccess();
+  if (isInstagramApiError(ctx)) return ctx;
+  const { id } = await context.params;
+  try {
+    const found = filterCampaignsByAccountAccess(await listCampaigns(), ctx.access).find(
+      (c) => c.id === id,
+    );
+    if (!found) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+    const scopeErr = requireAccountScope(ctx.access, found.accountId);
+    if (scopeErr) return scopeErr;
+    const deleted = await deleteCampaign(id);
+    if (!deleted) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Delete failed";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

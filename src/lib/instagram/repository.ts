@@ -467,6 +467,19 @@ export async function patchCampaign(
   return (await listCampaigns()).find((c) => c.id === id) ?? null;
 }
 
+export async function deleteCampaign(id: string): Promise<boolean> {
+  await ready();
+  const sql = getSql();
+  const rows = asRows<{ id: string }>(
+    await sql`
+      DELETE FROM instagram_campaigns
+      WHERE id = ${id}::uuid
+      RETURNING id
+    `,
+  );
+  return rows.length > 0;
+}
+
 export async function getDeliveryByTriggerId(
   triggerExternalId: string,
 ): Promise<{ id: string } | null> {

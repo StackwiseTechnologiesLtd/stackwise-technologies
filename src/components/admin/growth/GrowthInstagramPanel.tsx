@@ -269,6 +269,26 @@ export function GrowthInstagramPanel({
     }
   }
 
+  async function deleteCampaign(id: string, name: string) {
+    if (
+      !confirm(
+        `Delete “${name}”? Delivery log rows for this automation are kept; they will no longer link to this campaign.`,
+      )
+    ) {
+      return;
+    }
+    try {
+      const res = await fetch(`/api/admin/instagram/campaigns/${id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Delete failed");
+      toast.toast("Campaign deleted.");
+      await load();
+    } catch {
+      toast.error("Could not delete campaign");
+    }
+  }
+
   const canConfigureMeta = access?.canManageMetaApps !== false;
 
   return (
@@ -665,9 +685,17 @@ export function GrowthInstagramPanel({
                 <code className="text-xs">{c.keyword}</code>
                 {c.mediaId ? ` on ${c.mediaId}` : ""}
               </span>
-              <AdminActionButton onClick={() => void toggleCampaign(c.id, !c.active)}>
-                {c.active ? "Deactivate" : "Activate"}
-              </AdminActionButton>
+              <span className="flex flex-wrap items-center gap-2">
+                <AdminActionButton onClick={() => void toggleCampaign(c.id, !c.active)}>
+                  {c.active ? "Deactivate" : "Activate"}
+                </AdminActionButton>
+                <AdminActionButton
+                  className="text-red-400 hover:text-red-300"
+                  onClick={() => void deleteCampaign(c.id, c.name)}
+                >
+                  Delete
+                </AdminActionButton>
+              </span>
             </li>
           ))}
         </ul>

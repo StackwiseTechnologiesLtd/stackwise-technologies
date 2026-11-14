@@ -8,11 +8,15 @@ export function AdminUserAvatar({
   email,
   avatarUrl,
   onSignOut,
+  size = "md",
 }: {
   email: string;
   avatarUrl: string;
   onSignOut: () => void;
+  size?: "sm" | "md";
 }) {
+  const px = size === "sm" ? 28 : 36;
+  const box = size === "sm" ? "size-7" : "size-9";
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const menuId = useId();
@@ -40,7 +44,7 @@ export function AdminUserAvatar({
       <button
         type="button"
         title={email}
-        className="relative flex size-9 touch-manipulation items-center justify-center overflow-hidden rounded-lg ring-2 ring-[var(--admin-border)] transition-shadow hover:ring-accent/50 focus-visible:outline-none focus-visible:ring-accent"
+        className={`relative flex ${box} touch-manipulation items-center justify-center overflow-hidden rounded-lg ring-2 ring-[var(--admin-border)] transition-shadow hover:ring-accent/50 focus-visible:outline-none focus-visible:ring-accent`}
         aria-label={`Account menu for ${email}`}
         aria-haspopup="menu"
         aria-expanded={open}
@@ -50,9 +54,9 @@ export function AdminUserAvatar({
         <Image
           src={avatarUrl}
           alt=""
-          width={36}
-          height={36}
-          className="size-9 object-cover"
+          width={px}
+          height={px}
+          className={`${box} object-cover`}
         />
       </button>
 

@@ -96,23 +96,12 @@ export function InstagramAppShell({
         <header className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-line/80 bg-[#0d0d10]/90 px-4 backdrop-blur">
           <PostHButton mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
           <h1 className="truncate text-sm font-semibold">{title}</h1>
-          <div className="flex items-center gap-2">
-            <span className="hidden max-w-[10rem] truncate text-xs text-muted sm:inline">
-              {user.email}
-            </span>
-            <AdminUserAvatar
-              email={user.email}
-              avatarUrl={user.avatarUrl}
-              onSignOut={() => void logout()}
-            />
-            <button
-              type="button"
-              className="rounded-lg border border-line px-2 py-1 text-xs text-muted hover:text-foreground"
-              onClick={() => void logout()}
-            >
-              Sign out
-            </button>
-          </div>
+          <AdminUserAvatar
+            email={user.email}
+            avatarUrl={user.avatarUrl}
+            size="sm"
+            onSignOut={() => void logout()}
+          />
         </header>
         <main className="min-h-0 flex-1 overflow-y-auto px-4 py-6 sm:px-8">
           <div className="mx-auto max-w-5xl">{children}</div>
