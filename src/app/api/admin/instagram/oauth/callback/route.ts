@@ -27,7 +27,7 @@ export async function GET(request: Request) {
   const fail = (message: string) =>
     NextResponse.redirect(
       new URL(
-        `/admin/growth/instagram?oauth_error=${encodeURIComponent(message)}`,
+        `/admin/instagram/connection?oauth_error=${encodeURIComponent(message)}`,
         returnOrigin,
       ),
     );
@@ -96,7 +96,7 @@ export async function GET(request: Request) {
       ig: profile.username ?? webhookIgId,
     });
     return NextResponse.redirect(
-      new URL(`/admin/growth/instagram?${qs.toString()}`, returnOrigin),
+      new URL(`/admin/instagram/connection?${qs.toString()}`, returnOrigin),
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : "OAuth failed";

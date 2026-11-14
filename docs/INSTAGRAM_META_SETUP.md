@@ -42,6 +42,12 @@ Optional: **Facebook App secret** from **App settings → Basic** — add in adm
 
 After connect, Stackwise calls `subscribed_apps` for **comments** + **messages** (same as OpenReply’s programmatic subscribe). You still verify the callback URL in the Meta UI.
 
+## Operator portal (team access)
+
+- **Dashboard:** `/admin/instagram` — OpenReply/ManyChat-style pages (Overview, Automations, Activity, Connection, Team).
+- **Owners** (`ADMIN_EMAILS`): full access including Meta app secrets and **Team** invites.
+- **Operators:** invite on **Team access** with email + optional single Instagram account scope. They sign in via the same OTP login but only see `/admin/instagram/*`.
+
 ## Stackwise admin flow
 
 1. **Add Meta app** — Instagram App ID, Instagram App secret, webhook verify token, slug.

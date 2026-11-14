@@ -1,14 +1,15 @@
 import { NextResponse } from "next/server";
-import { getAdminSession } from "@/lib/auth/session";
+import {
+  isInstagramApiError,
+  requireInstagramApiAccess,
+} from "@/lib/instagram/api-auth";
 import { getInstagramOpsStatus } from "@/lib/instagram/repository";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const session = await getAdminSession();
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const ctx = await requireInstagramApiAccess();
+  if (isInstagramApiError(ctx)) return ctx;
   try {
     const status = await getInstagramOpsStatus();
     return NextResponse.json(status);

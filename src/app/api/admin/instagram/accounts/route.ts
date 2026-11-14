@@ -1,17 +1,20 @@
 import { NextResponse } from "next/server";
-import { getAdminSession } from "@/lib/auth/session";
+import { filterByAccountAccess } from "@/lib/instagram/access";
+import {
+  isInstagramApiError,
+  requireAccountScope,
+  requireInstagramApiAccess,
+} from "@/lib/instagram/api-auth";
 import { prepareInstagramAccountToken } from "@/lib/instagram/save-account-token";
 import { listAccounts, upsertAccount } from "@/lib/instagram/repository";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const session = await getAdminSession();
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const ctx = await requireInstagramApiAccess();
+  if (isInstagramApiError(ctx)) return ctx;
   try {
-    const accounts = await listAccounts();
+    const accounts = filterByAccountAccess(await listAccounts(), ctx.access);
     return NextResponse.json({ accounts });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Load failed";
@@ -20,10 +23,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const session = await getAdminSession();
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const ctx = await requireInstagramApiAccess();
+  if (isInstagramApiError(ctx)) return ctx;
   try {
     const body = (await request.json()) as Record<string, unknown>;
     const metaAppId = String(body.metaAppId ?? "").trim();
@@ -42,6 +43,12 @@ export async function POST(request: Request) {
     }
 
     if (accessToken) {
+      if (!ctx.access.canManageMetaApps) {
+        return NextResponse.json(
+          { error: "Only owners can paste tokens" },
+          { status: 403 },
+        );
+      }
       const prepared = await prepareInstagramAccountToken({
         metaAppRowId: metaAppId,
         igUserId,
@@ -49,6 +56,9 @@ export async function POST(request: Request) {
         accessToken,
         subscribeWebhooks,
       });
+      const scopeErr = requireAccountScope(ctx.access, prepared.igUserId);
+      if (scopeErr) return scopeErr;
+
       const account = await upsertAccount({
         metaAppId,
         igUserId: prepared.igUserId,
@@ -63,12 +73,10 @@ export async function POST(request: Request) {
       });
     }
 
-    const account = await upsertAccount({
-      metaAppId,
-      igUserId,
-      username,
-    });
-    return NextResponse.json({ account });
+    return NextResponse.json(
+      { error: "accessToken required" },
+      { status: 400 },
+    );
   } catch (error) {
     const message = error instanceof Error ? error.message : "Save failed";
     return NextResponse.json({ error: message }, { status: 500 });

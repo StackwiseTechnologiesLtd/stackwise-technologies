@@ -1,3 +1,9 @@
+import { instagramPageTitle } from "@/lib/admin/instagram-nav";
+
+function instagramPortalTitle(pathname: string): string {
+  return instagramPageTitle(pathname);
+}
+
 export type AdminNavItem = {
   href: string;
   label: string;
@@ -26,7 +32,7 @@ export const adminGrowthNavChildren: AdminNavChild[] = [
   { href: "/admin/growth/inbox", label: "Inbox", match: "prefix" },
   { href: "/admin/growth/linkedin", label: "LinkedIn", match: "prefix" },
   { href: "/admin/growth/jobs", label: "Jobs", match: "prefix" },
-  { href: "/admin/growth/instagram", label: "Instagram", match: "prefix" },
+  { href: "/admin/instagram", label: "Instagram DM", match: "prefix" },
   { href: "/admin/growth/discover", label: "Web discover", match: "prefix" },
   { href: "/admin/growth/outreach", label: "Email outreach", match: "prefix" },
   { href: "/admin/crm", label: "CRM pipeline", match: "prefix" },
@@ -121,12 +127,17 @@ export function adminPageTitle(pathname: string): string {
   if (pathname.startsWith("/admin/growth/leads")) return "CRM pipeline";
   if (pathname.startsWith("/admin/growth/settings")) return "Settings";
   if (pathname.startsWith("/admin/growth/connect")) return "Connect";
+  if (pathname === "/admin/instagram") return "Overview";
+  if (pathname.startsWith("/admin/instagram/")) return instagramPortalTitle(pathname);
   if (pathname === "/admin/crm") return "CRM pipeline";
   if (pathname.startsWith("/admin/crm/opportunities/")) return "Opportunity";
   return "Admin";
 }
 
 export function adminBreadcrumbArea(pathname: string): string {
+  if (pathname === "/admin/instagram" || pathname.startsWith("/admin/instagram/")) {
+    return "Instagram DM";
+  }
   if (
     pathname === "/admin/growth" ||
     pathname.startsWith("/admin/growth/") ||

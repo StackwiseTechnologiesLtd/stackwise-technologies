@@ -27,7 +27,22 @@ function webhookPatternForDisplay(pattern: string | undefined): string {
   return pattern.replace(/^https?:\/\/[^/]+/, window.location.origin);
 }
 
-export function GrowthInstagramPanel() {
+export type InstagramPortalView =
+  | "full"
+  | "overview"
+  | "campaigns"
+  | "activity"
+  | "connection"
+  | "team"
+  | "meta-only";
+
+export function GrowthInstagramPanel({
+  view = "full",
+}: {
+  view?: InstagramPortalView;
+}) {
+  const show = (section: InstagramPortalView) =>
+    view === "full" || view === section;
   const toast = useToast();
   const [status, setStatus] = useState<InstagramOpsStatus | null>(null);
   const [apps, setApps] = useState<InstagramMetaApp[]>([]);
@@ -43,6 +58,9 @@ export function GrowthInstagramPanel() {
     usesTunnel?: boolean;
     adminReturnOrigin?: string;
     publicOrigin?: string;
+  } | null>(null);
+  const [access, setAccess] = useState<{
+    canManageMetaApps: boolean;
   } | null>(null);
 
   const [appForm, setAppForm] = useState({
@@ -77,7 +95,8 @@ export function GrowthInstagramPanel() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [st, appsRes, accRes, campRes, delUrl, oauthCfg] = await Promise.all([
+      const [st, appsRes, accRes, campRes, delUrl, oauthCfg, accessRes] =
+        await Promise.all([
         fetch("/api/admin/instagram/status"),
         fetch("/api/admin/instagram/meta-apps"),
         fetch("/api/admin/instagram/accounts"),
@@ -88,6 +107,7 @@ export function GrowthInstagramPanel() {
           }`,
         ),
         fetch("/api/admin/instagram/oauth/config"),
+        fetch("/api/admin/instagram/access"),
       ]);
       if (!st.ok) throw new Error("Status load failed");
       setStatus((await st.json()) as InstagramOpsStatus);
@@ -117,6 +137,10 @@ export function GrowthInstagramPanel() {
           publicOrigin?: string;
         };
         setOauthSetup(data);
+      }
+      if (accessRes.ok) {
+        const data = (await accessRes.json()) as { canManageMetaApps: boolean };
+        setAccess(data);
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Load failed");
@@ -244,8 +268,11 @@ export function GrowthInstagramPanel() {
     }
   }
 
+  const canConfigureMeta = access?.canManageMetaApps !== false;
+
   return (
     <div className="space-y-6">
+      {show("overview") ? (
       <section className="rounded-xl border border-line bg-panel p-5 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -271,7 +298,9 @@ export function GrowthInstagramPanel() {
           </AdminActionButton>
         </div>
       </section>
+      ) : null}
 
+      {show("connection") && canConfigureMeta ? (
       <section className="rounded-xl border border-line bg-panel p-5 sm:p-6">
         <h3 className="text-base font-semibold tracking-tight">Meta apps</h3>
         <p className="mt-1 text-sm text-muted">
@@ -396,7 +425,9 @@ export function GrowthInstagramPanel() {
           Add Meta app
         </AdminActionButton>
       </section>
+      ) : null}
 
+      {show("connection") ? (
       <section className="rounded-xl border border-line bg-panel p-5 sm:p-6">
         <h3 className="text-base font-semibold tracking-tight">Instagram account</h3>
         <p className="mt-1 text-sm text-muted">
@@ -407,6 +438,7 @@ export function GrowthInstagramPanel() {
           <code className="text-foreground">entry.id</code> (e.g.{" "}
           <code className="text-foreground">17841447839356666</code> for @just.one.teddy).
         </p>
+        {canConfigureMeta ? (
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <label className="text-sm sm:col-span-2">
             Meta app
@@ -460,6 +492,12 @@ export function GrowthInstagramPanel() {
             After save, subscribe this account to comments + messages webhooks (Graph API)
           </label>
         </div>
+        ) : (
+          <p className="mt-4 text-sm text-muted">
+            Connection settings are managed by the workspace owner. You can run automations on the
+            accounts you have access to.
+          </p>
+        )}
         {accounts.length > 0 && (
           <ul className="mt-3 text-sm text-muted">
             {accounts.map((a) => (
@@ -499,11 +537,15 @@ export function GrowthInstagramPanel() {
             ))}
           </ul>
         )}
-        <AdminActionButton className="mt-4" onClick={() => void saveAccount()}>
-          Save account
-        </AdminActionButton>
+        {canConfigureMeta ? (
+          <AdminActionButton className="mt-4" onClick={() => void saveAccount()}>
+            Save account
+          </AdminActionButton>
+        ) : null}
       </section>
+      ) : null}
 
+      {show("campaigns") ? (
       <section className="rounded-xl border border-line bg-panel p-5 sm:p-6">
         <h3 className="text-base font-semibold tracking-tight">Campaigns</h3>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -629,7 +671,9 @@ export function GrowthInstagramPanel() {
           ))}
         </ul>
       </section>
+      ) : null}
 
+      {show("activity") ? (
       <section className="rounded-xl border border-line bg-panel p-5 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h3 className="text-base font-semibold tracking-tight">Delivery log</h3>
@@ -679,6 +723,7 @@ export function GrowthInstagramPanel() {
           )}
         </div>
       </section>
+      ) : null}
     </div>
   );
 }

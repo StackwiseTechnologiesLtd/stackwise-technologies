@@ -1,5 +1,10 @@
 import { NextResponse } from "next/server";
-import { getAdminSession } from "@/lib/auth/session";
+import { filterCampaignsByAccountAccess } from "@/lib/instagram/access";
+import {
+  isInstagramApiError,
+  requireAccountScope,
+  requireInstagramApiAccess,
+} from "@/lib/instagram/api-auth";
 import { createCampaign, listCampaigns } from "@/lib/instagram/repository";
 import {
   instagramCampaignTriggers,
@@ -9,14 +14,13 @@ import {
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  const session = await getAdminSession();
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const ctx = await requireInstagramApiAccess();
+  if (isInstagramApiError(ctx)) return ctx;
   const url = new URL(request.url);
   const accountId = url.searchParams.get("accountId") ?? undefined;
   try {
-    const campaigns = await listCampaigns(accountId);
+    let campaigns = await listCampaigns(accountId);
+    campaigns = filterCampaignsByAccountAccess(campaigns, ctx.access);
     return NextResponse.json({ campaigns });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Load failed";
@@ -25,13 +29,13 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const session = await getAdminSession();
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const ctx = await requireInstagramApiAccess();
+  if (isInstagramApiError(ctx)) return ctx;
   try {
     const body = (await request.json()) as Record<string, unknown>;
     const accountId = String(body.accountId ?? "").trim();
+    const scopeErr = requireAccountScope(ctx.access, accountId);
+    if (scopeErr) return scopeErr;
     const name = String(body.name ?? "").trim();
     const mediaIdRaw = body.mediaId ? String(body.mediaId).trim() : "";
     const triggerRaw = String(body.triggerType ?? "comment").trim();

@@ -32,7 +32,7 @@ export default function AdminLoginPage() {
       if (!res.ok) throw new Error(data.error ?? "Unable to send code");
       if (data.dispatched === false) {
         toast.error(
-          "This email is not authorized for admin access. Use your allowlisted work email or ask an owner to add it in ADMIN_EMAILS.",
+          "This email is not authorized. Use an owner email (ADMIN_EMAILS) or an Instagram operator invite from Team access.",
         );
         return;
       }

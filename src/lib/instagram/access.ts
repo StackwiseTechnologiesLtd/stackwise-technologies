@@ -1,0 +1,70 @@
+import { isAllowedAdminEmail, normalizeAdminEmail } from "@/lib/otp/identity";
+import { getInstagramGrantForEmail } from "@/lib/instagram/grants-repository";
+
+export type InstagramAccess = {
+  kind: "owner" | "operator";
+  email: string;
+  /** When set, API and UI are limited to these account row ids. */
+  accountIds: string[] | null;
+  canManageMetaApps: boolean;
+  canManageTeam: boolean;
+};
+
+export async function getInstagramAccessForEmail(
+  email: string,
+): Promise<InstagramAccess | null> {
+  const normalized = normalizeAdminEmail(email);
+  if (!normalized) return null;
+
+  if (isAllowedAdminEmail(normalized)) {
+    return {
+      kind: "owner",
+      email: normalized,
+      accountIds: null,
+      canManageMetaApps: true,
+      canManageTeam: true,
+    };
+  }
+
+  const grant = await getInstagramGrantForEmail(normalized);
+  if (!grant) return null;
+
+  return {
+    kind: "operator",
+    email: normalized,
+    accountIds: grant.instagramAccountId ? [grant.instagramAccountId] : null,
+    canManageMetaApps: false,
+    canManageTeam: false,
+  };
+}
+
+export async function isAllowedAdminOrInstagramLogin(email: string): Promise<boolean> {
+  const normalized = normalizeAdminEmail(email);
+  if (!normalized) return false;
+  if (isAllowedAdminEmail(normalized)) return true;
+  const grant = await getInstagramGrantForEmail(normalized);
+  return Boolean(grant);
+}
+
+export function accountAllowed(
+  access: InstagramAccess,
+  accountId: string,
+): boolean {
+  if (!access.accountIds) return true;
+  return access.accountIds.includes(accountId);
+}
+
+export function filterByAccountAccess<T extends { id: string }>(
+  items: T[],
+  access: InstagramAccess,
+): T[] {
+  if (!access.accountIds) return items;
+  return items.filter((item) => access.accountIds!.includes(item.id));
+}
+
+export function filterCampaignsByAccountAccess<
+  T extends { accountId: string },
+>(items: T[], access: InstagramAccess): T[] {
+  if (!access.accountIds) return items;
+  return items.filter((item) => access.accountIds!.includes(item.accountId));
+}

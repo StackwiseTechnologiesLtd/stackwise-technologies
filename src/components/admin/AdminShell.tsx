@@ -218,6 +218,8 @@ export function AdminShell({
   const router = useRouter();
   const toast = useToast();
   const isLogin = pathname === "/admin/login";
+  const isInstagramPortal =
+    pathname === "/admin/instagram" || pathname.startsWith("/admin/instagram/");
   const [menuOpen, setMenuOpen] = useState(false);
   const sidebarCollapsed = useSyncExternalStore(
     subscribeAdminSidebar,
@@ -255,7 +257,7 @@ export function AdminShell({
     }
   }
 
-  if (isLogin) {
+  if (isLogin || isInstagramPortal) {
     return (
       <div className="min-h-screen bg-background text-foreground">{children}</div>
     );

@@ -1,14 +1,15 @@
 import { NextResponse } from "next/server";
-import { getAdminSession } from "@/lib/auth/session";
+import {
+  isInstagramApiError,
+  requireInstagramApiAccess,
+} from "@/lib/instagram/api-auth";
 import { createMetaApp, listMetaApps } from "@/lib/instagram/repository";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const session = await getAdminSession();
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const ctx = await requireInstagramApiAccess({ manageMeta: true });
+  if (isInstagramApiError(ctx)) return ctx;
   try {
     const apps = await listMetaApps();
     return NextResponse.json({ apps });
@@ -19,10 +20,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const session = await getAdminSession();
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const ctx = await requireInstagramApiAccess({ manageMeta: true });
+  if (isInstagramApiError(ctx)) return ctx;
   try {
     const body = (await request.json()) as Record<string, unknown>;
     const label = String(body.label ?? "").trim();

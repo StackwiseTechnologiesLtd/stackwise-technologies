@@ -1,9 +1,9 @@
 import { ensureSchema } from "@/lib/db/ensure-schema";
 import { asRows, getSql, isDatabaseConfigured } from "@/lib/db/postgres";
 import { sendEmail } from "@/lib/emails/sendEmail";
+import { isAllowedAdminOrInstagramLogin } from "@/lib/instagram/access";
 import {
   adminOtpSubjectHash,
-  isAllowedAdminEmail,
   normalizeAdminEmail,
 } from "@/lib/otp/identity";
 import { assertOtpNotLocked, clearOtpVerifyAttempts, recordOtpVerifyFailure } from "@/lib/otp/lockout";
@@ -37,10 +37,11 @@ export async function sendAdminLoginOtp(email: string): Promise<{
   await assertOtpNotLocked(subjectHash);
   await assertOtpSendAllowed(subjectHash);
 
-  if (!isAllowedAdminEmail(normalizedEmail)) {
+  const allowed = await isAllowedAdminOrInstagramLogin(normalizedEmail);
+  if (!allowed) {
     if (!isProduction) {
       console.info(
-        `[admin-otp] no allowlisted admin for ${normalizedEmail} — responding 200 without sending`,
+        `[admin-otp] no admin/instagram grant for ${normalizedEmail} — responding 200 without sending`,
       );
     }
     return { success: true, dispatched: false, sent: false };
@@ -103,7 +104,7 @@ export async function verifyAdminLoginOtp(
     throw new Error("Valid email is required");
   }
 
-  if (!isAllowedAdminEmail(normalizedEmail)) {
+  if (!(await isAllowedAdminOrInstagramLogin(normalizedEmail))) {
     throw new Error("Invalid or expired OTP");
   }
 
