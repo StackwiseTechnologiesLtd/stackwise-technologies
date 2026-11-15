@@ -584,6 +584,11 @@ ALTER TABLE instagram_deliveries
   ALTER COLUMN trigger_external_id TYPE TEXT;
 `;
 
+const INSTAGRAM_PROFILE_SYNCED_AT_SQL = `
+ALTER TABLE instagram_accounts
+  ADD COLUMN IF NOT EXISTS profile_synced_at TIMESTAMPTZ;
+`;
+
 const INSTAGRAM_INBOX_SQL = `
 CREATE TABLE IF NOT EXISTS instagram_conversations (
   id UUID PRIMARY KEY,
@@ -642,4 +647,5 @@ export const MIGRATION_STATEMENTS = [
   ...splitStatements(INSTAGRAM_OPERATOR_GRANTS_SQL),
   ...splitStatements(INSTAGRAM_INBOX_SQL),
   ...splitStatements(INSTAGRAM_DELIVERY_TRIGGER_ID_SQL),
+  ...splitStatements(INSTAGRAM_PROFILE_SYNCED_AT_SQL),
 ];

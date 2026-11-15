@@ -11,6 +11,7 @@ import {
   getMetaAppById,
   listAccounts,
 } from "@/lib/instagram/repository";
+import { refreshInstagramAccountProfile } from "@/lib/instagram/sync-account-profile";
 
 export const dynamic = "force-dynamic";
 
@@ -45,5 +46,19 @@ export async function POST(_request: Request, context: RouteParams) {
       ? { metaAppId: metaApp.metaAppId, appSecret: metaApp.appSecret }
       : undefined,
   );
-  return NextResponse.json(result, { status: result.ok ? 200 : 422 });
+
+  let username: string | null = account.username;
+  if (result.ok) {
+    try {
+      const profile = await refreshInstagramAccountProfile(id);
+      if (profile.synced) username = profile.username;
+    } catch (error) {
+      console.warn("[instagram] test token profile sync:", error);
+    }
+  }
+
+  return NextResponse.json(
+    { ...result, username },
+    { status: result.ok ? 200 : 422 },
+  );
 }

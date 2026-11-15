@@ -5,6 +5,7 @@ import {
   findAccountByIgUserId,
   hasInstagramCampaignParticipant,
 } from "@/lib/instagram/repository";
+import { maybeRefreshInstagramAccountProfile } from "@/lib/instagram/sync-account-profile";
 
 export async function handleInstagramMessageWebhook(input: {
   body: unknown;
@@ -16,6 +17,8 @@ export async function handleInstagramMessageWebhook(input: {
   for (const msg of messages) {
     const account = await findAccountByIgUserId(msg.igAccountId);
     if (!account) continue;
+
+    void maybeRefreshInstagramAccountProfile(account.id);
 
     const inCampaignThread = await hasInstagramCampaignParticipant(
       account.id,

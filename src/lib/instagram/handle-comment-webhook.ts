@@ -1,6 +1,7 @@
 import { parseInstagramCommentWebhooks } from "@/lib/instagram/parse-comment-webhook";
 import { processInstagramKeywordTrigger } from "@/lib/instagram/process-trigger";
 import { findAccountByIgUserId, recordWebhookReceipt } from "@/lib/instagram/repository";
+import { maybeRefreshInstagramAccountProfile } from "@/lib/instagram/sync-account-profile";
 
 export async function handleInstagramCommentWebhook(input: {
   metaAppId: string | null;
@@ -13,6 +14,8 @@ export async function handleInstagramCommentWebhook(input: {
   for (const comment of comments) {
     const account = await findAccountByIgUserId(comment.igAccountId);
     if (!account) continue;
+
+    void maybeRefreshInstagramAccountProfile(account.id);
 
     const outcome = await processInstagramKeywordTrigger({
       accountId: account.id,

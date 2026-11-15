@@ -12,6 +12,7 @@ import {
   listAccounts,
   upsertAccount,
 } from "@/lib/instagram/repository";
+import { refreshInstagramAccountProfile } from "@/lib/instagram/sync-account-profile";
 
 export const dynamic = "force-dynamic";
 
@@ -47,9 +48,17 @@ export async function POST(_request: Request, context: RouteParams) {
       igUserId: account.igUserId,
       webhookSubscribed: sub.success,
     });
+    let username = account.username;
+    try {
+      const profile = await refreshInstagramAccountProfile(id);
+      if (profile.synced) username = profile.username;
+    } catch (error) {
+      console.warn("[instagram] subscribe profile sync:", error);
+    }
     return NextResponse.json({
       ok: true,
       webhookSubscribed: sub.success,
+      username,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Subscribe failed";

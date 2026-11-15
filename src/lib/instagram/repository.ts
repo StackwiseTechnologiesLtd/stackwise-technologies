@@ -253,6 +253,9 @@ export async function upsertAccount(input: {
     access_token_iv = enc.iv;
   }
 
+  const profileSyncedMark =
+    input.username !== undefined ? new Date().toISOString() : null;
+
   if (existing[0]) {
     await sql`
       UPDATE instagram_accounts SET
@@ -261,6 +264,7 @@ export async function upsertAccount(input: {
         access_token_iv = COALESCE(${access_token_iv}, access_token_iv),
         token_expires_at = COALESCE(${input.tokenExpiresAt ?? null}::timestamptz, token_expires_at),
         webhook_subscribed = COALESCE(${input.webhookSubscribed ?? null}, webhook_subscribed),
+        profile_synced_at = COALESCE(${profileSyncedMark}::timestamptz, profile_synced_at),
         status = 'active',
         updated_at = NOW()
       WHERE id = ${id}::uuid
@@ -329,6 +333,46 @@ export async function getAccountAccessToken(
     row.access_token_iv,
   );
   return payload.token;
+}
+
+export async function applyInstagramAccountProfileFromGraph(
+  accountId: string,
+  profile: { username: string | null; igUserId: string },
+): Promise<boolean> {
+  await ready();
+  const sql = getSql();
+  const rows = asRows<{ id: string }>(
+    await sql`
+      UPDATE instagram_accounts SET
+        username = ${profile.username},
+        ig_user_id = ${profile.igUserId.trim()},
+        profile_synced_at = NOW(),
+        updated_at = NOW()
+      WHERE id = ${accountId}::uuid AND status = 'active'
+      RETURNING id
+    `,
+  );
+  return rows.length > 0;
+}
+
+export async function needsInstagramAccountProfileSync(
+  accountId: string,
+  intervalMs: number,
+): Promise<boolean> {
+  await ready();
+  const sql = getSql();
+  const rows = asRows<{ profile_synced_at: string | null }>(
+    await sql`
+      SELECT profile_synced_at FROM instagram_accounts
+      WHERE id = ${accountId}::uuid AND status = 'active'
+      LIMIT 1
+    `,
+  );
+  const row = rows[0];
+  if (!row) return false;
+  if (!row.profile_synced_at) return true;
+  const age = Date.now() - new Date(row.profile_synced_at).getTime();
+  return age >= intervalMs;
 }
 
 export async function findAccountByIgUserId(
