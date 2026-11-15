@@ -1,6 +1,7 @@
 "use client";
 
 import { AdminActionButton } from "@/components/admin/AdminActionButton";
+import { AdminConfirmDialog } from "@/components/admin/AdminConfirmDialog";
 import { useToast } from "@/components/ToastProvider";
 import type {
   InstagramAccount,
@@ -198,6 +199,11 @@ export function InstagramOverviewDashboard() {
   const [data, setData] = useState<DashboardPayload | null>(null);
   const [campaignTab, setCampaignTab] = useState<CampaignTab>("active");
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [disconnectTarget, setDisconnectTarget] = useState<{
+    id: string;
+    label: string;
+  } | null>(null);
+  const [disconnectBusy, setDisconnectBusy] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);

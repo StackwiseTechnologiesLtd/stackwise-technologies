@@ -61,6 +61,7 @@ export function GrowthInstagramPanel({
   const toast = useToast();
   const [apps, setApps] = useState<InstagramMetaApp[]>([]);
   const [accounts, setAccounts] = useState<InstagramAccount[]>([]);
+  const [removedAccounts, setRemovedAccounts] = useState<InstagramAccount[]>([]);
   const [campaigns, setCampaigns] = useState<InstagramCampaign[]>([]);
   const [deliveries, setDeliveries] = useState<InstagramDelivery[]>([]);
   const [deliveryPage, setDeliveryPage] = useState(1);
@@ -146,7 +147,7 @@ export function GrowthInstagramPanel({
     try {
       const [appsRes, accRes, campRes, oauthCfg, accessRes] = await Promise.all([
         fetch("/api/admin/instagram/meta-apps"),
-        fetch("/api/admin/instagram/accounts"),
+        fetch("/api/admin/instagram/accounts?removed=1"),
         fetch("/api/admin/instagram/campaigns"),
         fetch("/api/admin/instagram/oauth/config"),
         fetch("/api/admin/instagram/access"),
@@ -156,8 +157,12 @@ export function GrowthInstagramPanel({
         setApps(data.apps);
       }
       if (accRes.ok) {
-        const data = (await accRes.json()) as { accounts: InstagramAccount[] };
+        const data = (await accRes.json()) as {
+          accounts: InstagramAccount[];
+          removedAccounts?: InstagramAccount[];
+        };
         setAccounts(data.accounts);
+        setRemovedAccounts(data.removedAccounts ?? []);
       }
       if (campRes.ok) {
         const data = (await campRes.json()) as { campaigns: InstagramCampaign[] };
