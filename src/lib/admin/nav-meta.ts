@@ -8,14 +8,15 @@ export type AdminNavItem = {
   href: string;
   label: string;
   icon:
+    | "overview"
     | "links"
     | "contracts"
     | "subscription"
     | "withdraw"
     | "logs"
-    | "growth"
-    | "crm"
-    | "settings";
+    | "pipeline"
+    | "brand"
+    | "portal";
   match?: "exact" | "prefix";
 };
 
@@ -52,7 +53,7 @@ export const adminNavSections: AdminNavSection[] = [
     id: "agency",
     label: "Agency",
     items: [
-      { href: "/admin", label: "Overview", icon: "growth", match: "exact" },
+      { href: "/admin", label: "Overview", icon: "overview", match: "exact" },
     ],
   },
   {
@@ -83,13 +84,13 @@ export const adminNavSections: AdminNavSection[] = [
       {
         href: "/admin/brand-guidelines",
         label: "Brand guidelines",
-        icon: "settings",
+        icon: "brand",
         match: "prefix",
       },
       {
         href: "/admin/brand-portal",
         label: "Brand access",
-        icon: "settings",
+        icon: "portal",
         match: "prefix",
       },
     ],
@@ -101,7 +102,7 @@ export const adminNavSections: AdminNavSection[] = [
       {
         href: "/admin/crm",
         label: "Pipeline",
-        icon: "crm",
+        icon: "pipeline",
         match: "prefix",
       },
     ],

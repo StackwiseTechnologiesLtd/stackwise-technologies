@@ -49,16 +49,10 @@ function SidebarBrand({
 
 function CollapseIcon({ collapsed }: { collapsed: boolean }) {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      className={`size-4 transition-transform ${collapsed ? "rotate-180" : ""}`}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      aria-hidden
-    >
-      <path d="M15 18l-6-6 6-6" />
-    </svg>
+    <AdminNavIcon
+      name="panel-left"
+      className={`size-[18px] transition-transform ${collapsed ? "rotate-180" : ""}`}
+    />
   );
 }
 
@@ -92,7 +86,7 @@ function SidebarNav({
                   href={item.href}
                   title={collapsed ? item.label : undefined}
                   onClick={onNavigate}
-                  className={`${ADMIN_NAV_LINK} ${collapsed ? "justify-center px-2" : ""
+                  className={`${ADMIN_NAV_LINK} group/nav ${collapsed ? "justify-center px-2" : ""
                     } ${active
                       ? collapsed
                         ? "bg-[var(--admin-nav-active)] font-medium text-foreground"
@@ -102,10 +96,15 @@ function SidebarNav({
                         : "border-l-2 border-transparent text-muted hover:bg-[var(--admin-nav-hover)] hover:text-foreground"
                     }`}
                 >
-                  <AdminNavIcon
-                    name={item.icon}
-                    className={`size-4 shrink-0 ${active ? "text-accent" : "opacity-80"}`}
-                  />
+                  <span
+                    className={`flex size-8 shrink-0 items-center justify-center rounded-lg transition-colors ${
+                      active
+                        ? "border border-[color-mix(in_srgb,var(--accent)_28%,transparent)] bg-[color-mix(in_srgb,var(--accent)_10%,transparent)] text-accent"
+                        : "border border-transparent text-[var(--admin-muted)] group-hover/nav:text-foreground"
+                    }`}
+                  >
+                    <AdminNavIcon name={item.icon} />
+                  </span>
                   {!collapsed ? <span className="truncate">{item.label}</span> : null}
                   {collapsed ? <span className="sr-only">{item.label}</span> : null}
                 </Link>
@@ -302,20 +301,10 @@ export function AdminShell({
               onClick={() => setMenuOpen((open) => !open)}
             >
               <span className="sr-only">{menuOpen ? "Close menu" : "Open menu"}</span>
-              <svg
-                viewBox="0 0 24 24"
-                className="size-4"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                aria-hidden
-              >
-                {menuOpen ? (
-                  <path d="M6 6l12 12M18 6L6 18" />
-                ) : (
-                  <path d="M4 7h16M4 12h16M4 17h16" />
-                )}
-              </svg>
+              <AdminNavIcon
+                name={menuOpen ? "close" : "menu"}
+                className="size-[18px] text-foreground"
+              />
             </button>
             <nav
               className="flex min-w-0 items-center gap-1 text-muted sm:gap-1.5"
