@@ -28,7 +28,12 @@ export type AdminNavChild = {
 
 /** Sub-routes under Growth (sidebar + horizontal sub-nav). */
 export const adminGrowthNavChildren: AdminNavChild[] = [
-  { href: "/admin/growth", label: "Dashboard", match: "exact" },
+  {
+    href: "/admin/growth",
+    label: "Agency home",
+    match: "exact",
+    description: "Pipeline, billing, Instagram, integrations",
+  },
   { href: "/admin/growth/inbox", label: "Inbox", match: "prefix" },
   { href: "/admin/growth/linkedin", label: "LinkedIn", match: "prefix" },
   { href: "/admin/growth/jobs", label: "Jobs", match: "prefix" },
@@ -118,7 +123,7 @@ export function adminPageTitle(pathname: string): string {
   if (pathname === "/admin/subscriptions") return "Maintenance subscriptions";
   if (pathname === "/admin/withdraw") return "Withdraw funds";
   if (pathname === "/admin/audit-logs") return "Payment access logs";
-  if (pathname === "/admin/growth") return "Dashboard";
+  if (pathname === "/admin/growth") return "Agency home";
   if (pathname.startsWith("/admin/growth/inbox")) return "Inbox";
   if (pathname.startsWith("/admin/growth/linkedin")) return "LinkedIn inbox";
   if (pathname.startsWith("/admin/growth/jobs")) return "Jobs inbox";
