@@ -26,16 +26,15 @@ export type AdminNavChild = {
   description?: string;
 };
 
-/** Sub-routes under Growth (sidebar + horizontal sub-nav). */
-export const adminGrowthNavChildren: AdminNavChild[] = [
-  { href: "/admin/growth", label: "Overview", match: "exact" },
+/** Pipeline, outreach, and automation routes (sidebar sub-nav). */
+export const adminPipelineNavChildren: AdminNavChild[] = [
+  { href: "/admin/crm", label: "CRM pipeline", match: "prefix" },
   { href: "/admin/growth/inbox", label: "Inbox", match: "prefix" },
   { href: "/admin/growth/linkedin", label: "LinkedIn", match: "prefix" },
   { href: "/admin/growth/jobs", label: "Jobs", match: "prefix" },
   { href: "/admin/instagram", label: "Instagram DM", match: "prefix" },
   { href: "/admin/growth/discover", label: "Web discover", match: "prefix" },
   { href: "/admin/growth/outreach", label: "Email outreach", match: "prefix" },
-  { href: "/admin/crm", label: "CRM pipeline", match: "prefix" },
   { href: "/admin/growth/connect", label: "Connect", match: "prefix" },
   { href: "/admin/growth/settings", label: "Settings", match: "prefix" },
 ];
@@ -44,17 +43,28 @@ export type AdminNavSection = {
   id: string;
   label: string;
   items: AdminNavItem[];
-  /** When set, rendered under the item whose href matches `under`. */
   nestedUnder?: string;
   nestedChildren?: AdminNavChild[];
 };
 
 export const adminNavSections: AdminNavSection[] = [
   {
-    id: "billing",
-    label: "Billing",
+    id: "agency",
+    label: "Agency",
     items: [
-      { href: "/admin", label: "Payment links", icon: "links", match: "exact" },
+      { href: "/admin", label: "Overview", icon: "growth", match: "exact" },
+    ],
+  },
+  {
+    id: "revenue",
+    label: "Revenue",
+    items: [
+      {
+        href: "/admin/payment-links",
+        label: "Payment links",
+        icon: "links",
+        match: "prefix",
+      },
       { href: "/admin/contracts", label: "Agreements", icon: "contracts", match: "prefix" },
       {
         href: "/admin/subscriptions",
@@ -85,26 +95,30 @@ export const adminNavSections: AdminNavSection[] = [
     ],
   },
   {
-    id: "growth",
-    label: "Growth",
+    id: "pipeline",
+    label: "Pipeline",
     items: [
       {
-        href: "/admin/growth",
-        label: "Agency home",
-        icon: "growth",
+        href: "/admin/crm",
+        label: "Pipeline",
+        icon: "crm",
         match: "prefix",
       },
     ],
-    nestedUnder: "/admin/growth",
-    nestedChildren: adminGrowthNavChildren,
+    nestedUnder: "/admin/crm",
+    nestedChildren: adminPipelineNavChildren,
   },
 ];
 
 /** @deprecated Use adminNavSections — flat list for tests or legacy callers. */
 export const adminNavPrimary: AdminNavItem[] = adminNavSections.flatMap((s) => s.items);
 
+/** @deprecated Renamed to adminPipelineNavChildren */
+export const adminGrowthNavChildren = adminPipelineNavChildren;
+
 export function adminPageTitle(pathname: string): string {
-  if (pathname === "/admin") return "Payment links";
+  if (pathname === "/admin") return "Overview";
+  if (pathname === "/admin/payment-links") return "Payment links";
   if (pathname.startsWith("/admin/payment-links/new")) return "New payment link";
   if (pathname.startsWith("/admin/payment-links/")) return "Payment link";
   if (pathname === "/admin/brand-guidelines") return "Brand guidelines";
@@ -118,7 +132,6 @@ export function adminPageTitle(pathname: string): string {
   if (pathname === "/admin/subscriptions") return "Maintenance subscriptions";
   if (pathname === "/admin/withdraw") return "Withdraw funds";
   if (pathname === "/admin/audit-logs") return "Payment access logs";
-  if (pathname === "/admin/growth") return "Agency home";
   if (pathname.startsWith("/admin/growth/inbox")) return "Inbox";
   if (pathname.startsWith("/admin/growth/linkedin")) return "LinkedIn inbox";
   if (pathname.startsWith("/admin/growth/jobs")) return "Jobs inbox";
@@ -135,15 +148,12 @@ export function adminPageTitle(pathname: string): string {
 }
 
 export function adminBreadcrumbArea(pathname: string): string {
+  if (pathname === "/admin") return "Agency";
   if (pathname === "/admin/instagram" || pathname.startsWith("/admin/instagram/")) {
     return "Instagram DM";
   }
-  if (
-    pathname === "/admin/growth" ||
-    pathname.startsWith("/admin/growth/") ||
-    pathname.startsWith("/admin/crm")
-  ) {
-    return "Growth";
+  if (isPipelineSection(pathname)) {
+    return "Pipeline";
   }
   if (
     pathname.startsWith("/admin/brand-guidelines") ||
@@ -151,12 +161,29 @@ export function adminBreadcrumbArea(pathname: string): string {
   ) {
     return "Brand";
   }
-  return "Payments";
+  if (isRevenueSection(pathname)) {
+    return "Revenue";
+  }
+  return "Agency";
+}
+
+export function isRevenueSection(pathname: string): boolean {
+  return (
+    pathname === "/admin/payment-links" ||
+    pathname.startsWith("/admin/payment-links/") ||
+    pathname.startsWith("/admin/contracts") ||
+    pathname.startsWith("/admin/subscriptions") ||
+    pathname === "/admin/withdraw" ||
+    pathname.startsWith("/admin/audit-logs")
+  );
 }
 
 export function isNavActive(pathname: string, item: AdminNavItem): boolean {
-  if (item.href === "/admin/growth") {
-    return isGrowthSection(pathname) || pathname.startsWith("/admin/crm");
+  if (item.href === "/admin/crm") {
+    return isPipelineSection(pathname);
+  }
+  if (item.href === "/admin" && item.match === "exact") {
+    return pathname === "/admin";
   }
   if (item.match === "exact") return pathname === item.href;
   return pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -174,6 +201,13 @@ export function isGrowthSection(pathname: string): boolean {
   return pathname === "/admin/growth" || pathname.startsWith("/admin/growth/");
 }
 
-export const growthHubLinks: AdminNavChild[] = adminGrowthNavChildren.filter(
-  (c) => c.href !== "/admin/growth",
-);
+export function isPipelineSection(pathname: string): boolean {
+  return (
+    isGrowthSection(pathname) ||
+    pathname.startsWith("/admin/crm") ||
+    pathname === "/admin/instagram" ||
+    pathname.startsWith("/admin/instagram/")
+  );
+}
+
+export const growthHubLinks: AdminNavChild[] = adminPipelineNavChildren;

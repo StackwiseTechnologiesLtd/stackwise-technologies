@@ -57,16 +57,23 @@ function buildAttentionItems(data: OverviewResponse): AttentionItem[] {
       tone: "default",
     });
   }
-  if (data.billing.openPaymentLinks > 0) {
+  if (data.revenue.pendingAgreements > 0) {
     items.push({
-      label: `${data.billing.openPaymentLinks} open payment link(s)`,
-      href: "/admin",
+      label: `${data.revenue.pendingAgreements} agreement(s) awaiting client action`,
+      href: "/admin/contracts",
+      tone: "warn",
+    });
+  }
+  if (data.revenue.openPaymentLinks > 0) {
+    items.push({
+      label: `${data.revenue.openPaymentLinks} open payment link(s)`,
+      href: "/admin/payment-links",
       tone: "default",
     });
   }
-  if (data.billing.draftPaymentLinks > 0) {
+  if (data.revenue.draftPaymentLinks > 0) {
     items.push({
-      label: `${data.billing.draftPaymentLinks} draft invoice(s) to send`,
+      label: `${data.revenue.draftPaymentLinks} draft invoice(s) to send`,
       href: "/admin/payment-links/new",
       tone: "warn",
     });
@@ -207,24 +214,26 @@ function RecentOpportunityRow({ opp }: { opp: CrmOpportunity }) {
   );
 }
 
-const flowSteps = [
+const agencyPillars = [
   {
-    step: "1",
-    title: "Connect & harvest",
-    body: "LinkedIn, X, jobs, web discover — feed the pipeline.",
-    href: "/admin/growth/discover",
+    title: "Revenue",
+    body: "Payment links, agreements, subscriptions, and payouts.",
+    href: "/admin/payment-links",
   },
   {
-    step: "2",
-    title: "Triage & DM",
-    body: "Growth inbox, Instagram campaigns, and tracked replies.",
-    href: "/admin/growth/inbox",
-  },
-  {
-    step: "3",
-    title: "Close & bill",
-    body: "CRM stages, agreements, and payment links for clients.",
+    title: "Pipeline",
+    body: "CRM, harvest, inbox, outreach, and Instagram automation.",
     href: "/admin/crm",
+  },
+  {
+    title: "Brand",
+    body: "Guidelines and client portal access.",
+    href: "/admin/brand-guidelines",
+  },
+  {
+    title: "Instagram",
+    body: "Campaigns, inbox, and connection health.",
+    href: "/admin/instagram",
   },
 ];
 
@@ -290,7 +299,7 @@ export function AgencyOverviewDashboard() {
             Good {dayPart()}, {greetingName(data.email)}
           </h1>
           <p className="mt-1 text-sm text-muted">
-            Billing, growth, CRM, and Instagram automation in one place.
+            Stackwise agency console — revenue, pipeline, brand delivery, and automation.
           </p>
         </div>
         <p className="text-sm text-muted sm:text-right">{dateHeadline()}</p>
@@ -325,7 +334,30 @@ export function AgencyOverviewDashboard() {
         </section>
       ) : null}
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <StatCard
+          label="Paid (30 days)"
+          value={data.revenue.paidLast30Days}
+          hint={`${data.revenue.openPaymentLinks} open · ${data.revenue.draftPaymentLinks} draft`}
+          href="/admin/payment-links"
+          accent="success"
+        />
+        <StatCard
+          label="Agreements in flight"
+          value={data.revenue.pendingAgreements}
+          hint={`${data.revenue.activeSubscriptions} active subscription(s)`}
+          href="/admin/contracts"
+          accent={data.revenue.pendingAgreements > 0 ? "warn" : "default"}
+        />
+        <StatCard
+          label="Brand portals"
+          value={data.brand.publishedBrands}
+          hint={`${data.brand.portalMembers} active member(s)`}
+          href="/admin/brand-portal"
+        />
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <StatCard
           label="CRM pipeline"
           value={data.crm.activeOpportunities}
@@ -333,17 +365,11 @@ export function AgencyOverviewDashboard() {
           href="/admin/crm"
         />
         <StatCard
-          label="Growth triage"
+          label="Lead triage"
           value={data.growth.triageLeads}
-          hint="New & reviewed leads"
+          hint="New & qualified in inbox"
           href="/admin/growth/inbox"
           accent={data.growth.triageLeads > 0 ? "warn" : "default"}
-        />
-        <StatCard
-          label="Open invoices"
-          value={data.billing.openPaymentLinks}
-          hint={`${data.billing.draftPaymentLinks} draft link(s)`}
-          href="/admin"
         />
         <StatCard
           label="Instagram sends"
@@ -411,6 +437,74 @@ export function AgencyOverviewDashboard() {
         </section>
       </div>
 
+      <div className="grid gap-6 xl:grid-cols-2">
+        <section className="rounded-2xl border border-line bg-panel/90">
+          <header className="flex items-center justify-between gap-3 border-b border-line px-5 py-4">
+            <h2 className="text-sm font-semibold text-foreground">Recent payment links</h2>
+            <Link
+              href="/admin/payment-links"
+              className="text-xs font-medium text-accent hover:underline"
+            >
+              All links →
+            </Link>
+          </header>
+          {data.revenue.recentPaymentLinks.length === 0 ? (
+            <p className="p-5 text-sm text-muted">No production payment links yet.</p>
+          ) : (
+            <ul className="divide-y divide-line/60">
+              {data.revenue.recentPaymentLinks.map((link) => (
+                <li key={link.id}>
+                  <Link
+                    href={`/admin/payment-links/${link.id}`}
+                    className="flex items-center justify-between gap-3 px-5 py-3 text-sm hover:bg-white/[0.03]"
+                  >
+                    <span className="min-w-0 truncate font-medium text-foreground">
+                      {link.customerName}
+                    </span>
+                    <span className="shrink-0 text-xs text-muted">
+                      {link.status} · ${link.amountUsd.toFixed(0)}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="rounded-2xl border border-line bg-panel/90">
+          <header className="flex items-center justify-between gap-3 border-b border-line px-5 py-4">
+            <h2 className="text-sm font-semibold text-foreground">Recent agreements</h2>
+            <Link
+              href="/admin/contracts"
+              className="text-xs font-medium text-accent hover:underline"
+            >
+              All agreements →
+            </Link>
+          </header>
+          {data.revenue.recentAgreements.length === 0 ? (
+            <p className="p-5 text-sm text-muted">No agreements yet.</p>
+          ) : (
+            <ul className="divide-y divide-line/60">
+              {data.revenue.recentAgreements.map((agreement) => (
+                <li key={agreement.id}>
+                  <Link
+                    href={`/admin/contracts/${agreement.id}`}
+                    className="flex flex-col gap-0.5 px-5 py-3 text-sm hover:bg-white/[0.03]"
+                  >
+                    <span className="truncate font-medium text-foreground">
+                      {agreement.title}
+                    </span>
+                    <span className="text-xs text-muted">
+                      {agreement.customerName} · {agreement.status.replaceAll("_", " ")}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
+
       <section className="rounded-2xl border border-line bg-panel/90">
         <header className="border-b border-line px-5 py-4">
           <h2 className="text-sm font-semibold text-foreground">Recent opportunities</h2>
@@ -437,22 +531,24 @@ export function AgencyOverviewDashboard() {
         </div>
       </section>
 
-      <section className="grid gap-3 sm:grid-cols-3">
-        {flowSteps.map((item) => (
-          <Link
-            key={item.step}
-            href={item.href}
-            className="group rounded-xl border border-line bg-panel p-4 transition-colors hover:border-accent/40 hover:bg-accent/5"
-          >
-            <span className="text-xs font-semibold uppercase tracking-wide text-accent">
-              Step {item.step}
-            </span>
-            <h2 className="mt-2 text-base font-semibold text-foreground group-hover:text-accent">
-              {item.title}
-            </h2>
-            <p className="mt-1 text-sm text-muted">{item.body}</p>
-          </Link>
-        ))}
+      <section>
+        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">
+          Workspace areas
+        </h2>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {agencyPillars.map((item) => (
+            <Link
+              key={item.title}
+              href={item.href}
+              className="group rounded-xl border border-line bg-panel p-4 transition-colors hover:border-accent/40 hover:bg-accent/5"
+            >
+              <h2 className="text-base font-semibold text-foreground group-hover:text-accent">
+                {item.title}
+              </h2>
+              <p className="mt-1 text-sm text-muted">{item.body}</p>
+            </Link>
+          ))}
+        </div>
       </section>
     </div>
   );

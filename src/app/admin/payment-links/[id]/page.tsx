@@ -42,8 +42,11 @@ export default async function PaymentLinkDetailPage({
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <Link href="/admin" className="text-sm text-muted hover:text-foreground">
-            ← Back to dashboard
+          <Link
+            href="/admin/payment-links"
+            className="text-sm text-muted hover:text-foreground"
+          >
+            ← Back to payment links
           </Link>
           <h1 className="mt-2 text-2xl font-semibold">{link.invoiceNumber}</h1>
           <div className="mt-2 flex flex-wrap items-center gap-2">

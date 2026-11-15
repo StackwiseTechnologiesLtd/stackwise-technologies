@@ -22,7 +22,7 @@ const geistMono = Geist_Mono({
 export const metadata = createPageMetadata({
   title: "Admin | Stackwise Technologies",
   description:
-    "Stackwise Technologies payments admin — manage invoices, payment links, withdrawals, and access logs.",
+    "Stackwise agency console — revenue, pipeline, brand portals, and client automation.",
   path: "/admin",
   noIndex: true,
 });

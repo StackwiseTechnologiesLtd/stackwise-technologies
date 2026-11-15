@@ -1,5 +1,5 @@
-import { AgencyOverviewDashboard } from "@/components/admin/AgencyOverviewDashboard";
+import { redirect } from "next/navigation";
 
-export default function GrowthDashboardPage() {
-  return <AgencyOverviewDashboard />;
+export default function GrowthDashboardRedirect() {
+  redirect("/admin");
 }
