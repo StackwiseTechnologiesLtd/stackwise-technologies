@@ -15,7 +15,7 @@ import { AdminScrollPaginatedPanel } from "@/components/admin/AdminScrollPaginat
 import { crmStageLabels } from "@/lib/crm/types";
 import type { CrmOpportunity } from "@/lib/crm/types";
 import type { IntegrationServiceStatus } from "@/lib/integrations/repository";
-import { ADMIN_BTN_PRIMARY, ADMIN_BTN_SECONDARY } from "@/lib/ui/admin";
+import { ADMIN_BTN_PRIMARY } from "@/lib/ui/admin";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 import Link from "next/link";
 import { useCallback, useMemo, useState, type ReactNode } from "react";
@@ -99,16 +99,6 @@ function buildAttentionItems(data: OverviewResponse): AttentionItem[] {
     });
   }
   return items;
-}
-
-function statusSubtitle(data: OverviewResponse, attentionCount: number): string {
-  const openInvoices =
-    data.revenue.openPaymentLinks + data.revenue.draftPaymentLinks;
-  if (attentionCount > 0) {
-    const word = attentionCount === 1 ? "item needs" : "items need";
-    return `You have ${openInvoices} open invoice${openInvoices === 1 ? "" : "s"} and ${attentionCount} ${word} attention.`;
-  }
-  return `${data.crm.activeOpportunities} active opportunit${data.crm.activeOpportunities === 1 ? "y" : "ies"}, ${data.growth.triageLeads} in the inbox queue.`;
 }
 
 function formatWhen(iso: string | null): string {
@@ -405,16 +395,11 @@ export function AgencyOverviewDashboard() {
           <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-[1.75rem]">
             Good {dayPart()}, {greetingName(data.email)}
           </h1>
-          <p className="mt-1 text-sm text-muted">{statusSubtitle(data, attention.length)}</p>
-          <p className="mt-0.5 text-xs text-muted lg:hidden">{dateHeadline()}</p>
+          <p className="mt-1 text-sm text-muted">{dateHeadline()}</p>
         </Box>
         <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center lg:justify-end">
-          <p className="hidden text-sm text-muted lg:block">{dateHeadline()}</p>
           <Link href="/admin/payment-links/new" className={ADMIN_BTN_PRIMARY}>
             New payment link
-          </Link>
-          <Link href="/admin/contracts/new" className={ADMIN_BTN_SECONDARY}>
-            New agreement
           </Link>
         </div>
       </header>
