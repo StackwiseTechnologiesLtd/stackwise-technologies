@@ -10,12 +10,18 @@ import { listAccounts, upsertAccount } from "@/lib/instagram/repository";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request: Request) {
   const ctx = await requireInstagramApiAccess();
   if (isInstagramApiError(ctx)) return ctx;
+  const url = new URL(request.url);
+  const includeRemoved =
+    url.searchParams.get("removed") === "1" && ctx.access.canManageMetaApps;
   try {
-    const accounts = filterByAccountAccess(await listAccounts(), ctx.access);
-    return NextResponse.json({ accounts });
+    const active = filterByAccountAccess(await listAccounts({ status: "active" }), ctx.access);
+    const removed = includeRemoved
+      ? filterByAccountAccess(await listAccounts({ status: "removed" }), ctx.access)
+      : [];
+    return NextResponse.json({ accounts: active, removedAccounts: removed });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Load failed";
     return NextResponse.json({ error: message }, { status: 500 });

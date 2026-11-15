@@ -15,6 +15,7 @@ import { useEffect, useState, type ReactNode } from "react";
 type Access = {
   kind: "owner" | "operator";
   canManageTeam: boolean;
+  canManageMetaApps: boolean;
 };
 
 export function InstagramAppShell({
@@ -47,9 +48,13 @@ export function InstagramAppShell({
     }
   }
 
-  const navItems = instagramPortalNav.filter(
-    (item) => item.href !== "/admin/instagram/team" || access.canManageTeam,
-  );
+  const navItems = instagramPortalNav.filter((item) => {
+    if (item.href === "/admin/instagram/team" && !access.canManageTeam) return false;
+    if (item.href === "/admin/instagram/connection" && !access.canManageMetaApps) {
+      return false;
+    }
+    return true;
+  });
 
   return (
     <div className="flex h-dvh min-h-0 bg-[#0a0a0c] text-foreground">

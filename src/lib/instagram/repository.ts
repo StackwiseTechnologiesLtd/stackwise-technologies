@@ -182,9 +182,12 @@ export async function createMetaApp(input: {
   return created;
 }
 
-export async function listAccounts(): Promise<InstagramAccount[]> {
+export async function listAccounts(input?: {
+  status?: "active" | "removed" | "all";
+}): Promise<InstagramAccount[]> {
   await ready();
   const sql = getSql();
+  const statusFilter = input?.status ?? "active";
   const rows = asRows<{
     id: string;
     meta_app_id: string;
@@ -201,7 +204,10 @@ export async function listAccounts(): Promise<InstagramAccount[]> {
       SELECT id, meta_app_id, ig_user_id, username, status, token_expires_at,
              access_token_ciphertext, webhook_subscribed, created_at, updated_at
       FROM instagram_accounts
-      WHERE status = 'active'
+      WHERE (
+        ${statusFilter}::text = 'all'
+        OR status = ${statusFilter}::text
+      )
       ORDER BY username ASC NULLS LAST, created_at DESC
     `,
   );

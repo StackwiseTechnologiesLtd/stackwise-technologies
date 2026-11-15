@@ -27,6 +27,7 @@ export default async function InstagramPortalLayout({
       access={{
         kind: access.kind,
         canManageTeam: access.canManageTeam,
+        canManageMetaApps: access.canManageMetaApps,
       }}
     >
       <InstagramPortalExtras>
