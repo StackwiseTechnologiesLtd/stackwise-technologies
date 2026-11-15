@@ -1,6 +1,17 @@
 "use client";
 
-import type { AgencyOverviewPayload } from "@/lib/admin/agency-overview";
+import type {
+  AgencyOverviewPayload,
+  AgencyRecentAgreement,
+  AgencyRecentPaymentLink,
+} from "@/lib/admin/agency-overview";
+import {
+  AdminPanelPagination,
+  ADMIN_PANEL_PAGE_SIZE,
+  ADMIN_PANEL_SCROLL_MAX_H,
+  paginatePanel,
+} from "@/components/admin/AdminPanelPagination";
+import { AdminScrollPaginatedPanel } from "@/components/admin/AdminScrollPaginatedPanel";
 import { crmStageLabels } from "@/lib/crm/types";
 import type { CrmOpportunity } from "@/lib/crm/types";
 import type { IntegrationServiceStatus } from "@/lib/integrations/repository";
@@ -205,6 +216,42 @@ function OpportunityRow({ opp }: { opp: CrmOpportunity }) {
   );
 }
 
+function PipelineStagePanel({
+  rows,
+  max,
+}: {
+  rows: AgencyOverviewPayload["crm"]["byStage"];
+  max: number;
+}) {
+  const [page, setPage] = useState(1);
+  const paged = paginatePanel(rows, page, ADMIN_PANEL_PAGE_SIZE);
+
+  return (
+    <>
+      <div
+        className={`overflow-y-auto overscroll-y-contain ${ADMIN_PANEL_SCROLL_MAX_H}`}
+      >
+        <PipelineTable rows={paged.items} max={max} />
+      </div>
+      <footer className="border-t border-[var(--admin-border)] px-4 py-3 sm:px-5">
+        {paged.totalPages > 1 ? (
+          <AdminPanelPagination
+            currentPage={paged.currentPage}
+            totalPages={paged.totalPages}
+            totalItems={paged.totalItems}
+            pageSize={paged.pageSize}
+            onPageChange={setPage}
+          />
+        ) : (
+          <p className="text-xs tabular-nums text-muted">
+            1-{paged.totalItems} of {paged.totalItems}
+          </p>
+        )}
+      </footer>
+    </>
+  );
+}
+
 function PipelineTable({
   rows,
   max,
@@ -257,7 +304,7 @@ function PipelineTable({
 
 function ActivityRow({ service }: { service: IntegrationServiceStatus }) {
   return (
-    <li className="border-b border-[var(--admin-border)] px-4 py-3 last:border-0 sm:px-5">
+    <div className="border-b border-[var(--admin-border)] px-4 py-3 last:border-0 sm:px-5">
       <p className="text-sm text-foreground">{service.label}</p>
       <p className="mt-0.5 text-xs text-muted">
         {service.lastSuccessAt
@@ -266,7 +313,7 @@ function ActivityRow({ service }: { service: IntegrationServiceStatus }) {
             ? "Configured"
             : "Not set up"}
       </p>
-    </li>
+    </div>
   );
 }
 
@@ -451,37 +498,33 @@ export function AgencyOverviewDashboard() {
               ))}
             </nav>
             {workTab === "pipeline" ? (
-              data.crm.recent.length === 0 ? (
-                <p className="p-5 text-sm text-muted">
-                  No opportunities yet. Promote a lead from the inbox.
-                </p>
-              ) : (
-                <div>
-                  {data.crm.recent.slice(0, 6).map((opp) => (
-                    <OpportunityRow key={opp.id} opp={opp} />
-                  ))}
-                </div>
-              )
-            ) : data.revenue.recentPaymentLinks.length === 0 ? (
-              <p className="p-5 text-sm text-muted">No payment links yet.</p>
+              <AdminScrollPaginatedPanel
+                items={data.crm.recent}
+                resetKey={workTab}
+                empty="No opportunities yet. Promote a lead from the inbox."
+                getKey={(opp) => opp.id}
+                renderItem={(opp) => <OpportunityRow opp={opp} />}
+              />
             ) : (
-              <ul>
-                {data.revenue.recentPaymentLinks.map((link) => (
-                  <li key={link.id}>
-                    <Link
-                      href={`/admin/payment-links/${link.id}`}
-                      className="flex items-center justify-between gap-3 border-b border-[var(--admin-border)] px-4 py-3 text-sm last:border-0 hover:bg-[var(--admin-nav-hover)] sm:px-5"
-                    >
-                      <span className="min-w-0 truncate font-medium text-foreground">
-                        {link.customerName}
-                      </span>
-                      <span className="shrink-0 text-xs text-muted">
-                        {link.status.replaceAll("_", " ")} · ${link.amountUsd.toFixed(0)}
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+              <AdminScrollPaginatedPanel
+                items={data.revenue.recentPaymentLinks}
+                resetKey={workTab}
+                empty="No payment links yet."
+                getKey={(link) => link.id}
+                renderItem={(link: AgencyRecentPaymentLink) => (
+                  <Link
+                    href={`/admin/payment-links/${link.id}`}
+                    className="flex items-center justify-between gap-3 border-b border-[var(--admin-border)] px-4 py-3 text-sm last:border-0 hover:bg-[var(--admin-nav-hover)] sm:px-5"
+                  >
+                    <span className="min-w-0 truncate font-medium text-foreground">
+                      {link.customerName}
+                    </span>
+                    <span className="shrink-0 text-xs text-muted">
+                      {link.status.replaceAll("_", " ")} · ${link.amountUsd.toFixed(0)}
+                    </span>
+                  </Link>
+                )}
+              />
             )}
           </Panel>
 
@@ -493,59 +536,53 @@ export function AgencyOverviewDashboard() {
               </Link>
             }
           >
-            <PipelineTable rows={data.crm.byStage} max={maxStage} />
+            <PipelineStagePanel rows={data.crm.byStage} max={maxStage} />
           </Panel>
 
           <Panel title="Agreements in review">
-            {data.revenue.recentAgreements.length === 0 ? (
-              <p className="p-5 text-sm text-muted">No agreements yet.</p>
-            ) : (
-              <ul>
-                {data.revenue.recentAgreements.slice(0, 4).map((agreement) => (
-                  <li key={agreement.id}>
-                    <Link
-                      href={`/admin/contracts/${agreement.id}`}
-                      className="flex flex-col gap-0.5 border-b border-[var(--admin-border)] px-4 py-3 text-sm last:border-0 hover:bg-[var(--admin-nav-hover)] sm:px-5"
-                    >
-                      <span className="truncate font-medium text-foreground">
-                        {agreement.title}
-                      </span>
-                      <span className="text-xs text-muted">
-                        {agreement.customerName} ·{" "}
-                        {agreement.status.replaceAll("_", " ")}
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <AdminScrollPaginatedPanel
+              items={data.revenue.recentAgreements}
+              empty="No agreements yet."
+              getKey={(a) => a.id}
+              renderItem={(agreement: AgencyRecentAgreement) => (
+                <Link
+                  href={`/admin/contracts/${agreement.id}`}
+                  className="flex flex-col gap-0.5 border-b border-[var(--admin-border)] px-4 py-3 text-sm last:border-0 hover:bg-[var(--admin-nav-hover)] sm:px-5"
+                >
+                  <span className="truncate font-medium text-foreground">
+                    {agreement.title}
+                  </span>
+                  <span className="text-xs text-muted">
+                    {agreement.customerName} · {agreement.status.replaceAll("_", " ")}
+                  </span>
+                </Link>
+              )}
+            />
           </Panel>
         </div>
 
         <aside className="space-y-6">
           <Panel title="Due soon">
-            {attention.length === 0 ? (
-              <p className="p-4 text-sm text-muted sm:px-5">Nothing flagged right now.</p>
-            ) : (
-              <ul>
-                {attention.map((item) => (
-                  <li key={item.label}>
-                    <Link
-                      href={item.href}
-                      className={`block border-b border-[var(--admin-border)] px-4 py-3 text-sm last:border-0 hover:bg-[var(--admin-nav-hover)] sm:px-5 ${
-                        item.tone === "danger"
-                          ? "text-red-300"
-                          : item.tone === "warn"
-                            ? "text-amber-100"
-                            : "text-foreground"
-                      }`}
-                    >
-                      {item.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <AdminScrollPaginatedPanel
+              items={attention}
+              pageSize={4}
+              empty="Nothing flagged right now."
+              getKey={(item) => item.label}
+              renderItem={(item) => (
+                <Link
+                  href={item.href}
+                  className={`block border-b border-[var(--admin-border)] px-4 py-3 text-sm last:border-0 hover:bg-[var(--admin-nav-hover)] sm:px-5 ${
+                    item.tone === "danger"
+                      ? "text-red-300"
+                      : item.tone === "warn"
+                        ? "text-amber-100"
+                        : "text-foreground"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              )}
+            />
           </Panel>
 
           <Panel title="Instagram">
@@ -589,11 +626,13 @@ export function AgencyOverviewDashboard() {
               </Link>
             }
           >
-            <ul>
-              {data.integrations.services.slice(0, 6).map((s) => (
-                <ActivityRow key={s.id} service={s} />
-              ))}
-            </ul>
+            <AdminScrollPaginatedPanel
+              items={data.integrations.services}
+              firstLast
+              empty="No integration activity yet."
+              getKey={(s) => s.id}
+              renderItem={(s) => <ActivityRow service={s} />}
+            />
           </Panel>
 
           <Panel title="Brand">
