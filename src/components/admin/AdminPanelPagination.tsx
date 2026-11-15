@@ -20,13 +20,13 @@ function pageButtons(current: number, total: number): (number | "gap")[] {
 }
 
 const navBtn =
-  "inline-flex min-h-9 min-w-9 items-center justify-center rounded-md border border-[var(--admin-border)] bg-[var(--admin-canvas)] px-2.5 text-xs font-medium text-foreground transition-colors hover:bg-[var(--admin-surface-hover)] disabled:cursor-not-allowed disabled:border-transparent disabled:bg-transparent disabled:text-muted/50";
+  "inline-flex h-8 shrink-0 items-center justify-center gap-0.5 whitespace-nowrap rounded-md border border-[var(--admin-border)] bg-[var(--admin-surface)] px-2.5 text-xs font-medium text-foreground transition-colors hover:bg-[var(--admin-surface-hover)] disabled:cursor-not-allowed disabled:border-[var(--admin-border)] disabled:bg-transparent disabled:text-[var(--admin-subtle)]";
 
 const pageBtn =
-  "inline-flex min-h-9 min-w-9 items-center justify-center rounded-md border border-[var(--admin-border)] bg-[var(--admin-canvas)] text-xs font-medium tabular-nums text-foreground transition-colors hover:bg-[var(--admin-surface-hover)]";
+  "inline-flex size-8 items-center justify-center rounded-md border border-[var(--admin-border)] bg-[var(--admin-surface)] text-xs font-medium tabular-nums text-foreground transition-colors hover:border-[color-mix(in_srgb,var(--accent)_35%,var(--admin-border))] hover:bg-[var(--admin-surface-hover)]";
 
 const pageBtnActive =
-  "border-foreground bg-foreground text-background hover:bg-foreground";
+  "border-[var(--accent)] bg-[var(--accent)] text-white hover:bg-[var(--accent-hover)]";
 
 export function AdminPanelPagination({
   currentPage,
@@ -53,7 +53,7 @@ export function AdminPanelPagination({
 
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <p className="text-xs tabular-nums text-muted">
+      <p className="text-xs tabular-nums text-[var(--admin-subtle)]">
         {start}-{end} of {totalItems}
       </p>
       <nav className="flex flex-wrap items-center justify-end gap-1" aria-label="Pagination">
@@ -75,7 +75,8 @@ export function AdminPanelPagination({
           onClick={() => onPageChange(currentPage - 1)}
           aria-label="Previous page"
         >
-          ‹ Back
+          <span aria-hidden>‹</span>
+          <span className="hidden sm:inline">Back</span>
         </button>
         {pages.map((p, i) =>
           p === "gap" ? (
@@ -101,7 +102,8 @@ export function AdminPanelPagination({
           onClick={() => onPageChange(currentPage + 1)}
           aria-label="Next page"
         >
-          Next ›
+          <span className="hidden sm:inline">Next</span>
+          <span aria-hidden>›</span>
         </button>
         {firstLast ? (
           <button

@@ -139,13 +139,13 @@ function KpiCard({
   href?: string;
 }) {
   const inner = (
-    <Box className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] p-4 transition-colors hover:bg-[var(--admin-surface-hover)]">
+    <Box className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] p-4 shadow-[var(--admin-panel-inset)] transition-colors hover:bg-[var(--admin-surface-hover)]">
       <p className="text-xs text-muted">{label}</p>
       <p className="mt-2 text-3xl font-semibold tabular-nums tracking-tight text-foreground">
         {value}
       </p>
       <p
-        className={`mt-1 text-xs ${hintWarn ? "text-red-400" : "text-muted"}`}
+        className={`mt-1 text-xs ${hintWarn ? "text-[var(--admin-warn)]" : "text-muted"}`}
       >
         {hint}
       </p>
@@ -171,7 +171,7 @@ function Panel({
   children: ReactNode;
 }) {
   return (
-    <section className="overflow-hidden rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)]">
+    <section className="overflow-hidden rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--admin-panel-inset)]">
       <header className="flex items-center justify-between gap-3 border-b border-[var(--admin-border)] px-4 py-3 sm:px-5">
         <h2 className="text-sm font-semibold text-foreground">{title}</h2>
         {action}
@@ -282,9 +282,9 @@ function PipelineTable({
                 </td>
                 <td className="px-4 py-3 sm:px-5">
                   <div className="flex items-center gap-3">
-                    <div className="h-1.5 min-w-[6rem] flex-1 overflow-hidden rounded-full bg-white/8">
+                    <div className="h-1.5 min-w-[6rem] flex-1 overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--admin-border)_60%,transparent)]">
                       <div
-                        className="h-full rounded-full bg-accent/80"
+                        className="h-full rounded-full bg-[var(--accent)]"
                         style={{ width: `${Math.max(pct, row.count > 0 ? 8 : 0)}%` }}
                       />
                     </div>
@@ -379,7 +379,7 @@ export function AgencyOverviewDashboard() {
   if (loading && !data) return <OverviewSkeleton />;
   if (error && !data) {
     return (
-      <Box className="rounded-xl border border-red-500/30 bg-red-500/5 p-6 text-sm text-red-200">
+      <Box className="rounded-xl border border-[color-mix(in_srgb,var(--accent)_40%,transparent)] bg-[color-mix(in_srgb,var(--accent)_8%,transparent)] p-6 text-sm text-foreground">
         {error}
         <button
           type="button"
@@ -489,7 +489,7 @@ export function AgencyOverviewDashboard() {
                   onClick={() => setWorkTab(id)}
                   className={`rounded-t-md px-3 py-2 text-xs font-medium transition-colors ${
                     workTab === id
-                      ? "border border-b-transparent border-[var(--admin-border)] bg-[var(--admin-canvas)] text-foreground"
+                      ? "border border-b-transparent border-[var(--admin-border)] border-t-[var(--accent)] bg-[var(--admin-canvas)] text-foreground"
                       : "text-muted hover:text-foreground"
                   }`}
                 >
@@ -573,9 +573,9 @@ export function AgencyOverviewDashboard() {
                   href={item.href}
                   className={`block border-b border-[var(--admin-border)] px-4 py-3 text-sm last:border-0 hover:bg-[var(--admin-nav-hover)] sm:px-5 ${
                     item.tone === "danger"
-                      ? "text-red-300"
+                      ? "text-[var(--admin-danger)]"
                       : item.tone === "warn"
-                        ? "text-amber-100"
+                        ? "text-[var(--admin-warn)]"
                         : "text-foreground"
                   }`}
                 >
@@ -609,7 +609,7 @@ export function AgencyOverviewDashboard() {
               </div>
             </dl>
             {ig.status.dryRunMode ? (
-              <p className="border-t border-[var(--admin-border)] px-4 py-2 text-xs text-amber-200 sm:px-5">
+              <p className="border-t border-[var(--admin-border)] px-4 py-2 text-xs text-[var(--admin-warn)] sm:px-5">
                 Dry run mode is on.
               </p>
             ) : null}

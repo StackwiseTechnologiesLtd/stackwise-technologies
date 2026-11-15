@@ -6,7 +6,7 @@ export const ADMIN_BTN_PRIMARY = `${BTN_PRESS} admin-btn-primary inline-flex min
 /** Full-width on small screens (page headers, toolbars) */
 export const ADMIN_BTN_PRIMARY_BLOCK = `${ADMIN_BTN_PRIMARY} w-full sm:w-auto`;
 
-export const ADMIN_BTN_SECONDARY = `${BTN_PRESS} inline-flex min-h-11 items-center justify-center rounded-md border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3.5 py-2 text-sm font-medium text-foreground hover:bg-[var(--admin-surface-hover)]`;
+export const ADMIN_BTN_SECONDARY = `${BTN_PRESS} admin-btn-secondary inline-flex min-h-11 items-center justify-center rounded-md border border-[var(--admin-border)] bg-[var(--admin-surface)] px-3.5 py-2 text-sm font-medium text-foreground hover:bg-[var(--admin-surface-hover)]`;
 
 export const ADMIN_NAV_LINK =
   "flex min-h-11 items-center gap-2.5 rounded-md px-3 py-2 text-sm transition-colors touch-manipulation";
