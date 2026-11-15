@@ -376,7 +376,11 @@ export function AdminShell({
             paddingBottom: "max(1.25rem, env(safe-area-inset-bottom))",
           }}
         >
-          <div className="mx-auto w-full min-w-0 max-w-6xl">{children}</div>
+          <div
+            className={`mx-auto w-full min-w-0 ${pathname === "/admin" ? "max-w-[88rem]" : "max-w-6xl"}`}
+          >
+            {children}
+          </div>
         </main>
       </div>
     </div>

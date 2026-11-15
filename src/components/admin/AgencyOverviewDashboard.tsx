@@ -4,11 +4,15 @@ import type { AgencyOverviewPayload } from "@/lib/admin/agency-overview";
 import { crmStageLabels } from "@/lib/crm/types";
 import type { CrmOpportunity } from "@/lib/crm/types";
 import type { IntegrationServiceStatus } from "@/lib/integrations/repository";
+import { ADMIN_BTN_PRIMARY, ADMIN_BTN_SECONDARY } from "@/lib/ui/admin";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 import Link from "next/link";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState, type ReactNode } from "react";
 
 type OverviewResponse = AgencyOverviewPayload & { email: string };
+
+type AttentionItem = { label: string; href: string; tone: "warn" | "danger" | "default" };
+type WorkTab = "pipeline" | "revenue";
 
 function greetingName(email: string): string {
   const local = email.split("@")[0] ?? "";
@@ -32,60 +36,68 @@ function dateHeadline(): string {
   });
 }
 
-type AttentionItem = { label: string; href: string; tone: "warn" | "danger" | "default" };
-
 function buildAttentionItems(data: OverviewResponse): AttentionItem[] {
   const items: AttentionItem[] = [];
   if (data.growth.triageLeads > 0) {
     items.push({
-      label: `${data.growth.triageLeads} lead(s) to triage in Growth inbox`,
+      label: `${data.growth.triageLeads} leads waiting in the inbox`,
       href: "/admin/growth/inbox",
       tone: "warn",
     });
   }
   if (data.instagram.metrics.failedThisWeek > 0) {
     items.push({
-      label: `${data.instagram.metrics.failedThisWeek} failed Instagram send(s) this week`,
+      label: `${data.instagram.metrics.failedThisWeek} Instagram sends failed this week`,
       href: "/admin/instagram/activity?status=failed",
       tone: "danger",
     });
   }
   if (data.instagram.metrics.queuedNow > 0) {
     items.push({
-      label: `${data.instagram.metrics.queuedNow} delivery(s) queued`,
+      label: `${data.instagram.metrics.queuedNow} Instagram deliveries queued`,
       href: "/admin/instagram/activity",
       tone: "default",
     });
   }
   if (data.revenue.pendingAgreements > 0) {
     items.push({
-      label: `${data.revenue.pendingAgreements} agreement(s) awaiting client action`,
+      label: `${data.revenue.pendingAgreements} agreements waiting on clients`,
       href: "/admin/contracts",
       tone: "warn",
     });
   }
   if (data.revenue.openPaymentLinks > 0) {
     items.push({
-      label: `${data.revenue.openPaymentLinks} open payment link(s)`,
+      label: `${data.revenue.openPaymentLinks} payment links still open`,
       href: "/admin/payment-links",
       tone: "default",
     });
   }
   if (data.revenue.draftPaymentLinks > 0) {
     items.push({
-      label: `${data.revenue.draftPaymentLinks} draft invoice(s) to send`,
+      label: `${data.revenue.draftPaymentLinks} draft invoices not sent yet`,
       href: "/admin/payment-links/new",
       tone: "warn",
     });
   }
   if (data.instagram.status.dryRunMode) {
     items.push({
-      label: "Instagram dry run is on — sends are not delivered live",
+      label: "Instagram dry run is on. DMs are logged, not sent live.",
       href: "/admin/instagram/connection",
       tone: "warn",
     });
   }
   return items;
+}
+
+function statusSubtitle(data: OverviewResponse, attentionCount: number): string {
+  const openInvoices =
+    data.revenue.openPaymentLinks + data.revenue.draftPaymentLinks;
+  if (attentionCount > 0) {
+    const word = attentionCount === 1 ? "item needs" : "items need";
+    return `You have ${openInvoices} open invoice${openInvoices === 1 ? "" : "s"} and ${attentionCount} ${word} attention.`;
+  }
+  return `${data.crm.activeOpportunities} active opportunit${data.crm.activeOpportunities === 1 ? "y" : "ies"}, ${data.growth.triageLeads} in the inbox queue.`;
 }
 
 function formatWhen(iso: string | null): string {
@@ -102,166 +114,204 @@ function formatWhen(iso: string | null): string {
   }
 }
 
-function StatCard({
+function KpiCard({
   label,
   value,
   hint,
+  hintWarn,
   href,
-  accent,
 }: {
   label: string;
   value: number | string;
   hint: string;
+  hintWarn?: boolean;
   href?: string;
-  accent?: "default" | "success" | "danger" | "warn";
 }) {
-  const borderAccent =
-    accent === "success"
-      ? "border-emerald-500/25"
-      : accent === "danger"
-        ? "border-red-500/30"
-        : accent === "warn"
-          ? "border-amber-500/30"
-          : "border-line/90";
-
   const inner = (
-    <>
-      <p className="text-[11px] font-medium uppercase tracking-wide text-muted">{label}</p>
+    <Box className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] p-4 transition-colors hover:bg-[var(--admin-surface-hover)]">
+      <p className="text-xs text-muted">{label}</p>
       <p className="mt-2 text-3xl font-semibold tabular-nums tracking-tight text-foreground">
         {value}
       </p>
-      <p className="mt-1 text-xs text-muted">{hint}</p>
-    </>
+      <p
+        className={`mt-1 text-xs ${hintWarn ? "text-red-400" : "text-muted"}`}
+      >
+        {hint}
+      </p>
+    </Box>
   );
-
-  const className = `block rounded-2xl border ${borderAccent} bg-panel/90 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-colors hover:bg-panel`;
-
   if (href) {
     return (
-      <Link href={href} className={className}>
+      <Link href={href} className="block">
         {inner}
       </Link>
     );
   }
-  return <div className={className}>{inner}</div>;
+  return inner;
 }
 
-function IntegrationChip({ service }: { service: IntegrationServiceStatus }) {
-  const healthy =
-    service.configured &&
-    (service.lastSuccessAt != null || service.id === "crm" || service.id === "harvest");
+function Panel({
+  title,
+  action,
+  children,
+}: {
+  title: string;
+  action?: React.ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <section className="overflow-hidden rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)]">
+      <header className="flex items-center justify-between gap-3 border-b border-[var(--admin-border)] px-4 py-3 sm:px-5">
+        <h2 className="text-sm font-semibold text-foreground">{title}</h2>
+        {action}
+      </header>
+      {children}
+    </section>
+  );
+}
+
+function stageDot(stage: CrmOpportunity["stage"]): string {
+  const map: Record<string, string> = {
+    new: "bg-sky-400",
+    reviewed: "bg-violet-400",
+    outreach: "bg-amber-400",
+    replied: "bg-teal-400",
+    booked: "bg-emerald-400",
+    won: "bg-emerald-500",
+    lost: "bg-zinc-500",
+    not_a_fit: "bg-zinc-600",
+  };
+  return map[stage] ?? "bg-muted";
+}
+
+function OpportunityRow({ opp }: { opp: CrmOpportunity }) {
   return (
     <Link
-      href="/admin/growth/settings"
-      className={`rounded-lg border px-3 py-2 text-xs transition-colors hover:border-accent/35 ${
-        healthy ? "border-line bg-black/20" : "border-amber-500/25 bg-amber-500/5"
-      }`}
+      href={`/admin/crm/opportunities/${opp.id}`}
+      className="flex items-start gap-3 border-b border-[var(--admin-border)] px-4 py-3 last:border-0 hover:bg-[var(--admin-nav-hover)] sm:px-5"
     >
-      <span className="font-medium text-foreground">{service.label}</span>
-      <span className="mt-0.5 block text-[11px] text-muted">
-        {service.lastSuccessAt
-          ? `Last ok ${formatWhen(service.lastSuccessAt)}`
-          : service.configured
-            ? "Configured"
-            : "Needs setup"}
-      </span>
+      <span
+        className={`mt-1.5 size-2 shrink-0 rounded-full ${stageDot(opp.stage)}`}
+        aria-hidden
+      />
+      <Box className="min-w-0 flex-1 text-sm">
+        <p className="truncate font-medium text-foreground">{opp.name}</p>
+        <p className="mt-0.5 text-xs text-muted">
+          {crmStageLabels[opp.stage]} · fit {opp.fitScore}
+        </p>
+      </Box>
+      <span className="shrink-0 text-xs text-muted">{formatWhen(opp.updatedAt)}</span>
     </Link>
   );
 }
 
-function CrmStageBar({
-  label,
-  count,
+function PipelineTable({
+  rows,
   max,
 }: {
-  label: string;
-  count: number;
+  rows: AgencyOverviewPayload["crm"]["byStage"];
   max: number;
 }) {
-  const pct = max > 0 ? Math.round((count / max) * 100) : 0;
   return (
-    <div className="space-y-1">
-      <div className="flex items-center justify-between gap-2 text-xs">
-        <span className="text-muted">{label}</span>
-        <span className="tabular-nums font-medium text-foreground">{count}</span>
-      </div>
-      <div className="h-1.5 overflow-hidden rounded-full bg-white/8">
-        <div
-          className="h-full rounded-full bg-accent/70 transition-[width]"
-          style={{ width: `${pct}%` }}
-        />
-      </div>
+    <div className="overflow-x-auto">
+      <table className="w-full min-w-[28rem] text-left text-sm">
+        <thead className="bg-[var(--admin-canvas)] text-[11px] font-medium uppercase tracking-wide text-muted">
+          <tr>
+            <th className="px-4 py-2.5 font-medium sm:px-5">Stage</th>
+            <th className="px-4 py-2.5 font-medium sm:px-5">Count</th>
+            <th className="px-4 py-2.5 font-medium sm:px-5">Share</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-[var(--admin-border)]">
+          {rows.map((row) => {
+            const pct = max > 0 ? Math.round((row.count / max) * 100) : 0;
+            return (
+              <tr key={row.stage} className="hover:bg-[var(--admin-nav-hover)]">
+                <td className="px-4 py-3 font-medium text-foreground sm:px-5">
+                  {row.label}
+                </td>
+                <td className="px-4 py-3 tabular-nums text-muted sm:px-5">
+                  {row.count}
+                </td>
+                <td className="px-4 py-3 sm:px-5">
+                  <div className="flex items-center gap-3">
+                    <div className="h-1.5 min-w-[6rem] flex-1 overflow-hidden rounded-full bg-white/8">
+                      <div
+                        className="h-full rounded-full bg-accent/80"
+                        style={{ width: `${Math.max(pct, row.count > 0 ? 8 : 0)}%` }}
+                      />
+                    </div>
+                    <span className="w-8 shrink-0 text-right text-xs text-muted">
+                      {pct}%
+                    </span>
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 }
 
-function RecentOpportunityRow({ opp }: { opp: CrmOpportunity }) {
+function ActivityRow({ service }: { service: IntegrationServiceStatus }) {
   return (
-    <Link
-      href={`/admin/crm/opportunities/${opp.id}`}
-      className="flex items-center justify-between gap-3 border-b border-line/60 px-5 py-3 text-sm last:border-0 hover:bg-white/[0.03]"
-    >
-      <div className="min-w-0">
-        <p className="truncate font-medium text-foreground">{opp.name}</p>
-        <p className="truncate text-xs text-muted">
-          {crmStageLabels[opp.stage]} · fit {opp.fitScore}
-        </p>
-      </div>
-      <span className="shrink-0 text-xs text-muted">
-        {formatWhen(opp.updatedAt)}
-      </span>
-    </Link>
+    <li className="border-b border-[var(--admin-border)] px-4 py-3 last:border-0 sm:px-5">
+      <p className="text-sm text-foreground">{service.label}</p>
+      <p className="mt-0.5 text-xs text-muted">
+        {service.lastSuccessAt
+          ? `Last success ${formatWhen(service.lastSuccessAt)}`
+          : service.configured
+            ? "Configured"
+            : "Not set up"}
+      </p>
+    </li>
   );
 }
-
-const agencyPillars = [
-  {
-    title: "Revenue",
-    body: "Payment links, agreements, subscriptions, and payouts.",
-    href: "/admin/payment-links",
-  },
-  {
-    title: "Pipeline",
-    body: "CRM, harvest, inbox, outreach, and Instagram automation.",
-    href: "/admin/crm",
-  },
-  {
-    title: "Brand",
-    body: "Guidelines and client portal access.",
-    href: "/admin/brand-guidelines",
-  },
-  {
-    title: "Instagram",
-    body: "Campaigns, inbox, and connection health.",
-    href: "/admin/instagram",
-  },
-];
 
 function OverviewSkeleton() {
   return (
     <div className="animate-pulse space-y-6">
-      <div className="h-14 w-2/3 max-w-md rounded-xl bg-white/5" />
+      <div className="h-20 rounded-xl bg-white/5" />
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="h-28 rounded-2xl border border-line bg-panel" />
+          <div
+            key={i}
+            className="h-28 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)]"
+          />
         ))}
       </div>
-      <div className="h-64 rounded-2xl border border-line bg-panel" />
+      <div className="grid gap-6 xl:grid-cols-[1fr_20rem]">
+        <div className="h-96 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)]" />
+        <div className="h-96 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)]" />
+      </div>
     </div>
   );
+}
+
+function Box({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return <div className={className}>{children}</div>;
 }
 
 export function AgencyOverviewDashboard() {
   const [data, setData] = useState<OverviewResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [workTab, setWorkTab] = useState<WorkTab>("pipeline");
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const res = await fetch("/api/admin/overview");
-      if (!res.ok) throw new Error("Could not load agency overview");
+      if (!res.ok) throw new Error("Could not load overview");
       setData((await res.json()) as OverviewResponse);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Load failed");
@@ -274,282 +324,300 @@ export function AgencyOverviewDashboard() {
     void load();
   }, [load]);
 
+  const attention = useMemo(
+    () => (data ? buildAttentionItems(data) : []),
+    [data],
+  );
+
   if (loading && !data) return <OverviewSkeleton />;
   if (error && !data) {
     return (
-      <div className="rounded-xl border border-red-500/30 bg-red-500/5 p-6 text-sm text-red-200">
+      <Box className="rounded-xl border border-red-500/30 bg-red-500/5 p-6 text-sm text-red-200">
         {error}
-        <button type="button" onClick={() => void load()} className="ml-3 text-accent underline">
-          Retry
+        <button
+          type="button"
+          onClick={() => void load()}
+          className="ml-3 text-accent underline"
+        >
+          Try again
         </button>
-      </div>
+      </Box>
     );
   }
   if (!data) return null;
 
   const maxStage = Math.max(1, ...data.crm.byStage.map((s) => s.count));
   const ig = data.instagram;
-  const attention = buildAttentionItems(data);
+  const overdueCount =
+    attention.filter((a) => a.tone === "danger" || a.tone === "warn").length;
 
   return (
-    <div className="space-y-8 pb-10">
-      <header className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+    <div className="space-y-6 pb-10">
+      <header className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <Box>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-[1.75rem]">
             Good {dayPart()}, {greetingName(data.email)}
           </h1>
-          <p className="mt-1 text-sm text-muted">
-            Stackwise agency console — revenue, pipeline, brand delivery, and automation.
-          </p>
+          <p className="mt-1 text-sm text-muted">{statusSubtitle(data, attention.length)}</p>
+          <p className="mt-0.5 text-xs text-muted lg:hidden">{dateHeadline()}</p>
+        </Box>
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center lg:justify-end">
+          <p className="hidden text-sm text-muted lg:block">{dateHeadline()}</p>
+          <Link href="/admin/payment-links/new" className={ADMIN_BTN_PRIMARY}>
+            New payment link
+          </Link>
+          <Link href="/admin/contracts/new" className={ADMIN_BTN_SECONDARY}>
+            New agreement
+          </Link>
         </div>
-        <p className="text-sm text-muted sm:text-right">{dateHeadline()}</p>
       </header>
 
-      {attention.length > 0 ? (
-        <section
-          className="rounded-2xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 sm:px-5"
-          aria-label="Needs attention"
-        >
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-200/90">
-            Needs attention
-          </p>
-          <ul className="mt-2 space-y-1.5">
-            {attention.map((item) => (
-              <li key={item.label}>
-                <Link
-                  href={item.href}
-                  className={`text-sm font-medium underline-offset-2 hover:underline ${
-                    item.tone === "danger"
-                      ? "text-red-300"
-                      : item.tone === "warn"
-                        ? "text-amber-100"
-                        : "text-foreground"
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
-
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        <StatCard
-          label="Paid (30 days)"
-          value={data.revenue.paidLast30Days}
-          hint={`${data.revenue.openPaymentLinks} open · ${data.revenue.draftPaymentLinks} draft`}
-          href="/admin/payment-links"
-          accent="success"
-        />
-        <StatCard
-          label="Agreements in flight"
-          value={data.revenue.pendingAgreements}
-          hint={`${data.revenue.activeSubscriptions} active subscription(s)`}
-          href="/admin/contracts"
-          accent={data.revenue.pendingAgreements > 0 ? "warn" : "default"}
-        />
-        <StatCard
-          label="Brand portals"
-          value={data.brand.publishedBrands}
-          hint={`${data.brand.portalMembers} active member(s)`}
-          href="/admin/brand-portal"
-        />
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        <StatCard
-          label="CRM pipeline"
+      <Box className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <KpiCard
+          label="Active pipeline"
           value={data.crm.activeOpportunities}
-          hint="Active opportunities"
+          hint={
+            data.growth.triageLeads > 0
+              ? `${data.growth.triageLeads} waiting in inbox`
+              : "Opportunities in CRM"
+          }
+          hintWarn={data.growth.triageLeads > 0}
           href="/admin/crm"
         />
-        <StatCard
-          label="Lead triage"
-          value={data.growth.triageLeads}
-          hint="New & qualified in inbox"
-          href="/admin/growth/inbox"
-          accent={data.growth.triageLeads > 0 ? "warn" : "default"}
+        <KpiCard
+          label="Open invoices"
+          value={data.revenue.openPaymentLinks + data.revenue.draftPaymentLinks}
+          hint={
+            data.revenue.draftPaymentLinks > 0
+              ? `${data.revenue.draftPaymentLinks} still in draft`
+              : "Sent or pending checkout"
+          }
+          hintWarn={data.revenue.openPaymentLinks > 0}
+          href="/admin/payment-links"
         />
-        <StatCard
-          label="Instagram sends"
-          value={ig.metrics.sentThisWeek}
-          hint={`${ig.metrics.failedThisWeek} failed · ${ig.status.activeCampaigns} live campaigns`}
-          href="/admin/instagram"
-          accent={ig.metrics.failedThisWeek > 0 ? "danger" : "success"}
+        <KpiCard
+          label="Paid last 30 days"
+          value={data.revenue.paidLast30Days}
+          hint={`${data.revenue.activeSubscriptions} active subscriptions`}
+          href="/admin/payment-links"
         />
-      </div>
+        <KpiCard
+          label="Needs review"
+          value={overdueCount}
+          hint={
+            overdueCount > 0
+              ? "Open the queue below"
+              : `${ig.metrics.sentThisWeek} Instagram sends this week`
+          }
+          hintWarn={overdueCount > 0}
+        />
+      </Box>
 
-      <div className="grid gap-6 xl:grid-cols-[1.2fr_1fr]">
-        <section className="rounded-2xl border border-line bg-panel/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-          <header className="flex items-center justify-between gap-3 border-b border-line px-5 py-4">
-            <h2 className="text-sm font-semibold text-foreground">Pipeline by stage</h2>
-            <Link href="/admin/crm" className="text-xs font-medium text-accent hover:underline">
-              Open CRM →
-            </Link>
-          </header>
-          <div className="space-y-4 p-5">
-            {data.crm.byStage.map((row) => (
-              <CrmStageBar
-                key={row.stage}
-                label={row.label}
-                count={row.count}
-                max={maxStage}
-              />
-            ))}
-          </div>
-        </section>
+      <Box className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
+        <div className="space-y-6">
+          <Panel
+            title="Work queue"
+            action={
+              <Link
+                href={workTab === "pipeline" ? "/admin/crm" : "/admin/payment-links"}
+                className="text-xs font-medium text-accent hover:underline"
+              >
+                View all
+              </Link>
+            }
+          >
+            <nav
+              className="flex gap-1 border-b border-[var(--admin-border)] px-4 pt-2 sm:px-5"
+              aria-label="Work queue tabs"
+            >
+              {(
+                [
+                  ["pipeline", "Pipeline"],
+                  ["revenue", "Revenue"],
+                ] as const
+              ).map(([id, label]) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setWorkTab(id)}
+                  className={`rounded-t-md px-3 py-2 text-xs font-medium transition-colors ${
+                    workTab === id
+                      ? "border border-b-transparent border-[var(--admin-border)] bg-[var(--admin-canvas)] text-foreground"
+                      : "text-muted hover:text-foreground"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </nav>
+            {workTab === "pipeline" ? (
+              data.crm.recent.length === 0 ? (
+                <p className="p-5 text-sm text-muted">
+                  No opportunities yet. Promote a lead from the inbox.
+                </p>
+              ) : (
+                <div>
+                  {data.crm.recent.slice(0, 6).map((opp) => (
+                    <OpportunityRow key={opp.id} opp={opp} />
+                  ))}
+                </div>
+              )
+            ) : data.revenue.recentPaymentLinks.length === 0 ? (
+              <p className="p-5 text-sm text-muted">No payment links yet.</p>
+            ) : (
+              <ul>
+                {data.revenue.recentPaymentLinks.map((link) => (
+                  <li key={link.id}>
+                    <Link
+                      href={`/admin/payment-links/${link.id}`}
+                      className="flex items-center justify-between gap-3 border-b border-[var(--admin-border)] px-4 py-3 text-sm last:border-0 hover:bg-[var(--admin-nav-hover)] sm:px-5"
+                    >
+                      <span className="min-w-0 truncate font-medium text-foreground">
+                        {link.customerName}
+                      </span>
+                      <span className="shrink-0 text-xs text-muted">
+                        {link.status.replaceAll("_", " ")} · ${link.amountUsd.toFixed(0)}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Panel>
 
-        <section className="rounded-2xl border border-line bg-panel/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-          <header className="border-b border-line px-5 py-4">
-            <h2 className="text-sm font-semibold text-foreground">Instagram ops</h2>
-            <p className="mt-1 text-xs text-muted">
-              {ig.status.connectedAccounts} account(s) · webhook{" "}
-              {ig.status.lastWebhookAt ? formatWhen(ig.status.lastWebhookAt) : "never"}
-            </p>
-          </header>
-          <dl className="grid grid-cols-2 gap-4 p-5 text-sm">
-            <div>
-              <dt className="text-[11px] uppercase tracking-wide text-muted">Queued</dt>
-              <dd className="mt-1 text-2xl font-semibold tabular-nums text-foreground">
-                <Link href="/admin/instagram/activity" className="hover:text-accent">
-                  {ig.metrics.queuedNow}
-                </Link>
-              </dd>
-            </div>
-            <div>
-              <dt className="text-[11px] uppercase tracking-wide text-muted">Paused</dt>
-              <dd className="mt-1 text-2xl font-semibold tabular-nums text-foreground">
-                <Link href="/admin/instagram/campaigns" className="hover:text-accent">
-                  {ig.metrics.pausedCampaigns}
-                </Link>
-              </dd>
-            </div>
-          </dl>
-          <div className="border-t border-line px-5 py-3 text-xs text-muted">
-            Last send: {formatWhen(ig.status.lastSendAt)}
+          <Panel
+            title="Pipeline by stage"
+            action={
+              <Link href="/admin/crm" className="text-xs font-medium text-accent hover:underline">
+                CRM
+              </Link>
+            }
+          >
+            <PipelineTable rows={data.crm.byStage} max={maxStage} />
+          </Panel>
+
+          <Panel title="Agreements in review">
+            {data.revenue.recentAgreements.length === 0 ? (
+              <p className="p-5 text-sm text-muted">No agreements yet.</p>
+            ) : (
+              <ul>
+                {data.revenue.recentAgreements.slice(0, 4).map((agreement) => (
+                  <li key={agreement.id}>
+                    <Link
+                      href={`/admin/contracts/${agreement.id}`}
+                      className="flex flex-col gap-0.5 border-b border-[var(--admin-border)] px-4 py-3 text-sm last:border-0 hover:bg-[var(--admin-nav-hover)] sm:px-5"
+                    >
+                      <span className="truncate font-medium text-foreground">
+                        {agreement.title}
+                      </span>
+                      <span className="text-xs text-muted">
+                        {agreement.customerName} ·{" "}
+                        {agreement.status.replaceAll("_", " ")}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Panel>
+        </div>
+
+        <aside className="space-y-6">
+          <Panel title="Due soon">
+            {attention.length === 0 ? (
+              <p className="p-4 text-sm text-muted sm:px-5">Nothing flagged right now.</p>
+            ) : (
+              <ul>
+                {attention.map((item) => (
+                  <li key={item.label}>
+                    <Link
+                      href={item.href}
+                      className={`block border-b border-[var(--admin-border)] px-4 py-3 text-sm last:border-0 hover:bg-[var(--admin-nav-hover)] sm:px-5 ${
+                        item.tone === "danger"
+                          ? "text-red-300"
+                          : item.tone === "warn"
+                            ? "text-amber-100"
+                            : "text-foreground"
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Panel>
+
+          <Panel title="Instagram">
+            <dl className="space-y-3 px-4 py-3 text-sm sm:px-5">
+              <div className="flex justify-between gap-2">
+                <dt className="text-muted">Queued</dt>
+                <dd className="font-medium tabular-nums">
+                  <Link href="/admin/instagram/activity" className="hover:text-accent">
+                    {ig.metrics.queuedNow}
+                  </Link>
+                </dd>
+              </div>
+              <div className="flex justify-between gap-2">
+                <dt className="text-muted">Live campaigns</dt>
+                <dd className="font-medium tabular-nums">{ig.status.activeCampaigns}</dd>
+              </div>
+              <div className="flex justify-between gap-2 text-xs text-muted">
+                <dt>Last webhook</dt>
+                <dd>{formatWhen(ig.status.lastWebhookAt)}</dd>
+              </div>
+              <div className="flex justify-between gap-2 text-xs text-muted">
+                <dt>Last send</dt>
+                <dd>{formatWhen(ig.status.lastSendAt)}</dd>
+              </div>
+            </dl>
             {ig.status.dryRunMode ? (
-              <span className="ml-2 rounded bg-amber-500/15 px-1.5 py-0.5 text-amber-200">
-                Dry run
-              </span>
+              <p className="border-t border-[var(--admin-border)] px-4 py-2 text-xs text-amber-200 sm:px-5">
+                Dry run mode is on.
+              </p>
             ) : null}
-          </div>
-        </section>
-      </div>
+          </Panel>
 
-      <div className="grid gap-6 xl:grid-cols-2">
-        <section className="rounded-2xl border border-line bg-panel/90">
-          <header className="flex items-center justify-between gap-3 border-b border-line px-5 py-4">
-            <h2 className="text-sm font-semibold text-foreground">Recent payment links</h2>
-            <Link
-              href="/admin/payment-links"
-              className="text-xs font-medium text-accent hover:underline"
-            >
-              All links →
-            </Link>
-          </header>
-          {data.revenue.recentPaymentLinks.length === 0 ? (
-            <p className="p-5 text-sm text-muted">No production payment links yet.</p>
-          ) : (
-            <ul className="divide-y divide-line/60">
-              {data.revenue.recentPaymentLinks.map((link) => (
-                <li key={link.id}>
-                  <Link
-                    href={`/admin/payment-links/${link.id}`}
-                    className="flex items-center justify-between gap-3 px-5 py-3 text-sm hover:bg-white/[0.03]"
-                  >
-                    <span className="min-w-0 truncate font-medium text-foreground">
-                      {link.customerName}
-                    </span>
-                    <span className="shrink-0 text-xs text-muted">
-                      {link.status} · ${link.amountUsd.toFixed(0)}
-                    </span>
-                  </Link>
-                </li>
+          <Panel
+            title="Recent activity"
+            action={
+              <Link
+                href="/admin/growth/settings"
+                className="text-xs font-medium text-accent hover:underline"
+              >
+                Settings
+              </Link>
+            }
+          >
+            <ul>
+              {data.integrations.services.slice(0, 6).map((s) => (
+                <ActivityRow key={s.id} service={s} />
               ))}
             </ul>
-          )}
-        </section>
+          </Panel>
 
-        <section className="rounded-2xl border border-line bg-panel/90">
-          <header className="flex items-center justify-between gap-3 border-b border-line px-5 py-4">
-            <h2 className="text-sm font-semibold text-foreground">Recent agreements</h2>
-            <Link
-              href="/admin/contracts"
-              className="text-xs font-medium text-accent hover:underline"
-            >
-              All agreements →
-            </Link>
-          </header>
-          {data.revenue.recentAgreements.length === 0 ? (
-            <p className="p-5 text-sm text-muted">No agreements yet.</p>
-          ) : (
-            <ul className="divide-y divide-line/60">
-              {data.revenue.recentAgreements.map((agreement) => (
-                <li key={agreement.id}>
-                  <Link
-                    href={`/admin/contracts/${agreement.id}`}
-                    className="flex flex-col gap-0.5 px-5 py-3 text-sm hover:bg-white/[0.03]"
-                  >
-                    <span className="truncate font-medium text-foreground">
-                      {agreement.title}
-                    </span>
-                    <span className="text-xs text-muted">
-                      {agreement.customerName} · {agreement.status.replaceAll("_", " ")}
-                    </span>
+          <Panel title="Brand">
+            <dl className="space-y-3 px-4 py-3 text-sm sm:px-5">
+              <div className="flex justify-between gap-2">
+                <dt className="text-muted">Guidelines</dt>
+                <dd className="font-medium tabular-nums">
+                  <Link href="/admin/brand-guidelines" className="hover:text-accent">
+                    {data.brand.publishedBrands}
                   </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      </div>
-
-      <section className="rounded-2xl border border-line bg-panel/90">
-        <header className="border-b border-line px-5 py-4">
-          <h2 className="text-sm font-semibold text-foreground">Recent opportunities</h2>
-        </header>
-        {data.crm.recent.length === 0 ? (
-          <p className="p-5 text-sm text-muted">No opportunities yet — promote a lead from Growth.</p>
-        ) : (
-          <div>
-            {data.crm.recent.slice(0, 5).map((opp) => (
-              <RecentOpportunityRow key={opp.id} opp={opp} />
-            ))}
-          </div>
-        )}
-      </section>
-
-      <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">
-          Integrations
-        </h2>
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {data.integrations.services.map((s) => (
-            <IntegrationChip key={s.id} service={s} />
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">
-          Workspace areas
-        </h2>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {agencyPillars.map((item) => (
-            <Link
-              key={item.title}
-              href={item.href}
-              className="group rounded-xl border border-line bg-panel p-4 transition-colors hover:border-accent/40 hover:bg-accent/5"
-            >
-              <h2 className="text-base font-semibold text-foreground group-hover:text-accent">
-                {item.title}
-              </h2>
-              <p className="mt-1 text-sm text-muted">{item.body}</p>
-            </Link>
-          ))}
-        </div>
-      </section>
+                </dd>
+              </div>
+              <div className="flex justify-between gap-2">
+                <dt className="text-muted">Portal members</dt>
+                <dd className="font-medium tabular-nums">
+                  <Link href="/admin/brand-portal" className="hover:text-accent">
+                    {data.brand.portalMembers}
+                  </Link>
+                </dd>
+              </div>
+            </dl>
+          </Panel>
+        </aside>
+      </Box>
     </div>
   );
 }
