@@ -29,7 +29,7 @@ export async function POST(request: Request) {
     const redirectTo =
       igAccess && normalized && !isAllowedAdminEmail(normalized)
         ? "/admin/instagram"
-        : "/admin";
+        : "/admin/growth";
 
     return NextResponse.json({ ok: true, redirectTo });
   } catch (error) {

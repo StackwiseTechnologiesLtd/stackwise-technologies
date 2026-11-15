@@ -1,7 +1,6 @@
 "use client";
 
 import type { AgencyOverviewPayload } from "@/lib/admin/agency-overview";
-import { growthHubLinks } from "@/lib/admin/nav-meta";
 import { crmStageLabels } from "@/lib/crm/types";
 import type { CrmOpportunity } from "@/lib/crm/types";
 import type { IntegrationServiceStatus } from "@/lib/integrations/repository";
@@ -23,6 +22,63 @@ function dayPart(): string {
   if (h < 12) return "morning";
   if (h < 17) return "afternoon";
   return "evening";
+}
+
+function dateHeadline(): string {
+  return new Date().toLocaleDateString(undefined, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
+}
+
+type AttentionItem = { label: string; href: string; tone: "warn" | "danger" | "default" };
+
+function buildAttentionItems(data: OverviewResponse): AttentionItem[] {
+  const items: AttentionItem[] = [];
+  if (data.growth.triageLeads > 0) {
+    items.push({
+      label: `${data.growth.triageLeads} lead(s) to triage in Growth inbox`,
+      href: "/admin/growth/inbox",
+      tone: "warn",
+    });
+  }
+  if (data.instagram.metrics.failedThisWeek > 0) {
+    items.push({
+      label: `${data.instagram.metrics.failedThisWeek} failed Instagram send(s) this week`,
+      href: "/admin/instagram/activity?status=failed",
+      tone: "danger",
+    });
+  }
+  if (data.instagram.metrics.queuedNow > 0) {
+    items.push({
+      label: `${data.instagram.metrics.queuedNow} delivery(s) queued`,
+      href: "/admin/instagram/activity",
+      tone: "default",
+    });
+  }
+  if (data.billing.openPaymentLinks > 0) {
+    items.push({
+      label: `${data.billing.openPaymentLinks} open payment link(s)`,
+      href: "/admin",
+      tone: "default",
+    });
+  }
+  if (data.billing.draftPaymentLinks > 0) {
+    items.push({
+      label: `${data.billing.draftPaymentLinks} draft invoice(s) to send`,
+      href: "/admin/payment-links/new",
+      tone: "warn",
+    });
+  }
+  if (data.instagram.status.dryRunMode) {
+    items.push({
+      label: "Instagram dry run is on — sends are not delivered live",
+      href: "/admin/instagram/connection",
+      tone: "warn",
+    });
+  }
+  return items;
 }
 
 function formatWhen(iso: string | null): string {
@@ -224,15 +280,50 @@ export function AgencyOverviewDashboard() {
 
   const maxStage = Math.max(1, ...data.crm.byStage.map((s) => s.count));
   const ig = data.instagram;
+  const attention = buildAttentionItems(data);
 
   return (
     <div className="space-y-8 pb-10">
-      <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-        Good {dayPart()}, {greetingName(data.email)}
-      </h1>
-      <p className="-mt-6 text-sm text-muted">
-        Billing, growth, CRM, and Instagram automation in one place.
-      </p>
+      <header className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+            Good {dayPart()}, {greetingName(data.email)}
+          </h1>
+          <p className="mt-1 text-sm text-muted">
+            Billing, growth, CRM, and Instagram automation in one place.
+          </p>
+        </div>
+        <p className="text-sm text-muted sm:text-right">{dateHeadline()}</p>
+      </header>
+
+      {attention.length > 0 ? (
+        <section
+          className="rounded-2xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 sm:px-5"
+          aria-label="Needs attention"
+        >
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-200/90">
+            Needs attention
+          </p>
+          <ul className="mt-2 space-y-1.5">
+            {attention.map((item) => (
+              <li key={item.label}>
+                <Link
+                  href={item.href}
+                  className={`text-sm font-medium underline-offset-2 hover:underline ${
+                    item.tone === "danger"
+                      ? "text-red-300"
+                      : item.tone === "warn"
+                        ? "text-amber-100"
+                        : "text-foreground"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
@@ -291,20 +382,24 @@ export function AgencyOverviewDashboard() {
               {ig.status.lastWebhookAt ? formatWhen(ig.status.lastWebhookAt) : "never"}
             </p>
           </header>
-          <div className="grid gap-3 p-5 sm:grid-cols-2">
-            <StatCard
-              label="Queued"
-              value={ig.metrics.queuedNow}
-              hint="Campaign deliveries"
-              href="/admin/instagram/activity"
-            />
-            <StatCard
-              label="Paused campaigns"
-              value={ig.metrics.pausedCampaigns}
-              hint="Turn on in Campaigns"
-              href="/admin/instagram/campaigns"
-            />
-          </div>
+          <dl className="grid grid-cols-2 gap-4 p-5 text-sm">
+            <div>
+              <dt className="text-[11px] uppercase tracking-wide text-muted">Queued</dt>
+              <dd className="mt-1 text-2xl font-semibold tabular-nums text-foreground">
+                <Link href="/admin/instagram/activity" className="hover:text-accent">
+                  {ig.metrics.queuedNow}
+                </Link>
+              </dd>
+            </div>
+            <div>
+              <dt className="text-[11px] uppercase tracking-wide text-muted">Paused</dt>
+              <dd className="mt-1 text-2xl font-semibold tabular-nums text-foreground">
+                <Link href="/admin/instagram/campaigns" className="hover:text-accent">
+                  {ig.metrics.pausedCampaigns}
+                </Link>
+              </dd>
+            </div>
+          </dl>
           <div className="border-t border-line px-5 py-3 text-xs text-muted">
             Last send: {formatWhen(ig.status.lastSendAt)}
             {ig.status.dryRunMode ? (
@@ -324,7 +419,7 @@ export function AgencyOverviewDashboard() {
           <p className="p-5 text-sm text-muted">No opportunities yet — promote a lead from Growth.</p>
         ) : (
           <div>
-            {data.crm.recent.map((opp) => (
+            {data.crm.recent.slice(0, 5).map((opp) => (
               <RecentOpportunityRow key={opp.id} opp={opp} />
             ))}
           </div>
@@ -358,40 +453,6 @@ export function AgencyOverviewDashboard() {
             <p className="mt-1 text-sm text-muted">{item.body}</p>
           </Link>
         ))}
-      </section>
-
-      <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted">
-          All areas
-        </h2>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {growthHubLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="rounded-xl border border-line bg-black/20 px-4 py-3 text-sm transition-colors hover:border-accent/35 hover:bg-black/30"
-            >
-              <span className="font-medium text-foreground">{link.label}</span>
-              {link.description ? (
-                <span className="mt-0.5 block text-xs text-muted">{link.description}</span>
-              ) : null}
-            </Link>
-          ))}
-          <Link
-            href="/admin"
-            className="rounded-xl border border-line bg-black/20 px-4 py-3 text-sm transition-colors hover:border-accent/35 hover:bg-black/30"
-          >
-            <span className="font-medium text-foreground">Payment links</span>
-            <span className="mt-0.5 block text-xs text-muted">Invoices and checkout</span>
-          </Link>
-          <Link
-            href="/admin/contracts"
-            className="rounded-xl border border-line bg-black/20 px-4 py-3 text-sm transition-colors hover:border-accent/35 hover:bg-black/30"
-          >
-            <span className="font-medium text-foreground">Agreements</span>
-            <span className="mt-0.5 block text-xs text-muted">Client contracts</span>
-          </Link>
-        </div>
       </section>
     </div>
   );

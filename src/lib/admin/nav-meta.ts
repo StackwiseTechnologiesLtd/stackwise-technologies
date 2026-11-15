@@ -28,12 +28,7 @@ export type AdminNavChild = {
 
 /** Sub-routes under Growth (sidebar + horizontal sub-nav). */
 export const adminGrowthNavChildren: AdminNavChild[] = [
-  {
-    href: "/admin/growth",
-    label: "Agency home",
-    match: "exact",
-    description: "Pipeline, billing, Instagram, integrations",
-  },
+  { href: "/admin/growth", label: "Overview", match: "exact" },
   { href: "/admin/growth/inbox", label: "Inbox", match: "prefix" },
   { href: "/admin/growth/linkedin", label: "LinkedIn", match: "prefix" },
   { href: "/admin/growth/jobs", label: "Jobs", match: "prefix" },
@@ -95,7 +90,7 @@ export const adminNavSections: AdminNavSection[] = [
     items: [
       {
         href: "/admin/growth",
-        label: "Growth",
+        label: "Agency home",
         icon: "growth",
         match: "prefix",
       },
