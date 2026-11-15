@@ -8,9 +8,10 @@ import {
   requireInstagramApiAccess,
 } from "@/lib/instagram/api-auth";
 import {
-  getCampaignSentCounts,
+  getInstagramCampaignInsights,
   getInstagramDeliveryMetrics,
   getInstagramOpsStatus,
+  getInstagramSendTrend,
   listAccounts,
   listCampaigns,
   listDeliveries,
@@ -22,7 +23,7 @@ export async function GET() {
   const ctx = await requireInstagramApiAccess();
   if (isInstagramApiError(ctx)) return ctx;
   try {
-    const [status, metrics, campaigns, accounts, recent, campaignSentCounts] =
+    const [status, metrics, campaigns, accounts, recent, campaignInsights, sendTrend] =
       await Promise.all([
         getInstagramOpsStatus({ accountIds: ctx.access.accountIds }),
         getInstagramDeliveryMetrics({ accountIds: ctx.access.accountIds }),
@@ -33,7 +34,8 @@ export async function GET() {
           offset: 0,
           accountIds: ctx.access.accountIds,
         }),
-        getCampaignSentCounts({ accountIds: ctx.access.accountIds }),
+        getInstagramCampaignInsights({ accountIds: ctx.access.accountIds }),
+        getInstagramSendTrend({ accountIds: ctx.access.accountIds, days: 7 }),
       ]);
     return NextResponse.json({
       status,
@@ -41,7 +43,8 @@ export async function GET() {
       campaigns: filterCampaignsByAccountAccess(campaigns, ctx.access),
       accounts: filterByAccountAccess(accounts, ctx.access),
       recentDeliveries: recent.deliveries,
-      campaignSentCounts,
+      campaignInsights,
+      sendTrend,
       access: {
         kind: ctx.access.kind,
         canManageMetaApps: ctx.access.canManageMetaApps,

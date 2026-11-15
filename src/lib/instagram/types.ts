@@ -92,6 +92,29 @@ export type InstagramDeliveryMetrics = {
   pausedCampaigns: number;
 };
 
+export type InstagramCampaignInsight = {
+  campaignId: string;
+  accountId: string;
+  name: string;
+  keyword: string;
+  triggerType: InstagramCampaignTrigger;
+  active: boolean;
+  sentTotal: number;
+  sentLast7Days: number;
+  failedTotal: number;
+  queuedNow: number;
+  triggersLast7Days: number;
+  uniqueRecipients: number;
+  linkClicks: number;
+  lastActivityAt: string | null;
+};
+
+export type InstagramSendTrendDay = {
+  day: string;
+  sent: number;
+  failed: number;
+};
+
 export type InstagramConversation = {
   id: string;
   accountId: string;

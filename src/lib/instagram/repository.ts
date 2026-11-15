@@ -5,9 +5,11 @@ import type {
   InstagramAccount,
   InstagramCampaign,
   InstagramCampaignTrigger,
+  InstagramCampaignInsight,
   InstagramDelivery,
   InstagramDeliveryMetrics,
   InstagramDeliveryStatus,
+  InstagramSendTrendDay,
   InstagramMetaApp,
   InstagramOpsStatus,
 } from "@/lib/instagram/types";
@@ -1007,6 +1009,143 @@ export async function getInstagramOpsStatus(input?: {
     dryRunMode: isInstagramDryRun(),
     webhookUrlPattern,
   };
+}
+
+export async function getInstagramCampaignInsights(input?: {
+  accountIds?: string[] | null;
+}): Promise<InstagramCampaignInsight[]> {
+  await ready();
+  const sql = getSql();
+  const scopeAccounts = input?.accountIds;
+  const restrictAccounts = scopeAccounts != null;
+
+  const rows = asRows<{
+    campaign_id: string;
+    account_id: string;
+    name: string;
+    keyword: string;
+    trigger_type: string;
+    active: boolean;
+    sent_total: number;
+    sent_7d: number;
+    failed_total: number;
+    queued: number;
+    triggers_7d: number;
+    unique_recipients: number;
+    link_clicks: number;
+    last_activity_at: string | null;
+  }>(
+    await sql`
+      SELECT
+        c.id AS campaign_id,
+        c.account_id,
+        c.name,
+        c.keyword,
+        c.trigger_type,
+        c.active,
+        COALESCE(s.sent_total, 0)::int AS sent_total,
+        COALESCE(s.sent_7d, 0)::int AS sent_7d,
+        COALESCE(s.failed_total, 0)::int AS failed_total,
+        COALESCE(s.queued, 0)::int AS queued,
+        COALESCE(s.triggers_7d, 0)::int AS triggers_7d,
+        COALESCE(s.unique_recipients, 0)::int AS unique_recipients,
+        COALESCE(clicks.link_clicks, 0)::int AS link_clicks,
+        s.last_activity_at
+      FROM instagram_campaigns c
+      INNER JOIN instagram_accounts a ON a.id = c.account_id AND a.status = 'active'
+      LEFT JOIN (
+        SELECT
+          campaign_id,
+          COUNT(*) FILTER (WHERE status = 'sent') AS sent_total,
+          COUNT(*) FILTER (
+            WHERE status = 'sent' AND sent_at > NOW() - INTERVAL '7 days'
+          ) AS sent_7d,
+          COUNT(*) FILTER (WHERE status = 'failed') AS failed_total,
+          COUNT(*) FILTER (WHERE status = 'queued') AS queued,
+          COUNT(*) FILTER (WHERE created_at > NOW() - INTERVAL '7 days') AS triggers_7d,
+          COUNT(DISTINCT recipient_igsid) FILTER (
+            WHERE status = 'sent' AND recipient_igsid IS NOT NULL
+          ) AS unique_recipients,
+          MAX(created_at) AS last_activity_at
+        FROM instagram_deliveries
+        WHERE campaign_id IS NOT NULL
+        GROUP BY campaign_id
+      ) s ON s.campaign_id = c.id
+      LEFT JOIN (
+        SELECT d.campaign_id, COUNT(lc.id)::int AS link_clicks
+        FROM instagram_link_clicks lc
+        INNER JOIN instagram_tracked_links tl ON tl.token = lc.link_token
+        INNER JOIN instagram_deliveries d ON d.id = tl.delivery_id
+        WHERE d.campaign_id IS NOT NULL
+        GROUP BY d.campaign_id
+      ) clicks ON clicks.campaign_id = c.id
+      WHERE (
+        NOT ${restrictAccounts}::boolean
+        OR c.account_id = ANY(${scopeAccounts ?? []}::uuid[])
+      )
+      ORDER BY COALESCE(s.last_activity_at, c.updated_at) DESC
+    `,
+  );
+
+  return rows.map((row) => ({
+    campaignId: row.campaign_id,
+    accountId: row.account_id,
+    name: row.name,
+    keyword: row.keyword,
+    triggerType: instagramCampaignTriggers.includes(
+      row.trigger_type as InstagramCampaignTrigger,
+    )
+      ? (row.trigger_type as InstagramCampaignTrigger)
+      : "comment",
+    active: row.active,
+    sentTotal: row.sent_total,
+    sentLast7Days: row.sent_7d,
+    failedTotal: row.failed_total,
+    queuedNow: row.queued,
+    triggersLast7Days: row.triggers_7d,
+    uniqueRecipients: row.unique_recipients,
+    linkClicks: row.link_clicks,
+    lastActivityAt: row.last_activity_at,
+  }));
+}
+
+export async function getInstagramSendTrend(input?: {
+  accountIds?: string[] | null;
+  days?: number;
+}): Promise<InstagramSendTrendDay[]> {
+  await ready();
+  const sql = getSql();
+  const scopeAccounts = input?.accountIds;
+  const restrictAccounts = scopeAccounts != null;
+  const days = Math.min(Math.max(input?.days ?? 7, 1), 31);
+
+  const rows = asRows<{ day: string; sent: number; failed: number }>(
+    await sql`
+      SELECT
+        to_char(
+          date_trunc('day', COALESCE(d.sent_at, d.created_at) AT TIME ZONE 'UTC'),
+          'YYYY-MM-DD'
+        ) AS day,
+        COUNT(*) FILTER (WHERE d.status = 'sent')::int AS sent,
+        COUNT(*) FILTER (WHERE d.status = 'failed')::int AS failed
+      FROM instagram_deliveries d
+      INNER JOIN instagram_accounts a ON a.id = d.account_id AND a.status = 'active'
+      WHERE d.campaign_id IS NOT NULL
+        AND COALESCE(d.sent_at, d.created_at) > NOW() - (${days} * INTERVAL '1 day')
+        AND (
+          NOT ${restrictAccounts}::boolean
+          OR d.account_id = ANY(${scopeAccounts ?? []}::uuid[])
+        )
+      GROUP BY date_trunc('day', COALESCE(d.sent_at, d.created_at) AT TIME ZONE 'UTC')
+      ORDER BY 1 ASC
+    `,
+  );
+
+  return rows.map((row) => ({
+    day: row.day,
+    sent: row.sent,
+    failed: row.failed,
+  }));
 }
 
 export async function getCampaignSentCounts(input?: {

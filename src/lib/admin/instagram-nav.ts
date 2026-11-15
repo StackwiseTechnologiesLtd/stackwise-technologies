@@ -13,7 +13,7 @@ export const instagramPortalNav: InstagramNavItem[] = [
   {
     href: "/admin/instagram/campaigns",
     label: "Automations",
-    description: "Keywords, DMs, and replies",
+    description: "Insights, keywords, and create",
   },
   {
     href: "/admin/instagram/activity",

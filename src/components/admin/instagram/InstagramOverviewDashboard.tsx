@@ -3,12 +3,17 @@
 import { AdminActionButton } from "@/components/admin/AdminActionButton";
 import { AdminConfirmDialog } from "@/components/admin/AdminConfirmDialog";
 import { useToast } from "@/components/ToastProvider";
+import {
+  InstagramCampaignInsightsTable,
+  InstagramSendTrendChart,
+} from "@/components/admin/instagram/InstagramCampaignInsightsTable";
 import type {
   InstagramAccount,
-  InstagramCampaign,
+  InstagramCampaignInsight,
   InstagramDelivery,
   InstagramDeliveryMetrics,
   InstagramOpsStatus,
+  InstagramSendTrendDay,
 } from "@/lib/instagram/types";
 import { BTN_GHOST, BTN_PRIMARY, BTN_SECONDARY } from "@/lib/ui/buttons";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
@@ -18,10 +23,10 @@ import { useCallback, useMemo, useState, type ReactNode } from "react";
 type DashboardPayload = {
   status: InstagramOpsStatus;
   metrics: InstagramDeliveryMetrics;
-  campaigns: InstagramCampaign[];
   accounts: InstagramAccount[];
   recentDeliveries: InstagramDelivery[];
-  campaignSentCounts: Record<string, number>;
+  campaignInsights: InstagramCampaignInsight[];
+  sendTrend: InstagramSendTrendDay[];
   access: { kind: "owner" | "operator"; canManageMetaApps: boolean };
 };
 
@@ -72,18 +77,6 @@ function dayPart(): string {
   if (h < 12) return "morning";
   if (h < 17) return "afternoon";
   return "evening";
-}
-
-function triggerLabel(trigger: InstagramCampaign["triggerType"]): string {
-  if (trigger === "dm") return "DM";
-  if (trigger === "story_reply") return "Story";
-  return "Comment";
-}
-
-function triggerChipClass(trigger: InstagramCampaign["triggerType"]): string {
-  if (trigger === "dm") return "bg-sky-500/15 text-sky-300";
-  if (trigger === "story_reply") return "bg-violet-500/15 text-violet-300";
-  return "bg-fuchsia-500/15 text-fuchsia-300";
 }
 
 function accountLabel(accounts: InstagramAccount[], accountId: string): string {
@@ -229,16 +222,12 @@ export function InstagramOverviewDashboard() {
     void load();
   }, [load]);
 
-  const filteredCampaigns = useMemo(() => {
-    const list = data?.campaigns ?? [];
-    const sorted = [...list].sort((a, b) => {
-      if (a.active !== b.active) return a.active ? -1 : 1;
-      return b.updatedAt.localeCompare(a.updatedAt);
-    });
-    if (campaignTab === "active") return sorted.filter((c) => c.active);
-    if (campaignTab === "paused") return sorted.filter((c) => !c.active);
-    return sorted;
-  }, [campaignTab, data?.campaigns]);
+  const filteredInsights = useMemo(() => {
+    const list = data?.campaignInsights ?? [];
+    if (campaignTab === "active") return list.filter((c) => c.active);
+    if (campaignTab === "paused") return list.filter((c) => !c.active);
+    return list;
+  }, [campaignTab, data?.campaignInsights]);
 
   const attentionCount = useMemo(() => {
     if (!data) return 0;
@@ -280,7 +269,6 @@ export function InstagramOverviewDashboard() {
 
   const status = data?.status;
   const metrics = data?.metrics;
-  const counts = data?.campaignSentCounts ?? {};
 
   return (
     <div className="space-y-6 pb-10">
@@ -413,70 +401,22 @@ export function InstagramOverviewDashboard() {
               }
             />
 
-            {filteredCampaigns.length === 0 ? (
-              <div className="px-5 py-14 text-center">
-                <p className="text-sm text-muted">No automations in this view.</p>
+            <InstagramCampaignInsightsTable
+              insights={filteredInsights}
+              accounts={data?.accounts ?? []}
+              compact
+              emptyMessage="No automations in this view."
+            />
+            {filteredInsights.length === 0 ? (
+              <div className="border-t border-line px-5 py-4 text-center">
                 <Link
                   href="/admin/instagram/campaigns"
-                  className="mt-3 inline-block text-sm font-medium text-accent hover:underline"
+                  className="text-sm font-medium text-accent hover:underline"
                 >
                   Create your first campaign
                 </Link>
               </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[32rem] text-left text-sm">
-                  <thead>
-                    <tr className="border-b border-line/80 text-[11px] uppercase tracking-wide text-muted">
-                      <th className="px-5 py-3 font-medium">Name</th>
-                      <th className="px-3 py-3 font-medium">Trigger</th>
-                      <th className="hidden px-3 py-3 font-medium md:table-cell">Keyword</th>
-                      <th className="hidden px-3 py-3 font-medium lg:table-cell">Account</th>
-                      <th className="px-3 py-3 text-right font-medium">Sent</th>
-                      <th className="px-5 py-3 font-medium">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-line/60">
-                    {filteredCampaigns.map((c) => (
-                      <tr
-                        key={c.id}
-                        className="transition-colors hover:bg-white/[0.02]"
-                      >
-                        <td className="px-5 py-3.5 font-medium text-foreground">{c.name}</td>
-                        <td className="px-3 py-3.5">
-                          <span
-                            className={`inline-flex rounded-md px-2 py-0.5 text-[11px] font-medium ${triggerChipClass(c.triggerType)}`}
-                          >
-                            {triggerLabel(c.triggerType)}
-                          </span>
-                        </td>
-                        <td className="hidden px-3 py-3.5 text-muted md:table-cell">
-                          <code className="text-foreground/90">{c.keyword}</code>
-                        </td>
-                        <td className="hidden px-3 py-3.5 text-xs text-muted lg:table-cell">
-                          {accountLabel(data?.accounts ?? [], c.accountId)}
-                        </td>
-                        <td className="px-3 py-3.5 text-right tabular-nums text-muted">
-                          {counts[c.id] ?? 0}
-                        </td>
-                        <td className="px-5 py-3.5">
-                          <span
-                            className={`inline-flex items-center gap-1.5 text-xs font-medium ${
-                              c.active ? "text-emerald-300" : "text-muted"
-                            }`}
-                          >
-                            <span
-                              className={`size-1.5 rounded-full ${c.active ? "bg-emerald-400" : "bg-white/30"}`}
-                            />
-                            {c.active ? "Live" : "Paused"}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+            ) : null}
             <div className="border-t border-line px-5 py-3">
               <Link
                 href="/admin/instagram/campaigns"
@@ -560,7 +500,10 @@ export function InstagramOverviewDashboard() {
         <aside className="space-y-6">
           <section className="rounded-2xl border border-line bg-panel p-5">
             <h2 className="text-sm font-semibold">Delivery pipeline (7d)</h2>
-            <div className="mt-4 space-y-4">
+            <div className="mt-4">
+              <InstagramSendTrendChart days={data?.sendTrend ?? []} />
+            </div>
+            <div className="mt-4 space-y-4 border-t border-line/80 pt-4">
               <div>
                 <div className="mb-1.5 flex justify-between text-xs">
                   <span className="text-muted">Sent</span>

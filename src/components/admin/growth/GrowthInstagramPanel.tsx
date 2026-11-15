@@ -3,10 +3,12 @@
 import { useToast } from "@/components/ToastProvider";
 import { AdminActionButton } from "@/components/admin/AdminActionButton";
 import { AdminConfirmDialog } from "@/components/admin/AdminConfirmDialog";
+import { InstagramCampaignInsightsTable } from "@/components/admin/instagram/InstagramCampaignInsightsTable";
 import { TablePagination } from "@/components/admin/TablePagination";
 import type {
   InstagramAccount,
   InstagramCampaign,
+  InstagramCampaignInsight,
   InstagramDelivery,
   InstagramMetaApp,
 } from "@/lib/instagram/types";
@@ -69,6 +71,8 @@ export function GrowthInstagramPanel({
   const [deliveryTotalPages, setDeliveryTotalPages] = useState(1);
   const [deliveriesLoading, setDeliveriesLoading] = useState(false);
   const [deliveryFilter, setDeliveryFilter] = useState<string>("");
+  const [deliveryCampaignId, setDeliveryCampaignId] = useState<string>("");
+  const [campaignInsights, setCampaignInsights] = useState<InstagramCampaignInsight[]>([]);
   const [oauthSetup, setOauthSetup] = useState<{
     redirectUri: string;
     scopes: string[];
@@ -126,6 +130,7 @@ export function GrowthInstagramPanel({
         limit: String(DELIVERY_PAGE_SIZE),
       });
       if (deliveryFilter) params.set("status", deliveryFilter);
+      if (deliveryCampaignId) params.set("campaignId", deliveryCampaignId);
       const res = await fetch(`/api/admin/instagram/deliveries?${params}`);
       if (!res.ok) throw new Error("Delivery log load failed");
       const data = (await res.json()) as {
@@ -141,14 +146,15 @@ export function GrowthInstagramPanel({
     } finally {
       setDeliveriesLoading(false);
     }
-  }, [deliveryFilter, deliveryPage, toast]);
+  }, [deliveryCampaignId, deliveryFilter, deliveryPage, toast]);
 
   const load = useCallback(async () => {
     try {
-      const [appsRes, accRes, campRes, oauthCfg, accessRes] = await Promise.all([
+      const [appsRes, accRes, campRes, insightsRes, oauthCfg, accessRes] = await Promise.all([
         fetch("/api/admin/instagram/meta-apps"),
         fetch("/api/admin/instagram/accounts?removed=1"),
         fetch("/api/admin/instagram/campaigns"),
+        fetch("/api/admin/instagram/campaigns/insights"),
         fetch("/api/admin/instagram/oauth/config"),
         fetch("/api/admin/instagram/access"),
       ]);
@@ -167,6 +173,10 @@ export function GrowthInstagramPanel({
       if (campRes.ok) {
         const data = (await campRes.json()) as { campaigns: InstagramCampaign[] };
         setCampaigns(data.campaigns);
+      }
+      if (insightsRes.ok) {
+        const data = (await insightsRes.json()) as { insights: InstagramCampaignInsight[] };
+        setCampaignInsights(data.insights);
       }
       if (oauthCfg.ok) {
         const data = (await oauthCfg.json()) as {
@@ -207,6 +217,8 @@ export function GrowthInstagramPanel({
     ) {
       setDeliveryFilter(statusParam);
     }
+    const campaignParam = searchParams.get("campaignId")?.trim() ?? "";
+    if (campaignParam) setDeliveryCampaignId(campaignParam);
   }, [searchParams, view]);
 
   useDeferredEffect(() => {
@@ -703,7 +715,20 @@ export function GrowthInstagramPanel({
 
       {show("campaigns") ? (
       <section className="rounded-xl border border-line bg-panel p-5 sm:p-6">
-        <h3 className="text-base font-semibold tracking-tight">Campaigns</h3>
+        <h3 className="text-base font-semibold tracking-tight">Campaign insights</h3>
+        <p className="mt-1 text-sm text-muted">
+          Clicks come from tracked links in DMs. CTR = clicks ÷ total sends. Open a name to filter
+          Activity.
+        </p>
+        <div className="mt-4 overflow-hidden rounded-xl border border-line bg-black/20">
+          <InstagramCampaignInsightsTable
+            insights={campaignInsights}
+            accounts={accounts}
+            onToggleActive={(id, active) => void toggleCampaign(id, active)}
+            onDelete={(id, name) => requestDeleteCampaign(id, name)}
+          />
+        </div>
+        <h3 className="mt-8 text-base font-semibold tracking-tight">New automation</h3>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <label className="text-sm sm:col-span-2">
             Account
@@ -808,32 +833,6 @@ export function GrowthInstagramPanel({
         <AdminActionButton className="mt-4" onClick={() => void saveCampaign()}>
           Create campaign
         </AdminActionButton>
-        <ul className="mt-4 space-y-2">
-          {campaigns.map((c) => (
-            <li
-              key={c.id}
-              className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-line bg-black/30 px-3 py-2 text-sm"
-            >
-              <span>
-                <span className="font-medium">{c.name}</span> ·{" "}
-                <code className="text-xs">{c.triggerType}</code> ·{" "}
-                <code className="text-xs">{c.keyword}</code>
-                {c.mediaId ? ` on ${c.mediaId}` : ""}
-              </span>
-              <span className="flex flex-wrap items-center gap-2">
-                <AdminActionButton onClick={() => void toggleCampaign(c.id, !c.active)}>
-                  {c.active ? "Deactivate" : "Activate"}
-                </AdminActionButton>
-                <AdminActionButton
-                  className="text-red-400 hover:text-red-300"
-                  onClick={() => requestDeleteCampaign(c.id, c.name)}
-                >
-                  Delete
-                </AdminActionButton>
-              </span>
-            </li>
-          ))}
-        </ul>
       </section>
       ) : null}
 
@@ -845,20 +844,37 @@ export function GrowthInstagramPanel({
         </p>
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
           <h3 className="text-base font-semibold tracking-tight">Delivery log</h3>
-          <select
-            className="rounded-lg border border-line bg-black/40 px-2 py-1 text-sm"
-            value={deliveryFilter}
-            onChange={(e) => {
-              setDeliveryFilter(e.target.value);
-              setDeliveryPage(1);
-            }}
-          >
-            <option value="">All statuses</option>
-            <option value="queued">queued</option>
-            <option value="sent">sent</option>
-            <option value="skipped">skipped</option>
-            <option value="failed">failed</option>
-          </select>
+          <div className="flex flex-wrap gap-2">
+            <select
+              className="rounded-lg border border-line bg-black/40 px-2 py-1 text-sm"
+              value={deliveryCampaignId}
+              onChange={(e) => {
+                setDeliveryCampaignId(e.target.value);
+                setDeliveryPage(1);
+              }}
+            >
+              <option value="">All campaigns</option>
+              {campaignInsights.map((c) => (
+                <option key={c.campaignId} value={c.campaignId}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+            <select
+              className="rounded-lg border border-line bg-black/40 px-2 py-1 text-sm"
+              value={deliveryFilter}
+              onChange={(e) => {
+                setDeliveryFilter(e.target.value);
+                setDeliveryPage(1);
+              }}
+            >
+              <option value="">All statuses</option>
+              <option value="queued">queued</option>
+              <option value="sent">sent</option>
+              <option value="skipped">skipped</option>
+              <option value="failed">failed</option>
+            </select>
+          </div>
         </div>
         <div className="mt-3 overflow-x-auto">
           <table className="w-full min-w-[640px] text-left text-xs">
