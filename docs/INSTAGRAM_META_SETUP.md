@@ -37,7 +37,9 @@ Set Cloudflare Worker secrets (`npm run cf:secrets` from `.env.prod`) — at min
 
 Owners copy exact values from **Connection** in `/admin/instagram` (includes Copy buttons). Turn off ngrok; point Meta to the live host only.
 
-**Operators** — invite on **Team access** (`ADMIN_EMAILS` only). They sign in via OTP, land on `/admin/instagram`, cannot open payments/growth/CRM, and cannot view Meta app secrets or connect tokens (API returns 403).
+**Operators** — invite on **Team access** (`ADMIN_EMAILS` only). They sign in via OTP, land on `/admin/instagram`, cannot open payments/growth/CRM, and cannot view Meta app secrets or connect tokens (API returns 403). The **Connection** nav item is hidden for operators.
+
+**Disconnect account** — owners use **Disconnect** on Connection or the dashboard. This is a **soft remove** (`status = removed`): access tokens are cleared and the account disappears from automations, inbox, and activity, but Neon rows (campaigns, deliveries, messages) keep the same `account_id`. Save the same **IG user ID** again on Connection to reactivate.
 
 ## Environment
 

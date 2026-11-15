@@ -678,6 +678,26 @@ export function GrowthInstagramPanel({
             Save account
           </AdminActionButton>
         ) : null}
+        {canConfigureMeta && removedAccounts.length > 0 ? (
+          <div className="mt-6 border-t border-line pt-4">
+            <h4 className="text-sm font-semibold text-muted">Disconnected (archived)</h4>
+            <p className="mt-1 text-xs text-muted">
+              Tokens cleared; delivery history kept. Reconnect with the same IG user ID and Meta app to
+              reactivate this row.
+            </p>
+            <ul className="mt-2 space-y-2 text-sm text-muted">
+              {removedAccounts.map((a) => (
+                <li
+                  key={a.id}
+                  className="rounded-lg border border-line/60 bg-black/10 px-3 py-2"
+                >
+                  {a.username ? `@${a.username}` : a.igUserId}
+                  <span className="text-xs"> · removed</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
       </section>
       ) : null}
 

@@ -255,6 +255,25 @@ export function InstagramOverviewDashboard() {
     return Math.max(sent + failed, 1);
   }, [data?.metrics.failedThisWeek, data?.metrics.sentThisWeek]);
 
+  async function confirmDisconnectAccount() {
+    if (!disconnectTarget) return;
+    setDisconnectBusy(true);
+    try {
+      const res = await fetch(
+        `/api/admin/instagram/accounts/${disconnectTarget.id}`,
+        { method: "DELETE" },
+      );
+      if (!res.ok) throw new Error("Disconnect failed");
+      toast.toast("Account disconnected.");
+      setDisconnectTarget(null);
+      await load();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Disconnect failed");
+    } finally {
+      setDisconnectBusy(false);
+    }
+  }
+
   if (loading && !data) {
     return <DashboardSkeleton />;
   }
@@ -265,6 +284,18 @@ export function InstagramOverviewDashboard() {
 
   return (
     <div className="space-y-6 pb-10">
+      <AdminConfirmDialog
+        open={disconnectTarget !== null}
+        title={disconnectTarget ? `Disconnect ${disconnectTarget.label}?` : ""}
+        description="Soft-remove: tokens cleared and hidden from the portal; campaigns and delivery history stay on this account id."
+        confirmLabel="Disconnect account"
+        destructive
+        busy={disconnectBusy}
+        onClose={() => {
+          if (!disconnectBusy) setDisconnectTarget(null);
+        }}
+        onConfirm={() => void confirmDisconnectAccount()}
+      />
       {status?.dryRunMode ? (
         <p
           role="status"
@@ -497,12 +528,26 @@ export function InstagramOverviewDashboard() {
                         </p>
                       </div>
                       {data?.access.canManageMetaApps ? (
-                        <Link
-                          href="/admin/instagram/connection"
-                          className="text-xs font-medium text-accent hover:underline"
-                        >
-                          Manage
-                        </Link>
+                        <span className="flex gap-2">
+                          <Link
+                            href="/admin/instagram/connection"
+                            className="text-xs font-medium text-accent hover:underline"
+                          >
+                            Manage
+                          </Link>
+                          <button
+                            type="button"
+                            className="text-xs font-medium text-red-400 hover:underline"
+                            onClick={() =>
+                              setDisconnectTarget({
+                                id: a.id,
+                                label: a.username ? `@${a.username}` : a.igUserId,
+                              })
+                            }
+                          >
+                            Disconnect
+                          </button>
+                        </span>
                       ) : null}
                     </li>
                   );
