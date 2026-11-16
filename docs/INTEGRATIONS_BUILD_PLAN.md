@@ -4,7 +4,7 @@ Ship external capabilities **inside** [Stackwise admin](https://stackwisetechnol
 
 This document is the source of truth for implementation order, manual validation, and completion sign-off.
 
-**Related:** [GROWTH_ENGINE.md](./GROWTH_ENGINE.md) (X / LinkedIn harvest and inbox). **Local setup:** [INTEGRATIONS_LOCAL.md](./INTEGRATIONS_LOCAL.md). **Instagram:** in-repo on the Cloudflare Worker (OpenReply / ManyChat **slice** — not the [OpenReply](https://github.com/diwenne/openreply) container).
+**Related:** [GROWTH_ENGINE.md](./GROWTH_ENGINE.md) (X / LinkedIn harvest and inbox). **Local setup:** [INTEGRATIONS_LOCAL.md](./INTEGRATIONS_LOCAL.md). **Instagram:** in-repo on the Cloudflare Worker (OpenReply / ManyChat **slice** — not the [OpenReply](https://github.com/diwenne/openreply) container). **After Phase 6:** agency delivery, alerts, and projects — [AGENCY_OPS_BUILD_PLAN.md](./AGENCY_OPS_BUILD_PLAN.md).
 
 ---
 

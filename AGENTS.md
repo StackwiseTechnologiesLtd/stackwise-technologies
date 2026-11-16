@@ -6,7 +6,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## Stackwise integrations (agents)
 
-- **Build plan:** `docs/INTEGRATIONS_BUILD_PLAN.md` — includes manual test flows and a progress sign-off table per phase.
+- **Build plan:** `docs/INTEGRATIONS_BUILD_PLAN.md` — includes manual test flows and a progress sign-off table per phase. **Agency ops (delivery, alerts, projects):** `docs/AGENCY_OPS_BUILD_PLAN.md` — after integrations foundation.
 - **CRM:** In-repo only (`src/lib/crm/`, `/admin/crm`). Data: `docs/vendor/TWENTY_REFERENCE.md`. UI/features (inspire or copy per AGPL): `docs/vendor/TWENTY_UI_AND_FEATURES.md`, `vendor/twenty/`. No hosted Twenty server or iframe.
 - **Scope:** Ponytail-style minimal changes (`docs/engineering/ponytail.md`). No secrets in tracked files; run `node scripts/check-no-secrets.mjs` before PRs touching config.
 - **Brand guidelines portal:** New client systems — follow `docs/engineering/BRAND_GUIDELINES_MASTER_PROMPT.md` (Opsis at `src/lib/branding/brands/opsis.ts` is the reference).
