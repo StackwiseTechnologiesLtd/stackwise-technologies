@@ -61,7 +61,7 @@ Record **date + initials** when all manual tests for a phase pass.
 | ----- | ------ | ------ | ---- | ----- |
 | A — Stabilize | ☐ | | | IG 6.1–6.4 + Phase 0 + prod ingest/connector |
 | B — Daily ops | ☐ | | | **B.1–B.4** `crm_tasks`, saved views, record tasks UI; **B.5–B.6** alerts (`/api/cron/agency-alerts`) — sign off B.T1–T5 |
-| C — Projects | ☐ | | | Engagements after **won** |
+| C — Projects | ☐ | | | C.1–C.6 in repo — sign off C.T1–T4 after migrate + deploy |
 | D — Client portal (delivery) | ☐ | | | Client-facing status, not admin |
 | E — Revenue automation | ☐ | | | Reminders + aging |
 | F — Search + reporting | ☐ | | | Cross-entity search + funnel |

@@ -1,3 +1,5 @@
+import { listDueMilestones } from "@/lib/agency/projects";
+import type { AgencyDueMilestone } from "@/lib/agency/types";
 import { crmAutoPipelineMinScore } from "@/lib/crm/auto-sync";
 import { listOpportunities } from "@/lib/crm/repository";
 import { crmStageLabels, type CrmOpportunity } from "@/lib/crm/types";
@@ -76,6 +78,9 @@ export type AgencyOverviewPayload = {
     ingestSecretConfigured: boolean;
     services: IntegrationServiceStatus[];
   };
+  delivery: {
+    dueSoon: AgencyDueMilestone[];
+  };
 };
 
 const ACTIVE_CRM_STAGES: PipelineStatus[] = pipelineStatuses.filter(
@@ -114,6 +119,7 @@ export async function getAgencyOverview(): Promise<AgencyOverviewPayload> {
     paymentLinks,
     contracts,
     subscriptions,
+    dueMilestones,
   ] = await Promise.all([
     asRows<{ stage: string; count: number }>(
       await sql`
@@ -171,6 +177,7 @@ export async function getAgencyOverview(): Promise<AgencyOverviewPayload> {
     listPaymentLinks("production"),
     listContractEngagements(),
     listMaintenanceSubscriptions(),
+    listDueMilestones({ withinDays: 14, limit: 8 }),
   ]);
 
   const byStageMap = new Map(stageRows.map((r) => [r.stage, r.count]));
@@ -235,5 +242,8 @@ export async function getAgencyOverview(): Promise<AgencyOverviewPayload> {
       metrics: igMetrics,
     },
     integrations,
+    delivery: {
+      dueSoon: dueMilestones,
+    },
   };
 }

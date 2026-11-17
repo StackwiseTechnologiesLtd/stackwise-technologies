@@ -10,6 +10,10 @@ import { crmStageLabels, type CrmOpportunityDetail } from "@/lib/crm/types";
 import { pipelineStatuses, type PipelineStatus } from "@/lib/growth/types";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 import Link from "next/link";
+import {
+  agencyProjectStatusLabels,
+  type AgencyProject,
+} from "@/lib/agency/types";
 import { useCallback, useState } from "react";
 
 export function CrmOpportunityDetailPanel({
@@ -24,6 +28,10 @@ export function CrmOpportunityDetailPanel({
   const [detail, setDetail] = useState<CrmOpportunityDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [stageBusy, setStageBusy] = useState(false);
+  const [deliveryProject, setDeliveryProject] = useState<AgencyProject | null>(
+    null,
+  );
+  const [projectBusy, setProjectBusy] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -31,6 +39,15 @@ export function CrmOpportunityDetailPanel({
       const res = await fetch(`/api/admin/crm/opportunities/${opportunityId}`);
       if (!res.ok) throw new Error("Not found");
       setDetail((await res.json()) as CrmOpportunityDetail);
+      const projectRes = await fetch(
+        `/api/admin/crm/opportunities/${opportunityId}/project`,
+      );
+      if (projectRes.ok) {
+        const json = (await projectRes.json()) as { project: AgencyProject | null };
+        setDeliveryProject(json.project);
+      } else {
+        setDeliveryProject(null);
+      }
     } finally {
       setLoading(false);
     }
@@ -39,6 +56,22 @@ export function CrmOpportunityDetailPanel({
   useDeferredEffect(() => {
     void load();
   }, [load]);
+
+  async function createDeliveryProject() {
+    setProjectBusy(true);
+    try {
+      const res = await fetch("/api/admin/projects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ opportunityId }),
+      });
+      if (!res.ok) throw new Error("Create failed");
+      const json = (await res.json()) as { project: AgencyProject };
+      setDeliveryProject(json.project);
+    } finally {
+      setProjectBusy(false);
+    }
+  }
 
   async function setStage(stage: PipelineStatus) {
     setStageBusy(true);
@@ -51,6 +84,15 @@ export function CrmOpportunityDetailPanel({
       if (!res.ok) throw new Error("Update failed");
       setDetail((await res.json()) as CrmOpportunityDetail);
       onStageChange?.();
+      if (stage === "won") {
+        const projectRes = await fetch(
+          `/api/admin/crm/opportunities/${opportunityId}/project`,
+        );
+        if (projectRes.ok) {
+          const json = (await projectRes.json()) as { project: AgencyProject | null };
+          setDeliveryProject(json.project);
+        }
+      }
     } finally {
       setStageBusy(false);
     }
@@ -149,6 +191,32 @@ export function CrmOpportunityDetailPanel({
           </Link>
         ) : null}
       </div>
+
+      {opportunity.stage === "won" ? (
+        <div className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] px-4 py-3 text-sm">
+          <p className="text-[10px] font-semibold uppercase text-muted">
+            Delivery
+          </p>
+          {deliveryProject ? (
+            <Link
+              href={`/admin/projects/${deliveryProject.id}`}
+              className="mt-1 inline-block font-medium text-accent hover:underline"
+            >
+              {deliveryProject.title} ·{" "}
+              {agencyProjectStatusLabels[deliveryProject.status]}
+            </Link>
+          ) : (
+            <button
+              type="button"
+              disabled={projectBusy}
+              className="mt-2 text-accent hover:underline disabled:opacity-50"
+              onClick={() => void createDeliveryProject()}
+            >
+              Start delivery project
+            </button>
+          )}
+        </div>
+      ) : null}
 
       <CrmTasksPanel
         opportunityId={opportunityId}

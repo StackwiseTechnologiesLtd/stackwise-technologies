@@ -16,7 +16,8 @@ export type AdminNavItem = {
     | "logs"
     | "pipeline"
     | "brand"
-    | "portal";
+    | "portal"
+    | "projects";
   match?: "exact" | "prefix";
 };
 
@@ -54,6 +55,7 @@ export const adminNavSections: AdminNavSection[] = [
     label: "Agency",
     items: [
       { href: "/admin", label: "Overview", icon: "overview", match: "exact" },
+      { href: "/admin/projects", label: "Projects", icon: "projects", match: "prefix" },
     ],
   },
   {
@@ -119,6 +121,8 @@ export const adminGrowthNavChildren = adminPipelineNavChildren;
 
 export function adminPageTitle(pathname: string): string {
   if (pathname === "/admin") return "Overview";
+  if (pathname === "/admin/projects") return "Projects";
+  if (pathname.startsWith("/admin/projects/")) return "Project";
   if (pathname === "/admin/payment-links") return "Payment links";
   if (pathname.startsWith("/admin/payment-links/new")) return "New payment link";
   if (pathname.startsWith("/admin/payment-links/")) return "Payment link";

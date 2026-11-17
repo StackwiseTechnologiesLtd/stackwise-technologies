@@ -36,6 +36,7 @@ function minimalOverview(
       },
     },
     integrations: { ingestSecretConfigured: true, services: [] },
+    delivery: { dueSoon: [] },
     ...overrides,
   };
 }

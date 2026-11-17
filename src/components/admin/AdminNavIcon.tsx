@@ -112,6 +112,13 @@ export function AdminNavIcon({
           <path d="M16 3.13a4 4 0 0 1 0 7.75" />
         </IconSvg>
       );
+    case "projects":
+      return (
+        <IconSvg className={className}>
+          <path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+          <rect width="20" height="14" x="2" y="6" rx="2" />
+        </IconSvg>
+      );
     case "logout":
       return (
         <IconSvg className={className}>

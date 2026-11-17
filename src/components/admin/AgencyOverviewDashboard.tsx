@@ -10,6 +10,7 @@ import type {
   AgencyRecentAgreement,
   AgencyRecentPaymentLink,
 } from "@/lib/admin/agency-overview";
+import type { AgencyDueMilestone } from "@/lib/agency/types";
 import {
   AdminPanelPagination,
   ADMIN_PANEL_PAGE_SIZE,
@@ -496,6 +497,36 @@ export function AgencyOverviewDashboard() {
         </div>
 
         <aside className="space-y-6">
+          <Panel
+            title="Delivery"
+            action={
+              <Link
+                href="/admin/projects"
+                className="text-xs font-medium text-accent hover:underline"
+              >
+                Projects
+              </Link>
+            }
+          >
+            <AdminScrollPaginatedPanel
+              items={data.delivery.dueSoon}
+              pageSize={4}
+              empty="No milestones due in the next 14 days."
+              getKey={(m) => m.milestoneId}
+              renderItem={(m: AgencyDueMilestone) => (
+                <Link
+                  href={`/admin/projects/${m.projectId}`}
+                  className="block border-b border-[var(--admin-border)] px-4 py-3 text-sm last:border-0 hover:bg-[var(--admin-nav-hover)] sm:px-5"
+                >
+                  <p className="font-medium text-foreground">{m.title}</p>
+                  <p className="mt-0.5 text-xs text-muted">
+                    {m.projectTitle} · {m.clientName}
+                  </p>
+                </Link>
+              )}
+            />
+          </Panel>
+
           <Panel title="Due soon">
             <AdminScrollPaginatedPanel
               items={attention}

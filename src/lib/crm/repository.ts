@@ -551,6 +551,15 @@ export async function updateOpportunityStage(
     `;
   }
 
+  if (stage === "won") {
+    try {
+      const { ensureProjectFromOpportunity } = await import("@/lib/agency/projects");
+      await ensureProjectFromOpportunity(opportunityId);
+    } catch {
+      // Stage change still succeeds if project bootstrap fails.
+    }
+  }
+
   return getOpportunityDetail(opportunityId);
 }
 
