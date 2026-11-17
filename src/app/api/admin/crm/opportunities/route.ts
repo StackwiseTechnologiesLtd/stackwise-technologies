@@ -5,6 +5,8 @@ import {
   countOpportunitiesBelowFitThreshold,
   listOpportunities,
 } from "@/lib/crm/repository";
+import { parseCrmSavedView, crmSavedViews } from "@/lib/crm/saved-views";
+import { parseLeadSource } from "@/lib/growth/types";
 import { pipelineStatuses, type PipelineStatus } from "@/lib/growth/types";
 
 export async function GET(request: Request) {
@@ -24,13 +26,28 @@ export async function GET(request: Request) {
     searchParams.get("includeBelowThreshold") === "1" ||
     searchParams.get("includeBelowThreshold") === "true";
 
+  const view = parseCrmSavedView(searchParams.get("view"));
+  const viewMeta = crmSavedViews.find((v) => v.id === view);
+  const leadSourceParam = searchParams.get("leadSource");
+  const leadSource = leadSourceParam
+    ? parseLeadSource(leadSourceParam)
+    : viewMeta?.leadSource ?? null;
+  const platform = viewMeta?.platform ?? null;
+
   try {
     const [opportunities, belowThreshold] = await Promise.all([
-      listOpportunities({ stage, includeBelowFitThreshold: includeBelow }),
+      listOpportunities({
+        stage,
+        view,
+        leadSource,
+        platform,
+        includeBelowFitThreshold: includeBelow,
+      }),
       countOpportunitiesBelowFitThreshold(),
     ]);
     return NextResponse.json({
       opportunities,
+      view,
       minFitScore: crmAutoPipelineMinScore(),
       belowThreshold,
     });

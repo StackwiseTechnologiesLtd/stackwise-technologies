@@ -5,11 +5,14 @@ import { scoreBadgeClass } from "@/components/admin/growth/GrowthScoreFilter";
 import { crmStageLabels, type CrmOpportunity } from "@/lib/crm/types";
 import { formatShortRelativeTime } from "@/lib/format-relative-time";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
+import { crmOpportunitiesQuery, type CrmSavedViewId } from "@/lib/crm/saved-views";
 import { useCallback, useState } from "react";
 
 export function CrmRecordTable({
+  savedView = "all",
   onSelectOpportunity,
 }: {
+  savedView?: CrmSavedViewId;
   onSelectOpportunity?: (id: string) => void;
 } = {}) {
   const [items, setItems] = useState<CrmOpportunity[]>([]);
@@ -20,7 +23,9 @@ export function CrmRecordTable({
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/crm/opportunities");
+      const res = await fetch(
+        `/api/admin/crm/opportunities${crmOpportunitiesQuery(savedView)}`,
+      );
       if (!res.ok) throw new Error("Could not load opportunities");
       const json = (await res.json()) as { opportunities: CrmOpportunity[] };
       setItems(json.opportunities);
@@ -29,7 +34,7 @@ export function CrmRecordTable({
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [savedView]);
 
   useDeferredEffect(() => {
     void load();

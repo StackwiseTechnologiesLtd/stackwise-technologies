@@ -52,11 +52,22 @@ export type CrmActivity = {
   createdAt: string;
 };
 
+export type CrmTask = {
+  id: string;
+  opportunityId: string;
+  title: string;
+  dueAt: string | null;
+  completedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type CrmOpportunityDetail = {
   opportunity: CrmOpportunity;
   person: CrmPerson;
   company: CrmCompany | null;
   activities: CrmActivity[];
+  tasks: CrmTask[];
 };
 
 export const crmStageLabels: Record<PipelineStatus, string> = {

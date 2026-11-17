@@ -618,6 +618,23 @@ CREATE INDEX IF NOT EXISTS idx_instagram_messages_conversation
   ON instagram_messages (conversation_id, created_at ASC);
 `;
 
+const CRM_TASKS_SQL = `
+CREATE TABLE IF NOT EXISTS crm_tasks (
+  id UUID PRIMARY KEY,
+  opportunity_id UUID NOT NULL REFERENCES crm_opportunities(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  due_at TIMESTAMPTZ,
+  completed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_crm_tasks_opportunity
+  ON crm_tasks (opportunity_id, completed_at NULLS FIRST, due_at NULLS LAST);
+CREATE INDEX IF NOT EXISTS idx_crm_tasks_open_due
+  ON crm_tasks (due_at)
+  WHERE completed_at IS NULL;
+`;
+
 export const MIGRATION_STATEMENTS = [
   ...splitStatements(INIT_SQL),
   ...splitStatements(KPAY_IS_TEST_SQL),
@@ -648,4 +665,5 @@ export const MIGRATION_STATEMENTS = [
   ...splitStatements(INSTAGRAM_INBOX_SQL),
   ...splitStatements(INSTAGRAM_DELIVERY_TRIGGER_ID_SQL),
   ...splitStatements(INSTAGRAM_PROFILE_SYNCED_AT_SQL),
+  ...splitStatements(CRM_TASKS_SQL),
 ];

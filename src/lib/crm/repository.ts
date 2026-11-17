@@ -9,8 +9,10 @@ import {
   parseLeadSource,
   pipelineStatuses,
   type GrowthPlatform,
+  type LeadSource,
   type PipelineStatus,
 } from "@/lib/growth/types";
+import type { CrmSavedViewId } from "@/lib/crm/saved-views";
 import type {
   CrmActivity,
   CrmActivityType,
@@ -18,6 +20,7 @@ import type {
   CrmOpportunity,
   CrmOpportunityDetail,
   CrmPerson,
+  CrmTask,
 } from "@/lib/crm/types";
 import { crmAutoPipelineMinScore } from "@/lib/crm/auto-sync";
 import { crmOpportunityDisplayName } from "@/lib/crm/opportunity-name";
@@ -76,6 +79,16 @@ type ActivityRow = {
   created_at: string;
 };
 
+type TaskRow = {
+  id: string;
+  opportunity_id: string;
+  title: string;
+  due_at: string | null;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 function mapCompany(row: CompanyRow): CrmCompany {
   return {
     id: row.id,
@@ -127,6 +140,18 @@ function mapOpportunity(row: OpportunityRow): CrmOpportunity {
   };
 }
 
+function mapTask(row: TaskRow): CrmTask {
+  return {
+    id: row.id,
+    opportunityId: row.opportunity_id,
+    title: row.title,
+    dueAt: row.due_at,
+    completedAt: row.completed_at,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
 function mapActivity(row: ActivityRow): CrmActivity {
   const activityType = crmActivityTypes.includes(row.activity_type as CrmActivityType)
     ? (row.activity_type as CrmActivityType)
@@ -157,6 +182,9 @@ export async function getOpportunityByGrowthLeadId(
 
 export async function listOpportunities(options?: {
   stage?: PipelineStatus | null;
+  view?: CrmSavedViewId | null;
+  leadSource?: LeadSource | null;
+  platform?: GrowthPlatform | null;
   limit?: number;
   /** When true, include opportunities below the CRM fit bar (default false). */
   includeBelowFitThreshold?: boolean;
@@ -165,26 +193,105 @@ export async function listOpportunities(options?: {
   const sql = getSql();
   const limit = options?.limit ?? 500;
   const stage = options?.stage ?? null;
+  const view = options?.view ?? "all";
+  const leadSource = options?.leadSource ?? null;
+  const platform = options?.platform ?? null;
   const minFit = options?.includeBelowFitThreshold
     ? 0
     : crmAutoPipelineMinScore();
 
-  const rows = asRows<OpportunityRow>(
-    stage
-      ? await sql`
-          SELECT * FROM crm_opportunities
-          WHERE fit_score >= ${minFit}
-            AND stage = ${stage}
-          ORDER BY fit_score DESC, updated_at DESC
-          LIMIT ${limit}
-        `
-      : await sql`
-          SELECT * FROM crm_opportunities
-          WHERE fit_score >= ${minFit}
-          ORDER BY fit_score DESC, updated_at DESC
-          LIMIT ${limit}
-        `,
+  const activeStages = pipelineStatuses.filter(
+    (s) => s !== "lost" && s !== "not_a_fit",
   );
+
+  let rows: OpportunityRow[];
+
+  if (stage) {
+    rows = asRows<OpportunityRow>(
+      await sql`
+        SELECT * FROM crm_opportunities
+        WHERE fit_score >= ${minFit}
+          AND stage = ${stage}
+          ${leadSource ? sql`AND lead_source = ${leadSource}` : sql``}
+        ORDER BY fit_score DESC, updated_at DESC
+        LIMIT ${limit}
+      `,
+    );
+  } else if (view === "new_this_week") {
+    rows = asRows<OpportunityRow>(
+      await sql`
+        SELECT * FROM crm_opportunities
+        WHERE fit_score >= ${minFit}
+          AND created_at >= NOW() - INTERVAL '7 days'
+          AND stage IN ('new', 'reviewed')
+          ${leadSource ? sql`AND lead_source = ${leadSource}` : sql``}
+        ORDER BY created_at DESC
+        LIMIT ${limit}
+      `,
+    );
+  } else if (view === "high_fit") {
+    rows = asRows<OpportunityRow>(
+      await sql`
+        SELECT * FROM crm_opportunities
+        WHERE fit_score >= ${minFit}
+          AND stage = ANY(${activeStages})
+          ${leadSource ? sql`AND lead_source = ${leadSource}` : sql``}
+        ORDER BY fit_score DESC, updated_at DESC
+        LIMIT ${limit}
+      `,
+    );
+  } else if (view === "needs_action") {
+    rows = asRows<OpportunityRow>(
+      await sql`
+        SELECT o.*
+        FROM crm_opportunities o
+        WHERE o.fit_score >= ${minFit}
+          ${leadSource ? sql`AND o.lead_source = ${leadSource}` : sql``}
+          AND (
+            o.stage IN ('outreach', 'replied')
+            OR EXISTS (
+              SELECT 1 FROM crm_tasks t
+              WHERE t.opportunity_id = o.id
+                AND t.completed_at IS NULL
+                AND (t.due_at IS NULL OR t.due_at <= NOW() + INTERVAL '1 day')
+            )
+          )
+        ORDER BY o.updated_at DESC
+        LIMIT ${limit}
+      `,
+    );
+  } else if (view === "linkedin" || platform) {
+    const plat = platform ?? "linkedin";
+    rows = asRows<OpportunityRow>(
+      await sql`
+        SELECT * FROM crm_opportunities
+        WHERE fit_score >= ${minFit}
+          AND platform = ${plat}
+        ORDER BY fit_score DESC, updated_at DESC
+        LIMIT ${limit}
+      `,
+    );
+  } else if (leadSource) {
+    rows = asRows<OpportunityRow>(
+      await sql`
+        SELECT * FROM crm_opportunities
+        WHERE fit_score >= ${minFit}
+          AND lead_source = ${leadSource}
+        ORDER BY fit_score DESC, updated_at DESC
+        LIMIT ${limit}
+      `,
+    );
+  } else {
+    rows = asRows<OpportunityRow>(
+      await sql`
+        SELECT * FROM crm_opportunities
+        WHERE fit_score >= ${minFit}
+        ORDER BY fit_score DESC, updated_at DESC
+        LIMIT ${limit}
+      `,
+    );
+  }
+
   return rows.map(mapOpportunity);
 }
 
@@ -268,11 +375,20 @@ export async function getOpportunityDetail(
     `,
   );
 
+  const taskRows = asRows<TaskRow>(
+    await sql`
+      SELECT * FROM crm_tasks
+      WHERE opportunity_id = ${id}::uuid
+      ORDER BY completed_at NULLS FIRST, due_at NULLS LAST, created_at DESC
+    `,
+  );
+
   return {
     opportunity: mapOpportunity(opportunity),
     person: mapPerson(person),
     company,
     activities: activityRows.map(mapActivity),
+    tasks: taskRows.map(mapTask),
   };
 }
 
@@ -527,4 +643,104 @@ export async function backfillCrmFromGrowthLeads(options?: {
   }
 
   return { synced, skipped, failed };
+}
+
+export async function listOpportunityTasks(
+  opportunityId: string,
+): Promise<CrmTask[]> {
+  await ready();
+  const sql = getSql();
+  const rows = asRows<TaskRow>(
+    await sql`
+      SELECT * FROM crm_tasks
+      WHERE opportunity_id = ${opportunityId}::uuid
+      ORDER BY completed_at NULLS FIRST, due_at NULLS LAST, created_at DESC
+    `,
+  );
+  return rows.map(mapTask);
+}
+
+export async function createOpportunityTask(
+  opportunityId: string,
+  input: { title: string; dueAt?: string | null },
+): Promise<CrmTask | null> {
+  const title = input.title.trim();
+  if (!title) throw new Error("Task title is required");
+
+  await ready();
+  const sql = getSql();
+  const opp = asRows<{ id: string }>(
+    await sql`SELECT id FROM crm_opportunities WHERE id = ${opportunityId}::uuid`,
+  );
+  if (!opp[0]) return null;
+
+  const id = crypto.randomUUID();
+  const now = new Date().toISOString();
+  const dueAt = input.dueAt?.trim() ? input.dueAt.trim() : null;
+
+  await sql`
+    INSERT INTO crm_tasks (id, opportunity_id, title, due_at, created_at, updated_at)
+    VALUES (
+      ${id}::uuid,
+      ${opportunityId}::uuid,
+      ${title},
+      ${dueAt}::timestamptz,
+      ${now}::timestamptz,
+      ${now}::timestamptz
+    )
+  `;
+
+  const rows = asRows<TaskRow>(
+    await sql`SELECT * FROM crm_tasks WHERE id = ${id}::uuid`,
+  );
+  return rows[0] ? mapTask(rows[0]) : null;
+}
+
+export async function updateCrmTask(
+  taskId: string,
+  input: {
+    title?: string;
+    dueAt?: string | null;
+    completed?: boolean;
+  },
+): Promise<CrmTask | null> {
+  await ready();
+  const sql = getSql();
+  const rows = asRows<TaskRow>(
+    await sql`SELECT * FROM crm_tasks WHERE id = ${taskId}::uuid`,
+  );
+  const existing = rows[0];
+  if (!existing) return null;
+
+  const now = new Date().toISOString();
+  const title =
+    input.title !== undefined ? input.title.trim() : existing.title;
+  if (!title) throw new Error("Task title is required");
+
+  let dueAt = existing.due_at;
+  if (input.dueAt !== undefined) {
+    dueAt = input.dueAt?.trim() ? input.dueAt.trim() : null;
+  }
+
+  let completedAt = existing.completed_at;
+  if (input.completed === true) {
+    completedAt = completedAt ?? now;
+  } else if (input.completed === false) {
+    completedAt = null;
+  }
+
+  await sql`
+    UPDATE crm_tasks
+    SET
+      title = ${title},
+      due_at = ${dueAt}::timestamptz,
+      completed_at = ${completedAt}::timestamptz,
+      updated_at = ${now}::timestamptz
+    WHERE id = ${taskId}::uuid
+  `;
+
+  const updated = asRows<TaskRow>(
+    await sql`SELECT * FROM crm_tasks WHERE id = ${taskId}::uuid`,
+  );
+  return updated[0] ? mapTask(updated[0]) : null;
 }

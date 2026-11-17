@@ -8,6 +8,7 @@ import type { PipelineStatus } from "@/lib/growth/types";
 import { leadSourceBadgeLabel } from "@/components/admin/growth/GrowthLeadSourceFilter";
 import { formatShortRelativeTime } from "@/lib/format-relative-time";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
+import { crmOpportunitiesQuery, type CrmSavedViewId } from "@/lib/crm/saved-views";
 import { useCallback, useMemo, useState } from "react";
 
 const boardStages: PipelineStatus[] = [
@@ -22,8 +23,10 @@ const boardStages: PipelineStatus[] = [
 ];
 
 export function CrmPipelineBoard({
+  savedView = "all",
   onSelectOpportunity,
 }: {
+  savedView?: CrmSavedViewId;
   onSelectOpportunity?: (id: string) => void;
 } = {}) {
   const toast = useToast();
@@ -39,7 +42,9 @@ export function CrmPipelineBoard({
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/crm/opportunities");
+      const res = await fetch(
+        `/api/admin/crm/opportunities${crmOpportunitiesQuery(savedView)}`,
+      );
       if (!res.ok) throw new Error("Could not load pipeline");
       const json = (await res.json()) as {
         opportunities: CrmOpportunity[];
@@ -54,7 +59,7 @@ export function CrmPipelineBoard({
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [savedView]);
 
   useDeferredEffect(() => {
     void load();

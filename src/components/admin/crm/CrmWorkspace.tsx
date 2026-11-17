@@ -3,6 +3,8 @@
 import { CrmOpportunityModal } from "@/components/admin/crm/CrmOpportunityModal";
 import { CrmPipelineBoard } from "@/components/admin/crm/CrmPipelineBoard";
 import { CrmRecordTable } from "@/components/admin/crm/CrmRecordTable";
+import { CrmSavedViewTabs } from "@/components/admin/crm/CrmSavedViewTabs";
+import type { CrmSavedViewId } from "@/lib/crm/saved-views";
 import { useCallback, useState } from "react";
 
 type CrmView = "board" | "table";
@@ -13,6 +15,7 @@ export function CrmWorkspace({
   initialOpportunityId?: string | null;
 }) {
   const [view, setView] = useState<CrmView>("board");
+  const [savedView, setSavedView] = useState<CrmSavedViewId>("all");
   const [selectedId, setSelectedId] = useState<string | null>(
     initialOpportunityId,
   );
@@ -24,6 +27,7 @@ export function CrmWorkspace({
 
   return (
     <div className="space-y-4">
+      <CrmSavedViewTabs value={savedView} onChange={setSavedView} />
       <div
         className="inline-flex rounded-lg border border-line bg-black/30 p-0.5"
         role="tablist"
@@ -57,12 +61,14 @@ export function CrmWorkspace({
 
       {view === "board" ? (
         <CrmPipelineBoard
-          key={`board-${listVersion}`}
+          key={`board-${listVersion}-${savedView}`}
+          savedView={savedView}
           onSelectOpportunity={setSelectedId}
         />
       ) : (
         <CrmRecordTable
-          key={`table-${listVersion}`}
+          key={`table-${listVersion}-${savedView}`}
+          savedView={savedView}
           onSelectOpportunity={setSelectedId}
         />
       )}

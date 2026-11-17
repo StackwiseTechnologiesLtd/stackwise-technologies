@@ -2,6 +2,7 @@
 
 import { AdminActionButton } from "@/components/admin/AdminActionButton";
 import { CrmActivityTimeline } from "@/components/admin/crm/CrmActivityTimeline";
+import { CrmTasksPanel } from "@/components/admin/crm/CrmTasksPanel";
 import { GrowthArticleLink } from "@/components/admin/growth/GrowthArticleLink";
 import { leadSourceBadgeLabel } from "@/components/admin/growth/GrowthLeadSourceFilter";
 import { formatShortRelativeTime } from "@/lib/format-relative-time";
@@ -63,7 +64,7 @@ export function CrmOpportunityDetailPanel({
     return <p className="text-sm text-muted">Opportunity not found.</p>;
   }
 
-  const { opportunity, person, company, activities } = detail;
+  const { opportunity, person, company, activities, tasks } = detail;
 
   return (
     <div className="space-y-6">
@@ -148,6 +149,15 @@ export function CrmOpportunityDetailPanel({
           </Link>
         ) : null}
       </div>
+
+      <CrmTasksPanel
+        opportunityId={opportunityId}
+        tasks={tasks}
+        onChange={() => {
+          void load();
+          onStageChange?.();
+        }}
+      />
 
       <section>
         <h3 className="text-sm font-semibold">Activity</h3>
