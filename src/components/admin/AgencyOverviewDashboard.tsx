@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  buildAgencyAttentionItems,
+  countUrgentAttention,
+  type AgencyAttentionItem,
+} from "@/lib/admin/agency-attention";
 import type {
   AgencyOverviewPayload,
   AgencyRecentAgreement,
@@ -22,7 +27,6 @@ import { useCallback, useMemo, useState, type ReactNode } from "react";
 
 type OverviewResponse = AgencyOverviewPayload & { email: string };
 
-type AttentionItem = { label: string; href: string; tone: "warn" | "danger" | "default" };
 type WorkTab = "pipeline" | "revenue";
 
 function greetingName(email: string): string {
@@ -45,60 +49,6 @@ function dateHeadline(): string {
     month: "long",
     day: "numeric",
   });
-}
-
-function buildAttentionItems(data: OverviewResponse): AttentionItem[] {
-  const items: AttentionItem[] = [];
-  if (data.growth.triageLeads > 0) {
-    items.push({
-      label: `${data.growth.triageLeads} leads waiting in the inbox`,
-      href: "/admin/growth/inbox",
-      tone: "warn",
-    });
-  }
-  if (data.instagram.metrics.failedThisWeek > 0) {
-    items.push({
-      label: `${data.instagram.metrics.failedThisWeek} Instagram sends failed this week`,
-      href: "/admin/instagram/activity?status=failed",
-      tone: "danger",
-    });
-  }
-  if (data.instagram.metrics.queuedNow > 0) {
-    items.push({
-      label: `${data.instagram.metrics.queuedNow} Instagram deliveries queued`,
-      href: "/admin/instagram/activity",
-      tone: "default",
-    });
-  }
-  if (data.revenue.pendingAgreements > 0) {
-    items.push({
-      label: `${data.revenue.pendingAgreements} agreements waiting on clients`,
-      href: "/admin/contracts",
-      tone: "warn",
-    });
-  }
-  if (data.revenue.openPaymentLinks > 0) {
-    items.push({
-      label: `${data.revenue.openPaymentLinks} payment links still open`,
-      href: "/admin/payment-links",
-      tone: "default",
-    });
-  }
-  if (data.revenue.draftPaymentLinks > 0) {
-    items.push({
-      label: `${data.revenue.draftPaymentLinks} draft invoices not sent yet`,
-      href: "/admin/payment-links/new",
-      tone: "warn",
-    });
-  }
-  if (data.instagram.status.dryRunMode) {
-    items.push({
-      label: "Instagram dry run is on. DMs are logged, not sent live.",
-      href: "/admin/instagram/connection",
-      tone: "warn",
-    });
-  }
-  return items;
 }
 
 function formatWhen(iso: string | null): string {
@@ -362,7 +312,7 @@ export function AgencyOverviewDashboard() {
   }, [load]);
 
   const attention = useMemo(
-    () => (data ? buildAttentionItems(data) : []),
+    () => (data ? buildAgencyAttentionItems(data) : []),
     [data],
   );
 
@@ -385,8 +335,7 @@ export function AgencyOverviewDashboard() {
 
   const maxStage = Math.max(1, ...data.crm.byStage.map((s) => s.count));
   const ig = data.instagram;
-  const overdueCount =
-    attention.filter((a) => a.tone === "danger" || a.tone === "warn").length;
+  const overdueCount = countUrgentAttention(attention);
 
   return (
     <div className="space-y-6 pb-10">
@@ -553,7 +502,7 @@ export function AgencyOverviewDashboard() {
               pageSize={4}
               empty="Nothing flagged right now."
               getKey={(item) => item.label}
-              renderItem={(item) => (
+              renderItem={(item: AgencyAttentionItem) => (
                 <Link
                   href={item.href}
                   className={`block border-b border-[var(--admin-border)] px-4 py-3 text-sm last:border-0 hover:bg-[var(--admin-nav-hover)] sm:px-5 ${

@@ -278,7 +278,40 @@ info@stackwisetechnologies.com`,
 </html>`,
 };
 
+const agencyAttention001: EmailTemplateParts = {
+  subject: "Stackwise admin: {{itemCount}} items need attention",
+  txt: `The agency overview flagged {{itemCount}} item(s):
+
+{{bodyText}}
+
+Open overview: {{overviewUrl}}
+
+— Stackwise Technologies`,
+  html: `<!DOCTYPE html>
+<html>
+  <body style="margin:0;padding:24px;background:#f8fafc;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#334155;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:480px;margin:0 auto;">
+      <tr>
+        <td style="background:#ffffff;border-radius:16px;padding:32px 24px;">
+          <div style="border-bottom:1px solid #f1f5f9;padding-bottom:20px;margin-bottom:20px;">
+            <div style="font-size:20px;font-weight:700;color:#541111;">Stackwise</div>
+            <div style="font-size:12px;color:#64748b;margin-top:4px;">Agency overview</div>
+          </div>
+          <div style="font-size:14px;font-weight:700;color:#541111;margin-bottom:12px;">{{itemCount}} item(s) need attention</div>
+          {{bodyHtml}}
+          <a href="{{overviewUrl}}" style="display:block;text-align:center;background:#541111;color:#ffffff;text-decoration:none;font-weight:700;border-radius:6px;padding:14px 20px;margin:20px 0 0;">Open admin overview</a>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:12px 2px;font-size:12px;color:#64748b;">Stackwise Technologies Limited</td>
+      </tr>
+    </table>
+  </body>
+</html>`,
+};
+
 const TEMPLATES: Record<string, Record<string, EmailTemplateParts>> = {
+  "agency-attention": { "0.0.1": agencyAttention001 },
   "login-otp": { "0.0.1": loginOtp001 },
   "payment-link": { "0.0.1": paymentLink001 },
   "payment-receipt": { "0.0.1": paymentReceipt001 },
