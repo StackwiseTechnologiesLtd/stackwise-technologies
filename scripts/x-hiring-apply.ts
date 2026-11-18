@@ -98,7 +98,14 @@ async function main() {
   const today = new Date().toISOString().slice(0, 10);
 
   for (const row of rows) {
-    const tasks = await listOpportunityTasks(row.opportunity_id);
+    let tasks;
+    try {
+      tasks = await listOpportunityTasks(row.opportunity_id);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn(`  ✗ DB error for ${row.opp_name}: ${msg}`);
+      continue;
+    }
     const hasApplyTask = tasks.some((t) => t.title === "Apply on X");
     if (!hasApplyTask) {
       await createOpportunityTask(row.opportunity_id, {

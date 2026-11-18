@@ -21,6 +21,9 @@ const env = {
   ...process.env,
   NODE_ENV: "development",
   GROWTH_HARVEST_JOB_MODE: "1",
+  PLAYWRIGHT_BROWSERS_PATH:
+    process.env.PLAYWRIGHT_BROWSERS_PATH ??
+    path.join(cwd, ".playwright-browsers"),
 };
 
 function run(label, scriptRel, extraArgs = []) {
