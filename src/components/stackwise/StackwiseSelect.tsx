@@ -1,5 +1,6 @@
 "use client";
 
+import { DropdownChevron } from "@/components/stackwise/DropdownChevron";
 import { useDismissable } from "@/components/stackwise/use-dismissable";
 import { useId, useMemo, useRef, useState } from "react";
 
@@ -78,8 +79,8 @@ export function StackwiseSelect<T extends string>({
         {selected?.description ? (
           <span className="sw-dd-option-desc">{selected.description}</span>
         ) : null}
-        <span className="sw-dd-chevron" aria-hidden>
-          ▾
+        <span className="sw-dd-chevron-wrap">
+          <DropdownChevron open={open} />
         </span>
       </button>
       {open ? (

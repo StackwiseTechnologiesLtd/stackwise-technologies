@@ -1,5 +1,6 @@
 "use client";
 
+import { DropdownChevron } from "@/components/stackwise/DropdownChevron";
 import { useDismissable } from "@/components/stackwise/use-dismissable";
 import { useId, useMemo, useRef, useState } from "react";
 
@@ -111,8 +112,8 @@ export function StackwiseMultiSelect({
             </>
           )}
         </span>
-        <span className="sw-dd-chevron" aria-hidden>
-          ▾
+        <span className="sw-dd-chevron-wrap">
+          <DropdownChevron open={open} />
         </span>
       </button>
       {open ? (

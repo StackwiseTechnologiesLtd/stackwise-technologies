@@ -48,13 +48,22 @@
   font-weight: 500;
 }
 
-.sw-dd-chevron {
+.sw-dd-chevron-wrap {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
   color: var(--muted);
+}
+
+.sw-dd-chevron-svg {
+  display: block;
   transition: transform 0.15s ease;
 }
 
-.sw-dd-root--open .sw-dd-chevron {
+.sw-dd-chevron-svg--open {
   transform: rotate(180deg);
 }
 
