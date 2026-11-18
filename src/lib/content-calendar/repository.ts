@@ -107,7 +107,10 @@ export async function listContentCalendarPosts(options: {
   const sql = getSql();
   const postRows = asRows<PostRow>(
     await sql`
-      SELECT * FROM content_calendar_posts
+      SELECT
+        id, title, scheduled_on, scheduled_time, channel, status,
+        ''::text AS script, ''::text AS notes, accent, project_id, created_at, updated_at
+      FROM content_calendar_posts
       WHERE scheduled_on >= ${options.from}::date
         AND scheduled_on <= ${options.to}::date
       ORDER BY scheduled_on ASC, scheduled_time NULLS LAST, title ASC
@@ -118,7 +121,10 @@ export async function listContentCalendarPosts(options: {
   const ids = postRows.map((p) => p.id);
   const assetRows = asRows<AssetRow>(
     await sql`
-      SELECT * FROM content_calendar_assets
+      SELECT
+        id, post_id, r2_key, content_type, filename, byte_size, sort_order, created_at,
+        NULL::bytea AS dev_data
+      FROM content_calendar_assets
       WHERE post_id = ANY(${ids}::uuid[])
       ORDER BY sort_order ASC, created_at ASC
     `,

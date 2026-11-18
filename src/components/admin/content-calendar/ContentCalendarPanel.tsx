@@ -11,6 +11,13 @@ import {
   type CalendarVisual,
 } from "@/components/calendar";
 import {
+  fetchContentCalendarRange,
+  invalidateContentCalendarCache,
+  isContentCalendarCacheFresh,
+  prefetchContentCalendarRange,
+  readContentCalendarCache,
+} from "@/lib/content-calendar/client-cache";
+import {
   addDays,
   formatMonthYear,
   formatWeekRange,
@@ -65,6 +72,7 @@ export function ContentCalendarPanel() {
   const [visual, setVisual] = useState<CalendarVisual>("studio");
   const [posts, setPosts] = useState<ContentCalendarPostDetail[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dropTargetDay, setDropTargetDay] = useState<string | null>(null);
   const [draggingPostId, setDraggingPostId] = useState<string | null>(null);
@@ -89,25 +97,52 @@ export function ContentCalendarPanel() {
     return map;
   }, [posts]);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const q = new URLSearchParams({ from: range.from, to: range.to });
-      const res = await fetch(`/api/admin/content-calendar?${q}`);
-      if (!res.ok) throw new Error("Could not load calendar");
-      const data = (await res.json()) as { posts: ContentCalendarPostDetail[] };
-      setPosts(data.posts);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Load failed");
-    } finally {
-      setLoading(false);
-    }
-  }, [range.from, range.to]);
+  const load = useCallback(
+    async (options?: { force?: boolean }) => {
+      const cached = readContentCalendarCache(range.from, range.to);
+      const fresh = isContentCalendarCacheFresh(range.from, range.to);
+      if (cached && !options?.force) {
+        setPosts(cached);
+        setLoading(false);
+        if (fresh) return;
+        setRefreshing(true);
+      } else {
+        setLoading(!cached);
+      }
+      setError(null);
+      try {
+        const next = await fetchContentCalendarRange(range.from, range.to, {
+          force: options?.force,
+        });
+        setPosts(next);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Load failed");
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [range.from, range.to],
+  );
 
   useDeferredEffect(() => {
     void load();
   }, [load]);
+
+  useDeferredEffect(() => {
+    const prevCursor =
+      mode === "month"
+        ? new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1)
+        : addDays(cursor, -7);
+    const nextCursor =
+      mode === "month"
+        ? new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1)
+        : addDays(cursor, 7);
+    const prev = mode === "month" ? rangeForMonth(prevCursor) : rangeForWeek(prevCursor);
+    const next = mode === "month" ? rangeForMonth(nextCursor) : rangeForWeek(nextCursor);
+    prefetchContentCalendarRange(prev.from, prev.to);
+    prefetchContentCalendarRange(next.from, next.to);
+  }, [cursor, mode]);
 
   function openNew(iso: string) {
     setEditId(null);
@@ -234,7 +269,9 @@ export function ContentCalendarPanel() {
           </p>
         ) : null}
 
-        <div className={`content-cal-surface ${loading ? "opacity-60" : ""}`}>
+        <div
+          className={`content-cal-surface ${loading && posts.length === 0 ? "opacity-60" : ""} ${refreshing ? "opacity-[0.97]" : ""}`}
+        >
           <StackwiseCalendar
             cursor={cursor}
             view={mode}
@@ -269,11 +306,13 @@ export function ContentCalendarPanel() {
           onClose={() => setSheetOpen(false)}
           onSaved={(createdId) => {
             if (createdId) setEditId(createdId);
-            void load();
+            invalidateContentCalendarCache(range.from, range.to);
+            void load({ force: true });
           }}
           onDeleted={() => {
             setEditId(null);
-            void load();
+            invalidateContentCalendarCache(range.from, range.to);
+            void load({ force: true });
           }}
         />
       ) : null}
@@ -322,7 +361,11 @@ function CalendarToolbar({
         </div>
         <p className="text-sm font-semibold tracking-tight text-foreground" aria-live="polite">
           {headerLabel}
-          {loading ? <span className="ml-2 text-xs font-normal text-muted">Loading…</span> : null}
+          {loading ? (
+            <span className="ml-2 text-xs font-normal text-muted">Loading…</span>
+          ) : refreshing ? (
+            <span className="ml-2 text-xs font-normal text-muted">Updating…</span>
+          ) : null}
         </p>
         {channels.length > 0 ? (
           <div className="hidden flex-wrap items-center gap-3 text-[11px] text-muted lg:flex">

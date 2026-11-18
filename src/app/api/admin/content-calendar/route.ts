@@ -26,7 +26,14 @@ export async function GET(request: Request) {
 
   try {
     const posts = await listContentCalendarPosts({ from, to });
-    return NextResponse.json({ posts });
+    return NextResponse.json(
+      { posts },
+      {
+        headers: {
+          "Cache-Control": "private, max-age=15, stale-while-revalidate=120",
+        },
+      },
+    );
   } catch (error) {
     const message = error instanceof Error ? error.message : "List failed";
     return NextResponse.json({ error: message }, { status: 500 });

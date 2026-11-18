@@ -207,7 +207,7 @@ export function ContentCalendarPostSheet({
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="block space-y-1.5">
                   <span className="text-xs font-medium text-muted">Date</span>
-                  <StackwiseDatePicker value={date} onChange={setDate} visual="studio" />
+                  <StackwiseDatePicker value={date} onChange={setDate} />
                 </label>
                 <label className="block space-y-1.5">
                   <span className="text-xs font-medium text-muted">Time (optional)</span>

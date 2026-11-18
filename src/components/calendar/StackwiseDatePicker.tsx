@@ -1,23 +1,20 @@
 "use client";
 
-import { StackwiseCalendar } from "@/components/calendar/StackwiseCalendar";
+import { StackwisePickerMonth } from "@/components/calendar/StackwisePickerMonth";
 import { formatMonthYear, isoDateLocal, parseIsoDay, startOfDay } from "@/lib/content-calendar/dates";
 import { ADMIN_INPUT } from "@/lib/ui/admin";
 import { useEffect, useId, useRef, useState } from "react";
-import type { CalendarVisual } from "@/components/calendar/types";
 
 import "./stackwise-calendar.css";
 
 export function StackwiseDatePicker({
   value,
   onChange,
-  visual = "studio",
   placeholder = "Pick a date",
   className = "",
 }: {
   value: string;
   onChange: (iso: string) => void;
-  visual?: CalendarVisual;
   placeholder?: string;
   className?: string;
 }) {
@@ -52,6 +49,7 @@ export function StackwiseDatePicker({
         type="button"
         className={`${ADMIN_INPUT} sw-cal-picker-trigger text-left`}
         aria-expanded={open}
+        aria-haspopup="dialog"
         aria-controls={listId}
         onClick={() =>
           setOpen((wasOpen) => {
@@ -60,16 +58,17 @@ export function StackwiseDatePicker({
           })
         }
       >
+        <span className="sw-cal-picker-icon" aria-hidden />
         <span className={value ? "text-foreground" : "text-muted"}>
           {value ? label : placeholder}
         </span>
       </button>
       {open ? (
-        <div id={listId} className="sw-cal-picker-pop">
+        <div id={listId} className="sw-cal-picker-pop" role="dialog" aria-label="Choose date">
           <div className="sw-cal-picker-head">
             <button
               type="button"
-              className="sw-cal-nav-btn rounded-md border border-[var(--admin-border)]"
+              className="sw-cal-picker-nav"
               aria-label="Previous month"
               onClick={() => setCursor((c) => new Date(c.getFullYear(), c.getMonth() - 1, 1))}
             >
@@ -78,25 +77,23 @@ export function StackwiseDatePicker({
             <span className="sw-cal-picker-label">{formatMonthYear(cursor)}</span>
             <button
               type="button"
-              className="sw-cal-nav-btn rounded-md border border-[var(--admin-border)]"
+              className="sw-cal-picker-nav"
               aria-label="Next month"
               onClick={() => setCursor((c) => new Date(c.getFullYear(), c.getMonth() + 1, 1))}
             >
               ›
             </button>
           </div>
-          <StackwiseCalendar
-            cursor={cursor}
-            view="month"
-            visual={visual}
-            selectedIso={value || null}
-            minMonthRowHeight="3.25rem"
-            onDayClick={(iso) => {
-              onChange(iso);
-              setOpen(false);
-            }}
-            renderDayBody={() => null}
-          />
+          <div className="px-3 pb-2 pt-1">
+            <StackwisePickerMonth
+              cursor={cursor}
+              selectedIso={value || null}
+              onSelect={(iso) => {
+                onChange(iso);
+                setOpen(false);
+              }}
+            />
+          </div>
           <div className="flex justify-between border-t border-[var(--admin-border)] px-3 py-2">
             <button
               type="button"

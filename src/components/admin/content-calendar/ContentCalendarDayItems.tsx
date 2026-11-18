@@ -148,7 +148,7 @@ function ScrapbookPostCard({
         title={post.title}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={assetThumbUrl(thumb.id)} alt="" />
+        <img src={assetThumbUrl(thumb.id)} alt="" loading="lazy" decoding="async" />
         <span className="sw-cal-polaroid-cap">{post.title.replace(/^\[sample\]\s*/, "")}</span>
       </button>
     );
@@ -219,7 +219,13 @@ function StudioPostChip({
     >
       {thumb ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img className="sw-cal-chip-thumb" src={assetThumbUrl(thumb.id)} alt="" />
+        <img
+          className="sw-cal-chip-thumb"
+          src={assetThumbUrl(thumb.id)}
+          alt=""
+          loading="lazy"
+          decoding="async"
+        />
       ) : null}
       <span className="min-w-0 flex-1 truncate">
         {post.scheduledTime ? (
