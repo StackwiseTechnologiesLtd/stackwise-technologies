@@ -16,4 +16,11 @@
   // Secrets live in Cloudflare only — never commit keys here.
   // Deploy: node scripts/sync-cloudflare-env.mjs .env.prod
   "vars": {},
+  // Free-tier R2: wrangler r2 bucket create stackwise-content-calendar
+  "r2_buckets": [
+    {
+      "binding": "CONTENT_CALENDAR_BUCKET",
+      "bucket_name": "stackwise-content-calendar",
+    },
+  ],
 }

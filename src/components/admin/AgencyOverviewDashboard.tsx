@@ -21,7 +21,7 @@ import { AdminScrollPaginatedPanel } from "@/components/admin/AdminScrollPaginat
 import { crmStageLabels } from "@/lib/crm/types";
 import type { CrmOpportunity } from "@/lib/crm/types";
 import type { IntegrationServiceStatus } from "@/lib/integrations/repository";
-import { ADMIN_BTN_PRIMARY } from "@/lib/ui/admin";
+import { ADMIN_BTN_PRIMARY, ADMIN_BTN_SECONDARY } from "@/lib/ui/admin";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 import Link from "next/link";
 import { useCallback, useMemo, useState, type ReactNode } from "react";
@@ -348,6 +348,9 @@ export function AgencyOverviewDashboard() {
           <p className="mt-1 text-sm text-muted">{dateHeadline()}</p>
         </Box>
         <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center lg:justify-end">
+          <Link href="/admin/content-calendar" className={ADMIN_BTN_SECONDARY}>
+            Content calendar
+          </Link>
           <Link href="/admin/payment-links/new" className={ADMIN_BTN_PRIMARY}>
             New payment link
           </Link>

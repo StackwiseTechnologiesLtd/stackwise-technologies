@@ -119,6 +119,15 @@ export function AdminNavIcon({
           <rect width="20" height="14" x="2" y="6" rx="2" />
         </IconSvg>
       );
+    case "calendar":
+      return (
+        <IconSvg className={className}>
+          <rect width="18" height="18" x="3" y="4" rx="2" />
+          <path d="M3 10h18" />
+          <path d="M8 2v4" />
+          <path d="M16 2v4" />
+        </IconSvg>
+      );
     case "logout":
       return (
         <IconSvg className={className}>

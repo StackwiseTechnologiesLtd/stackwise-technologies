@@ -17,7 +17,8 @@ export type AdminNavItem = {
     | "pipeline"
     | "brand"
     | "portal"
-    | "projects";
+    | "projects"
+    | "calendar";
   match?: "exact" | "prefix";
 };
 
@@ -56,6 +57,12 @@ export const adminNavSections: AdminNavSection[] = [
     items: [
       { href: "/admin", label: "Overview", icon: "overview", match: "exact" },
       { href: "/admin/projects", label: "Projects", icon: "projects", match: "prefix" },
+      {
+        href: "/admin/content-calendar",
+        label: "Content calendar",
+        icon: "calendar",
+        match: "prefix",
+      },
     ],
   },
   {
@@ -123,6 +130,7 @@ export function adminPageTitle(pathname: string): string {
   if (pathname === "/admin") return "Overview";
   if (pathname === "/admin/projects") return "Projects";
   if (pathname.startsWith("/admin/projects/")) return "Project";
+  if (pathname === "/admin/content-calendar") return "Content calendar";
   if (pathname === "/admin/payment-links") return "Payment links";
   if (pathname.startsWith("/admin/payment-links/new")) return "New payment link";
   if (pathname.startsWith("/admin/payment-links/")) return "Payment link";
