@@ -2,6 +2,7 @@
 
 import {
   assetLinkUrl,
+  canQuickViewAsset,
   displayAssetName,
   formatFileBytes,
   getAssetUiKind,
@@ -10,7 +11,7 @@ import {
   type AssetUiKind,
 } from "@/lib/content-calendar/asset-ui";
 import { CONTENT_CALENDAR_MAX_BYTES } from "@/lib/content-calendar/media-storage";
-import { useCallback, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 
 import "./stackwise-file-picker.css";
 
@@ -59,6 +60,7 @@ export function StackwiseFilePicker({
   const [linkDraft, setLinkDraft] = useState("");
   const [linkOpen, setLinkOpen] = useState(false);
   const [linkBusy, setLinkBusy] = useState(false);
+  const [preview, setPreview] = useState<StackwiseFilePickerAsset | null>(null);
 
   const listAssets = assets.filter((a) => isAttachmentListAsset(a.contentType));
   const galleryImages = assets.filter((a) => isGalleryImageAsset(a.contentType));
@@ -183,6 +185,7 @@ export function StackwiseFilePicker({
                 asset={a}
                 assetUrl={assetUrl}
                 onRemove={onRemove}
+                onQuickView={() => setPreview(a)}
               />
             ))}
           </ul>
@@ -197,13 +200,23 @@ export function StackwiseFilePicker({
                 type="button"
                 className="sw-file-gallery-remove"
                 aria-label="Remove"
-                onClick={() => void onRemove(a.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  void onRemove(a.id);
+                }}
               >
                 ×
               </button>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={assetUrl(a.id)} alt="" className="sw-file-gallery-media" loading="lazy" />
-              <span className="sw-file-gallery-size">{formatFileBytes(a.byteSize)}</span>
+              <button
+                type="button"
+                className="sw-file-gallery-open"
+                onClick={() => setPreview(a)}
+                aria-label={`Preview ${a.filename}`}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={assetUrl(a.id)} alt="" className="sw-file-gallery-media" loading="lazy" />
+                <span className="sw-file-gallery-size">{formatFileBytes(a.byteSize)}</span>
+              </button>
             </li>
           ))}
           <li>
@@ -219,6 +232,83 @@ export function StackwiseFilePicker({
           </li>
         </ul>
       ) : null}
+
+      {preview ? (
+        <QuickViewModal
+          asset={preview}
+          assetUrl={assetUrl}
+          onClose={() => setPreview(null)}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+function QuickViewModal({
+  asset,
+  assetUrl,
+  onClose,
+}: {
+  asset: StackwiseFilePickerAsset;
+  assetUrl: (id: string) => string;
+  onClose: () => void;
+}) {
+  const kind = getAssetUiKind(asset.contentType);
+  const src = assetUrl(asset.id);
+  const title = asset.filename;
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <div className="sw-file-quickview" role="dialog" aria-modal="true" aria-label={`Preview ${title}`}>
+      <button type="button" className="sw-file-quickview-backdrop" aria-label="Close preview" onClick={onClose} />
+      <div className="sw-file-quickview-panel">
+        <header className="sw-file-quickview-header">
+          <span className="sw-file-quickview-title" title={title}>
+            {title}
+          </span>
+          <div className="sw-file-quickview-header-actions">
+            <a
+              className="sw-file-quickview-download"
+              href={src}
+              download={asset.filename}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Download
+            </a>
+            <button type="button" className="sw-file-quickview-close" onClick={onClose} aria-label="Close">
+              ×
+            </button>
+          </div>
+        </header>
+        <div className={`sw-file-quickview-body sw-file-quickview-body--${kind}`}>
+          {kind === "pdf" ? (
+            <iframe className="sw-file-quickview-iframe" src={src} title={title} />
+          ) : null}
+          {kind === "image" ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img className="sw-file-quickview-image" src={src} alt={title} />
+          ) : null}
+          {kind === "video" ? (
+            <video className="sw-file-quickview-video" src={src} controls playsInline preload="metadata" />
+          ) : null}
+          {kind === "audio" ? (
+            <audio className="sw-file-quickview-audio" src={src} controls preload="metadata" />
+          ) : null}
+          {kind === "file" || kind === "link" ? (
+            <p className="sw-file-quickview-fallback">
+              No inline preview. Use download or open from the attachment row.
+            </p>
+          ) : null}
+        </div>
+      </div>
     </div>
   );
 }
@@ -227,10 +317,12 @@ function AttachmentRow({
   asset,
   assetUrl,
   onRemove,
+  onQuickView,
 }: {
   asset: StackwiseFilePickerAsset;
   assetUrl: (id: string) => string;
   onRemove: (id: string) => void | Promise<void>;
+  onQuickView: () => void;
 }) {
   const kind = getAssetUiKind(asset.contentType);
   const name = displayAssetName(asset.filename, kind);
@@ -243,26 +335,54 @@ function AttachmentRow({
         <RowIcon kind={kind} />
       </span>
       <div className="sw-file-row-main">
-        <span className="sw-file-row-name" title={asset.filename}>
-          {name}
-        </span>
+        {canQuickViewAsset(asset.contentType) ? (
+          <button type="button" className="sw-file-row-name-btn" title={asset.filename} onClick={onQuickView}>
+            {name}
+          </button>
+        ) : (
+          <span className="sw-file-row-name" title={asset.filename}>
+            {name}
+          </span>
+        )}
         <span className="sw-file-row-meta">
           {kind === "link" ? kindLabel(kind) : formatFileBytes(asset.byteSize)}
         </span>
       </div>
       <div className="sw-file-row-actions">
         {kind === "audio" ? (
-          <AudioInline src={href} />
+          <>
+            <AudioInline src={href} />
+            <button
+              type="button"
+              className="sw-file-row-action"
+              aria-label="Quick view"
+              onClick={onQuickView}
+            >
+              <IconEye />
+            </button>
+          </>
+        ) : kind === "link" ? (
+          <a
+            className="sw-file-row-action"
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Open link"
+          >
+            <IconExternal />
+          </a>
+        ) : canQuickViewAsset(asset.contentType) ? (
+          <button type="button" className="sw-file-row-action" aria-label="Quick view" onClick={onQuickView}>
+            <IconEye />
+          </button>
         ) : (
           <a
             className="sw-file-row-action"
             href={href}
-            target={kind === "link" ? "_blank" : undefined}
-            rel={kind === "link" ? "noopener noreferrer" : undefined}
-            download={kind !== "link" ? asset.filename : undefined}
-            aria-label={kind === "link" ? "Open link" : "Download"}
+            download={asset.filename}
+            aria-label="Download"
           >
-            {kind === "link" ? <IconExternal /> : <IconDownload />}
+            <IconDownload />
           </a>
         )}
         <button
@@ -422,6 +542,20 @@ function IconMic() {
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
       <rect x="9" y="3" width="6" height="11" rx="3" stroke="currentColor" strokeWidth="2" />
       <path d="M5 11a7 7 0 0014 0M12 18v3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IconEye() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
     </svg>
   );
 }

@@ -42,6 +42,11 @@ export function assetLinkUrl(filename: string): string {
   }
 }
 
+export function canQuickViewAsset(contentType: string): boolean {
+  const k = getAssetUiKind(contentType);
+  return k === "pdf" || k === "image" || k === "video" || k === "audio";
+}
+
 export function displayAssetName(filename: string, kind: AssetUiKind): string {
   if (kind === "link") {
     try {

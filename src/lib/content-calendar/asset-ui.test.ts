@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  canQuickViewAsset,
   formatFileBytes,
   getAssetUiKind,
   isAttachmentListAsset,
@@ -23,5 +24,7 @@ describe("getAssetUiKind", () => {
     expect(isGalleryImageAsset("video/mp4")).toBe(false);
     expect(isAttachmentListAsset("video/mp4")).toBe(true);
     expect(isAttachmentListAsset("image/jpeg")).toBe(false);
+    expect(canQuickViewAsset("application/pdf")).toBe(true);
+    expect(canQuickViewAsset("application/zip")).toBe(false);
   });
 });
