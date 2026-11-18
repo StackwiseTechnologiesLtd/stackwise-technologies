@@ -4,7 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { InvoiceView } from "@/components/payments/InvoiceView";
 import { useToast } from "@/components/ToastProvider";
-import { BTN_GHOST, BTN_PRESS, BTN_PRIMARY, BTN_SECONDARY } from "@/lib/ui/buttons";
+import { StackwiseSelect } from "@/components/stackwise";
+import { ADMIN_BTN_PRIMARY } from "@/lib/ui/admin";
+import { BTN_GHOST, BTN_PRESS, BTN_SECONDARY } from "@/lib/ui/buttons";
 import { formatMoney } from "@/lib/currency";
 import { KPAY_CARD_MAX_USD } from "@/lib/kpay/buildGatewayInit";
 import { SERVICES_CATALOG } from "@/lib/services-catalog";
@@ -50,6 +52,7 @@ export function PaymentLinkBuilder({
     null,
   );
   const [loading, setLoading] = useState(false);
+  const [catalogPick, setCatalogPick] = useState("");
   const [previewMode, setPreviewMode] = useState<"invoice" | "receipt">("invoice");
 
   const totalUsd = useMemo(
@@ -279,19 +282,17 @@ export function PaymentLinkBuilder({
                 placeholder="client@company.com"
               />
             </label>
-            <label className="block space-y-2">
+            <div className="block space-y-2">
               <span className="text-sm text-muted">Payment currency</span>
-              <select
+              <StackwiseSelect
+                aria-label="Payment currency"
                 value={currency}
-                onChange={(e) => setCurrencyChoice(e.target.value)}
-                className="w-full rounded-lg border border-line bg-background px-3 py-2"
-              >
-                {currencyOptions.map((c) => (
-                  <option key={c.code} value={c.code}>
-                    {c.label}
-                  </option>
-                ))}
-              </select>
+                onChange={setCurrencyChoice}
+                options={currencyOptions.map((c) => ({
+                  value: c.code,
+                  label: c.label,
+                }))}
+              />
               {cardProcessor === "PAYSTACK" &&
                 allowedPaymentMethods !== "MOBILE_MONEY" && (
                   <p className="text-xs text-muted">
@@ -302,51 +303,44 @@ export function PaymentLinkBuilder({
                     .
                   </p>
                 )}
-            </label>
-            <label className="block space-y-2">
+            </div>
+            <div className="block space-y-2">
               <span className="text-sm text-muted">Payment methods</span>
-              <select
+              <StackwiseSelect<PaymentMethodsOption>
+                aria-label="Payment methods"
                 value={allowedPaymentMethods}
-                onChange={(e) =>
-                  setAllowedPaymentMethods(e.target.value as PaymentMethodsOption)
-                }
-                className="w-full rounded-lg border border-line bg-background px-3 py-2"
-              >
-                {PAYMENT_METHODS_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+                onChange={setAllowedPaymentMethods}
+                options={PAYMENT_METHODS_OPTIONS.map((option) => ({
+                  value: option.value,
+                  label: option.label,
+                }))}
+              />
               <p className="text-xs text-muted">
                 {paymentMethodOptionDescription(
                   allowedPaymentMethods,
                   cardProcessor,
                 )}
               </p>
-            </label>
+            </div>
           </section>
 
           <section className="rounded-xl border border-line bg-panel p-6">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <h2 className="font-medium">Services</h2>
-              <select
-                defaultValue=""
-                onChange={(e) => {
-                  if (e.target.value) {
-                    addService(e.target.value);
-                    e.target.value = "";
-                  }
+              <StackwiseSelect
+                aria-label="Add service from catalog"
+                className="min-w-[14rem]"
+                value={catalogPick}
+                onChange={(id) => {
+                  addService(id);
+                  setCatalogPick("");
                 }}
-                className="rounded-lg border border-line bg-background px-3 py-2 text-sm"
-              >
-                <option value="">Add service…</option>
-                {SERVICES_CATALOG.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name} — ${s.defaultPriceUsd}
-                  </option>
-                ))}
-              </select>
+                placeholder="Add service…"
+                options={SERVICES_CATALOG.map((s) => ({
+                  value: s.id,
+                  label: `${s.name} — $${s.defaultPriceUsd}`,
+                }))}
+              />
             </div>
 
             {items.length === 0 ? (
@@ -468,7 +462,7 @@ export function PaymentLinkBuilder({
               type="button"
               disabled={loading || items.length === 0}
               onClick={() => submit(false)}
-              className={BTN_PRIMARY}
+              className={ADMIN_BTN_PRIMARY}
             >
               {loading ? "Creating…" : sendEmail ? "Create & send" : "Create link"}
             </button>

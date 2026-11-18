@@ -13,7 +13,7 @@ import type { ContractMilestone } from "@/lib/contracts/milestones";
 import type { PaymentLink } from "@/lib/payments/types";
 import { SERVICES_CATALOG } from "@/lib/services-catalog";
 import { StackwiseSelect } from "@/components/stackwise";
-import { ADMIN_BTN_PRIMARY, ADMIN_BTN_SECONDARY, ADMIN_INPUT } from "@/lib/ui/admin";
+import { ADMIN_BTN_PRIMARY, ADMIN_BTN_SECONDARY } from "@/lib/ui/admin";
 
 export function ContractEngagementOpsPanel({
   engagement,

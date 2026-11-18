@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
  * Apply SQL migrations in migrations/*.sql (sorted) to Neon Postgres.
- * Records each file in stackwise_schema_migrations (name, applied_at, checksum) once applied.
+ * Skips files already recorded in stackwise_schema_migrations so migrations are not re-applied.
+ * Records name, applied_at, checksum, and description on first successful apply.
  *
  * Usage:
  *   node scripts/migrate.mjs              # .env.local → .env.prod → .env
