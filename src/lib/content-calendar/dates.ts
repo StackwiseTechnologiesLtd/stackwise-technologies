@@ -60,6 +60,15 @@ export function formatMonthYear(d: Date): string {
   return d.toLocaleDateString(undefined, { month: "long", year: "numeric" });
 }
 
+export function formatCalendarDayTitle(iso: string): string {
+  return parseIsoDay(iso).toLocaleDateString(undefined, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
 export function formatWeekRange(days: Date[]): string {
   const start = days[0];
   const end = days[6];

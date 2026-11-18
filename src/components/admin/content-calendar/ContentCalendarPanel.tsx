@@ -1,5 +1,6 @@
 "use client";
 
+import { ContentCalendarDayExpandModal } from "@/components/admin/content-calendar/ContentCalendarDayExpandModal";
 import { ContentCalendarPostSheet } from "@/components/admin/content-calendar/ContentCalendarPostSheet";
 import {
   CONTENT_CAL_DRAG_MIME,
@@ -83,6 +84,7 @@ export function ContentCalendarPanel() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
   const [draftDate, setDraftDate] = useState(TODAY_ISO);
+  const [expandedDayIso, setExpandedDayIso] = useState<string | null>(null);
 
   const range = useMemo(
     () => (mode === "month" ? rangeForMonth(cursor) : rangeForWeek(cursor)),
@@ -302,6 +304,7 @@ export function ContentCalendarPanel() {
                   visual={visual}
                   drag={drag}
                   onOpen={openEdit}
+                  onExpand={() => setExpandedDayIso(ctx.iso)}
                   maxVisible={mode === "week" ? 12 : 3}
                 />
               );
@@ -310,6 +313,17 @@ export function ContentCalendarPanel() {
           />
         </div>
       </section>
+
+      {expandedDayIso ? (
+        <ContentCalendarDayExpandModal
+          dayIso={expandedDayIso}
+          items={postsByDay.get(expandedDayIso) ?? []}
+          drag={drag}
+          onClose={() => setExpandedDayIso(null)}
+          onOpenPost={openEdit}
+          onNewPost={openNew}
+        />
+      ) : null}
 
       {sheetOpen ? (
         <ContentCalendarPostSheet

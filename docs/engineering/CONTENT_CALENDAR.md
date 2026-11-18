@@ -43,6 +43,8 @@ Previews: `GET /api/admin/content-calendar/assets/[id]/file` (admin session).
 
 Month/week grid inspired by [gr8r-studio calendar](https://github.com/gr8rstudio/gr8r-studio) (`src/views/calendar.js`). **Studio** matches the admin shell; **Scrapbook** adds a subtle accent wash, serif chips, and polaroid thumbnails (same dark admin palette).
 
+**Overflow:** **+N more** on a busy day opens a scrapbook-style day modal — pick a post to open the sheet (edit/view) or add another with **+ New**.
+
 Post sheet attachments (`StackwiseFilePicker`): dashed upload zone only opens the file dialog / accepts drops; **list rows** for PDF, links, audio, video, and other non-images (icon chip → name → size/type → download/open → remove); **gallery strip** for images only. Audio rows use in-row play, seekable waveform, and elapsed/total times (reference-style). Quick view is via filename (portal, download still available).
 
 Demo data: `npm run content-calendar:seed` (prefix `[sample]`, safe to re-run).

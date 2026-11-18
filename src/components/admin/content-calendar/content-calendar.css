@@ -97,3 +97,23 @@
 .content-cal-legend-frame--due {
   border-style: dotted;
 }
+
+.content-cal-day-expand-scroll {
+  background: var(--admin-canvas);
+}
+
+.content-cal-day-expand-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.65rem 0.75rem;
+  align-items: flex-start;
+}
+
+.content-cal-day-expand-grid .sw-cal-polaroid {
+  margin: 0;
+}
+
+.content-cal-day-expand-grid .sw-cal-scrap-note {
+  margin-inline: 0;
+}

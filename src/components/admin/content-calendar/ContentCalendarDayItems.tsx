@@ -58,19 +58,25 @@ export function ContentCalendarDayItems({
   visual,
   drag,
   onOpen,
+  onExpand,
   maxVisible = 3,
 }: {
   items: ContentCalendarDayEntry[];
   visual: CalendarVisual;
   drag: ContentCalendarDragCallbacks;
   onOpen: (id: string) => void;
+  /** Opens scrapbook day modal instead of jumping to the first post. */
+  onExpand?: () => void;
   maxVisible?: number;
 }) {
   if (items.length === 0) return null;
 
   const scrapbook = visual === "scrapbook";
   const scrapbookCap = 4;
-  const visible = items.slice(0, scrapbook ? scrapbookCap : maxVisible);
+  const visibleLimit = scrapbook
+    ? Math.min(items.length, Math.max(maxVisible, scrapbookCap))
+    : Math.min(items.length, maxVisible);
+  const visible = items.slice(0, visibleLimit);
 
   return (
     <>
@@ -108,8 +114,8 @@ export function ContentCalendarDayItems({
       {items.length > visible.length ? (
         <button
           type="button"
-          className="text-left text-[10px] text-muted hover:text-foreground"
-          onClick={() => onOpen(items[0].post.id)}
+          className="text-left text-[10px] font-medium text-muted underline-offset-2 hover:text-foreground hover:underline"
+          onClick={() => (onExpand ? onExpand() : onOpen(items[0].post.id))}
         >
           +{items.length - visible.length} more
         </button>
