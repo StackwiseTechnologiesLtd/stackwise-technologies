@@ -5,6 +5,19 @@
   width: 100%;
 }
 
+.sw-file-input-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+  pointer-events: none;
+}
+
 .sw-file-drop {
   display: flex;
   flex-direction: column;
@@ -35,6 +48,7 @@
 .sw-file-drop--disabled {
   opacity: 0.55;
   cursor: not-allowed;
+  pointer-events: none;
 }
 
 .sw-file-drop-icon {
@@ -355,19 +369,19 @@
 .sw-file-quickview {
   position: fixed;
   inset: 0;
-  z-index: 200;
+  z-index: 250;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
+  padding: clamp(0.75rem, 3vw, 1.5rem);
 }
 
 .sw-file-quickview-backdrop {
   position: absolute;
   inset: 0;
   border: 0;
-  background: rgba(0, 0, 0, 0.72);
-  backdrop-filter: blur(2px);
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(6px);
   cursor: pointer;
 }
 
@@ -376,23 +390,44 @@
   z-index: 1;
   display: flex;
   flex-direction: column;
-  width: min(100%, 42rem);
-  max-height: min(88vh, 40rem);
-  border-radius: 0.75rem;
-  border: 1px solid var(--admin-border);
+  width: min(100%, 54rem);
+  max-height: min(90vh, 44rem);
+  border-radius: 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--admin-border) 80%, #fff);
   background: var(--admin-surface);
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.45);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.35),
+    0 28px 64px rgba(0, 0, 0, 0.55);
   overflow: hidden;
 }
 
 .sw-file-quickview-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.65rem 0.85rem;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
   border-bottom: 1px solid var(--admin-border);
-  background: color-mix(in srgb, var(--admin-canvas) 90%, var(--admin-surface));
+  background: color-mix(in srgb, var(--admin-canvas) 88%, var(--admin-surface));
+}
+
+.sw-file-quickview-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.sw-file-quickview-kind {
+  width: fit-content;
+  padding: 0.1rem 0.4rem;
+  border-radius: 0.25rem;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--foreground) 80%, var(--muted));
+  background: color-mix(in srgb, var(--admin-canvas) 70%, var(--admin-surface));
 }
 
 .sw-file-quickview-title {
@@ -400,14 +435,19 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 600;
+}
+
+.sw-file-quickview-meta {
+  font-size: 0.6875rem;
+  color: var(--muted);
 }
 
 .sw-file-quickview-header-actions {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
   flex-shrink: 0;
 }
 
@@ -415,11 +455,11 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.35rem 0.55rem;
-  border-radius: 0.4rem;
+  padding: 0.4rem 0.65rem;
+  border-radius: 0.45rem;
   border: 1px solid var(--admin-border);
   background: var(--admin-canvas);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--foreground);
   text-decoration: none;
@@ -431,33 +471,57 @@
 }
 
 .sw-file-quickview-close {
-  width: 1.75rem;
-  height: 1.75rem;
-  border-radius: 0.35rem;
-  border: 1px solid var(--admin-border);
-  background: var(--admin-canvas);
-  font-size: 1.1rem;
-  line-height: 1;
-  color: var(--foreground);
-}
-
-.sw-file-quickview-body {
-  flex: 1;
-  min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.75rem;
-  background: color-mix(in srgb, var(--admin-canvas) 94%, #000);
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.45rem;
+  border: 1px solid var(--admin-border);
+  background: var(--admin-canvas);
+  color: var(--foreground);
 }
 
-.sw-file-quickview-body--pdf {
-  padding: 0;
+.sw-file-quickview-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  padding: 0.85rem;
+  background: color-mix(in srgb, #0a0a0a 42%, var(--admin-canvas));
+}
+
+.sw-file-quickview-stage--pdf {
+  padding: 0.65rem;
+}
+
+.sw-file-quickview-canvas {
+  flex: 1;
+  min-height: min(72vh, 36rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.55rem;
+  border: 1px solid color-mix(in srgb, var(--admin-border) 70%, transparent);
+  background: color-mix(in srgb, var(--admin-canvas) 92%, #000);
+  overflow: hidden;
+}
+
+.sw-file-quickview-canvas--pdf {
+  border-radius: 0.45rem;
+  background: #525659;
+  border-color: rgba(0, 0, 0, 0.45);
+}
+
+.sw-file-quickview-canvas--image {
+  background:
+    repeating-conic-gradient(rgba(255, 255, 255, 0.04) 0% 25%, transparent 0% 50%) 50% / 1rem 1rem,
+    color-mix(in srgb, var(--admin-canvas) 94%, #000);
 }
 
 .sw-file-quickview-iframe {
   width: 100%;
-  height: min(72vh, 36rem);
+  height: 100%;
+  min-height: min(72vh, 36rem);
   border: 0;
   background: #fff;
 }
@@ -465,15 +529,33 @@
 .sw-file-quickview-image {
   max-width: 100%;
   max-height: min(72vh, 36rem);
-  border-radius: 0.35rem;
   object-fit: contain;
 }
 
 .sw-file-quickview-video {
   width: 100%;
   max-height: min(72vh, 36rem);
-  border-radius: 0.35rem;
   background: #000;
+}
+
+.sw-file-quickview-audio-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: min(100%, 22rem);
+  padding: 1.25rem;
+}
+
+.sw-file-quickview-audio-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 18%, var(--admin-canvas));
+  color: var(--foreground);
 }
 
 .sw-file-quickview-audio {
@@ -482,6 +564,7 @@
 
 .sw-file-quickview-fallback {
   margin: 0;
+  padding: 1rem;
   font-size: 0.8125rem;
   color: var(--muted);
   text-align: center;

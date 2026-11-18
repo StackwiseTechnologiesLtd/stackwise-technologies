@@ -13,6 +13,7 @@ import {
 import { contentCalendarAssetDownloadUrl } from "@/lib/content-calendar/asset-download";
 import { CONTENT_CALENDAR_MAX_BYTES } from "@/lib/content-calendar/media-storage";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import "./stackwise-file-picker.css";
 
@@ -67,10 +68,6 @@ export function StackwiseFilePicker({
   const galleryImages = assets.filter((a) => isGalleryImageAsset(a.contentType));
   const maxLabel = formatFileBytes(maxBytes);
 
-  const pickFiles = useCallback(() => {
-    if (!disabled && !uploading) inputRef.current?.click();
-  }, [disabled, uploading]);
-
   const handleFiles = useCallback(
     (files: FileList | null) => {
       if (!files?.length || disabled || uploading) return;
@@ -95,7 +92,22 @@ export function StackwiseFilePicker({
 
   return (
     <div className={`sw-file-picker ${className}`.trim()}>
-      <div
+      <input
+        ref={inputRef}
+        id={inputId}
+        type="file"
+        className="sw-file-input-hidden"
+        tabIndex={-1}
+        multiple
+        disabled={disabled || uploading}
+        accept="image/*,video/*,audio/*,application/pdf,.pdf"
+        onChange={(e) => {
+          handleFiles(e.target.files);
+          e.target.value = "";
+        }}
+      />
+      <label
+        htmlFor={disabled || uploading ? undefined : inputId}
         className={`sw-file-drop ${dragOver ? "sw-file-drop--active" : ""} ${disabled ? "sw-file-drop--disabled" : ""}`.trim()}
         onDragEnter={(e) => {
           e.preventDefault();
@@ -114,38 +126,16 @@ export function StackwiseFilePicker({
           setDragOver(false);
           handleFiles(e.dataTransfer.files);
         }}
-        onClick={pickFiles}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            pickFiles();
-          }
-        }}
-        role="button"
-        tabIndex={disabled ? -1 : 0}
         aria-disabled={disabled}
       >
         <span className="sw-file-drop-icon" aria-hidden>
           <IconUpload />
         </span>
         <p className="sw-file-drop-title">
-          {uploading ? "Uploading…" : "Drop and drop or browse files"}
+          {uploading ? "Uploading…" : "Drag and drop or browse files"}
         </p>
         <p className="sw-file-drop-hint">Maximum {maxLabel} file size</p>
-        <input
-          ref={inputRef}
-          id={inputId}
-          type="file"
-          className="sr-only"
-          multiple
-          disabled={disabled || uploading}
-          accept="image/*,video/*,audio/*,application/pdf,.pdf"
-          onChange={(e) => {
-            handleFiles(e.target.files);
-            e.target.value = "";
-          }}
-        />
-      </div>
+      </label>
 
       {disabled && disabledHint ? <p className="sw-file-disabled-hint">{disabledHint}</p> : null}
 
@@ -193,7 +183,7 @@ export function StackwiseFilePicker({
         </>
       ) : null}
 
-      {galleryImages.length > 0 || !disabled ? (
+      {galleryImages.length > 0 ? (
         <ul className="sw-file-gallery" aria-label="Images">
           {galleryImages.map((a) => (
             <li key={a.id} className="sw-file-gallery-item">
@@ -220,17 +210,6 @@ export function StackwiseFilePicker({
               </button>
             </li>
           ))}
-          <li>
-            <button
-              type="button"
-              className="sw-file-gallery-add"
-              disabled={disabled || uploading}
-              onClick={pickFiles}
-              aria-label="Add images"
-            >
-              +
-            </button>
-          </li>
         </ul>
       ) : null}
 
@@ -258,23 +237,40 @@ function QuickViewModal({
   const src = assetUrl(asset.id);
   const downloadHref = contentCalendarAssetDownloadUrl(src);
   const title = asset.filename;
+  const pdfSrc = `${src}#toolbar=0&navpanes=0&scrollbar=1`;
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
     }
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prev;
+    };
   }, [onClose]);
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <div className="sw-file-quickview" role="dialog" aria-modal="true" aria-label={`Preview ${title}`}>
       <button type="button" className="sw-file-quickview-backdrop" aria-label="Close preview" onClick={onClose} />
       <div className="sw-file-quickview-panel">
         <header className="sw-file-quickview-header">
-          <span className="sw-file-quickview-title" title={title}>
-            {title}
-          </span>
+          <div className="sw-file-quickview-heading">
+            <span className={`sw-file-quickview-kind sw-file-quickview-kind--${kind}`}>{kindLabel(kind)}</span>
+            <span className="sw-file-quickview-title" title={title}>
+              {title}
+            </span>
+            <span className="sw-file-quickview-meta">{formatFileBytes(asset.byteSize)}</span>
+          </div>
           <div className="sw-file-quickview-header-actions">
             <a
               className="sw-file-quickview-download"
@@ -285,32 +281,40 @@ function QuickViewModal({
               <span>Download</span>
             </a>
             <button type="button" className="sw-file-quickview-close" onClick={onClose} aria-label="Close">
-              ×
+              <IconClose />
             </button>
           </div>
         </header>
-        <div className={`sw-file-quickview-body sw-file-quickview-body--${kind}`}>
-          {kind === "pdf" ? (
-            <iframe className="sw-file-quickview-iframe" src={src} title={title} />
-          ) : null}
-          {kind === "image" ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img className="sw-file-quickview-image" src={src} alt={title} />
-          ) : null}
-          {kind === "video" ? (
-            <video className="sw-file-quickview-video" src={src} controls playsInline preload="metadata" />
-          ) : null}
-          {kind === "audio" ? (
-            <audio className="sw-file-quickview-audio" src={src} controls preload="metadata" />
-          ) : null}
-          {kind === "file" || kind === "link" ? (
-            <p className="sw-file-quickview-fallback">
-              No inline preview. Use download or open from the attachment row.
-            </p>
-          ) : null}
+        <div className={`sw-file-quickview-stage sw-file-quickview-stage--${kind}`}>
+          <div className={`sw-file-quickview-canvas sw-file-quickview-canvas--${kind}`}>
+            {kind === "pdf" ? (
+              <iframe className="sw-file-quickview-iframe" src={pdfSrc} title={title} />
+            ) : null}
+            {kind === "image" ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img className="sw-file-quickview-image" src={src} alt={title} />
+            ) : null}
+            {kind === "video" ? (
+              <video className="sw-file-quickview-video" src={src} controls playsInline preload="metadata" />
+            ) : null}
+            {kind === "audio" ? (
+              <div className="sw-file-quickview-audio-wrap">
+                <span className="sw-file-quickview-audio-icon" aria-hidden>
+                  <IconMic />
+                </span>
+                <audio className="sw-file-quickview-audio" src={src} controls preload="metadata" />
+              </div>
+            ) : null}
+            {kind === "file" || kind === "link" ? (
+              <p className="sw-file-quickview-fallback">
+                No inline preview. Use download or open from the attachment row.
+              </p>
+            ) : null}
+          </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

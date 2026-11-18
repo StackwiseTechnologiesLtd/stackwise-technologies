@@ -304,7 +304,7 @@ export function ContentCalendarPostSheet({
                 />
               </label>
 
-              <label className="block space-y-1.5">
+              <div className="block space-y-1.5">
                 <span className="text-xs font-medium text-muted">Attachments</span>
                 <StackwiseFilePicker
                   assets={assets}
@@ -316,7 +316,7 @@ export function ContentCalendarPostSheet({
                   onAddLink={addLink}
                   onRemove={removeAsset}
                 />
-              </label>
+              </div>
             </>
           )}
         </div>
