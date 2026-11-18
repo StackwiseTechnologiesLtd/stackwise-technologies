@@ -3,7 +3,8 @@ import { describe, expect, it } from "vitest";
 import {
   formatFileBytes,
   getAssetUiKind,
-  isVisualGalleryAsset,
+  isAttachmentListAsset,
+  isGalleryImageAsset,
 } from "@/lib/content-calendar/asset-ui";
 import { CONTENT_CALENDAR_LINK_TYPE } from "@/lib/content-calendar/media-storage";
 
@@ -18,7 +19,9 @@ describe("getAssetUiKind", () => {
   it("detects link and media", () => {
     expect(getAssetUiKind(CONTENT_CALENDAR_LINK_TYPE)).toBe("link");
     expect(getAssetUiKind("application/pdf")).toBe("pdf");
-    expect(isVisualGalleryAsset("image/jpeg")).toBe(true);
-    expect(isVisualGalleryAsset("audio/mpeg")).toBe(false);
+    expect(isGalleryImageAsset("image/jpeg")).toBe(true);
+    expect(isGalleryImageAsset("video/mp4")).toBe(false);
+    expect(isAttachmentListAsset("video/mp4")).toBe(true);
+    expect(isAttachmentListAsset("image/jpeg")).toBe(false);
   });
 });

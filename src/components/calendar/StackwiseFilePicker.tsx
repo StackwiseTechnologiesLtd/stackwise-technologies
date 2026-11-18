@@ -173,11 +173,11 @@ export function StackwiseFilePicker({
         </form>
       ) : null}
 
-      {assets.length > 0 ? (
+      {listAssets.length > 0 ? (
         <>
           <p className="sw-file-section-label">Attachments:</p>
           <ul className="sw-file-list">
-            {assets.map((a) => (
+            {listAssets.map((a) => (
               <AttachmentRow
                 key={a.id}
                 asset={a}
@@ -189,9 +189,9 @@ export function StackwiseFilePicker({
         </>
       ) : null}
 
-      {visual.length > 0 ? (
-        <ul className="sw-file-gallery">
-          {visual.map((a) => (
+      {galleryImages.length > 0 || !disabled ? (
+        <ul className="sw-file-gallery" aria-label="Images">
+          {galleryImages.map((a) => (
             <li key={a.id} className="sw-file-gallery-item">
               <button
                 type="button"
@@ -201,18 +201,8 @@ export function StackwiseFilePicker({
               >
                 ×
               </button>
-              {a.contentType.startsWith("video/") ? (
-                <video
-                  src={assetUrl(a.id)}
-                  className="sw-file-gallery-media"
-                  muted
-                  playsInline
-                  preload="metadata"
-                />
-              ) : (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={assetUrl(a.id)} alt="" className="sw-file-gallery-media" loading="lazy" />
-              )}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={assetUrl(a.id)} alt="" className="sw-file-gallery-media" loading="lazy" />
               <span className="sw-file-gallery-size">{formatFileBytes(a.byteSize)}</span>
             </li>
           ))}
@@ -222,7 +212,7 @@ export function StackwiseFilePicker({
               className="sw-file-gallery-add"
               disabled={disabled || uploading}
               onClick={pickFiles}
-              aria-label="Add media"
+              aria-label="Add images"
             >
               +
             </button>
