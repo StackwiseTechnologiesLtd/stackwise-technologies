@@ -23,12 +23,50 @@ if (!process.env.DATABASE_URL) {
 
 const sql = neon(process.env.DATABASE_URL);
 
+const LINK_CONTENT_TYPE = "application/x-stackwise-url";
+
 const DEMO_IMAGES = {
   social: "public/branding/opsis/previews/044b4bf96039d0c0a819-400.webp",
   launch: "public/branding/opsis/previews/3ebe7e302100bb897430-400.webp",
   carousel: "public/branding/opsis/previews/b888a89d234f43a543ed-400.webp",
   tiktok: "public/branding/opsis/previews/a4d14e1ed75cdf980cce-400.webp",
 };
+
+/** ~0.15s silent mono WAV for attachment picker demo */
+function minimalDemoWav() {
+  const sampleRate = 8000;
+  const durationSec = 0.15;
+  const numSamples = Math.floor(sampleRate * durationSec);
+  const dataSize = numSamples * 2;
+  const buffer = Buffer.alloc(44 + dataSize);
+  buffer.write("RIFF", 0);
+  buffer.writeUInt32LE(36 + dataSize, 4);
+  buffer.write("WAVE", 8);
+  buffer.write("fmt ", 12);
+  buffer.writeUInt32LE(16, 16);
+  buffer.writeUInt16LE(1, 20);
+  buffer.writeUInt16LE(1, 22);
+  buffer.writeUInt32LE(sampleRate, 24);
+  buffer.writeUInt32LE(sampleRate * 2, 28);
+  buffer.writeUInt16LE(2, 32);
+  buffer.writeUInt16LE(16, 34);
+  buffer.write("data", 36);
+  buffer.writeUInt32LE(dataSize, 40);
+  return buffer;
+}
+
+function minimalDemoPdf() {
+  return Buffer.from(
+    `%PDF-1.4
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj
+3 0 obj<</Type/Page/MediaBox[0 0 612 792]/Parent 2 0 R>>endobj
+xref
+0 4
+trailer<</Root 1 0 R>>
+%%EOF`,
+  );
+}
 
 function isoDay(d) {
   const y = d.getFullYear();
@@ -109,32 +147,49 @@ const samples = [
     notes: "Attach polaroid still",
     image: DEMO_IMAGES.carousel,
   },
+  {
+    title: "[sample] Idea pack — attachments demo",
+    offset: 1,
+    time: "14:00",
+    channel: "instagram",
+    status: "draft",
+    accent: "#7038f4",
+    script:
+      "Hook: Quick cut + VO under trending sound.\nBody: 3 beats from the PDF brief.\nCTA: Moodboard + shot list in attachments.",
+    notes: "Reference layout: PDF, link, audio scratch, mood stills in gallery.",
+    attachmentPack: {
+      images: [DEMO_IMAGES.social, DEMO_IMAGES.carousel, DEMO_IMAGES.tiktok],
+      pdfName: "untitledfile-attachment01.pdf",
+      audioName: "untitledmedia-voice-scratch.wav",
+      linkUrl: "https://untitledwebsite-attachment01.com/moodboard",
+    },
+  },
 ];
 
-async function insertAsset(postId, relImagePath) {
-  const abs = path.join(repoRoot, relImagePath);
-  if (!fs.existsSync(abs)) {
-    console.warn(`Skip missing image: ${relImagePath}`);
-    return;
-  }
+async function insertAssetBytes(postId, { filename, contentType, fileBytes, sortOrder, logLabel }) {
   const assetId = randomUUID();
-  const filename = path.basename(abs);
-  const contentType = filename.endsWith(".webp") ? "image/webp" : "image/png";
-  const byteSize = fs.statSync(abs).size;
-
+  const byteSize = fileBytes.length;
   let r2Key = null;
   let devData = null;
 
-  const fileBytes = fs.readFileSync(abs);
-  r2Key = buildDemoR2Key(postId, assetId, filename);
+  const tmpPath = path.join(repoRoot, ".tmp-seed-asset");
   try {
-    const put = await putContentCalendarObject(r2Key, abs, contentType);
-    console.log(`  ↑ R2 (${put.via}): ${r2Key}`);
+    fs.mkdirSync(path.dirname(tmpPath), { recursive: true });
+    fs.writeFileSync(tmpPath, fileBytes);
+    r2Key = buildDemoR2Key(postId, assetId, filename);
+    const put = await putContentCalendarObject(r2Key, tmpPath, contentType);
+    console.log(`  ↑ R2 (${put.via}) ${logLabel ?? filename}: ${r2Key}`);
   } catch (err) {
     console.warn(`  R2 upload failed for ${filename}, dev_data only:`, err.message);
     r2Key = null;
+  } finally {
+    try {
+      fs.unlinkSync(tmpPath);
+    } catch {
+      /* ignore */
+    }
   }
-  // Mirror bytes in Neon so `next dev` still shows thumbs if S3 env is not set yet.
+
   if (!process.env.CONTENT_CALENDAR_SEED_NO_DEV_DATA) {
     devData = fileBytes;
   }
@@ -149,10 +204,63 @@ async function insertAsset(postId, relImagePath) {
       ${contentType},
       ${filename},
       ${byteSize},
-      0,
+      ${sortOrder},
       ${devData}
     )
   `;
+}
+
+async function insertAsset(postId, relImagePath, sortOrder = 0) {
+  const abs = path.join(repoRoot, relImagePath);
+  if (!fs.existsSync(abs)) {
+    console.warn(`Skip missing image: ${relImagePath}`);
+    return;
+  }
+  const filename = path.basename(abs);
+  const contentType = filename.endsWith(".webp") ? "image/webp" : "image/png";
+  const fileBytes = fs.readFileSync(abs);
+  await insertAssetBytes(postId, { filename, contentType, fileBytes, sortOrder, logLabel: filename });
+}
+
+async function insertLink(postId, url, sortOrder) {
+  const assetId = randomUUID();
+  await sql`
+    INSERT INTO content_calendar_assets (
+      id, post_id, r2_key, content_type, filename, byte_size, sort_order, dev_data
+    ) VALUES (
+      ${assetId}::uuid,
+      ${postId}::uuid,
+      ${null},
+      ${LINK_CONTENT_TYPE},
+      ${url},
+      ${0},
+      ${sortOrder},
+      ${null}
+    )
+  `;
+  console.log(`  link: ${url}`);
+}
+
+async function seedAttachmentPack(postId, pack) {
+  let order = 0;
+  await insertAssetBytes(postId, {
+    filename: pack.pdfName,
+    contentType: "application/pdf",
+    fileBytes: minimalDemoPdf(),
+    sortOrder: order++,
+    logLabel: "pdf",
+  });
+  await insertLink(postId, pack.linkUrl, order++);
+  await insertAssetBytes(postId, {
+    filename: pack.audioName,
+    contentType: "audio/wav",
+    fileBytes: minimalDemoWav(),
+    sortOrder: order++,
+    logLabel: "audio",
+  });
+  for (const rel of pack.images) {
+    await insertAsset(postId, rel, order++);
+  }
 }
 
 async function main() {
@@ -180,7 +288,10 @@ async function main() {
       )
     `;
     inserted += 1;
-    if (s.image) {
+    if (s.attachmentPack) {
+      console.log(s.title);
+      await seedAttachmentPack(id, s.attachmentPack);
+    } else if (s.image) {
       console.log(s.title);
       await insertAsset(id, s.image);
     }
