@@ -530,36 +530,37 @@
   position: absolute;
   z-index: 50;
   margin-top: 0.35rem;
-  width: min(100%, 17.5rem);
+  width: min(100%, 19.5rem);
   overflow: hidden;
   border-radius: 0.75rem;
   border: 1px solid var(--admin-border);
-  background: var(--admin-surface);
+  background: color-mix(in srgb, var(--admin-surface) 92%, #000);
   box-shadow: var(--admin-panel-inset), 0 12px 40px rgba(0, 0, 0, 0.25);
-  padding: 0.85rem 0.75rem 0.65rem;
+  padding: 1rem 0.85rem 0.7rem;
 }
 
 .sw-flip-clock {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.35rem;
+  gap: 0.5rem;
 }
 
 .sw-flip-col {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.35rem;
+  touch-action: none;
 }
 
 .sw-flip-step {
-  width: 2rem;
-  height: 1.15rem;
-  font-size: 0.55rem;
-  line-height: 1;
-  color: var(--muted);
-  border-radius: 0.25rem;
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 1.35rem;
+  color: color-mix(in srgb, var(--muted) 80%, var(--foreground));
+  border-radius: 0.35rem;
 }
 
 .sw-flip-step:hover {
@@ -567,12 +568,23 @@
   background: var(--admin-nav-hover);
 }
 
+.sw-flip-step-icon {
+  display: block;
+  opacity: 0.75;
+}
+
+.sw-flip-step:hover .sw-flip-step-icon {
+  opacity: 1;
+}
+
 .sw-flip-colon {
-  font-size: 1.75rem;
+  align-self: center;
+  font-size: 2rem;
   font-weight: 600;
-  color: color-mix(in srgb, var(--foreground) 35%, var(--muted));
-  margin-top: 0.35rem;
+  line-height: 1;
+  color: color-mix(in srgb, var(--foreground) 28%, var(--muted));
   user-select: none;
+  padding-bottom: 0.15rem;
 }
 
 .sw-flip-unit {
@@ -580,41 +592,78 @@
 }
 
 .sw-flip-card {
+  --sw-flip-h: 3.85rem;
   position: relative;
-  width: 4.25rem;
-  height: 3.35rem;
-  border-radius: 0.4rem;
-  background: color-mix(in srgb, var(--admin-canvas) 55%, #0a0a0a);
+  width: 5rem;
+  height: var(--sw-flip-h);
+  border-radius: 0.45rem;
+  background: #141414;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 6px 18px rgba(0, 0, 0, 0.35);
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 8px 24px rgba(0, 0, 0, 0.4);
   overflow: hidden;
-  animation: sw-flip-tick 0.22s ease-out;
 }
 
-.sw-flip-face {
-  display: grid;
-  place-items: center;
-  height: 50%;
-  overflow: hidden;
-  font-size: 1.65rem;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  color: color-mix(in srgb, var(--foreground) 92%, var(--muted));
-  letter-spacing: 0.04em;
+.sw-flip-card--period {
+  width: 5.35rem;
 }
 
-.sw-flip-face span {
-  transform: translateY(0.08rem);
+.sw-flip-top,
+.sw-flip-bottom {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: calc(var(--sw-flip-h) / 2);
+  overflow: hidden;
+  z-index: 1;
 }
 
 .sw-flip-top {
-  background: color-mix(in srgb, var(--admin-canvas) 70%, #121212);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.45);
+  top: 0;
+  background: linear-gradient(180deg, #232323 0%, #1a1a1a 100%);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.55);
 }
 
 .sw-flip-bottom {
-  background: color-mix(in srgb, var(--admin-canvas) 40%, #070707);
+  bottom: 0;
+  background: linear-gradient(180deg, #111 0%, #0a0a0a 100%);
+}
+
+.sw-flip-digit {
+  display: block;
+  width: 100%;
+  height: var(--sw-flip-h);
+  line-height: var(--sw-flip-h);
+  text-align: center;
+  font-size: 1.85rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in srgb, var(--foreground) 96%, white);
+  letter-spacing: 0.06em;
+  user-select: none;
+}
+
+.sw-flip-bottom .sw-flip-digit {
+  margin-top: calc(var(--sw-flip-h) / -2);
+}
+
+.sw-flip-leaf {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: calc(var(--sw-flip-h) / 2);
+  overflow: hidden;
+  z-index: 2;
+  transform-origin: bottom center;
+  animation: sw-flip-leaf-fold 0.28s ease-in forwards;
+  background: linear-gradient(180deg, #2a2a2a 0%, #1a1a1a 100%);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.55);
+}
+
+.sw-flip-leaf .sw-flip-digit {
+  height: var(--sw-flip-h);
+  line-height: var(--sw-flip-h);
 }
 
 .sw-flip-divider {
@@ -632,30 +681,33 @@
 
 .sw-flip-period {
   position: absolute;
-  left: 0.35rem;
-  bottom: 0.22rem;
-  font-size: 0.55rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  color: color-mix(in srgb, var(--muted) 85%, var(--foreground));
+  left: 0.4rem;
+  bottom: 0.14rem;
+  font-size: 0.5rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--muted) 70%, var(--foreground));
   z-index: 3;
   pointer-events: none;
+  line-height: 1;
 }
 
-@keyframes sw-flip-tick {
+@keyframes sw-flip-leaf-fold {
   from {
-    transform: perspective(280px) rotateX(8deg);
-    opacity: 0.82;
+    transform: perspective(320px) rotateX(0deg);
+    opacity: 1;
   }
   to {
-    transform: perspective(280px) rotateX(0deg);
-    opacity: 1;
+    transform: perspective(320px) rotateX(-90deg);
+    opacity: 0.25;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sw-flip-card {
+  .sw-flip-leaf {
     animation: none;
+    display: none;
   }
 }
 
@@ -684,4 +736,17 @@
   color: var(--foreground);
   background: color-mix(in srgb, var(--accent) 14%, var(--admin-surface));
   border-color: color-mix(in srgb, var(--accent) 45%, var(--admin-border));
+}
+
+.sw-cal-time-done {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--foreground);
+  padding: 0.15rem 0.35rem;
+  border-radius: 0.25rem;
+}
+
+.sw-cal-time-done:hover {
+  color: #fff;
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
 }

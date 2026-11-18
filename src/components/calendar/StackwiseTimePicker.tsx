@@ -1,6 +1,6 @@
 "use client";
 
-import { FlipClockDigits } from "@/components/calendar/FlipClockDigits";
+import { FlipClockDigits, FlipStepChevron } from "@/components/calendar/FlipClockDigits";
 import {
   formatTime24,
   formatTimeLabel,
@@ -108,14 +108,20 @@ export function StackwiseTimePicker({
       {open ? (
         <div id={listId} className="sw-cal-time-pop" role="dialog" aria-label="Choose time">
           <div className="sw-flip-clock">
-            <div className="sw-flip-col">
+            <div
+              className="sw-flip-col"
+              onWheel={(e) => {
+                e.preventDefault();
+                stepHour(e.deltaY > 0 ? -1 : 1);
+              }}
+            >
               <button
                 type="button"
                 className="sw-flip-step"
                 aria-label="Increase hour"
                 onClick={() => stepHour(1)}
               >
-                ▲
+                <FlipStepChevron direction="up" />
               </button>
               <FlipClockDigits value={draft.hour12} pad={2} period={period} />
               <button
@@ -124,20 +130,26 @@ export function StackwiseTimePicker({
                 aria-label="Decrease hour"
                 onClick={() => stepHour(-1)}
               >
-                ▼
+                <FlipStepChevron direction="down" />
               </button>
             </div>
             <span className="sw-flip-colon" aria-hidden>
               :
             </span>
-            <div className="sw-flip-col">
+            <div
+              className="sw-flip-col"
+              onWheel={(e) => {
+                e.preventDefault();
+                stepMinute(e.deltaY > 0 ? -1 : 1);
+              }}
+            >
               <button
                 type="button"
                 className="sw-flip-step"
                 aria-label="Increase minute"
                 onClick={() => stepMinute(1)}
               >
-                ▲
+                <FlipStepChevron direction="up" />
               </button>
               <FlipClockDigits value={draft.minutes} pad={2} />
               <button
@@ -146,7 +158,7 @@ export function StackwiseTimePicker({
                 aria-label="Decrease minute"
                 onClick={() => stepMinute(-1)}
               >
-                ▼
+                <FlipStepChevron direction="down" />
               </button>
             </div>
           </div>
@@ -188,7 +200,7 @@ export function StackwiseTimePicker({
             </button>
             <button
               type="button"
-              className="text-xs font-medium text-foreground"
+              className="sw-cal-time-done"
               onClick={() => setOpen(false)}
             >
               Done
