@@ -1,7 +1,6 @@
 "use client";
 
 import { hexToRgb, hslToRgb, normalizeHex6, rgbToHex, rgbToHsl } from "@/lib/color/hex";
-import { ADMIN_INPUT } from "@/lib/ui/admin";
 import { useCallback, useId, useRef, useState, type CSSProperties } from "react";
 
 import "./stackwise-color-picker.css";
@@ -42,6 +41,7 @@ export function StackwiseColorPicker({
   const panelId = useId();
   const shade = pillTextColor(hex);
   const preset = PRESETS.some((c) => c === hex);
+  const expanded = view !== "compact";
 
   const setFromHsl = useCallback(
     (h: number, s: number, l: number) => {
@@ -51,38 +51,38 @@ export function StackwiseColorPicker({
     [onChange],
   );
 
-  function onPillClick() {
+  function onHeaderClick() {
     setView((v) => (v === "compact" ? "palette" : "compact"));
   }
+
+  const header = (
+    <button
+      type="button"
+      className={`sw-color-header ${expanded ? "sw-color-header--muted" : "sw-color-header--fill"}`}
+      onClick={onHeaderClick}
+      aria-expanded={expanded}
+      aria-controls={expanded ? panelId : undefined}
+    >
+      {expanded ? null : (
+        <span className="sw-color-header-fill" style={{ backgroundColor: hex }} aria-hidden />
+      )}
+      <span
+        className="sw-color-header-label"
+        style={{ color: expanded ? "var(--foreground)" : shade }}
+      >
+        {hex}
+      </span>
+    </button>
+  );
 
   return (
     <div
       className={`sw-color-picker sw-color-picker--${view} ${className}`.trim()}
       data-view={view}
     >
-      <div className="sw-color-chrome">
-        <button
-          type="button"
-          className="sw-color-pill"
-          onClick={onPillClick}
-          aria-expanded={view !== "compact"}
-          aria-controls={view !== "compact" ? panelId : undefined}
-        >
-          <span
-            className="sw-color-pill-surface"
-            style={{ backgroundColor: view === "compact" ? hex : "var(--admin-canvas)" }}
-          />
-          <span
-            className="sw-color-pill-label"
-            style={{ color: view === "compact" ? shade : "var(--foreground)" }}
-          >
-            {hex}
-          </span>
-        </button>
-      </div>
-
-      {view !== "compact" ? (
-        <div id={panelId} className="sw-color-sheet">
+      {expanded ? (
+        <div id={panelId} className="sw-color-card">
+          {header}
           <div className="sw-color-swatches" role="listbox" aria-label="Preset colors">
             {PRESETS.map((c) => (
               <button
@@ -93,42 +93,57 @@ export function StackwiseColorPicker({
                 className={`sw-color-swatch ${hex === c ? "selected" : ""}`}
                 style={{ backgroundColor: c }}
                 onClick={() => onChange(c)}
-              >
-                {hex === c ? <span className="sw-color-swatch-dot" /> : null}
-              </button>
+              />
             ))}
             <button
               type="button"
-              className={`sw-color-swatch sw-color-swatch-custom ${!preset && view === "palette" ? "selected" : ""}`}
+              className={`sw-color-swatch sw-color-swatch-custom ${!preset ? "selected" : ""}`.trim()}
               aria-expanded={view === "custom"}
               onClick={() => setView((v) => (v === "custom" ? "palette" : "custom"))}
               title="More colors"
             >
-              +
+              <span className="sw-color-swatch-plus">+</span>
             </button>
           </div>
 
           {view === "custom" ? (
-            <div className="sw-color-panel">
-              <div className="sw-color-advanced">
-                <SvPlane hue={hsl.h} s={hsl.s} l={hsl.l} onPick={setFromHsl} />
-                <div className="sw-color-sliders">
-                  <HueSlider hue={hsl.h} onChange={(h) => setFromHsl(h, hsl.s, hsl.l)} />
-                  <div className="sw-color-hex-wrap">
-                    <input
-                      className={`${ADMIN_INPUT} font-mono text-xs`}
-                      value={hex}
-                      onChange={(e) => onChange(normalizeHex6(e.target.value, hex))}
-                      spellCheck={false}
-                      aria-label="Hex color"
-                    />
-                  </div>
-                </div>
+            <div className="sw-color-advanced">
+              <SvPlane hue={hsl.h} s={hsl.s} l={hsl.l} onPick={setFromHsl} />
+              <div className="sw-color-advanced-side">
+                <HueSlider hue={hsl.h} onChange={(h) => setFromHsl(h, hsl.s, hsl.l)} />
+                <HexPreview value={hex} shade={shade} onChange={onChange} fallback={hex} />
               </div>
             </div>
           ) : null}
         </div>
-      ) : null}
+      ) : (
+        header
+      )}
+    </div>
+  );
+}
+
+function HexPreview({
+  value,
+  shade,
+  onChange,
+  fallback,
+}: {
+  value: string;
+  shade: string;
+  onChange: (hex: string) => void;
+  fallback: string;
+}) {
+  return (
+    <div className="sw-color-hex-preview" style={{ backgroundColor: value }}>
+      <input
+        className="sw-color-hex-input"
+        style={{ color: shade }}
+        value={value.toLowerCase()}
+        onChange={(e) => onChange(normalizeHex6(e.target.value, fallback))}
+        spellCheck={false}
+        aria-label="Hex color"
+      />
     </div>
   );
 }
