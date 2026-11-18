@@ -2,26 +2,9 @@ import { ensureSchema } from "@/lib/db/ensure-schema";
 import { asRows, getSql, isDatabaseConfigured } from "@/lib/db/postgres";
 
 export function firstApplyUrlFromPostBody(bodyText: string): string | null {
-  const urls: string[] = [];
-  const re = /https?:\/\/[^\s<>"')}\]]+/gi;
-  for (const match of bodyText.matchAll(re)) {
-    let u = match[0].replace(/[.,;:!?)]+$/, "");
-    if (
-      u.includes("t.me/") ||
-      u.includes("twitter.com") ||
-      u.includes("x.com/status")
-    ) {
-      continue;
-    }
-    urls.push(u);
-  }
-  const preferred = urls.find(
-    (u) =>
-      /jobvite|smartrecruiters|ashby|lever|greenhouse|workday|\/careers\//i.test(
-        u,
-      ),
-  );
-  return preferred ?? urls[0] ?? null;
+  const { resolveApplyUrlFromPostBody } =
+    require("@/lib/growth/x-apply-urls") as typeof import("@/lib/growth/x-apply-urls");
+  return resolveApplyUrlFromPostBody(bodyText);
 }
 
 export const jobApplicationChannels = ["x_reply", "ats", "manual"] as const;
