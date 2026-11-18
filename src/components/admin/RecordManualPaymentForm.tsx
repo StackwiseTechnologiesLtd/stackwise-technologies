@@ -106,7 +106,7 @@ export function RecordManualPaymentForm({ link }: { link: PaymentLink }) {
               required
               value={amountReceivedUsd}
               onChange={(e) => setAmountReceivedUsd(e.target.value)}
-              className="w-full rounded-lg border border-line bg-background px-3 py-2 text-sm tabular-nums"
+              className={`${ADMIN_INPUT} text-sm tabular-nums"
             />
             <span className="text-xs text-muted">
               Invoiced: ${link.amountUsd.toFixed(2)}
@@ -123,7 +123,7 @@ export function RecordManualPaymentForm({ link }: { link: PaymentLink }) {
               required
               value={amountReceivedLocal}
               onChange={(e) => setAmountReceivedLocal(e.target.value)}
-              className="w-full rounded-lg border border-line bg-background px-3 py-2 text-sm tabular-nums"
+              className={`${ADMIN_INPUT} text-sm tabular-nums"
             />
             <span className="text-xs text-muted">
               Invoiced: {formatMoney(link.amountLocal, link.currency)}
@@ -138,7 +138,7 @@ export function RecordManualPaymentForm({ link }: { link: PaymentLink }) {
             required
             value={collectedAt}
             onChange={(e) => setCollectedAt(e.target.value)}
-            className="w-full rounded-lg border border-line bg-background px-3 py-2 text-sm"
+            className={`${ADMIN_INPUT} text-sm"
           />
         </label>
 
@@ -151,7 +151,7 @@ export function RecordManualPaymentForm({ link }: { link: PaymentLink }) {
             pattern="[A-Za-z0-9]{1,64}"
             title="Alphanumeric only, up to 64 characters"
             placeholder="TXN8F2K9A1"
-            className="w-full rounded-lg border border-line bg-background px-3 py-2 font-mono text-sm"
+            className={`${ADMIN_INPUT} font-mono text-sm"
           />
         </label>
 
@@ -162,7 +162,7 @@ export function RecordManualPaymentForm({ link }: { link: PaymentLink }) {
             onChange={(e) => setPaymentNotes(e.target.value)}
             rows={3}
             placeholder="Bank name, MoMo sender name, wire memo, etc."
-            className="w-full rounded-lg border border-line bg-background px-3 py-2 text-sm"
+            className={`${ADMIN_INPUT} text-sm"
           />
         </label>
 

@@ -148,7 +148,7 @@ npm run db:migrate
 npm run db:migrate:prod
 ```
 
-The app also runs `ensureSchema()` on first DB access, which applies any pending migration files automatically.
+In **development**, `ensureSchema()` on first DB access applies embedded idempotent DDL unless `stackwise_schema_migrations` already has every file recorded (after `npm run db:migrate`). In **production**, schema changes are applied only via `npm run db:migrate:prod` (or set `RUNTIME_SCHEMA_MIGRATIONS=1` explicitly). Optional: `RUNTIME_SCHEMA_MIGRATIONS=0` in `.env.local` to skip runtime DDL entirely when you always use `db:migrate`.
 
 ### Deploy to production
 

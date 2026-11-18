@@ -1,3 +1,4 @@
+import { MIGRATION_SQL_FILE_COUNT } from "@/lib/db/migration-file-count";
 import { MIGRATION_STATEMENTS } from "@/lib/db/migration-statements";
 import { getSql, isDatabaseConfigured } from "@/lib/db/postgres";
 
@@ -21,6 +22,18 @@ export async function ensureSchema(): Promise<void> {
 
   schemaPromise = (async () => {
     const sql = getSql();
+    try {
+      const rows = await sql`
+        SELECT COUNT(*)::int AS n FROM stackwise_schema_migrations
+      `;
+      const recorded = rows[0]?.n ?? 0;
+      if (recorded >= MIGRATION_SQL_FILE_COUNT) {
+        schemaReady = true;
+        return;
+      }
+    } catch {
+      /* history table missing — apply embedded DDL below */
+    }
     for (const statement of MIGRATION_STATEMENTS) {
       await sql.query(statement);
     }

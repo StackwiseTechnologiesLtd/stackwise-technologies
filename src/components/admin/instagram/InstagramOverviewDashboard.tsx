@@ -15,8 +15,11 @@ import type {
   InstagramOpsStatus,
   InstagramSendTrendDay,
 } from "@/lib/instagram/types";
-import { ADMIN_BTN_PRIMARY, ADMIN_BTN_SECONDARY } from "@/lib/ui/admin";
-import { BTN_GHOST } from "@/lib/ui/buttons";
+import {
+  ADMIN_BTN_GHOST,
+  ADMIN_BTN_PRIMARY,
+  ADMIN_BTN_SECONDARY,
+} from "@/lib/ui/admin";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 import Link from "next/link";
 import { useCallback, useMemo, useState, type ReactNode } from "react";
@@ -318,7 +321,7 @@ export function InstagramOverviewDashboard() {
             New campaign
           </Link>
           <AdminActionButton
-            className={BTN_GHOST + " text-sm"}
+            className={`text-sm ${ADMIN_BTN_GHOST}`}
             busy={loading}
             busyLabel="…"
             onClick={() => void load()}

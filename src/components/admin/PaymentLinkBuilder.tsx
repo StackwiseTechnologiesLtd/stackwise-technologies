@@ -5,8 +5,13 @@ import { useRouter } from "next/navigation";
 import { InvoiceView } from "@/components/payments/InvoiceView";
 import { useToast } from "@/components/ToastProvider";
 import { StackwiseSelect } from "@/components/stackwise";
-import { ADMIN_BTN_PRIMARY, ADMIN_BTN_SECONDARY } from "@/lib/ui/admin";
-import { BTN_GHOST, BTN_PRESS } from "@/lib/ui/buttons";
+import {
+  ADMIN_BTN_GHOST,
+  ADMIN_BTN_PRIMARY,
+  ADMIN_BTN_SECONDARY,
+  ADMIN_INPUT,
+} from "@/lib/ui/admin";
+import { BTN_PRESS } from "@/lib/ui/buttons";
 import { formatMoney } from "@/lib/currency";
 import { KPAY_CARD_MAX_USD } from "@/lib/kpay/buildGatewayInit";
 import { SERVICES_CATALOG } from "@/lib/services-catalog";
@@ -268,7 +273,7 @@ export function PaymentLinkBuilder({
               <input
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
-                className="w-full rounded-lg border border-line bg-background px-3 py-2"
+                className={ADMIN_INPUT}
                 placeholder="Jane Client"
               />
             </label>
@@ -278,7 +283,7 @@ export function PaymentLinkBuilder({
                 type="email"
                 value={customerEmail}
                 onChange={(e) => setCustomerEmail(e.target.value)}
-                className="w-full rounded-lg border border-line bg-background px-3 py-2"
+                className={ADMIN_INPUT}
                 placeholder="client@company.com"
               />
             </label>
@@ -399,7 +404,7 @@ export function PaymentLinkBuilder({
                     <button
                       type="button"
                       onClick={() => removeItem(item.key)}
-                      className={`self-end text-sm text-muted hover:text-accent ${BTN_GHOST}`}
+                      className={`self-end ${ADMIN_BTN_GHOST}`}
                     >
                       Remove
                     </button>

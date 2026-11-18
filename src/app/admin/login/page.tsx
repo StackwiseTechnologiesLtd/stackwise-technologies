@@ -6,8 +6,7 @@ import { OtpInput } from "@/components/admin/OtpInput";
 import Mark from "@/components/Mark";
 import { useToast } from "@/components/ToastProvider";
 import { SITE_NAME } from "@/lib/content";
-import { ADMIN_BTN_PRIMARY, ADMIN_INPUT } from "@/lib/ui/admin";
-import { BTN_GHOST } from "@/lib/ui/buttons";
+import { ADMIN_BTN_GHOST, ADMIN_BTN_PRIMARY, ADMIN_INPUT } from "@/lib/ui/admin";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -142,7 +141,7 @@ export default function AdminLoginPage() {
                 setStep("email");
                 setOtp("");
               }}
-              className={`w-full ${BTN_GHOST}`}
+              className={`w-full ${ADMIN_BTN_GHOST}`}
             >
               Use a different email
             </button>

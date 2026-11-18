@@ -175,7 +175,7 @@ export function ContractReviewPanel({
                 Fixed A4 (210×297mm) · 12pt · scroll sideways if needed.
               </p>
             </div>
-            <PrintButton />
+            <PrintButton admin />
           </div>
           <DocumentA4Preview>
             <ContractDocumentView

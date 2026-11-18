@@ -1,7 +1,7 @@
 "use client";
 
 import { AdminActionButton } from "@/components/admin/AdminActionButton";
-import { BTN_GHOST } from "@/lib/ui/buttons";
+import { ADMIN_BTN_GHOST } from "@/lib/ui/admin";
 import { useEffect, type ReactNode } from "react";
 
 export function AdminConfirmDialog({
@@ -69,7 +69,7 @@ export function AdminConfirmDialog({
         <div className="mt-6 flex flex-wrap justify-end gap-2">
           <button
             type="button"
-            className={BTN_GHOST}
+            className={ADMIN_BTN_GHOST}
             disabled={busy}
             onClick={onClose}
           >

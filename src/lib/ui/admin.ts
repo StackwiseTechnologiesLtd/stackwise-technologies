@@ -14,7 +14,10 @@ export const ADMIN_NAV_LINK =
 export const ADMIN_INPUT =
   "w-full rounded-md border border-[var(--admin-border)] bg-[var(--admin-canvas)] px-3 py-2 text-sm text-foreground placeholder:text-muted/70 outline-none focus:border-[var(--admin-focus)] focus:ring-1 focus:ring-[var(--admin-focus)]";
 
+/** @deprecated Use `StackwiseSelect` from `@/components/stackwise`. */
 export const ADMIN_SELECT = `${ADMIN_INPUT} appearance-none`;
+
+export const ADMIN_BTN_GHOST = `${BTN_PRESS} inline-flex min-h-8 items-center justify-center rounded-md px-3 py-1.5 text-sm font-medium text-muted transition-colors hover:bg-[var(--admin-surface-hover)] hover:text-foreground`;
 
 export const ADMIN_TABLE_WRAP =
   "overflow-hidden rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)]";
