@@ -1,0 +1,415 @@
+/* Shared Stackwise calendar (studio + scrapbook). Used by content calendar and date picker. */
+
+.sw-cal {
+  --sw-cal-divider: var(--admin-border);
+  --sw-cal-surface: var(--admin-surface);
+  --sw-cal-sunken: color-mix(in srgb, var(--admin-canvas) 88%, transparent);
+  --sw-cal-scrap-paper: color-mix(in srgb, var(--admin-surface) 92%, #fff8f0 8%);
+}
+
+.sw-cal-h {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  border-bottom: 1px solid var(--sw-cal-divider);
+  background: var(--admin-canvas);
+}
+
+.sw-cal-h div {
+  padding: 0.5rem 0.65rem;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.sw-cal--scrapbook .sw-cal-h div {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: color-mix(in srgb, var(--muted) 85%, var(--foreground));
+}
+
+.sw-cal-g {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  flex: 1;
+}
+
+.sw-cal-day {
+  border-right: 1px solid var(--sw-cal-divider);
+  border-bottom: 1px solid var(--sw-cal-divider);
+  padding: 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+  position: relative;
+  min-height: 7.5rem;
+  background: var(--sw-cal-surface);
+  transition: background 0.15s ease;
+}
+
+.sw-cal--scrapbook .sw-cal-g .sw-cal-day {
+  border-right-color: transparent;
+  border-bottom-color: color-mix(in srgb, var(--sw-cal-divider) 70%, transparent);
+  min-height: 8.75rem;
+  padding: 0.5rem 0.35rem 0.35rem;
+  background: var(--sw-cal-scrap-paper);
+}
+
+.sw-cal-day:nth-child(7n) {
+  border-right: 0;
+}
+
+.sw-cal-day.out {
+  background: var(--sw-cal-sunken);
+}
+
+.sw-cal--scrapbook .sw-cal-day.out {
+  background: color-mix(in srgb, var(--admin-canvas) 92%, transparent);
+}
+
+.sw-cal-day.drop-target {
+  background: color-mix(in srgb, var(--accent) 10%, var(--sw-cal-surface));
+  outline: 1px dashed color-mix(in srgb, var(--accent) 45%, transparent);
+  outline-offset: -2px;
+}
+
+.sw-cal--scrapbook .sw-cal-day.drop-target {
+  background: color-mix(in srgb, var(--accent) 14%, var(--sw-cal-scrap-paper));
+}
+
+.sw-cal-day.selected {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  z-index: 1;
+}
+
+.sw-cal-day .dn {
+  font-size: 11px;
+  font-weight: 600;
+  width: 1.4rem;
+  height: 1.4rem;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  font-variant-numeric: tabular-nums;
+  color: var(--foreground);
+  flex-shrink: 0;
+}
+
+.sw-cal--scrapbook .sw-cal-day .dn {
+  width: auto;
+  height: auto;
+  font-size: 1.35rem;
+  font-weight: 700;
+  font-family: var(--font-serif, Georgia, "Times New Roman", serif);
+  line-height: 1;
+  border-radius: 0;
+  padding: 0 0.15rem;
+  color: color-mix(in srgb, var(--foreground) 88%, var(--accent));
+}
+
+.sw-cal-day.today .dn {
+  background: var(--accent);
+  color: white;
+}
+
+.sw-cal--scrapbook .sw-cal-day.today .dn {
+  background: transparent;
+  color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 70%, transparent);
+  border-radius: 999px;
+  width: 1.75rem;
+  height: 1.75rem;
+  display: grid;
+  place-items: center;
+}
+
+.sw-cal-day-add {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 0.35rem;
+  font-size: 14px;
+  line-height: 1;
+  opacity: 0;
+  color: var(--muted);
+  background: var(--admin-nav-hover);
+  border: 1px solid var(--admin-border);
+}
+
+.sw-cal-day:hover .sw-cal-day-add {
+  opacity: 1;
+}
+
+.sw-cal-day-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+.sw-cal--scrapbook .sw-cal-day-body {
+  gap: 0.35rem;
+  padding-top: 0.15rem;
+}
+
+/* Studio chips */
+.sw-cal-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 1.35rem;
+  padding: 0 0.4rem;
+  border-radius: 0.35rem;
+  font-size: 11px;
+  background: color-mix(in srgb, var(--post-accent, var(--accent)) 11%, var(--sw-cal-surface));
+  border: 1px solid color-mix(in srgb, var(--post-accent, var(--accent)) 22%, transparent);
+  color: var(--foreground);
+  text-align: left;
+  width: 100%;
+  min-width: 0;
+}
+
+.sw-cal-chip[draggable="true"] {
+  cursor: grab;
+}
+
+.sw-cal-chip.dragging {
+  opacity: 0.45;
+}
+
+.sw-cal-chip.draft {
+  border-style: dashed;
+}
+
+.sw-cal-chip-thumb {
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 0.2rem;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+/* Scrapbook polaroid */
+.sw-cal-polaroid {
+  position: relative;
+  width: min(100%, 5.25rem);
+  margin: 0 auto;
+  padding: 0.28rem 0.28rem 0.55rem;
+  background: #fff;
+  border: none;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.08),
+    0 6px 16px rgba(0, 0, 0, 0.12);
+  text-align: center;
+  cursor: pointer;
+  transform: rotate(var(--polaroid-tilt, 3deg));
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.sw-cal-polaroid::before {
+  content: "";
+  position: absolute;
+  top: -0.35rem;
+  left: 50%;
+  translate: -50% 0;
+  width: 1.75rem;
+  height: 0.55rem;
+  background: color-mix(in srgb, #f5e6c8 80%, #fff 20%);
+  opacity: 0.85;
+  border-radius: 1px;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+  transform: rotate(-2deg);
+}
+
+.sw-cal-polaroid:hover {
+  transform: rotate(0deg) scale(1.03);
+  z-index: 3;
+}
+
+.sw-cal-polaroid.dragging {
+  opacity: 0.45;
+  cursor: grabbing;
+}
+
+.sw-cal-polaroid[draggable="true"] {
+  cursor: grab;
+}
+
+.sw-cal-polaroid img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  display: block;
+  background: #f1f5f9;
+}
+
+.sw-cal-polaroid-cap {
+  display: block;
+  margin-top: 0.35rem;
+  padding: 0 0.15rem;
+  font-size: 0.55rem;
+  line-height: 1.25;
+  color: #334155;
+  font-family: var(--font-serif, Georgia, "Times New Roman", serif);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Scrapbook sticky note (text-only posts) */
+.sw-cal-scrap-note {
+  width: 100%;
+  padding: 0.35rem 0.4rem;
+  border-radius: 2px 2px 4px 3px;
+  background: color-mix(in srgb, var(--post-accent, #fde68a) 35%, #fff9c4 65%);
+  border: 1px solid color-mix(in srgb, var(--post-accent, #eab308) 25%, transparent);
+  box-shadow: 1px 2px 0 color-mix(in srgb, #000 8%, transparent);
+  font-family: "Bradley Hand", "Segoe Print", "Comic Sans MS", cursive;
+  font-size: 10px;
+  line-height: 1.25;
+  color: #1e293b;
+  text-align: left;
+  transform: rotate(var(--note-tilt, -1deg));
+  cursor: pointer;
+  min-height: 2.25rem;
+}
+
+.sw-cal-scrap-note-time {
+  display: block;
+  font-size: 9px;
+  opacity: 0.65;
+  font-family: var(--font-sans, system-ui);
+}
+
+/* Week view */
+.sw-cal-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  flex: 1;
+  min-height: 20rem;
+}
+
+.sw-cal-wcol {
+  border-right: 1px solid var(--sw-cal-divider);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--sw-cal-surface);
+}
+
+.sw-cal-wcol:last-child {
+  border-right: 0;
+}
+
+.sw-cal-wcol-h {
+  padding: 0.65rem;
+  border-bottom: 1px solid var(--sw-cal-divider);
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  background: var(--admin-canvas);
+}
+
+.sw-cal-wcol-h .n {
+  font-size: 1.15rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.sw-cal-wcol-h.today .n {
+  color: var(--accent);
+}
+
+.sw-cal-wcol-h .sw-cal-day-add {
+  position: static;
+  opacity: 1;
+  flex-shrink: 0;
+}
+
+.sw-cal-wcol-b {
+  flex: 1;
+  padding: 0.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  overflow-y: auto;
+}
+
+.sw-cal-wcol-b.drop-target {
+  background: color-mix(in srgb, var(--accent) 8%, var(--sw-cal-surface));
+  outline: 1px dashed color-mix(in srgb, var(--accent) 40%, transparent);
+  outline-offset: -2px;
+}
+
+.sw-cal--scrapbook .sw-cal-wcol {
+  background: var(--sw-cal-scrap-paper);
+}
+
+.sw-cal--scrapbook .sw-cal-wcol-h {
+  background: color-mix(in srgb, var(--admin-canvas) 92%, var(--sw-cal-scrap-paper) 8%);
+}
+
+.sw-cal--scrapbook .sw-cal-wcol-b {
+  gap: 0.5rem;
+}
+
+/* Date picker shell */
+.sw-cal-picker-pop {
+  position: absolute;
+  z-index: 50;
+  margin-top: 0.35rem;
+  width: min(100%, 22.5rem);
+  overflow: hidden;
+  border-radius: 0.75rem;
+  border: 1px solid var(--admin-border);
+  background: var(--admin-surface);
+  box-shadow: var(--admin-panel-inset), 0 12px 40px rgba(0, 0, 0, 0.25);
+}
+
+.sw-cal-picker-head {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.65rem;
+  border-bottom: 1px solid var(--admin-border);
+  background: var(--admin-canvas);
+}
+
+.sw-cal-picker-head .sw-cal-nav-btn {
+  min-width: 2rem;
+  min-height: 2rem;
+}
+
+.sw-cal-nav-btn {
+  min-width: 2rem;
+  min-height: 2rem;
+  padding: 0.15rem 0.5rem;
+  font-size: 1rem;
+  line-height: 1;
+  background: var(--admin-surface);
+  color: var(--foreground);
+}
+
+.sw-cal-nav-btn:hover {
+  background: var(--admin-nav-hover);
+}
+
+.sw-cal-picker-label {
+  flex: 1;
+  text-align: center;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.sw-cal-picker-trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
