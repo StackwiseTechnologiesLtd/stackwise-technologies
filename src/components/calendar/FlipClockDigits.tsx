@@ -1,6 +1,32 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+
+const TOP_FLIP_MS = 360;
+const BOTTOM_FLIP_MS = 360;
+
+type FlipPhase = "idle" | "top-out" | "bottom-in";
+
+type DisplayState = {
+  shown: string;
+  phase: FlipPhase;
+  from: string;
+  to: string;
+};
+
+function subscribeReducedMotion(cb: () => void) {
+  const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+  mq.addEventListener("change", cb);
+  return () => mq.removeEventListener("change", cb);
+}
+
+function getReducedMotion() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function idleState(value: string): DisplayState {
+  return { shown: value, phase: "idle", from: value, to: value };
+}
 
 export function FlipClockDigits({
   value,
@@ -14,53 +40,111 @@ export function FlipClockDigits({
   period?: "AM" | "PM";
 }) {
   const text = String(value).padStart(pad, "0");
-  const prev = useRef(text);
-  const [animFrom, setAnimFrom] = useState<string | null>(null);
+  const reduceMotion = useSyncExternalStore(subscribeReducedMotion, getReducedMotion, () => false);
+
+  const [display, setDisplay] = useState<DisplayState>(() => idleState(text));
+  const machine = useRef({ shown: text, busy: false, target: text });
+  const timers = useRef<number[]>([]);
 
   useEffect(() => {
-    if (text === prev.current) return;
-    const from = prev.current;
-    prev.current = text;
-    setAnimFrom(from);
-    const t = window.setTimeout(() => setAnimFrom(null), 280);
-    return () => window.clearTimeout(t);
-  }, [text]);
+    machine.current.target = text;
+
+    const clearTimers = () => {
+      for (const id of timers.current) window.clearTimeout(id);
+      timers.current = [];
+    };
+
+    if (reduceMotion) {
+      clearTimers();
+      machine.current = { shown: text, busy: false, target: text };
+      return;
+    }
+
+    const finishOrChain = (latest: string) => {
+      machine.current.shown = latest;
+      machine.current.busy = false;
+      const pending = machine.current.target;
+      if (pending !== latest) {
+        startFlip(latest, pending);
+      } else {
+        setDisplay(idleState(latest));
+      }
+    };
+
+    const startFlip = (from: string, to: string) => {
+      if (from === to) {
+        setDisplay(idleState(to));
+        machine.current.shown = to;
+        machine.current.busy = false;
+        return;
+      }
+      clearTimers();
+      machine.current.busy = true;
+      setDisplay({ shown: from, phase: "top-out", from, to });
+
+      const t1 = window.setTimeout(() => {
+        machine.current.shown = to;
+        setDisplay((prev) => ({ ...prev, shown: to, phase: "bottom-in" }));
+      }, TOP_FLIP_MS);
+      timers.current.push(t1);
+
+      const t2 = window.setTimeout(() => finishOrChain(to), TOP_FLIP_MS + BOTTOM_FLIP_MS);
+      timers.current.push(t2);
+    };
+
+    if (text === machine.current.shown && !machine.current.busy) {
+      return clearTimers;
+    }
+
+    if (machine.current.busy) {
+      return clearTimers;
+    }
+
+    const frame = requestAnimationFrame(() => startFlip(machine.current.shown, text));
+
+    return () => {
+      cancelAnimationFrame(frame);
+      clearTimers();
+    };
+  }, [text, reduceMotion]);
+
+  const { shown, phase, from, to } = reduceMotion ? idleState(text) : display;
+  const topDigit = phase === "idle" ? shown : to;
+  const bottomDigit = phase === "idle" ? shown : from;
 
   return (
     <div className={`sw-flip-unit ${className}`.trim()}>
-      <Card period={period} text={text} animFrom={animFrom} />
-    </div>
-  );
-}
+      <div
+        className={`sw-flip-card ${period ? "sw-flip-card--period" : ""} ${phase !== "idle" ? "sw-flip-card--animating" : ""}`}
+      >
+        <span className="sr-only">{text}</span>
 
-function Card({
-  text,
-  period,
-  animFrom,
-}: {
-  text: string;
-  period?: "AM" | "PM";
-  animFrom: string | null;
-}) {
-  return (
-    <div className={`sw-flip-card ${period ? "sw-flip-card--period" : ""}`}>
-      <span className="sr-only">{text}</span>
-      <div className="sw-flip-top">
-        <span className="sw-flip-digit" aria-hidden>
-          {text}
-        </span>
-        {animFrom ? (
-          <div className="sw-flip-leaf" aria-hidden>
-            <span className="sw-flip-digit">{animFrom}</span>
+        <div className="sw-flip-static sw-flip-static-top">
+          <span className="sw-flip-digit" aria-hidden>
+            {topDigit}
+          </span>
+        </div>
+
+        <div className="sw-flip-static sw-flip-static-bottom">
+          <span className="sw-flip-digit" aria-hidden>
+            {bottomDigit}
+          </span>
+          {period ? <span className="sw-flip-period">{period}</span> : null}
+        </div>
+
+        {phase === "top-out" ? (
+          <div className="sw-flip-leaf-top" aria-hidden>
+            <span className="sw-flip-digit">{from}</span>
           </div>
         ) : null}
-      </div>
-      <div className="sw-flip-divider" aria-hidden />
-      <div className="sw-flip-bottom">
-        <span className="sw-flip-digit" aria-hidden>
-          {text}
-        </span>
-        {period ? <span className="sw-flip-period">{period}</span> : null}
+
+        {phase === "bottom-in" ? (
+          <div className="sw-flip-leaf-bottom" aria-hidden>
+            <span className="sw-flip-digit">{to}</span>
+          </div>
+        ) : null}
+
+        <div className="sw-flip-divider" aria-hidden />
       </div>
     </div>
   );
