@@ -4,7 +4,7 @@ import { useCallback, useState } from "react";
 import Link from "next/link";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 import type { BrandAssetStorage, BrandGuidelines } from "@/lib/branding/types";
-import { BTN_PRIMARY } from "@/lib/ui/buttons";
+import { ADMIN_BTN_PRIMARY } from "@/lib/ui/admin";
 import { useToast } from "@/components/ToastProvider";
 
 type AssetSlot = {
@@ -131,7 +131,7 @@ export function BrandGuidelinesAdminEditor({ slug }: EditorProps) {
         </label>
         <button
           type="button"
-          className={BTN_PRIMARY}
+          className={ADMIN_BTN_PRIMARY}
           disabled={saving}
           onClick={() => void saveConfig()}
         >

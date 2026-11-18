@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { InvoiceView } from "@/components/payments/InvoiceView";
 import { useToast } from "@/components/ToastProvider";
 import { StackwiseSelect } from "@/components/stackwise";
-import { ADMIN_BTN_PRIMARY } from "@/lib/ui/admin";
-import { BTN_GHOST, BTN_PRESS, BTN_SECONDARY } from "@/lib/ui/buttons";
+import { ADMIN_BTN_PRIMARY, ADMIN_BTN_SECONDARY } from "@/lib/ui/admin";
+import { BTN_GHOST, BTN_PRESS } from "@/lib/ui/buttons";
 import { formatMoney } from "@/lib/currency";
 import { KPAY_CARD_MAX_USD } from "@/lib/kpay/buildGatewayInit";
 import { SERVICES_CATALOG } from "@/lib/services-catalog";
@@ -470,7 +470,7 @@ export function PaymentLinkBuilder({
               type="button"
               disabled={loading || items.length === 0}
               onClick={() => submit(true)}
-              className={BTN_SECONDARY}
+              className={ADMIN_BTN_SECONDARY}
             >
               Save as draft
             </button>

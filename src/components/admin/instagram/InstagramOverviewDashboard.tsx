@@ -15,7 +15,8 @@ import type {
   InstagramOpsStatus,
   InstagramSendTrendDay,
 } from "@/lib/instagram/types";
-import { BTN_GHOST, BTN_PRIMARY, BTN_SECONDARY } from "@/lib/ui/buttons";
+import { ADMIN_BTN_PRIMARY, ADMIN_BTN_SECONDARY } from "@/lib/ui/admin";
+import { BTN_GHOST } from "@/lib/ui/buttons";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 import Link from "next/link";
 import { useCallback, useMemo, useState, type ReactNode } from "react";
@@ -306,14 +307,14 @@ export function InstagramOverviewDashboard() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {data?.access.canManageMetaApps ? (
-            <Link href="/admin/instagram/connection" className={BTN_SECONDARY + " text-sm"}>
+            <Link href="/admin/instagram/connection" className={`text-sm ${ADMIN_BTN_SECONDARY}`}>
               Connection
             </Link>
           ) : null}
-          <Link href="/admin/instagram/inbox" className={BTN_SECONDARY + " text-sm"}>
+          <Link href="/admin/instagram/inbox" className={`text-sm ${ADMIN_BTN_SECONDARY}`}>
             Inbox
           </Link>
-          <Link href="/admin/instagram/campaigns" className={BTN_PRIMARY + " text-sm"}>
+          <Link href="/admin/instagram/campaigns" className={`text-sm ${ADMIN_BTN_PRIMARY}`}>
             New campaign
           </Link>
           <AdminActionButton

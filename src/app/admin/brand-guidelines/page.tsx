@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useState } from "react";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
-import { BTN_PRIMARY } from "@/lib/ui/buttons";
+import { ADMIN_BTN_PRIMARY } from "@/lib/ui/admin";
 import { useToast } from "@/components/ToastProvider";
 
 type BrandRow = {
@@ -128,7 +128,7 @@ export default function AdminBrandGuidelinesPage() {
             required
           />
         </label>
-        <button type="submit" className={BTN_PRIMARY} disabled={creating}>
+        <button type="submit" className={ADMIN_BTN_PRIMARY} disabled={creating}>
           {creating ? "Creating…" : "Create from template"}
         </button>
       </form>

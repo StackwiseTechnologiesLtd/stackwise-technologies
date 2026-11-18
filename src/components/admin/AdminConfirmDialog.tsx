@@ -1,7 +1,7 @@
 "use client";
 
 import { AdminActionButton } from "@/components/admin/AdminActionButton";
-import { BTN_GHOST, BTN_PRIMARY } from "@/lib/ui/buttons";
+import { BTN_GHOST } from "@/lib/ui/buttons";
 import { useEffect, type ReactNode } from "react";
 
 export function AdminConfirmDialog({
@@ -76,11 +76,10 @@ export function AdminConfirmDialog({
             {cancelLabel}
           </button>
           <AdminActionButton
+            variant="primary"
             busy={busy}
             className={
-              destructive
-                ? BTN_PRIMARY + " bg-red-600 hover:bg-red-500"
-                : BTN_PRIMARY
+              destructive ? "border-red-600 bg-red-600 hover:bg-red-500" : ""
             }
             onClick={onConfirm}
           >

@@ -6,7 +6,8 @@ import { OtpInput } from "@/components/admin/OtpInput";
 import Mark from "@/components/Mark";
 import { useToast } from "@/components/ToastProvider";
 import { SITE_NAME } from "@/lib/content";
-import { BTN_GHOST, BTN_PRIMARY } from "@/lib/ui/buttons";
+import { ADMIN_BTN_PRIMARY, ADMIN_INPUT } from "@/lib/ui/admin";
+import { BTN_GHOST } from "@/lib/ui/buttons";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -95,14 +96,14 @@ export default function AdminLoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full rounded-lg border border-line bg-background px-3 py-2"
+                className={ADMIN_INPUT}
                 placeholder="you@stackwisetechnologies.com"
               />
             </label>
             <button
               type="submit"
               disabled={loading}
-              className={`w-full py-2.5 ${BTN_PRIMARY}`}
+              className={`w-full ${ADMIN_BTN_PRIMARY}`}
             >
               {loading ? "Sending code…" : "Send verification code"}
             </button>
@@ -131,7 +132,7 @@ export default function AdminLoginPage() {
             <button
               type="submit"
               disabled={loading || otp.length !== 6}
-              className={`w-full py-2.5 ${BTN_PRIMARY}`}
+              className={`w-full ${ADMIN_BTN_PRIMARY}`}
             >
               {loading ? "Verifying…" : "Sign in"}
             </button>

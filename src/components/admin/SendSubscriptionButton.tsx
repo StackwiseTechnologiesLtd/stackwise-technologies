@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useToast } from "@/components/ToastProvider";
-import { BTN_SECONDARY } from "@/lib/ui/buttons";
+import { ADMIN_BTN_SECONDARY } from "@/lib/ui/admin";
 
 export function SendSubscriptionButton({ id }: { id: string }) {
   const router = useRouter();
@@ -28,7 +28,7 @@ export function SendSubscriptionButton({ id }: { id: string }) {
   }
 
   return (
-    <button type="button" onClick={send} disabled={loading} className={BTN_SECONDARY}>
+    <button type="button" onClick={send} disabled={loading} className={ADMIN_BTN_SECONDARY}>
       {loading ? "Sending…" : "Email subscription link"}
     </button>
   );

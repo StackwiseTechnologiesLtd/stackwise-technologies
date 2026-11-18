@@ -6,7 +6,7 @@ import type {
   InstagramConversation,
   InstagramInboxMessage,
 } from "@/lib/instagram/types";
-import { BTN_PRIMARY } from "@/lib/ui/buttons";
+import { ADMIN_BTN_PRIMARY } from "@/lib/ui/admin";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
@@ -288,7 +288,7 @@ export function InstagramInboxPanel() {
                 <button
                   type="submit"
                   disabled={sending || !compose.trim()}
-                  className={`self-end px-4 py-2 ${BTN_PRIMARY}`}
+                  className={`self-end ${ADMIN_BTN_PRIMARY}`}
                 >
                   {sending ? "Sending…" : "Send"}
                 </button>

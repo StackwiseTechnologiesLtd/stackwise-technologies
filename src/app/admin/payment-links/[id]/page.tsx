@@ -17,7 +17,7 @@ import {
   PAYMENT_METHODS_OPTIONS,
   paymentMethodOptionDescription,
 } from "@/lib/payments/payment-methods";
-import { BTN_SECONDARY } from "@/lib/ui/buttons";
+import { ADMIN_BTN_SECONDARY } from "@/lib/ui/admin";
 
 function siteUrl() {
   return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
@@ -60,7 +60,7 @@ export default async function PaymentLinkDetailPage({
             <>
               <Link
                 href={`/pay/${link.slug}/receipt`}
-                className={`text-sm ${BTN_SECONDARY}`}
+                className={`text-sm ${ADMIN_BTN_SECONDARY}`}
               >
                 View receipt
               </Link>

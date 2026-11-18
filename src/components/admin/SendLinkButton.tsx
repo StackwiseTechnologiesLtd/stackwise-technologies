@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ToastProvider";
-import { BTN_SECONDARY } from "@/lib/ui/buttons";
+import { ADMIN_BTN_SECONDARY } from "@/lib/ui/admin";
 
 export function SendLinkButton({ id }: { id: string }) {
   const router = useRouter();
@@ -32,7 +32,7 @@ export function SendLinkButton({ id }: { id: string }) {
       type="button"
       onClick={send}
       disabled={loading}
-      className={BTN_SECONDARY}
+      className={ADMIN_BTN_SECONDARY}
     >
       {loading ? "Sending…" : "Email payment link"}
     </button>

@@ -12,7 +12,7 @@ import {
   formatSubscriptionInterval,
   subscriptionAmountMajor,
 } from "@/lib/subscriptions/types";
-import { BTN_SECONDARY } from "@/lib/ui/buttons";
+import { ADMIN_BTN_SECONDARY } from "@/lib/ui/admin";
 
 function siteUrl() {
   return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
@@ -65,7 +65,7 @@ export default async function SubscriptionDetailPage({
           <a href={subscribeUrl} className="mt-1 block break-all text-accent hover:underline">
             {subscribeUrl}
           </a>
-          <a href={subscribeUrl} className={`mt-3 inline-block text-sm ${BTN_SECONDARY}`}>
+          <a href={subscribeUrl} className={`mt-3 inline-block text-sm ${ADMIN_BTN_SECONDARY}`}>
             Open subscribe page
           </a>
         </div>

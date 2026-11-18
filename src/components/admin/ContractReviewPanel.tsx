@@ -6,7 +6,7 @@ import { ContractMarkdownEditor } from "@/components/contracts/ContractMarkdownE
 import { useToast } from "@/components/ToastProvider";
 import type { ContractEngagement } from "@/lib/contracts/types";
 import { PrintButton } from "@/components/payments/PrintButton";
-import { BTN_PRIMARY, BTN_SECONDARY } from "@/lib/ui/buttons";
+import { ADMIN_BTN_PRIMARY, ADMIN_BTN_SECONDARY } from "@/lib/ui/admin";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -142,7 +142,7 @@ export function ContractReviewPanel({
                   type="button"
                   onClick={saveDraft}
                   disabled={saving}
-                  className={BTN_SECONDARY}
+                  className={ADMIN_BTN_SECONDARY}
                 >
                   {saving ? "Saving…" : "Save edits"}
                 </button>
@@ -150,7 +150,7 @@ export function ContractReviewPanel({
                   type="button"
                   onClick={regenerate}
                   disabled={regenerating}
-                  className={BTN_SECONDARY}
+                  className={ADMIN_BTN_SECONDARY}
                 >
                   {regenerating ? "Regenerating…" : "Regenerate with AI"}
                 </button>
@@ -158,7 +158,7 @@ export function ContractReviewPanel({
                   type="button"
                   onClick={approveAndSend}
                   disabled={sending || !bodyMarkdown.trim()}
-                  className={BTN_PRIMARY}
+                  className={ADMIN_BTN_PRIMARY}
                 >
                   {sending ? "Sending…" : "Approve & email client"}
                 </button>

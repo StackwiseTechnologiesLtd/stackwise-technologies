@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ToastProvider";
-import { BTN_SECONDARY } from "@/lib/ui/buttons";
+import { ADMIN_BTN_SECONDARY } from "@/lib/ui/admin";
 
 export function ResendReceiptButton({ id }: { id: string }) {
   const router = useRouter();
@@ -32,7 +32,7 @@ export function ResendReceiptButton({ id }: { id: string }) {
       type="button"
       onClick={resend}
       disabled={loading}
-      className={`text-sm ${BTN_SECONDARY}`}
+      className={`text-sm ${ADMIN_BTN_SECONDARY}`}
     >
       {loading ? "Sending…" : "Email receipt"}
     </button>

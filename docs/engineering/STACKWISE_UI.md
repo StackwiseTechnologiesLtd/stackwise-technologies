@@ -41,6 +41,10 @@ Styles: `stackwise-dropdown.css` (focus ring uses `--admin-focus`).
 
 See [CONTENT_CALENDAR.md](./CONTENT_CALENDAR.md#ui) for attachment list vs gallery rules.
 
+## Buttons
+
+Use `ADMIN_BTN_PRIMARY` / `ADMIN_BTN_SECONDARY` (or `AdminActionButton`) inside `/admin` — not `BTN_PRIMARY` from `@/lib/ui/buttons` (public/pay pages).
+
 ## Adding a new admin form field
 
 1. Pick the closest Stackwise component from the table above.
