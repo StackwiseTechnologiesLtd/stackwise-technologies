@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "db:migrate": "node scripts/migrate.mjs",
+    "content-calendar:seed": "node scripts/content-calendar-seed.mjs",
     "dev": "next dev",
     "build": "node scripts/next-production-build.mjs",
     "start": "next start",

@@ -20,8 +20,15 @@
   align-items: center;
   gap: 0.5rem;
   border-bottom: 1px solid var(--admin-border);
-  padding: 0.75rem 1rem;
+  padding: 0.5rem 1rem;
   background: var(--admin-canvas);
+}
+
+.content-cal-panel-head :is(.admin-btn-primary, .admin-btn-secondary) {
+  min-height: 2rem;
+  padding: 0.2rem 0.75rem;
+  font-size: 0.8125rem;
+  line-height: 1.25;
 }
 
 @media (min-width: 640px) {
@@ -51,9 +58,10 @@
 }
 
 .content-cal-nav-btn {
-  min-width: 2.25rem;
-  padding: 0.35rem 0.65rem;
-  font-size: 1.1rem;
+  min-width: 2rem;
+  min-height: 2rem;
+  padding: 0.15rem 0.5rem;
+  font-size: 1rem;
   line-height: 1;
   background: var(--admin-surface);
   color: var(--foreground);
@@ -64,7 +72,9 @@
 }
 
 .content-cal-seg button {
-  padding: 0.35rem 0.75rem;
+  min-height: 2rem;
+  padding: 0.15rem 0.6rem;
+  line-height: 1.25;
   background: var(--admin-surface);
   color: var(--muted);
 }

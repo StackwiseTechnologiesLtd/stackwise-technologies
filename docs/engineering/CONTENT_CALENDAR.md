@@ -23,4 +23,6 @@ Deploy as usual after migrate. Media uploads in production use R2; previews are 
 
 ## UI
 
-Month/week grid inspired by [gr8r-studio calendar](https://github.com/gr8rstudio/gr8r-studio) (`src/views/calendar.js`). **Studio** matches the admin shell; **Scrapbook** adds sky backdrop and polaroid thumbnails like the reference mood boards.
+Month/week grid inspired by [gr8r-studio calendar](https://github.com/gr8rstudio/gr8r-studio) (`src/views/calendar.js`). **Studio** matches the admin shell; **Scrapbook** adds a subtle accent wash, serif chips, and polaroid thumbnails (same dark admin palette).
+
+Demo data: `npm run content-calendar:seed` (prefix `[sample]`, safe to re-run).

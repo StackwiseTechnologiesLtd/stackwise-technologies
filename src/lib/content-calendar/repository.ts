@@ -1,5 +1,6 @@
 import { ensureSchema } from "@/lib/db/ensure-schema";
 import { asRows, getSql, isDatabaseConfigured } from "@/lib/db/postgres";
+import { isoDateLocal } from "@/lib/content-calendar/dates";
 import {
   buildR2Key,
   CONTENT_CALENDAR_MAX_BYTES,
@@ -24,7 +25,7 @@ async function ready() {
 type PostRow = {
   id: string;
   title: string;
-  scheduled_on: string;
+  scheduled_on: string | Date;
   scheduled_time: string | null;
   channel: string;
   status: string;
@@ -62,11 +63,16 @@ function parseStatus(v: string): ContentCalendarStatus {
   return "draft";
 }
 
+function formatScheduledOn(value: string | Date): string {
+  if (value instanceof Date) return isoDateLocal(value);
+  return String(value).slice(0, 10);
+}
+
 function mapPost(row: PostRow): ContentCalendarPost {
   return {
     id: row.id,
     title: row.title,
-    scheduledOn: row.scheduled_on.slice(0, 10),
+    scheduledOn: formatScheduledOn(row.scheduled_on),
     scheduledTime: row.scheduled_time,
     channel: parseChannel(row.channel),
     status: parseStatus(row.status),
