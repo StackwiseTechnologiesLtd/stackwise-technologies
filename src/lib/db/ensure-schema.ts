@@ -1,6 +1,6 @@
 import { MIGRATION_SQL_FILE_COUNT } from "@/lib/db/migration-file-count";
 import { MIGRATION_STATEMENTS } from "@/lib/db/migration-statements";
-import { getSql, isDatabaseConfigured } from "@/lib/db/postgres";
+import { asRows, getSql, isDatabaseConfigured } from "@/lib/db/postgres";
 
 let schemaReady = false;
 let schemaPromise: Promise<void> | null = null;
@@ -23,9 +23,9 @@ export async function ensureSchema(): Promise<void> {
   schemaPromise = (async () => {
     const sql = getSql();
     try {
-      const rows = await sql`
-        SELECT COUNT(*)::int AS n FROM stackwise_schema_migrations
-      `;
+      const rows = asRows<{ n: number }>(
+        await sql`SELECT COUNT(*)::int AS n FROM stackwise_schema_migrations`,
+      );
       const recorded = rows[0]?.n ?? 0;
       if (recorded >= MIGRATION_SQL_FILE_COUNT) {
         schemaReady = true;
