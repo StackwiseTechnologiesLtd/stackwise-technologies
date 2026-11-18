@@ -8,11 +8,6 @@ import { loadEnvLocal } from "./lib/load-env-local.mjs";
 
 loadEnvLocal();
 
-if (!process.env.NODE_ENV) {
-  process.env.NODE_ENV = "development";
-}
-process.env.GROWTH_HARVEST_JOB_MODE = "1";
-
 const HIRING_SEARCH_PHRASES = [
   "we're hiring",
   "we are hiring",

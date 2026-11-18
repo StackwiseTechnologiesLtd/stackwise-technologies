@@ -35,6 +35,7 @@ async function main() {
   const { addOpportunityActivity, updateOpportunityStage } = await import(
     "../src/lib/crm/repository"
   );
+  const { recordJobApplication } = await import("../src/lib/jobs/applications");
   const { buildPersonalizedApplyNote } = await import(
     "../src/lib/growth/personalized-apply-draft"
   );
@@ -47,6 +48,7 @@ async function main() {
 
   type Row = {
     opportunity_id: string;
+    growth_lead_id: string;
     opp_name: string;
     body_text: string;
     source_post_url: string | null;
@@ -54,7 +56,12 @@ async function main() {
 
   const rows = asRows<Row>(
     await sql`
-      SELECT o.id AS opportunity_id, o.name AS opp_name, s.body_text, s.source_url AS source_post_url
+      SELECT
+        o.id AS opportunity_id,
+        l.id AS growth_lead_id,
+        o.name AS opp_name,
+        s.body_text,
+        s.source_url AS source_post_url
       FROM crm_opportunities o
       JOIN growth_leads l ON l.id = o.growth_lead_id
       JOIN growth_signals s ON s.id = l.signal_id
@@ -117,6 +124,16 @@ async function main() {
             "  Prefilled visible fields (review tab, upload resume, submit manually if needed).",
           );
           await page.waitForTimeout(8000);
+          await recordJobApplication({
+            opportunityId: row.opportunity_id,
+            growthLeadId: row.growth_lead_id,
+            channel: "ats",
+            status: "partial",
+            employerLabel: row.opp_name,
+            sourcePostUrl: row.source_post_url,
+            applyUrl: url,
+            outcomeNotes: "Assisted prefill — confirm submit in browser",
+          });
           await addOpportunityActivity(row.opportunity_id, {
             activityType: "note",
             body: `Opened ATS apply page: ${url} (assisted prefill — confirm submit in browser).`,

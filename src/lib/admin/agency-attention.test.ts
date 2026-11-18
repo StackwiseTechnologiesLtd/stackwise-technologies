@@ -37,6 +37,16 @@ function minimalOverview(
     },
     integrations: { ingestSecretConfigured: true, services: [] },
     delivery: { dueSoon: [] },
+    jobApplications: {
+      stats: {
+        submittedLast7Days: 0,
+        submittedLast30Days: 0,
+        xReplyCount: 0,
+        atsCount: 0,
+        pendingResponse: 0,
+      },
+      recent: [],
+    },
     ...overrides,
   };
 }

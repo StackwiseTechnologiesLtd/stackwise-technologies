@@ -23,6 +23,12 @@ import type {
 } from "@/lib/instagram/types";
 import type { ContractStatus } from "@/lib/contracts/types";
 import type { PaymentLink } from "@/lib/payments/types";
+import {
+  getJobApplicationStats,
+  listJobApplications,
+  type JobApplication,
+  type JobApplicationStats,
+} from "@/lib/jobs/applications";
 
 export type AgencyCrmStageCount = {
   stage: PipelineStatus;
@@ -81,6 +87,10 @@ export type AgencyOverviewPayload = {
   delivery: {
     dueSoon: AgencyDueMilestone[];
   };
+  jobApplications: {
+    stats: JobApplicationStats;
+    recent: JobApplication[];
+  };
 };
 
 const ACTIVE_CRM_STAGES: PipelineStatus[] = pipelineStatuses.filter(
@@ -120,6 +130,8 @@ export async function getAgencyOverview(): Promise<AgencyOverviewPayload> {
     contracts,
     subscriptions,
     dueMilestones,
+    jobAppStats,
+    jobAppRecent,
   ] = await Promise.all([
     asRows<{ stage: string; count: number }>(
       await sql`
@@ -178,6 +190,8 @@ export async function getAgencyOverview(): Promise<AgencyOverviewPayload> {
     listContractEngagements(),
     listMaintenanceSubscriptions(),
     listDueMilestones({ withinDays: 14, limit: 8 }),
+    getJobApplicationStats(),
+    listJobApplications({ limit: 6 }),
   ]);
 
   const byStageMap = new Map(stageRows.map((r) => [r.stage, r.count]));
@@ -244,6 +258,10 @@ export async function getAgencyOverview(): Promise<AgencyOverviewPayload> {
     integrations,
     delivery: {
       dueSoon: dueMilestones,
+    },
+    jobApplications: {
+      stats: jobAppStats,
+      recent: jobAppRecent,
     },
   };
 }

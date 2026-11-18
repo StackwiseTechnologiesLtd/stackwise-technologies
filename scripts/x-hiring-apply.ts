@@ -38,8 +38,17 @@ async function main() {
   const { publishDraftReply } = await import(
     "../src/lib/growth/publish-draft-reply"
   );
+  const {
+    backfillJobApplicationsFromDrafts,
+    recordJobApplication,
+    firstApplyUrlFromPostBody,
+  } = await import("../src/lib/jobs/applications");
 
   await ensureSchema();
+  const backfilled = await backfillJobApplicationsFromDrafts();
+  if (backfilled > 0) {
+    console.log(`Backfilled ${backfilled} application record(s) from published drafts.\n`);
+  }
   const sql = getSql();
 
   type Row = {
@@ -131,6 +140,16 @@ async function main() {
 
     if (pack.aiError === "not_a_job_post" || !pack.draft.bodyText.trim()) {
       console.log(`  · Skipped (not a job post) — ${row.opp_name}`);
+      await recordJobApplication({
+        opportunityId: row.opportunity_id,
+        growthLeadId: row.growth_lead_id,
+        channel: "x_reply",
+        status: "skipped",
+        employerLabel: row.opp_name,
+        sourcePostUrl: row.source_post_url,
+        applyUrl: firstApplyUrlFromPostBody(row.body_text),
+        outcomeNotes: "Not a direct job listing",
+      });
       await addOpportunityActivity(row.opportunity_id, {
         activityType: "note",
         body: "Skipped X apply — post is not a direct job listing.",
@@ -175,6 +194,16 @@ async function main() {
 
     try {
       await publishDraftReply(draft.id, draft.bodyText);
+      await recordJobApplication({
+        opportunityId: row.opportunity_id,
+        growthLeadId: row.growth_lead_id,
+        channel: "x_reply",
+        status: "submitted",
+        employerLabel: row.opp_name,
+        sourcePostUrl: url,
+        applyUrl: firstApplyUrlFromPostBody(row.body_text),
+        replyPreview: draft.bodyText,
+      });
       await addOpportunityActivity(row.opportunity_id, {
         activityType: "note",
         body: `Posted X job-application reply on ${url}`,
@@ -191,6 +220,17 @@ async function main() {
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.warn(`  ✗ Post failed: ${msg}`);
+      await recordJobApplication({
+        opportunityId: row.opportunity_id,
+        growthLeadId: row.growth_lead_id,
+        channel: "x_reply",
+        status: "failed",
+        employerLabel: row.opp_name,
+        sourcePostUrl: url,
+        applyUrl: firstApplyUrlFromPostBody(row.body_text),
+        replyPreview: draft.bodyText,
+        outcomeNotes: msg,
+      });
       await addOpportunityActivity(row.opportunity_id, {
         activityType: "note",
         body: `X apply reply failed: ${msg}`,
