@@ -395,6 +395,8 @@ Discover **remote** LinkedIn Jobs via the existing Growth Connect session, land 
 
 #### Manual test flow — Phase 6.1
 
+**Operator runbook:** [docs/integrations/INSTAGRAM_PHASE_6_1_MANUAL.md](./integrations/INSTAGRAM_PHASE_6_1_MANUAL.md) (admin URLs + sign-off line).
+
 **Prerequisites:** Phase 1 complete; at least one Meta app with Instagram messaging permissions; **test** IG Business/Creator account; production or tunneled HTTPS URL registered in Meta; Cloudflare Queue bound in preview/prod; migration applied.
 
 | Step | Action | Expected |
