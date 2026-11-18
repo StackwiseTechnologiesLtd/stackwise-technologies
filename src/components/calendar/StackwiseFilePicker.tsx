@@ -251,9 +251,11 @@ function QuickViewModal({
     window.addEventListener("keydown", onKey);
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    document.body.classList.add("sw-file-quickview-open");
     return () => {
       window.removeEventListener("keydown", onKey);
       document.body.style.overflow = prev;
+      document.body.classList.remove("sw-file-quickview-open");
     };
   }, [onClose]);
 

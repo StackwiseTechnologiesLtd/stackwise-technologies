@@ -369,20 +369,32 @@
 .sw-file-quickview {
   position: fixed;
   inset: 0;
-  z-index: 250;
+  z-index: 400;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: clamp(0.75rem, 3vw, 1.5rem);
+  isolation: isolate;
 }
 
 .sw-file-quickview-backdrop {
   position: absolute;
   inset: 0;
+  z-index: 0;
   border: 0;
-  background: rgba(0, 0, 0, 0.78);
-  backdrop-filter: blur(6px);
+  background: rgba(0, 0, 0, 0.58);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   cursor: pointer;
+}
+
+body.sw-file-quickview-open [data-content-cal-post-overlay] {
+  opacity: 0.18;
+  filter: blur(4px);
+  pointer-events: none;
+  transition:
+    opacity 0.18s ease,
+    filter 0.18s ease;
 }
 
 .sw-file-quickview-panel {
@@ -391,6 +403,7 @@
   display: flex;
   flex-direction: column;
   width: min(100%, 54rem);
+  min-height: min(78vh, 40rem);
   max-height: min(90vh, 44rem);
   border-radius: 0.85rem;
   border: 1px solid color-mix(in srgb, var(--admin-border) 80%, #fff);

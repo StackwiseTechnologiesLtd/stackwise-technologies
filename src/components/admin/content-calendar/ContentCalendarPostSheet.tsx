@@ -201,7 +201,10 @@ export function ContentCalendarPostSheet({
 
   return (
     <ThemedBackdrop onClose={onClose}>
-      <div className="flex max-h-[min(92vh,52rem)] w-full max-w-lg flex-col overflow-hidden rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-2xl">
+      <div
+        data-content-cal-post-sheet
+        className="flex max-h-[min(92vh,52rem)] w-full max-w-lg flex-col overflow-hidden rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-2xl"
+      >
         <header className="flex items-start justify-between gap-3 border-b border-[var(--admin-border)] px-5 py-4">
           <div>
             <h2 className="text-lg font-semibold tracking-tight">
@@ -362,6 +365,7 @@ function ThemedBackdrop({
 }) {
   return (
     <div
+      data-content-cal-post-overlay
       className="fixed inset-0 z-[100] flex items-end justify-center p-0 sm:items-center sm:p-4"
       role="presentation"
     >
