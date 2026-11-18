@@ -10,6 +10,7 @@ import type {
 } from "@/lib/growth/outreach-types";
 import { outreachResponseStatuses } from "@/lib/growth/outreach-types";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
+import { StackwiseSelect } from "@/components/stackwise";
 import { useCallback, useState } from "react";
 
 function StatCard({ label, value }: { label: string; value: number }) {
@@ -254,25 +255,18 @@ export function GrowthOutreachPanel() {
                         </p>
                         <p className="mt-1 line-clamp-1 text-xs text-muted">{item.subjectLine}</p>
                       </div>
-                      <label className="flex items-center gap-2 text-xs">
-                        <span className="text-muted">Reply</span>
-                        <select
-                          className="rounded-md border border-line bg-background px-2 py-1 text-foreground"
+                      <div className="flex min-w-[9rem] items-center gap-2 text-xs">
+                        <span className="shrink-0 text-muted">Reply</span>
+                        <StackwiseSelect<OutreachResponseStatus>
+                          aria-label="Outreach reply status"
                           value={item.responseStatus}
-                          onChange={(e) =>
-                            void markResponse(
-                              item.id,
-                              e.target.value as OutreachResponseStatus,
-                            )
-                          }
-                        >
-                          {outreachResponseStatuses.map((s) => (
-                            <option key={s} value={s}>
-                              {s.replaceAll("_", " ")}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
+                          onChange={(v) => void markResponse(item.id, v)}
+                          options={outreachResponseStatuses.map((s) => ({
+                            value: s,
+                            label: s.replaceAll("_", " "),
+                          }))}
+                        />
+                      </div>
                     </div>
                   </li>
                 ))}

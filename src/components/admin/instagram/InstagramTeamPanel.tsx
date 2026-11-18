@@ -1,6 +1,7 @@
 "use client";
 
 import { AdminActionButton } from "@/components/admin/AdminActionButton";
+import { StackwiseSelect } from "@/components/stackwise";
 import { AdminConfirmDialog } from "@/components/admin/AdminConfirmDialog";
 import { TablePagination } from "@/components/admin/TablePagination";
 import { useToast } from "@/components/ToastProvider";
@@ -131,23 +132,24 @@ export function InstagramTeamPanel({
               onChange={(e) => setForm((f) => ({ ...f, label: e.target.value }))}
             />
           </label>
-          <label className="text-sm">
+          <div className="text-sm">
             Instagram account scope
-            <select
-              className="mt-1 w-full rounded-lg border border-line bg-black/40 px-3 py-2"
+            <StackwiseSelect
+              aria-label="Instagram account scope"
+              className="mt-1"
               value={form.instagramAccountId}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, instagramAccountId: e.target.value }))
+              onChange={(v) =>
+                setForm((f) => ({ ...f, instagramAccountId: v }))
               }
-            >
-              <option value="">All connected accounts</option>
-              {accounts.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.username ? `@${a.username}` : a.igUserId}
-                </option>
-              ))}
-            </select>
-          </label>
+              options={[
+                { value: "", label: "All connected accounts" },
+                ...accounts.map((a) => ({
+                  value: a.id,
+                  label: a.username ? `@${a.username}` : a.igUserId,
+                })),
+              ]}
+            />
+          </div>
         </div>
         <AdminActionButton className="mt-4" onClick={() => void save()}>
           Save invite

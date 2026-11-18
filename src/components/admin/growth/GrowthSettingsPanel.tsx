@@ -2,6 +2,7 @@
 
 import { useToast } from "@/components/ToastProvider";
 import { AdminActionButton } from "@/components/admin/AdminActionButton";
+import { StackwiseSelect } from "@/components/stackwise";
 import { GrowthIntegrationsPanel } from "@/components/admin/growth/GrowthIntegrationsPanel";
 import { GrowthPlatformConnections } from "@/components/admin/growth/GrowthPlatformConnections";
 import type { IcpConfig } from "@/lib/growth/types";
@@ -114,19 +115,19 @@ export function GrowthSettingsPanel() {
         </p>
 
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <label className="block text-sm">
+          <div className="block text-sm">
             <span className="text-muted">Platform</span>
-            <select
-              className="mt-1 w-full rounded-lg border border-line bg-black/50 px-3 py-2"
+            <StackwiseSelect<"linkedin" | "x">
+              aria-label="Cookie platform"
+              className="mt-1"
               value={cookiePlatform}
-              onChange={(e) =>
-                setCookiePlatform(e.target.value as "linkedin" | "x")
-              }
-            >
-              <option value="linkedin">LinkedIn</option>
-              <option value="x">X</option>
-            </select>
-          </label>
+              onChange={setCookiePlatform}
+              options={[
+                { value: "linkedin", label: "LinkedIn" },
+                { value: "x", label: "X" },
+              ]}
+            />
+          </div>
         </div>
         <textarea
           className="mt-3 min-h-32 w-full rounded-lg border border-line bg-black/50 px-3 py-2 font-mono text-xs"

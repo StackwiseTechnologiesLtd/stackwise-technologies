@@ -6,7 +6,8 @@ import { useToast } from "@/components/ToastProvider";
 import { formatMoney } from "@/lib/currency";
 import { MANUAL_PAYMENT_METHODS } from "@/lib/payments/manual-payment-methods";
 import type { PaymentLink } from "@/lib/payments/types";
-import { BTN_PRIMARY } from "@/lib/ui/buttons";
+import { StackwiseSelect } from "@/components/stackwise";
+import { ADMIN_BTN_PRIMARY, ADMIN_INPUT } from "@/lib/ui/admin";
 
 function toDatetimeLocalValue(ms: number): string {
   const date = new Date(ms);
@@ -82,21 +83,18 @@ export function RecordManualPaymentForm({ link }: { link: PaymentLink }) {
       </p>
 
       <form onSubmit={submit} className="mt-5 space-y-4">
-        <label className="block space-y-2">
+        <div className="block space-y-2">
           <span className="text-sm text-muted">Payment method</span>
-          <select
+          <StackwiseSelect
+            aria-label="Payment method"
             value={paymentMethod}
-            onChange={(e) => setPaymentMethod(e.target.value)}
-            required
-            className="w-full rounded-lg border border-line bg-background px-3 py-2 text-sm"
-          >
-            {MANUAL_PAYMENT_METHODS.map(({ value, label }) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </label>
+            onChange={setPaymentMethod}
+            options={MANUAL_PAYMENT_METHODS.map(({ value, label }) => ({
+              value,
+              label,
+            }))}
+          />
+        </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="block space-y-2">
@@ -177,7 +175,7 @@ export function RecordManualPaymentForm({ link }: { link: PaymentLink }) {
           Email receipt to customer
         </label>
 
-        <button type="submit" disabled={loading} className={BTN_PRIMARY}>
+        <button type="submit" disabled={loading} className={ADMIN_BTN_PRIMARY}>
           {loading ? "Recording…" : "Record payment & generate receipt"}
         </button>
       </form>

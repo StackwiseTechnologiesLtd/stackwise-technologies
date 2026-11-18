@@ -10,6 +10,7 @@ import { crmStageLabels, type CrmOpportunityDetail } from "@/lib/crm/types";
 import { pipelineStatuses, type PipelineStatus } from "@/lib/growth/types";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 import Link from "next/link";
+import { StackwiseSelect } from "@/components/stackwise";
 import {
   agencyProjectStatusLabels,
   type AgencyProject,
@@ -131,16 +132,17 @@ export function CrmOpportunityDetailPanel({
         </div>
         <div className="rounded-xl border border-line bg-panel/60 px-4 py-3">
           <p className="text-[10px] font-semibold uppercase text-muted">Stage</p>
-          <select
-            className="mt-1 block rounded-lg border border-line bg-black/50 px-2 py-1.5 text-sm disabled:opacity-60"
+          <StackwiseSelect<PipelineStatus>
+            aria-label="Pipeline stage"
+            className="mt-1"
             value={opportunity.stage}
             disabled={stageBusy}
-            onChange={(e) => void setStage(e.target.value as PipelineStatus)}
-          >
-            {pipelineStatuses.map((s) => (
-              <option key={s} value={s}>{crmStageLabels[s]}</option>
-            ))}
-          </select>
+            onChange={(s) => void setStage(s)}
+            options={pipelineStatuses.map((s) => ({
+              value: s,
+              label: crmStageLabels[s],
+            }))}
+          />
           <p className="mt-2 truncate text-xs text-muted">
             {[
               formatShortRelativeTime(opportunity.updatedAt),

@@ -17,6 +17,7 @@ import { useDeferredEffect } from "@/lib/use-deferred-effect";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
 import { instagramDeliveryStatuses } from "@/lib/instagram/types";
+import { StackwiseSelect } from "@/components/stackwise";
 
 function formatWhen(iso: string | null): string {
   if (!iso) return "Never";
@@ -574,21 +575,17 @@ export function GrowthInstagramPanel({
         </p>
         {canConfigureMeta ? (
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <label className="text-sm sm:col-span-2">
+          <div className="text-sm sm:col-span-2">
             Meta app
-            <select
-              className="mt-1 w-full rounded-lg border border-line bg-black/40 px-3 py-2"
+            <StackwiseSelect
+              aria-label="Meta app"
+              className="mt-1"
               value={accountForm.metaAppId}
-              onChange={(e) => setAccountForm((f) => ({ ...f, metaAppId: e.target.value }))}
-            >
-              <option value="">Select app</option>
-              {apps.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.label}
-                </option>
-              ))}
-            </select>
-          </label>
+              onChange={(v) => setAccountForm((f) => ({ ...f, metaAppId: v }))}
+              placeholder="Select app"
+              options={apps.map((a) => ({ value: a.id, label: a.label }))}
+            />
+          </div>
           <label className="text-sm">
             IG user ID
             <input
@@ -730,21 +727,20 @@ export function GrowthInstagramPanel({
         </div>
         <h3 className="mt-8 text-base font-semibold tracking-tight">New automation</h3>
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
-          <label className="text-sm sm:col-span-2">
+          <div className="text-sm sm:col-span-2">
             Account
-            <select
-              className="mt-1 w-full rounded-lg border border-line bg-black/40 px-3 py-2"
+            <StackwiseSelect
+              aria-label="Instagram account"
+              className="mt-1"
               value={campaignForm.accountId}
-              onChange={(e) => setCampaignForm((f) => ({ ...f, accountId: e.target.value }))}
-            >
-              <option value="">Select account</option>
-              {accounts.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.username ?? a.igUserId}
-                </option>
-              ))}
-            </select>
-          </label>
+              onChange={(v) => setCampaignForm((f) => ({ ...f, accountId: v }))}
+              placeholder="Select account"
+              options={accounts.map((a) => ({
+                value: a.id,
+                label: a.username ?? a.igUserId,
+              }))}
+            />
+          </div>
           <label className="text-sm">
             Name
             <input
@@ -753,23 +749,22 @@ export function GrowthInstagramPanel({
               onChange={(e) => setCampaignForm((f) => ({ ...f, name: e.target.value }))}
             />
           </label>
-          <label className="text-sm">
+          <div className="text-sm">
             Trigger
-            <select
-              className="mt-1 w-full rounded-lg border border-line bg-black/40 px-3 py-2"
+            <StackwiseSelect<InstagramCampaign["triggerType"]>
+              aria-label="Campaign trigger"
+              className="mt-1"
               value={campaignForm.triggerType}
-              onChange={(e) =>
-                setCampaignForm((f) => ({
-                  ...f,
-                  triggerType: e.target.value as typeof f.triggerType,
-                }))
+              onChange={(triggerType) =>
+                setCampaignForm((f) => ({ ...f, triggerType }))
               }
-            >
-              <option value="comment">Comment on post</option>
-              <option value="dm">Inbound DM</option>
-              <option value="story_reply">Story reply</option>
-            </select>
-          </label>
+              options={[
+                { value: "comment", label: "Comment on post" },
+                { value: "dm", label: "Inbound DM" },
+                { value: "story_reply", label: "Story reply" },
+              ]}
+            />
+          </div>
           <label className="text-sm">
             Media ID {campaignForm.triggerType === "comment" ? "(required)" : "(optional)"}
             <input
@@ -845,35 +840,38 @@ export function GrowthInstagramPanel({
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
           <h3 className="text-base font-semibold tracking-tight">Delivery log</h3>
           <div className="flex flex-wrap gap-2">
-            <select
-              className="rounded-lg border border-line bg-black/40 px-2 py-1 text-sm"
+            <StackwiseSelect
+              aria-label="Filter deliveries by campaign"
+              className="min-w-[10rem]"
               value={deliveryCampaignId}
-              onChange={(e) => {
-                setDeliveryCampaignId(e.target.value);
+              onChange={(v) => {
+                setDeliveryCampaignId(v);
                 setDeliveryPage(1);
               }}
-            >
-              <option value="">All campaigns</option>
-              {campaignInsights.map((c) => (
-                <option key={c.campaignId} value={c.campaignId}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-            <select
-              className="rounded-lg border border-line bg-black/40 px-2 py-1 text-sm"
+              options={[
+                { value: "", label: "All campaigns" },
+                ...campaignInsights.map((c) => ({
+                  value: c.campaignId,
+                  label: c.name,
+                })),
+              ]}
+            />
+            <StackwiseSelect
+              aria-label="Filter deliveries by status"
+              className="min-w-[9rem]"
               value={deliveryFilter}
-              onChange={(e) => {
-                setDeliveryFilter(e.target.value);
+              onChange={(v) => {
+                setDeliveryFilter(v);
                 setDeliveryPage(1);
               }}
-            >
-              <option value="">All statuses</option>
-              <option value="queued">queued</option>
-              <option value="sent">sent</option>
-              <option value="skipped">skipped</option>
-              <option value="failed">failed</option>
-            </select>
+              options={[
+                { value: "", label: "All statuses" },
+                ...instagramDeliveryStatuses.map((s) => ({
+                  value: s,
+                  label: s,
+                })),
+              ]}
+            />
           </div>
         </div>
         <div className="mt-3 overflow-x-auto">

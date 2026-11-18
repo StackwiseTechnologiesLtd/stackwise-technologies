@@ -8,7 +8,8 @@ import {
   contractDocumentKindLabel,
   type ContractDocumentKind,
 } from "@/lib/contracts/types";
-import { BTN_PRIMARY, BTN_SECONDARY } from "@/lib/ui/buttons";
+import { StackwiseSelect } from "@/components/stackwise";
+import { ADMIN_BTN_PRIMARY, ADMIN_BTN_SECONDARY } from "@/lib/ui/admin";
 
 type Props = {
   initialCustomerName?: string;
@@ -97,20 +98,20 @@ export function ContractBuilder({
         />
       </label>
 
-      <label className="block text-sm">
+      <div className="block text-sm">
         <span className="text-muted">Document type</span>
-        <select
-          value={documentKind}
-          onChange={(e) => setDocumentKind(e.target.value as ContractDocumentKind)}
-          className="mt-1 w-full rounded-lg border border-line bg-background px-3 py-2"
-        >
-          {CONTRACT_DOCUMENT_KINDS.map((kind) => (
-            <option key={kind} value={kind}>
-              {contractDocumentKindLabel(kind)}
-            </option>
-          ))}
-        </select>
-      </label>
+        <div className="mt-1">
+          <StackwiseSelect<ContractDocumentKind>
+            aria-label="Document type"
+            value={documentKind}
+            onChange={setDocumentKind}
+            options={CONTRACT_DOCUMENT_KINDS.map((kind) => ({
+              value: kind,
+              label: contractDocumentKindLabel(kind),
+            }))}
+          />
+        </div>
+      </div>
 
       <label className="block text-sm">
         <span className="text-muted">What the client needs (scope & services)</span>
@@ -136,12 +137,12 @@ export function ContractBuilder({
       </label>
 
       <div className="flex flex-wrap gap-3">
-        <button type="submit" disabled={loading} className={BTN_PRIMARY}>
+        <button type="submit" disabled={loading} className={ADMIN_BTN_PRIMARY}>
           {loading ? "Generating draft…" : "Generate with AI"}
         </button>
         <button
           type="button"
-          className={BTN_SECONDARY}
+          className={ADMIN_BTN_SECONDARY}
           onClick={() => router.push("/admin/contracts")}
         >
           Cancel

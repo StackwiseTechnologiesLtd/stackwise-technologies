@@ -9,6 +9,7 @@ import {
 import { ADMIN_INPUT } from "@/lib/ui/admin";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 import Link from "next/link";
+import { StackwiseSelect } from "@/components/stackwise";
 import { useCallback, useState } from "react";
 
 function formatDue(iso: string | null): string {
@@ -122,20 +123,17 @@ export function AgencyProjectDetailPanel({ projectId }: { projectId: string }) {
       <div className="flex flex-wrap items-end gap-4 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] p-4">
         <div>
           <p className="text-[10px] font-semibold uppercase text-muted">Status</p>
-          <select
-            className={`${ADMIN_INPUT} mt-1`}
+          <StackwiseSelect
+            aria-label="Project status"
+            className="mt-1"
             value={project.status}
             disabled={busy}
-            onChange={(e) =>
-              void patchProject({ status: e.target.value })
-            }
-          >
-            {agencyProjectStatuses.map((s) => (
-              <option key={s} value={s}>
-                {agencyProjectStatusLabels[s]}
-              </option>
-            ))}
-          </select>
+            onChange={(status) => void patchProject({ status })}
+            options={agencyProjectStatuses.map((s) => ({
+              value: s,
+              label: agencyProjectStatusLabels[s],
+            }))}
+          />
         </div>
         {project.crmOpportunityId ? (
           <Link

@@ -3,6 +3,7 @@
 import { useToast } from "@/components/ToastProvider";
 import type { GrowthPlatform } from "@/lib/growth/types";
 import { AdminActionButton } from "@/components/admin/AdminActionButton";
+import { StackwiseSelect } from "@/components/stackwise";
 import { useState } from "react";
 
 export function GrowthCaptureForm({ onCreated }: { onCreated?: () => void }) {
@@ -59,17 +60,19 @@ export function GrowthCaptureForm({ onCreated }: { onCreated?: () => void }) {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <label className="block text-sm">
+        <div className="block text-sm">
           <span className="text-muted">Platform</span>
-          <select
-            className="mt-1 w-full rounded-lg border border-line bg-black/50 px-3 py-2"
+          <StackwiseSelect<GrowthPlatform>
+            aria-label="Platform"
+            className="mt-1"
             value={platform}
-            onChange={(e) => setPlatform(e.target.value as GrowthPlatform)}
-          >
-            <option value="linkedin">LinkedIn</option>
-            <option value="x">X</option>
-          </select>
-        </label>
+            onChange={setPlatform}
+            options={[
+              { value: "linkedin", label: "LinkedIn" },
+              { value: "x", label: "X" },
+            ]}
+          />
+        </div>
         <label className="block text-sm sm:col-span-2">
           <span className="text-muted">Post URL</span>
           <input

@@ -3,7 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { useToast } from "@/components/ToastProvider";
-import { BTN_PRIMARY } from "@/lib/ui/buttons";
+import { StackwiseSelect } from "@/components/stackwise";
+import { ADMIN_BTN_PRIMARY, ADMIN_INPUT } from "@/lib/ui/admin";
 import {
   SUBSCRIPTION_INTERVALS,
   type SubscriptionInterval,
@@ -73,7 +74,7 @@ export function MaintenanceSubscriptionBuilder({
           <input
             value={customerName}
             onChange={(e) => setCustomerName(e.target.value)}
-            className="w-full rounded-lg border border-line bg-background px-3 py-2"
+            className={ADMIN_INPUT}
           />
         </label>
         <label className="block space-y-2">
@@ -82,7 +83,7 @@ export function MaintenanceSubscriptionBuilder({
             type="email"
             value={customerEmail}
             onChange={(e) => setCustomerEmail(e.target.value)}
-            className="w-full rounded-lg border border-line bg-background px-3 py-2"
+            className={ADMIN_INPUT}
           />
         </label>
         <label className="block space-y-2">
@@ -91,7 +92,7 @@ export function MaintenanceSubscriptionBuilder({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
-            className="w-full rounded-lg border border-line bg-background px-3 py-2"
+            className={ADMIN_INPUT}
             placeholder="e.g. Monthly software maintenance for Acme portal"
           />
         </label>
@@ -104,33 +105,33 @@ export function MaintenanceSubscriptionBuilder({
               step={1}
               value={amountMajor}
               onChange={(e) => setAmountMajor(e.target.value)}
-              className="w-full rounded-lg border border-line bg-background px-3 py-2"
+              className={ADMIN_INPUT}
             />
           </label>
-          <label className="block space-y-2">
+          <div className="block space-y-2">
             <span className="text-sm text-muted">Currency</span>
-            <select
+            <StackwiseSelect
+              aria-label="Currency"
               value={currency}
-              onChange={(e) => setCurrency(e.target.value)}
-              className="w-full rounded-lg border border-line bg-background px-3 py-2"
-            >
-              {currencyOptions.map((c) => (
-                <option key={c.code} value={c.code}>{c.label}</option>
-              ))}
-            </select>
-          </label>
-          <label className="block space-y-2">
+              onChange={setCurrency}
+              options={currencyOptions.map((c) => ({
+                value: c.code,
+                label: c.label,
+              }))}
+            />
+          </div>
+          <div className="block space-y-2">
             <span className="text-sm text-muted">Interval</span>
-            <select
+            <StackwiseSelect<SubscriptionInterval>
+              aria-label="Billing interval"
               value={interval}
-              onChange={(e) => setInterval(e.target.value as SubscriptionInterval)}
-              className="w-full rounded-lg border border-line bg-background px-3 py-2"
-            >
-              {SUBSCRIPTION_INTERVALS.map((item) => (
-                <option key={item.value} value={item.value}>{item.label}</option>
-              ))}
-            </select>
-          </label>
+              onChange={setInterval}
+              options={SUBSCRIPTION_INTERVALS.map((item) => ({
+                value: item.value,
+                label: item.label,
+              }))}
+            />
+          </div>
         </div>
         <label className="flex items-center gap-2 text-sm">
           <input
@@ -147,7 +148,7 @@ export function MaintenanceSubscriptionBuilder({
           type="button"
           onClick={submit}
           disabled={loading}
-          className={BTN_PRIMARY}
+          className={ADMIN_BTN_PRIMARY}
         >
           {loading ? "Creating…" : "Create subscription"}
         </button>

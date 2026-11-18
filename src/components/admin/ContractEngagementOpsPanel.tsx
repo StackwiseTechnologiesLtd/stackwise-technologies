@@ -12,7 +12,8 @@ import {
 import type { ContractMilestone } from "@/lib/contracts/milestones";
 import type { PaymentLink } from "@/lib/payments/types";
 import { SERVICES_CATALOG } from "@/lib/services-catalog";
-import { BTN_PRIMARY, BTN_SECONDARY } from "@/lib/ui/buttons";
+import { StackwiseSelect } from "@/components/stackwise";
+import { ADMIN_BTN_PRIMARY, ADMIN_BTN_SECONDARY, ADMIN_INPUT } from "@/lib/ui/admin";
 
 export function ContractEngagementOpsPanel({
   engagement,
@@ -124,18 +125,20 @@ export function ContractEngagementOpsPanel({
             className="mt-1 w-full rounded-lg border border-line bg-background px-3 py-2"
           />
         </label>
-        <label className="block text-sm">
+        <div className="block text-sm">
           <span className="text-muted">Delivery phase</span>
-          <select
-            value={phase}
-            onChange={(e) => setPhase(e.target.value as typeof phase)}
-            className="mt-1 w-full rounded-lg border border-line bg-background px-3 py-2"
-          >
-            {CONTRACT_DELIVERY_PHASES.map((p) => (
-              <option key={p} value={p}>{contractDeliveryPhaseLabel(p)}</option>
-            ))}
-          </select>
-        </label>
+          <div className="mt-1">
+            <StackwiseSelect
+              aria-label="Delivery phase"
+              value={phase}
+              onChange={setPhase}
+              options={CONTRACT_DELIVERY_PHASES.map((p) => ({
+                value: p,
+                label: contractDeliveryPhaseLabel(p),
+              }))}
+            />
+          </div>
+        </div>
       </div>
 
       <label className="block text-sm">
@@ -161,33 +164,31 @@ export function ContractEngagementOpsPanel({
                 onChange={(e) => updateMilestone(m.id, { title: e.target.value })}
                 className="rounded border border-line px-2 py-1 text-sm"
               />
-              <select
+              <StackwiseSelect<ContractMilestone["status"]>
+                aria-label={`Milestone status: ${m.title}`}
+                className="min-w-[10rem]"
                 value={m.status}
-                onChange={(e) =>
-                  updateMilestone(m.id, {
-                    status: e.target.value as ContractMilestone["status"],
-                  })
-                }
-                className="rounded border border-line px-2 py-1 text-sm"
-              >
-                <option value="pending">Pending</option>
-                <option value="in_progress">In progress</option>
-                <option value="done">Done</option>
-              </select>
+                onChange={(status) => updateMilestone(m.id, { status })}
+                options={[
+                  { value: "pending", label: "Pending" },
+                  { value: "in_progress", label: "In progress" },
+                  { value: "done", label: "Done" },
+                ]}
+              />
             </div>
           ))}
         </div>
       )}
 
       <div className="flex flex-wrap gap-3">
-        <button type="button" onClick={saveTracking} disabled={saving} className={BTN_PRIMARY}>
+        <button type="button" onClick={saveTracking} disabled={saving} className={ADMIN_BTN_PRIMARY}>
           {saving ? "Saving…" : "Save engagement"}
         </button>
         <button
           type="button"
           onClick={createDepositInvoice}
           disabled={invoiceLoading}
-          className={BTN_SECONDARY}
+          className={ADMIN_BTN_SECONDARY}
         >
           {invoiceLoading ? "Creating…" : "Create deposit invoice & email"}
         </button>

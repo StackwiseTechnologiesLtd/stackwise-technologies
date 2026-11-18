@@ -12,6 +12,7 @@ import {
 } from "@/components/admin/AdminPanelPagination";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 import Link from "next/link";
+import { StackwiseSelect } from "@/components/stackwise";
 import { useCallback, useState } from "react";
 
 function channelLabel(channel: JobApplication["channel"]): string {
@@ -19,6 +20,11 @@ function channelLabel(channel: JobApplication["channel"]): string {
   if (channel === "ats") return "ATS";
   return "Manual";
 }
+
+const RESPONSE_STATUS_OPTIONS = jobApplicationResponseStatuses.map((s) => ({
+  value: s,
+  label: s,
+}));
 
 function statusClass(status: JobApplication["status"]): string {
   if (status === "submitted") return "text-[var(--admin-success)]";
@@ -220,20 +226,13 @@ export function JobApplicationsPanel({
                   </td>
                   <td className="px-4 py-3 sm:px-5">
                     {!compact ? (
-                      <select
-                        className="rounded border border-[var(--admin-border)] bg-[var(--admin-canvas)] px-2 py-1 text-xs text-foreground"
-                        value={row.responseStatus}
-                        onChange={(e) =>
-                          void updateResponse(row.id, e.target.value)
-                        }
+                      <StackwiseSelect
                         aria-label="Application response status"
-                      >
-                        {jobApplicationResponseStatuses.map((s) => (
-                          <option key={s} value={s}>
-                            {s}
-                          </option>
-                        ))}
-                      </select>
+                        className="min-w-[7.5rem]"
+                        value={row.responseStatus}
+                        onChange={(v) => void updateResponse(row.id, v)}
+                        options={RESPONSE_STATUS_OPTIONS}
+                      />
                     ) : (
                       <span className="text-xs text-muted">
                         {row.responseStatus}

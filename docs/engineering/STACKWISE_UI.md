@@ -13,6 +13,7 @@ Shared pickers and lists for the admin shell (`--admin-*` tokens). **Prefer `@/c
 | `StackwiseSelect` | Single choice dropdown (optional search, icons, descriptions) |
 | `StackwiseMultiSelect` | Multi choice with tags, avatars, checkboxes |
 | `StackwiseCalendar` | Month/week content grid (calendar feature) |
+| `AdminPanelPagination` | Audit-style footer: `1-4 of 6` + ‹ Back · pages · Next › (`TablePagination` re-exports this) |
 
 ## Import
 

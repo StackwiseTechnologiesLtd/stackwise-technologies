@@ -9,11 +9,11 @@ import type {
 } from "@/lib/db/payment-audit";
 import { ADMIN_TABLE_PAGE_SIZE, paginate } from "@/lib/admin/pagination";
 import { TablePagination } from "@/components/admin/TablePagination";
+import { StackwiseSelect } from "@/components/stackwise";
 import { ipGeoSearchText } from "@/lib/ip-geo";
 import { PAYMENT_AUDIT_EVENT_LABELS } from "@/lib/payments/audit-labels";
 import {
   ADMIN_INPUT,
-  ADMIN_SELECT,
   ADMIN_TABLE_WRAP,
 } from "@/lib/ui/admin";
 
@@ -106,25 +106,23 @@ export function PaymentAuditLogsPanel({
             className={`${ADMIN_INPUT} pl-9`}
           />
         </label>
-        <label className="block w-full sm:w-44">
-          <span className="sr-only">Filter by event</span>
-          <select
+        <div className="w-full sm:w-52">
+          <StackwiseSelect<PaymentAuditEvent | "ALL">
+            aria-label="Filter by event"
             value={event}
-            onChange={(e) => {
-              setEvent(e.target.value as PaymentAuditEvent | "ALL");
+            onChange={(v) => {
+              setEvent(v);
               resetPage();
             }}
-            className={ADMIN_SELECT}
-          >
-            {EVENT_OPTIONS.map((option) => (
-              <option key={option} value={option}>
-                {option === "ALL"
+            options={EVENT_OPTIONS.map((option) => ({
+              value: option,
+              label:
+                option === "ALL"
                   ? "All events"
-                  : PAYMENT_AUDIT_EVENT_LABELS[option]}
-              </option>
-            ))}
-          </select>
-        </label>
+                  : PAYMENT_AUDIT_EVENT_LABELS[option],
+            }))}
+          />
+        </div>
       </div>
 
       <p className="text-xs text-muted">

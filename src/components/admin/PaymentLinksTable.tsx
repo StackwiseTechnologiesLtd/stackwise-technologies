@@ -12,9 +12,9 @@ import type { CardProcessor } from "@/lib/payments/processor";
 import { formatLinkProcessorLine } from "@/lib/payments/payment-source";
 import type { PaymentLink, PaymentLinkStatus } from "@/lib/payments/types";
 import { TablePagination } from "@/components/admin/TablePagination";
+import { StackwiseSelect } from "@/components/stackwise";
 import {
   ADMIN_INPUT,
-  ADMIN_SELECT,
   ADMIN_TABLE_HEAD,
   ADMIN_TABLE_SCROLL,
   ADMIN_TABLE_WRAP,
@@ -193,23 +193,20 @@ export function PaymentLinksTable({
             className={`${ADMIN_INPUT} pl-9`}
           />
         </label>
-        <label className="block sm:w-44">
-          <span className="sr-only">Filter by status</span>
-          <select
+        <div className="sm:w-44">
+          <StackwiseSelect<PaymentLinkStatus | "ALL">
+            aria-label="Filter by status"
             value={status}
-            onChange={(e) => {
-              setStatus(e.target.value as PaymentLinkStatus | "ALL");
+            onChange={(v) => {
+              setStatus(v);
               resetPage();
             }}
-            className={ADMIN_SELECT}
-          >
-            {STATUS_OPTIONS.map((option) => (
-              <option key={option} value={option}>
-                {option === "ALL" ? "All statuses" : option}
-              </option>
-            ))}
-          </select>
-        </label>
+            options={STATUS_OPTIONS.map((option) => ({
+              value: option,
+              label: option === "ALL" ? "All statuses" : option,
+            }))}
+          />
+        </div>
       </div>
 
       <p className="text-xs text-muted">

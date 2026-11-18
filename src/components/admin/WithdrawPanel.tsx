@@ -7,6 +7,7 @@ import { useToast } from "@/components/ToastProvider";
 import type { PaymentEnvironment } from "@/lib/kpay/environment";
 import { KPAY_WITHDRAW_PROVIDERS } from "@/lib/kpay/providers";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { StackwiseSelect } from "@/components/stackwise";
 import { ADMIN_BTN_PRIMARY, ADMIN_INPUT } from "@/lib/ui/admin";
 
 export function WithdrawPanel({
@@ -95,20 +96,18 @@ export function WithdrawPanel({
         onSubmit={submit}
         className="space-y-4 rounded-lg border border-[var(--admin-border)] bg-[var(--admin-surface)] p-6"
       >
-        <label className="block space-y-2">
+        <div className="block space-y-2">
           <span className="text-sm text-muted">Mobile Money provider</span>
-          <select
+          <StackwiseSelect
+            aria-label="Mobile Money provider"
             value={provider}
-            onChange={(e) => setProvider(e.target.value)}
-            className={ADMIN_INPUT}
-          >
-            {KPAY_WITHDRAW_PROVIDERS.map((p) => (
-              <option key={p.code} value={p.code}>
-                {p.label} ({p.currency})
-              </option>
-            ))}
-          </select>
-        </label>
+            onChange={setProvider}
+            options={KPAY_WITHDRAW_PROVIDERS.map((p) => ({
+              value: p.code,
+              label: `${p.label} (${p.currency})`,
+            }))}
+          />
+        </div>
 
         <label className="block space-y-2">
           <span className="text-sm text-muted">
