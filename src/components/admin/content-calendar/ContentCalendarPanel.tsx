@@ -17,8 +17,16 @@ import {
   contentCalendarChannelLabels,
   type ContentCalendarPostDetail,
 } from "@/lib/content-calendar/types";
+import { useToast } from "@/components/ToastProvider";
 import { ADMIN_BTN_PRIMARY, ADMIN_BTN_SECONDARY } from "@/lib/ui/admin";
-import { useCallback, useMemo, useState } from "react";
+import {
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+  type DragEvent,
+  type MutableRefObject,
+} from "react";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 
 import "./content-calendar.css";
@@ -28,6 +36,12 @@ type VisualMode = "studio" | "scrapbook";
 
 const TODAY = startOfDay(new Date());
 const TODAY_ISO = isoDateLocal(TODAY);
+const DRAG_MIME = "application/x-stackwise-content-post";
+
+function calendarDragId(event: DragEvent): string | null {
+  const id = event.dataTransfer.getData(DRAG_MIME) || event.dataTransfer.getData("text/plain");
+  return id.trim() || null;
+}
 
 function firstImageAsset(post: ContentCalendarPostDetail) {
   return post.assets.find((a) => a.contentType.startsWith("image/"));
@@ -38,12 +52,16 @@ function assetThumbUrl(assetId: string): string {
 }
 
 export function ContentCalendarPanel() {
+  const toast = useToast();
   const [cursor, setCursor] = useState(() => startOfDay(new Date()));
   const [mode, setMode] = useState<CalMode>("month");
   const [visual, setVisual] = useState<VisualMode>("studio");
   const [posts, setPosts] = useState<ContentCalendarPostDetail[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [dropTargetDay, setDropTargetDay] = useState<string | null>(null);
+  const [draggingPostId, setDraggingPostId] = useState<string | null>(null);
+  const skipClickRef = useRef(false);
 
   const [sheetOpen, setSheetOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
@@ -111,6 +129,72 @@ export function ContentCalendarPanel() {
     return [...set];
   }, [posts]);
 
+  const postsById = useMemo(() => new Map(posts.map((p) => [p.id, p])), [posts]);
+
+  const reschedulePost = useCallback(
+    async (postId: string, scheduledOn: string) => {
+      const post = postsById.get(postId);
+      if (!post || post.scheduledOn === scheduledOn) return;
+
+      const previous = posts;
+      setPosts((list) =>
+        list.map((p) => (p.id === postId ? { ...p, scheduledOn } : p)),
+      );
+
+      try {
+        const res = await fetch(`/api/admin/content-calendar/posts/${postId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ scheduledOn }),
+        });
+        if (!res.ok) {
+          const j = (await res.json().catch(() => ({}))) as { error?: string };
+          throw new Error(j.error ?? "Move failed");
+        }
+        toast.toast(`Moved to ${scheduledOn}`);
+      } catch (e) {
+        setPosts(previous);
+        toast.error(e instanceof Error ? e.message : "Could not move post");
+      }
+    },
+    [posts, postsById, toast],
+  );
+
+  const onDayDragOver = useCallback((event: DragEvent, dayIso: string) => {
+    const types = [...event.dataTransfer.types];
+    if (!types.includes(DRAG_MIME) && !types.includes("text/plain")) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+    setDropTargetDay(dayIso);
+  }, []);
+
+  const onDayDrop = useCallback(
+    (event: DragEvent, dayIso: string) => {
+      event.preventDefault();
+      setDropTargetDay(null);
+      const postId = calendarDragId(event);
+      if (!postId) return;
+      skipClickRef.current = true;
+      void reschedulePost(postId, dayIso);
+    },
+    [reschedulePost],
+  );
+
+  const clearDropTarget = useCallback(() => {
+    setDropTargetDay(null);
+  }, []);
+
+  const dragCallbacks = {
+    dropTargetDay,
+    draggingPostId,
+    setDraggingPostId,
+    skipClickRef,
+    onDayDragOver,
+    onDayDrop,
+    clearDropTarget,
+    dragMime: DRAG_MIME,
+  };
+
   return (
     <div
       className={`content-cal-root ${visual === "scrapbook" ? "content-cal-scrapbook" : ""}`}
@@ -144,9 +228,16 @@ export function ContentCalendarPanel() {
               visual={visual}
               onNew={openNew}
               onOpen={openEdit}
+              drag={dragCallbacks}
             />
           ) : (
-            <WeekGrid postsByDay={postsByDay} cursor={cursor} onNew={openNew} onOpen={openEdit} />
+            <WeekGrid
+              postsByDay={postsByDay}
+              cursor={cursor}
+              onNew={openNew}
+              onOpen={openEdit}
+              drag={dragCallbacks}
+            />
           )}
         </div>
       </section>
@@ -280,18 +371,31 @@ function channelColor(channel: ContentCalendarPostDetail["channel"]): string {
   }
 }
 
+type DragCallbacks = {
+  dropTargetDay: string | null;
+  draggingPostId: string | null;
+  setDraggingPostId: (id: string | null) => void;
+  skipClickRef: MutableRefObject<boolean>;
+  onDayDragOver: (event: DragEvent, dayIso: string) => void;
+  onDayDrop: (event: DragEvent, dayIso: string) => void;
+  clearDropTarget: () => void;
+  dragMime: string;
+};
+
 function MonthGrid({
   cursor,
   postsByDay,
   visual,
   onNew,
   onOpen,
+  drag,
 }: {
   cursor: Date;
   postsByDay: Map<string, ContentCalendarPostDetail[]>;
   visual: VisualMode;
   onNew: (iso: string) => void;
   onOpen: (id: string) => void;
+  drag: DragCallbacks;
 }) {
   const days = monthGridDays(cursor);
   const headers = weekdayHeaders(1);
@@ -323,6 +427,7 @@ function MonthGrid({
               visual={visual}
               onNew={() => onNew(iso)}
               onOpen={onOpen}
+              drag={drag}
             />
           );
         })}
@@ -336,11 +441,13 @@ function WeekGrid({
   postsByDay,
   onNew,
   onOpen,
+  drag,
 }: {
   cursor: Date;
   postsByDay: Map<string, ContentCalendarPostDetail[]>;
   onNew: (iso: string) => void;
   onOpen: (id: string) => void;
+  drag: DragCallbacks;
 }) {
   const days = weekDays(cursor);
   return (
@@ -349,6 +456,7 @@ function WeekGrid({
         const iso = isoDateLocal(d);
         const items = postsByDay.get(iso) ?? [];
         const today = iso === TODAY_ISO;
+        const dropActive = drag.dropTargetDay === iso;
         return (
           <div key={iso} className="content-cal-wcol">
             <div className={`content-cal-wcol-h ${today ? "today" : ""}`}>
@@ -364,12 +472,30 @@ function WeekGrid({
                 +
               </button>
             </div>
-            <div className="content-cal-wcol-b">
+            <div
+              className={`content-cal-wcol-b ${dropActive ? "drop-target" : ""}`}
+              onDragOver={(e) => drag.onDayDragOver(e, iso)}
+              onDragLeave={drag.clearDropTarget}
+              onDrop={(e) => drag.onDayDrop(e, iso)}
+            >
               {items.length === 0 ? (
                 <span className="px-2 py-1 text-xs text-muted">No posts</span>
               ) : (
                 items.map((p) => (
-                  <PostChip key={p.id} post={p} scrapbook={false} onClick={() => onOpen(p.id)} />
+                  <PostChip
+                    key={p.id}
+                    post={p}
+                    scrapbook={false}
+                    dragging={drag.draggingPostId === p.id}
+                    drag={drag}
+                    onClick={() => {
+                      if (drag.skipClickRef.current) {
+                        drag.skipClickRef.current = false;
+                        return;
+                      }
+                      onOpen(p.id);
+                    }}
+                  />
                 ))
               )}
             </div>
@@ -389,6 +515,7 @@ function DayCell({
   visual,
   onNew,
   onOpen,
+  drag,
 }: {
   iso: string;
   dayNum: number;
@@ -398,10 +525,17 @@ function DayCell({
   visual: VisualMode;
   onNew: () => void;
   onOpen: (id: string) => void;
+  drag: DragCallbacks;
 }) {
   const scrapbook = visual === "scrapbook";
+  const dropActive = drag.dropTargetDay === iso;
   return (
-    <div className={`content-cal-day ${out ? "out" : ""} ${today ? "today" : ""}`}>
+    <div
+      className={`content-cal-day ${out ? "out" : ""} ${today ? "today" : ""} ${dropActive ? "drop-target" : ""}`}
+      onDragOver={(e) => drag.onDayDragOver(e, iso)}
+      onDragLeave={drag.clearDropTarget}
+      onDrop={(e) => drag.onDayDrop(e, iso)}
+    >
       <span className="dn" {...(today ? { "aria-current": "date" as const } : {})}>
         {dayNum}
       </span>
@@ -417,7 +551,15 @@ function DayCell({
           post={p}
           scrapbook={scrapbook}
           compact={scrapbook}
-          onClick={() => onOpen(p.id)}
+          dragging={drag.draggingPostId === p.id}
+          drag={drag}
+          onClick={() => {
+            if (drag.skipClickRef.current) {
+              drag.skipClickRef.current = false;
+              return;
+            }
+            onOpen(p.id);
+          }}
         />
       ))}
       {items.length > (scrapbook ? 2 : 3) ? (
@@ -457,11 +599,15 @@ function PostChip({
   post,
   scrapbook,
   compact,
+  dragging,
+  drag,
   onClick,
 }: {
   post: ContentCalendarPostDetail;
   scrapbook: boolean;
   compact?: boolean;
+  dragging?: boolean;
+  drag: DragCallbacks;
   onClick: () => void;
 }) {
   const c = post.accent || channelColor(post.channel);
@@ -469,9 +615,20 @@ function PostChip({
   return (
     <button
       type="button"
-      className={`content-cal-chip ${post.status === "draft" ? "draft" : ""} ${scrapbook && compact ? "scrap" : ""}`}
+      draggable
+      className={`content-cal-chip ${post.status === "draft" ? "draft" : ""} ${scrapbook && compact ? "scrap" : ""} ${dragging ? "dragging" : ""}`}
       style={{ "--post-accent": c } as React.CSSProperties}
       onClick={onClick}
+      onDragStart={(e) => {
+        e.dataTransfer.setData(drag.dragMime, post.id);
+        e.dataTransfer.setData("text/plain", post.id);
+        e.dataTransfer.effectAllowed = "move";
+        drag.setDraggingPostId(post.id);
+      }}
+      onDragEnd={() => {
+        drag.setDraggingPostId(null);
+        drag.clearDropTarget();
+      }}
       title={post.title}
     >
       {thumb ? (

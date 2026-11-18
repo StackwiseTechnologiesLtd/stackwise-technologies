@@ -50,30 +50,36 @@ export async function PATCH(request: Request, ctx: RouteCtx) {
     projectId?: string | null;
   };
 
-  if (!body.title?.trim() || !body.scheduledOn) {
-    return NextResponse.json({ error: "title and scheduledOn are required" }, { status: 400 });
-  }
-
-  const channel =
-    body.channel && contentCalendarChannels.includes(body.channel as ContentCalendarChannel)
-      ? (body.channel as ContentCalendarChannel)
-      : undefined;
-  const status =
-    body.status && contentCalendarStatuses.includes(body.status as ContentCalendarStatus)
-      ? (body.status as ContentCalendarStatus)
-      : undefined;
-
   try {
+    const existing = await getContentCalendarPost(id);
+    if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+    const scheduledOn = body.scheduledOn ?? existing.scheduledOn;
+    const title = body.title?.trim() || existing.title;
+    if (!scheduledOn) {
+      return NextResponse.json({ error: "scheduledOn is required" }, { status: 400 });
+    }
+
+    const channel =
+      body.channel && contentCalendarChannels.includes(body.channel as ContentCalendarChannel)
+        ? (body.channel as ContentCalendarChannel)
+        : undefined;
+    const status =
+      body.status && contentCalendarStatuses.includes(body.status as ContentCalendarStatus)
+        ? (body.status as ContentCalendarStatus)
+        : undefined;
+
     const post = await updateContentCalendarPost(id, {
-      title: body.title,
-      scheduledOn: body.scheduledOn,
-      scheduledTime: body.scheduledTime,
-      channel,
-      status,
-      script: body.script,
-      notes: body.notes,
-      accent: body.accent,
-      projectId: body.projectId,
+      title,
+      scheduledOn,
+      scheduledTime:
+        body.scheduledTime !== undefined ? body.scheduledTime : existing.scheduledTime,
+      channel: channel ?? existing.channel,
+      status: status ?? existing.status,
+      script: body.script ?? existing.script,
+      notes: body.notes ?? existing.notes,
+      accent: body.accent ?? existing.accent,
+      projectId: body.projectId !== undefined ? body.projectId : existing.projectId,
     });
     return NextResponse.json(post);
   } catch (error) {
