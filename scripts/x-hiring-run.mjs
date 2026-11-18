@@ -26,6 +26,17 @@ const env = {
     path.join(cwd, ".playwright-browsers"),
 };
 
+function ensureChromiumHint() {
+  const browsers = path.join(cwd, ".playwright-browsers");
+  if (!process.env.PLAYWRIGHT_BROWSERS_PATH) {
+    console.log(
+      `Using Playwright browsers at ${browsers} (run: PLAYWRIGHT_BROWSERS_PATH=${browsers} npx playwright install chromium)`,
+    );
+  }
+}
+
+ensureChromiumHint();
+
 function run(label, scriptRel, extraArgs = []) {
   console.log(`\n=== ${label} ===\n`);
   const script = path.join(cwd, scriptRel);

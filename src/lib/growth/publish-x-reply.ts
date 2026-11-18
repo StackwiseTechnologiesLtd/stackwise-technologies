@@ -1,5 +1,5 @@
 import type { GrowthSessionCookie } from "@/lib/growth/growth-session-cookie";
-import { loadPlaywrightModule } from "@/lib/growth/playwright-loader";
+import { launchGrowthChromium } from "@/lib/growth/playwright-launch";
 import type { Page } from "playwright";
 
 function sleep(ms: number) {
@@ -263,12 +263,10 @@ export async function publishXReplyWithPlaywright(
   tweetUrl: string,
   replyText: string,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
-  const { chromium } = await loadPlaywrightModule();
   const headed = process.env.GROWTH_PUBLISH_HEADED === "1";
-  const browser = await chromium.launch({
+  const browser = await launchGrowthChromium({
     headless: !headed,
     slowMo: headed ? 80 : 0,
-    args: ["--disable-blink-features=AutomationControlled"],
   });
 
   try {
