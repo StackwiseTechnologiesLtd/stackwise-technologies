@@ -151,6 +151,7 @@ export function ContentCalendarPanel() {
 
       {sheetOpen ? (
         <ContentCalendarPostSheet
+          key={editId ?? `new-${draftDate}`}
           postId={editId}
           scheduledOn={draftDate}
           onClose={() => setSheetOpen(false)}

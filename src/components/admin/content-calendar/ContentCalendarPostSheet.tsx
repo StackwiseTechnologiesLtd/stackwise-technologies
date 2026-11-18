@@ -9,7 +9,8 @@ import {
   type ContentCalendarPostDetail,
 } from "@/lib/content-calendar/types";
 import { useToast } from "@/components/ToastProvider";
-import { useCallback, useEffect, useState } from "react";
+import { useDeferredEffect } from "@/lib/use-deferred-effect";
+import { useCallback, useState } from "react";
 
 function assetUrl(assetId: string): string {
   return `/api/admin/content-calendar/assets/${assetId}/file`;
@@ -67,21 +68,10 @@ export function ContentCalendarPostSheet({
     }
   }, [postId, toast]);
 
-  useEffect(() => {
+  useDeferredEffect(() => {
     if (postId) void load();
-    else {
-      setTitle("");
-      setDate(scheduledOn);
-      setTime("");
-      setChannel("instagram");
-      setStatus("draft");
-      setScript("");
-      setNotes("");
-      setAccent("#e85d8a");
-      setAssets([]);
-      setLoading(false);
-    }
-  }, [postId, scheduledOn, load]);
+    else setLoading(false);
+  }, [postId, load]);
 
   async function save() {
     if (!title.trim()) {
