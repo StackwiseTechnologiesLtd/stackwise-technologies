@@ -8,12 +8,19 @@ if (platform !== "linkedin" && platform !== "x") {
   process.exit(1);
 }
 
-const { runPlatformHarvest } = await import("../src/lib/growth/run-harvest");
+async function main() {
+  const { runPlatformHarvest } = await import("../src/lib/growth/run-harvest");
 
-const result = await runPlatformHarvest(platform, (phase, message) => {
-  console.log(`[${phase}] ${message}`);
+  const result = await runPlatformHarvest(platform, (phase, message) => {
+    console.log(`[${phase}] ${message}`);
+  });
+
+  console.log(
+    `\nDone — captured ${result.captured}, ingested ${result.ingested} new lead(s).`,
+  );
+}
+
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
 });
-
-console.log(
-  `\nDone — captured ${result.captured}, ingested ${result.ingested} new lead(s).`,
-);

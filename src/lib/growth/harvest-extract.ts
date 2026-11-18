@@ -121,6 +121,11 @@ export async function extractFeedSignals(
     await prepareLinkedInSearchPage(page);
   }
   await waitForPosts(page, platform);
+  // tsx/esbuild injects `__name` into serialized functions; stub it in the page.
+  await page.evaluate(() => {
+    // @ts-expect-error browser global for esbuild helper
+    globalThis.__name = (target: unknown) => target;
+  });
   const { posts, debug } = await page.evaluate(
     growthHarvestExtractInPage,
     platform,

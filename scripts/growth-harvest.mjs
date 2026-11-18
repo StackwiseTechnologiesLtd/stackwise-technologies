@@ -19,9 +19,13 @@ if (platform !== "linkedin" && platform !== "x") {
 }
 
 const runner = path.join(process.cwd(), "scripts/run-platform-harvest-runner.ts");
+const env = {
+  ...process.env,
+  NODE_ENV: process.env.NODE_ENV ?? "development",
+};
 const r = spawnSync(
   "npx",
   ["--yes", "tsx", runner, platform],
-  { stdio: "inherit", env: process.env, cwd: process.cwd() },
+  { stdio: "inherit", env, cwd: process.cwd() },
 );
 process.exit(r.status ?? 1);
