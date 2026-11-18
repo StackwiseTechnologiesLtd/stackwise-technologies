@@ -254,6 +254,7 @@ export function ContentCalendarPanel() {
           mode={mode}
           visual={visual}
           loading={loading}
+          refreshing={refreshing}
           onToday={() => setCursor(startOfDay(new Date()))}
           onPrev={() => nav(-1)}
           onNext={() => nav(1)}
@@ -325,6 +326,7 @@ function CalendarToolbar({
   mode,
   visual,
   loading,
+  refreshing,
   onToday,
   onPrev,
   onNext,
@@ -337,6 +339,7 @@ function CalendarToolbar({
   mode: CalMode;
   visual: CalendarVisual;
   loading: boolean;
+  refreshing: boolean;
   onToday: () => void;
   onPrev: () => void;
   onNext: () => void;

@@ -1,6 +1,6 @@
 "use client";
 
-import { StackwiseDatePicker } from "@/components/calendar";
+import { StackwiseDatePicker, StackwiseTimePicker } from "@/components/calendar";
 import { ADMIN_BTN_PRIMARY, ADMIN_BTN_SECONDARY, ADMIN_INPUT, ADMIN_SELECT } from "@/lib/ui/admin";
 import {
   contentCalendarChannelLabels,
@@ -211,12 +211,7 @@ export function ContentCalendarPostSheet({
                 </label>
                 <label className="block space-y-1.5">
                   <span className="text-xs font-medium text-muted">Time (optional)</span>
-                  <input
-                    type="time"
-                    className={ADMIN_INPUT}
-                    value={time}
-                    onChange={(e) => setTime(e.target.value)}
-                  />
+                  <StackwiseTimePicker value={time} onChange={setTime} placeholder="No time" />
                 </label>
               </div>
 
