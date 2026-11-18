@@ -125,14 +125,18 @@ async function insertAsset(postId, relImagePath) {
   let r2Key = null;
   let devData = null;
 
+  const fileBytes = fs.readFileSync(abs);
   r2Key = buildDemoR2Key(postId, assetId, filename);
   try {
     const put = await putContentCalendarObject(r2Key, abs, contentType);
     console.log(`  ↑ R2 (${put.via}): ${r2Key}`);
   } catch (err) {
-    console.warn(`  R2 upload failed for ${filename}, using dev_data fallback:`, err.message);
+    console.warn(`  R2 upload failed for ${filename}, dev_data only:`, err.message);
     r2Key = null;
-    devData = fs.readFileSync(abs);
+  }
+  // Mirror bytes in Neon so `next dev` still shows thumbs if S3 env is not set yet.
+  if (!process.env.CONTENT_CALENDAR_SEED_NO_DEV_DATA) {
+    devData = fileBytes;
   }
 
   await sql`

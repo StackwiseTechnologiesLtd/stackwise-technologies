@@ -32,12 +32,18 @@ export function getContentCalendarR2S3Client(): S3Client | null {
 export function s3AsR2Bucket(client: S3Client, bucket = contentCalendarR2BucketName()): R2BucketLike {
   return {
     async put(key, value, options) {
-      const body =
-        value instanceof ArrayBuffer
-          ? new Uint8Array(value)
-          : value instanceof Uint8Array
-            ? value
-            : value;
+      let body: Uint8Array | Buffer;
+      if (value instanceof ArrayBuffer) {
+        body = new Uint8Array(value);
+      } else if (value instanceof Uint8Array) {
+        body = value;
+      } else if (typeof Buffer !== "undefined" && Buffer.isBuffer(value)) {
+        body = value;
+      } else if (value instanceof Blob) {
+        body = new Uint8Array(await value.arrayBuffer());
+      } else {
+        body = new TextEncoder().encode(String(value));
+      }
       await client.send(
         new PutObjectCommand({
           Bucket: bucket,

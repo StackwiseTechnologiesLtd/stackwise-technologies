@@ -333,14 +333,20 @@ export async function getContentCalendarAssetBlob(assetId: string): Promise<{
 
   if (row.r2_key) {
     const bucket = await getContentCalendarBucket();
-    if (!bucket) return null;
-    const obj = await bucket.get(row.r2_key);
-    if (!obj?.body) return null;
-    const buf = await new Response(obj.body).arrayBuffer();
-    return {
-      contentType: obj.httpMetadata?.contentType ?? row.content_type,
-      body: buf,
-    };
+    if (bucket) {
+      try {
+        const obj = await bucket.get(row.r2_key);
+        if (obj?.body) {
+          const buf = await new Response(obj.body).arrayBuffer();
+          return {
+            contentType: obj.httpMetadata?.contentType ?? row.content_type,
+            body: buf,
+          };
+        }
+      } catch {
+        /* fall through to dev_data */
+      }
+    }
   }
 
   if (row.dev_data) {
