@@ -361,6 +361,7 @@ export async function deleteContentCalendarAsset(assetId: string): Promise<void>
 
 export async function getContentCalendarAssetBlob(assetId: string): Promise<{
   contentType: string;
+  filename: string;
   body: ArrayBuffer;
 } | null> {
   await ready();
@@ -368,10 +369,11 @@ export async function getContentCalendarAssetBlob(assetId: string): Promise<{
   const rows = asRows<{
     r2_key: string | null;
     content_type: string;
+    filename: string;
     dev_data: Uint8Array | null;
   }>(
     await sql`
-      SELECT r2_key, content_type, dev_data
+      SELECT r2_key, content_type, filename, dev_data
       FROM content_calendar_assets
       WHERE id = ${assetId}::uuid
       LIMIT 1
@@ -389,6 +391,7 @@ export async function getContentCalendarAssetBlob(assetId: string): Promise<{
           const buf = await new Response(obj.body).arrayBuffer();
           return {
             contentType: obj.httpMetadata?.contentType ?? row.content_type,
+            filename: row.filename,
             body: buf,
           };
         }
@@ -404,7 +407,7 @@ export async function getContentCalendarAssetBlob(assetId: string): Promise<{
         ? row.dev_data
         : new Uint8Array(row.dev_data as ArrayBuffer);
     const copy = new Uint8Array(bytes);
-    return { contentType: row.content_type, body: copy.buffer };
+    return { contentType: row.content_type, filename: row.filename, body: copy.buffer };
   }
 
   return null;

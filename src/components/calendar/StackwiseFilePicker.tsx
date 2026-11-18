@@ -10,6 +10,7 @@ import {
   isGalleryImageAsset,
   type AssetUiKind,
 } from "@/lib/content-calendar/asset-ui";
+import { contentCalendarAssetDownloadUrl } from "@/lib/content-calendar/asset-download";
 import { CONTENT_CALENDAR_MAX_BYTES } from "@/lib/content-calendar/media-storage";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 
@@ -255,6 +256,7 @@ function QuickViewModal({
 }) {
   const kind = getAssetUiKind(asset.contentType);
   const src = assetUrl(asset.id);
+  const downloadHref = contentCalendarAssetDownloadUrl(src);
   const title = asset.filename;
 
   useEffect(() => {
@@ -276,12 +278,11 @@ function QuickViewModal({
           <div className="sw-file-quickview-header-actions">
             <a
               className="sw-file-quickview-download"
-              href={src}
+              href={downloadHref}
               download={asset.filename}
-              target="_blank"
-              rel="noopener noreferrer"
             >
-              Download
+              <IconDownload />
+              <span>Download</span>
             </a>
             <button type="button" className="sw-file-quickview-close" onClick={onClose} aria-label="Close">
               ×
@@ -328,6 +329,8 @@ function AttachmentRow({
   const name = displayAssetName(asset.filename, kind);
   const href =
     kind === "link" ? assetLinkUrl(asset.filename) : assetUrl(asset.id);
+  const fileDownloadHref =
+    kind === "link" ? href : contentCalendarAssetDownloadUrl(assetUrl(asset.id));
 
   return (
     <li className={`sw-file-row sw-file-row--${kind}`}>
@@ -360,6 +363,9 @@ function AttachmentRow({
             >
               <IconEye />
             </button>
+            <a className="sw-file-row-action" href={fileDownloadHref} download={asset.filename} aria-label="Download">
+              <IconDownload />
+            </a>
           </>
         ) : kind === "link" ? (
           <a
@@ -372,13 +378,23 @@ function AttachmentRow({
             <IconExternal />
           </a>
         ) : canQuickViewAsset(asset.contentType) ? (
-          <button type="button" className="sw-file-row-action" aria-label="Quick view" onClick={onQuickView}>
-            <IconEye />
-          </button>
+          <>
+            <button type="button" className="sw-file-row-action" aria-label="Quick view" onClick={onQuickView}>
+              <IconEye />
+            </button>
+            <a
+              className="sw-file-row-action"
+              href={fileDownloadHref}
+              download={asset.filename}
+              aria-label="Download"
+            >
+              <IconDownload />
+            </a>
+          </>
         ) : (
           <a
             className="sw-file-row-action"
-            href={href}
+            href={fileDownloadHref}
             download={asset.filename}
             aria-label="Download"
           >

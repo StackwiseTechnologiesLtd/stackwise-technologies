@@ -412,13 +412,22 @@
 }
 
 .sw-file-quickview-download {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.55rem;
+  border-radius: 0.4rem;
+  border: 1px solid var(--admin-border);
+  background: var(--admin-canvas);
   font-size: 0.6875rem;
   font-weight: 600;
-  color: color-mix(in srgb, var(--accent) 85%, var(--foreground));
+  color: var(--foreground);
+  text-decoration: none;
 }
 
 .sw-file-quickview-download:hover {
-  text-decoration: underline;
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--admin-border));
+  color: color-mix(in srgb, var(--accent) 80%, var(--foreground));
 }
 
 .sw-file-quickview-close {
