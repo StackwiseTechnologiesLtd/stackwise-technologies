@@ -4,9 +4,10 @@ import {
   StackwiseColorPicker,
   StackwiseDatePicker,
   StackwiseFilePicker,
+  StackwiseSelect,
   StackwiseTimePicker,
-} from "@/components/calendar";
-import { ADMIN_BTN_PRIMARY, ADMIN_BTN_SECONDARY, ADMIN_INPUT, ADMIN_SELECT } from "@/lib/ui/admin";
+} from "@/components/stackwise";
+import { ADMIN_BTN_PRIMARY, ADMIN_BTN_SECONDARY, ADMIN_INPUT } from "@/lib/ui/admin";
 import {
   contentCalendarChannelLabels,
   contentCalendarChannels,
@@ -250,35 +251,27 @@ export function ContentCalendarPostSheet({
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="block space-y-1.5">
                   <span className="text-xs font-medium text-muted">Channel</span>
-                  <select
-                    className={ADMIN_SELECT}
+                  <StackwiseSelect
+                    aria-label="Channel"
                     value={channel}
-                    onChange={(e) =>
-                      setChannel(e.target.value as (typeof contentCalendarChannels)[number])
-                    }
-                  >
-                    {contentCalendarChannels.map((c) => (
-                      <option key={c} value={c}>
-                        {contentCalendarChannelLabels[c]}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={setChannel}
+                    options={contentCalendarChannels.map((c) => ({
+                      value: c,
+                      label: contentCalendarChannelLabels[c],
+                    }))}
+                  />
                 </label>
                 <label className="block space-y-1.5">
                   <span className="text-xs font-medium text-muted">Status</span>
-                  <select
-                    className={ADMIN_SELECT}
+                  <StackwiseSelect
+                    aria-label="Status"
                     value={status}
-                    onChange={(e) =>
-                      setStatus(e.target.value as (typeof contentCalendarStatuses)[number])
-                    }
-                  >
-                    {contentCalendarStatuses.map((s) => (
-                      <option key={s} value={s}>
-                        {contentCalendarStatusLabels[s]}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={setStatus}
+                    options={contentCalendarStatuses.map((s) => ({
+                      value: s,
+                      label: contentCalendarStatusLabels[s],
+                    }))}
+                  />
                 </label>
               </div>
 

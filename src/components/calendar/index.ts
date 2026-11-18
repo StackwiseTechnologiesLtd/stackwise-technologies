@@ -1,3 +1,4 @@
+/** @deprecated Prefer `@/components/stackwise` for app-wide pickers. */
 export { StackwiseCalendar, CalendarDayAddButton } from "@/components/calendar/StackwiseCalendar";
 export type { StackwiseCalendarDnD } from "@/components/calendar/StackwiseCalendar";
 export { StackwiseDatePicker } from "@/components/calendar/StackwiseDatePicker";

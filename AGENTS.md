@@ -4,6 +4,10 @@
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
 
+## Stackwise UI (admin forms)
+
+Use shared pickers from `@/components/stackwise` (date, time, color, file attachments, single/multi dropdowns). See `docs/engineering/STACKWISE_UI.md`.
+
 ## Stackwise integrations (agents)
 
 - **Build plan:** `docs/INTEGRATIONS_BUILD_PLAN.md` — includes manual test flows and a progress sign-off table per phase. **Agency ops (delivery, alerts, projects):** `docs/AGENCY_OPS_BUILD_PLAN.md` — after integrations foundation.
