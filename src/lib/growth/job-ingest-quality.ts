@@ -13,6 +13,20 @@ function normalize(text: string): string {
   return text.toLowerCase().replace(/\s+/g, " ").trim();
 }
 
+const DEV_HIRING_RE =
+  /\b(hiring|we(?:'|’)re hiring|we are hiring|join our team|open role|open position)\b/i;
+const DEV_ROLE_RE =
+  /\b(developer|engineer|software|full[\s-]?stack|backend|front[\s-]?end|devops|sre|react|node\.?js|typescript|javascript|python|golang|remote (?:dev|engineer)|\bswe\b)\b/i;
+const SOCIAL_JOB_EXCLUDE_RE =
+  /\b(open to work|#opentowork|looking for (?:a )?job|seeking employment|hire me|commissions? open)\b/i;
+
+/** X/LinkedIn posts advertising dev roles (Daniel apply-to list). */
+export function isDeveloperHiringPost(bodyText: string): boolean {
+  const text = bodyText.trim();
+  if (text.length < 30 || SOCIAL_JOB_EXCLUDE_RE.test(text)) return false;
+  return DEV_HIRING_RE.test(text) && DEV_ROLE_RE.test(text);
+}
+
 const JOB_HINTS = [
   "hiring",
   "job",

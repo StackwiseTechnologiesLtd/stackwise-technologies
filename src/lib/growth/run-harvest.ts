@@ -21,6 +21,10 @@ import {
   getHostedWorkerBrowser,
 } from "@/lib/growth/hosted-connect";
 import { evaluateHarvestCandidate } from "@/lib/growth/harvest-quality";
+import {
+  evaluateJobIngestCandidate,
+  isDeveloperHiringPost,
+} from "@/lib/growth/job-ingest-quality";
 import type { IcpConfig } from "@/lib/growth/types";
 import {
   ingestSignal,
@@ -53,18 +57,34 @@ function normalizeCookies(cookies: unknown): GrowthSessionCookie[] {
   return cookies as GrowthSessionCookie[];
 }
 
+function harvestUsesJobIngestGate(): boolean {
+  return process.env.GROWTH_HARVEST_JOB_MODE === "1";
+}
+
 async function ingestSignals(
   signals: IngestSignalInput[],
   icp: IcpConfig,
   report?: HarvestReporter,
 ): Promise<number> {
+  const jobMode = harvestUsesJobIngestGate();
   let ingested = 0;
   let skipped = 0;
   for (let i = 0; i < signals.length; i++) {
     const signal = signals[i];
     if (!signal.authorName?.trim() || !signal.bodyText?.trim()) continue;
 
-    const verdict = evaluateHarvestCandidate(signal, icp);
+    if (jobMode && !isDeveloperHiringPost(signal.bodyText)) {
+      skipped += 1;
+      await report?.(
+        "score",
+        `Skipped (${signal.authorName.trim()}): not a developer hiring post`,
+      );
+      continue;
+    }
+
+    const verdict = jobMode
+      ? evaluateJobIngestCandidate(signal, icp)
+      : evaluateHarvestCandidate(signal, icp);
     if (!verdict.ok) {
       skipped += 1;
       await report?.(
