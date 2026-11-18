@@ -88,39 +88,52 @@ export function StackwiseTimePicker({
     setActive("hour");
   }
 
-  const commit = useCallback(
-    (next: { hour12: number; minutes: number; pm: boolean }) => {
-      setDraft(next);
-      const hours = from12Hour(next.hour12, next.pm);
-      onChange(formatTime24(hours, next.minutes));
+  const pushDraft = useCallback(
+    (
+      patch: Partial<{ hour12: number; minutes: number; pm: boolean }>,
+      opts?: { focusMinute?: boolean },
+    ) => {
+      setDraft((d) => {
+        const next = { ...d, ...patch };
+        onChange(formatTime24(from12Hour(next.hour12, next.pm), next.minutes));
+        return next;
+      });
+      if (opts?.focusMinute) setActive("minute");
     },
     [onChange],
   );
 
   function stepHour(delta: number) {
-    let hour12 = draft.hour12 + delta;
-    if (hour12 > 12) hour12 = 1;
-    if (hour12 < 1) hour12 = 12;
-    commit({ ...draft, hour12 });
+    setDraft((d) => {
+      let hour12 = d.hour12 + delta;
+      if (hour12 > 12) hour12 = 1;
+      if (hour12 < 1) hour12 = 12;
+      const next = { ...d, hour12 };
+      onChange(formatTime24(from12Hour(next.hour12, next.pm), next.minutes));
+      return next;
+    });
   }
 
   function stepMinute(delta: number) {
-    let minutes = draft.minutes + delta;
-    if (minutes > 59) minutes = 0;
-    if (minutes < 0) minutes = 59;
-    commit({ ...draft, minutes });
+    setDraft((d) => {
+      let minutes = d.minutes + delta;
+      if (minutes > 59) minutes = 0;
+      if (minutes < 0) minutes = 59;
+      const next = { ...d, minutes };
+      onChange(formatTime24(from12Hour(next.hour12, next.pm), next.minutes));
+      return next;
+    });
   }
 
   function applyTypedHour(n: number) {
     if (n < 1 || n > 12) return false;
-    commit({ ...draft, hour12: n });
-    setActive("minute");
+    pushDraft({ hour12: n }, { focusMinute: true });
     return true;
   }
 
   function applyTypedMinute(n: number) {
     if (n < 0 || n > 59) return false;
-    commit({ ...draft, minutes: n });
+    pushDraft({ minutes: n });
     return true;
   }
 
@@ -129,15 +142,19 @@ export function StackwiseTimePicker({
     const next = digitBuffer + ch;
 
     if (active === "minute") {
-      if (next.length >= 2) {
-        const n = Number(next.slice(-2));
+      const buf = next.length > 2 ? ch : next;
+      setDigitBuffer(buf);
+      if (buf.length >= 2) {
+        const n = Number(buf);
         if (applyTypedMinute(n)) setDigitBuffer("");
-        else setDigitBuffer(ch);
         return;
       }
-      applyTypedMinute(Number(ch));
-      setDigitBuffer(ch);
-      typeTimerRef.current = window.setTimeout(() => setDigitBuffer(""), TYPE_PAIR_MS);
+      typeTimerRef.current = window.setTimeout(() => {
+        const n = Number(buf);
+        if (n <= 59) applyTypedMinute(n);
+        setDigitBuffer("");
+        typeTimerRef.current = null;
+      }, TYPE_PAIR_MS);
       return;
     }
 
@@ -156,11 +173,6 @@ export function StackwiseTimePicker({
     }
 
     setDigitBuffer(ch);
-    typeTimerRef.current = window.setTimeout(() => {
-      if (n >= 1 && n <= 9) applyTypedHour(n);
-      setDigitBuffer("");
-      typeTimerRef.current = null;
-    }, TYPE_PAIR_MS);
   }
 
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
@@ -242,7 +254,7 @@ export function StackwiseTimePicker({
           onKeyDown={onKeyDown}
         >
           <p className="sw-cal-time-hint">
-            Click hour or minute · ↑↓ to flip · 3 sets :03 · 30 types 3 then 0
+            Click hour or minute · ↑↓ to flip · type digits (12 = two keys)
           </p>
           <div className="sw-flip-clock">
             <button
@@ -289,14 +301,14 @@ export function StackwiseTimePicker({
             <button
               type="button"
               className={`sw-cal-time-ampm ${draft.pm ? "" : "on"}`}
-              onClick={() => commit({ ...draft, pm: false })}
+              onClick={() => pushDraft({ pm: false })}
             >
               AM
             </button>
             <button
               type="button"
               className={`sw-cal-time-ampm ${draft.pm ? "on" : ""}`}
-              onClick={() => commit({ ...draft, pm: true })}
+              onClick={() => pushDraft({ pm: true })}
             >
               PM
             </button>
@@ -306,7 +318,7 @@ export function StackwiseTimePicker({
               className="text-xs font-medium text-muted hover:text-foreground"
               onClick={() => {
                 const n = defaultDraft();
-                commit(n);
+                pushDraft(n);
               }}
             >
               Now

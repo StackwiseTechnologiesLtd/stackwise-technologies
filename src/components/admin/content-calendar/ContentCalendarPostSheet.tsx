@@ -1,6 +1,10 @@
 "use client";
 
-import { StackwiseDatePicker, StackwiseTimePicker } from "@/components/calendar";
+import {
+  StackwiseColorPicker,
+  StackwiseDatePicker,
+  StackwiseTimePicker,
+} from "@/components/calendar";
 import { ADMIN_BTN_PRIMARY, ADMIN_BTN_SECONDARY, ADMIN_INPUT, ADMIN_SELECT } from "@/lib/ui/admin";
 import {
   contentCalendarChannelLabels,
@@ -252,12 +256,7 @@ export function ContentCalendarPostSheet({
 
               <label className="block space-y-1.5">
                 <span className="text-xs font-medium text-muted">Accent</span>
-                <input
-                  type="color"
-                  className="h-10 w-full cursor-pointer rounded-md border border-[var(--admin-border)] bg-[var(--admin-canvas)]"
-                  value={accent}
-                  onChange={(e) => setAccent(e.target.value)}
-                />
+                <StackwiseColorPicker value={accent} onChange={setAccent} />
               </label>
 
               <label className="block space-y-1.5">
