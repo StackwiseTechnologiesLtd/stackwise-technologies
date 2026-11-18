@@ -6,7 +6,11 @@ import { ContractMarkdownEditor } from "@/components/contracts/ContractMarkdownE
 import { useToast } from "@/components/ToastProvider";
 import type { ContractEngagement } from "@/lib/contracts/types";
 import { PrintButton } from "@/components/payments/PrintButton";
-import { ADMIN_BTN_PRIMARY, ADMIN_BTN_SECONDARY } from "@/lib/ui/admin";
+import {
+  ADMIN_BTN_PRIMARY,
+  ADMIN_BTN_SECONDARY,
+  ADMIN_INPUT,
+} from "@/lib/ui/admin";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -130,7 +134,7 @@ export function ContractReviewPanel({
                 <input
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-line bg-background px-3 py-2"
+                  className={`mt-1 ${ADMIN_INPUT}`}
                 />
               </label>
               <ContractMarkdownEditor

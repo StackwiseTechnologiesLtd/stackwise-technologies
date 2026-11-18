@@ -421,7 +421,7 @@ export function PaymentLinkBuilder({
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}
-                className="w-full rounded-lg border border-line bg-background px-3 py-2"
+                className={ADMIN_INPUT}
                 placeholder="Scope details, payment terms, etc."
               />
             </label>

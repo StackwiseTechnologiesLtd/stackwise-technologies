@@ -9,7 +9,11 @@ import {
   type ContractDocumentKind,
 } from "@/lib/contracts/types";
 import { StackwiseSelect } from "@/components/stackwise";
-import { ADMIN_BTN_PRIMARY, ADMIN_BTN_SECONDARY } from "@/lib/ui/admin";
+import {
+  ADMIN_BTN_PRIMARY,
+  ADMIN_BTN_SECONDARY,
+  ADMIN_INPUT,
+} from "@/lib/ui/admin";
 
 type Props = {
   initialCustomerName?: string;
@@ -73,7 +77,7 @@ export function ContractBuilder({
             required
             value={customerName}
             onChange={(e) => setCustomerName(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-line bg-background px-3 py-2"
+            className={`mt-1 ${ADMIN_INPUT}`}
           />
         </label>
         <label className="block text-sm">
@@ -83,7 +87,7 @@ export function ContractBuilder({
             type="email"
             value={customerEmail}
             onChange={(e) => setCustomerEmail(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-line bg-background px-3 py-2"
+            className={`mt-1 ${ADMIN_INPUT}`}
           />
         </label>
       </div>
@@ -94,7 +98,7 @@ export function ContractBuilder({
           value={companyName}
           onChange={(e) => setCompanyName(e.target.value)}
           placeholder="Legal entity name on the agreement"
-          className="mt-1 w-full rounded-lg border border-line bg-background px-3 py-2"
+          className={`mt-1 ${ADMIN_INPUT}`}
         />
       </label>
 
@@ -121,7 +125,7 @@ export function ContractBuilder({
           value={servicesBrief}
           onChange={(e) => setServicesBrief(e.target.value)}
           placeholder="Describe deliverables, timeline, tech stack, team involvement, success criteria…"
-          className="mt-1 w-full rounded-lg border border-line bg-background px-3 py-2 font-mono text-xs leading-relaxed"
+          className={`mt-1 ${ADMIN_INPUT} font-mono text-xs leading-relaxed`}
         />
       </label>
 
@@ -132,7 +136,7 @@ export function ContractBuilder({
           value={commercialNotes}
           onChange={(e) => setCommercialNotes(e.target.value)}
           placeholder="Budget range, payment terms, jurisdiction, start date…"
-          className="mt-1 w-full rounded-lg border border-line bg-background px-3 py-2 text-sm"
+          className={`mt-1 ${ADMIN_INPUT}`}
         />
       </label>
 

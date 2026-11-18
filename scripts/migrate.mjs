@@ -128,3 +128,8 @@ for (const file of files) {
 }
 
 console.log(`Migration complete: ${applied} applied, ${skipped} skipped (${files.length} files).`);
+if (files.length !== 32) {
+  console.warn(
+    `Update src/lib/db/migration-file-count.ts: MIGRATION_SQL_FILE_COUNT should be ${files.length}.`,
+  );
+}

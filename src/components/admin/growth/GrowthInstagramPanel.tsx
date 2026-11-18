@@ -18,6 +18,7 @@ import { useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
 import { instagramDeliveryStatuses } from "@/lib/instagram/types";
 import { StackwiseSelect } from "@/components/stackwise";
+import { ADMIN_INPUT } from "@/lib/ui/admin";
 
 function formatWhen(iso: string | null): string {
   if (!iso) return "Never";
@@ -501,7 +502,7 @@ export function GrowthInstagramPanel({
           <label className="text-sm">
             Label
             <input
-              className="mt-1 w-full rounded-lg border border-line bg-black/40 px-3 py-2"
+              className={`mt-1 ${ADMIN_INPUT}`}
               value={appForm.label}
               onChange={(e) => setAppForm((f) => ({ ...f, label: e.target.value }))}
             />
@@ -509,7 +510,7 @@ export function GrowthInstagramPanel({
           <label className="text-sm">
             Slug (optional)
             <input
-              className="mt-1 w-full rounded-lg border border-line bg-black/40 px-3 py-2"
+              className={`mt-1 ${ADMIN_INPUT}`}
               value={appForm.slug}
               onChange={(e) => setAppForm((f) => ({ ...f, slug: e.target.value }))}
             />
@@ -517,7 +518,7 @@ export function GrowthInstagramPanel({
           <label className="text-sm">
             Instagram App ID
             <input
-              className="mt-1 w-full rounded-lg border border-line bg-black/40 px-3 py-2"
+              className={`mt-1 ${ADMIN_INPUT}`}
               value={appForm.metaAppId}
               onChange={(e) => setAppForm((f) => ({ ...f, metaAppId: e.target.value }))}
               placeholder="974253428666592"
@@ -526,7 +527,7 @@ export function GrowthInstagramPanel({
           <label className="text-sm">
             Webhook verify token
             <input
-              className="mt-1 w-full rounded-lg border border-line bg-black/40 px-3 py-2"
+              className={`mt-1 ${ADMIN_INPUT}`}
               value={appForm.webhookVerifyToken}
               onChange={(e) =>
                 setAppForm((f) => ({ ...f, webhookVerifyToken: e.target.value }))
@@ -538,7 +539,7 @@ export function GrowthInstagramPanel({
             <input
               type="password"
               autoComplete="off"
-              className="mt-1 w-full rounded-lg border border-line bg-black/40 px-3 py-2"
+              className={`mt-1 ${ADMIN_INPUT}`}
               value={appForm.appSecret}
               onChange={(e) => setAppForm((f) => ({ ...f, appSecret: e.target.value }))}
             />
@@ -548,7 +549,7 @@ export function GrowthInstagramPanel({
             <input
               type="password"
               autoComplete="off"
-              className="mt-1 w-full rounded-lg border border-line bg-black/40 px-3 py-2"
+              className={`mt-1 ${ADMIN_INPUT}`}
               value={appForm.facebookAppSecret}
               onChange={(e) =>
                 setAppForm((f) => ({ ...f, facebookAppSecret: e.target.value }))
@@ -589,7 +590,7 @@ export function GrowthInstagramPanel({
           <label className="text-sm">
             IG user ID
             <input
-              className="mt-1 w-full rounded-lg border border-line bg-black/40 px-3 py-2"
+              className={`mt-1 ${ADMIN_INPUT}`}
               value={accountForm.igUserId}
               onChange={(e) => setAccountForm((f) => ({ ...f, igUserId: e.target.value }))}
             />
@@ -597,7 +598,7 @@ export function GrowthInstagramPanel({
           <label className="text-sm">
             @username
             <input
-              className="mt-1 w-full rounded-lg border border-line bg-black/40 px-3 py-2"
+              className={`mt-1 ${ADMIN_INPUT}`}
               value={accountForm.username}
               onChange={(e) => setAccountForm((f) => ({ ...f, username: e.target.value }))}
             />
@@ -607,7 +608,7 @@ export function GrowthInstagramPanel({
             <input
               type="password"
               autoComplete="off"
-              className="mt-1 w-full rounded-lg border border-line bg-black/40 px-3 py-2"
+              className={`mt-1 ${ADMIN_INPUT}`}
               value={accountForm.accessToken}
               onChange={(e) => setAccountForm((f) => ({ ...f, accessToken: e.target.value }))}
             />
@@ -744,7 +745,7 @@ export function GrowthInstagramPanel({
           <label className="text-sm">
             Name
             <input
-              className="mt-1 w-full rounded-lg border border-line bg-black/40 px-3 py-2"
+              className={`mt-1 ${ADMIN_INPUT}`}
               value={campaignForm.name}
               onChange={(e) => setCampaignForm((f) => ({ ...f, name: e.target.value }))}
             />
@@ -768,7 +769,7 @@ export function GrowthInstagramPanel({
           <label className="text-sm">
             Media ID {campaignForm.triggerType === "comment" ? "(required)" : "(optional)"}
             <input
-              className="mt-1 w-full rounded-lg border border-line bg-black/40 px-3 py-2"
+              className={`mt-1 ${ADMIN_INPUT}`}
               value={campaignForm.mediaId}
               onChange={(e) => setCampaignForm((f) => ({ ...f, mediaId: e.target.value }))}
             />
@@ -776,7 +777,7 @@ export function GrowthInstagramPanel({
           <label className="text-sm">
             Keyword
             <input
-              className="mt-1 w-full rounded-lg border border-line bg-black/40 px-3 py-2"
+              className={`mt-1 ${ADMIN_INPUT}`}
               value={campaignForm.keyword}
               onChange={(e) => setCampaignForm((f) => ({ ...f, keyword: e.target.value }))}
             />
@@ -784,7 +785,7 @@ export function GrowthInstagramPanel({
           <label className="text-sm sm:col-span-2">
             Private reply
             <textarea
-              className="mt-1 w-full rounded-lg border border-line bg-black/40 px-3 py-2"
+              className={`mt-1 ${ADMIN_INPUT}`}
               rows={3}
               value={campaignForm.privateReplyTemplate}
               onChange={(e) =>
@@ -795,7 +796,7 @@ export function GrowthInstagramPanel({
           <label className="text-sm">
             Button 1 label
             <input
-              className="mt-1 w-full rounded-lg border border-line bg-black/40 px-3 py-2"
+              className={`mt-1 ${ADMIN_INPUT}`}
               value={campaignForm.buttonLabel1}
               onChange={(e) => setCampaignForm((f) => ({ ...f, buttonLabel1: e.target.value }))}
             />
@@ -803,7 +804,7 @@ export function GrowthInstagramPanel({
           <label className="text-sm">
             Button 1 URL
             <input
-              className="mt-1 w-full rounded-lg border border-line bg-black/40 px-3 py-2"
+              className={`mt-1 ${ADMIN_INPUT}`}
               value={campaignForm.buttonUrl1}
               onChange={(e) => setCampaignForm((f) => ({ ...f, buttonUrl1: e.target.value }))}
             />
@@ -811,7 +812,7 @@ export function GrowthInstagramPanel({
           <label className="text-sm">
             Button 2 label
             <input
-              className="mt-1 w-full rounded-lg border border-line bg-black/40 px-3 py-2"
+              className={`mt-1 ${ADMIN_INPUT}`}
               value={campaignForm.buttonLabel2}
               onChange={(e) => setCampaignForm((f) => ({ ...f, buttonLabel2: e.target.value }))}
             />
@@ -819,7 +820,7 @@ export function GrowthInstagramPanel({
           <label className="text-sm">
             Button 2 URL
             <input
-              className="mt-1 w-full rounded-lg border border-line bg-black/40 px-3 py-2"
+              className={`mt-1 ${ADMIN_INPUT}`}
               value={campaignForm.buttonUrl2}
               onChange={(e) => setCampaignForm((f) => ({ ...f, buttonUrl2: e.target.value }))}
             />

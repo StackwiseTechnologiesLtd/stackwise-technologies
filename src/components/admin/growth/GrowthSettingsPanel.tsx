@@ -3,6 +3,7 @@
 import { useToast } from "@/components/ToastProvider";
 import { AdminActionButton } from "@/components/admin/AdminActionButton";
 import { StackwiseSelect } from "@/components/stackwise";
+import { ADMIN_INPUT } from "@/lib/ui/admin";
 import { GrowthIntegrationsPanel } from "@/components/admin/growth/GrowthIntegrationsPanel";
 import { GrowthPlatformConnections } from "@/components/admin/growth/GrowthPlatformConnections";
 import type { IcpConfig } from "@/lib/growth/types";
@@ -93,7 +94,7 @@ export function GrowthSettingsPanel() {
           JSON used to score leads. Edit keywords and intent phrases, then save.
         </p>
         <textarea
-          className="mt-4 min-h-64 w-full rounded-lg border border-line bg-black/50 px-3 py-2 font-mono text-xs"
+          className={`mt-4 min-h-64 font-mono text-xs ${ADMIN_INPUT}`}
           value={configText}
           onChange={(e) => setConfigText(e.target.value)}
         />
@@ -130,7 +131,7 @@ export function GrowthSettingsPanel() {
           </div>
         </div>
         <textarea
-          className="mt-3 min-h-32 w-full rounded-lg border border-line bg-black/50 px-3 py-2 font-mono text-xs"
+          className={`mt-3 min-h-32 font-mono text-xs ${ADMIN_INPUT}`}
           placeholder='Paste cookie JSON array from your connector…'
           value={cookieJson}
           onChange={(e) => setCookieJson(e.target.value)}

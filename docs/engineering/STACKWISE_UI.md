@@ -43,7 +43,7 @@ See [CONTENT_CALENDAR.md](./CONTENT_CALENDAR.md#ui) for attachment list vs galle
 
 ## Buttons
 
-Use `ADMIN_BTN_PRIMARY` / `ADMIN_BTN_SECONDARY` (or `AdminActionButton`) inside `/admin` — not `BTN_PRIMARY` from `@/lib/ui/buttons` (public/pay pages).
+Use `ADMIN_BTN_PRIMARY` / `ADMIN_BTN_SECONDARY` / `ADMIN_BTN_GHOST` (or `AdminActionButton`) inside `/admin` — not `BTN_*` from `@/lib/ui/buttons` (public/pay pages). `PrintButton` accepts `admin` for contract review.
 
 ## Adding a new admin form field
 

@@ -13,7 +13,11 @@ import type { ContractMilestone } from "@/lib/contracts/milestones";
 import type { PaymentLink } from "@/lib/payments/types";
 import { SERVICES_CATALOG } from "@/lib/services-catalog";
 import { StackwiseSelect } from "@/components/stackwise";
-import { ADMIN_BTN_PRIMARY, ADMIN_BTN_SECONDARY } from "@/lib/ui/admin";
+import {
+  ADMIN_BTN_PRIMARY,
+  ADMIN_BTN_SECONDARY,
+  ADMIN_INPUT,
+} from "@/lib/ui/admin";
 
 export function ContractEngagementOpsPanel({
   engagement,
@@ -122,7 +126,7 @@ export function ContractEngagementOpsPanel({
           <input
             value={headline}
             onChange={(e) => setHeadline(e.target.value)}
-            className="mt-1 w-full rounded-lg border border-line bg-background px-3 py-2"
+            className={`mt-1 ${ADMIN_INPUT}`}
           />
         </label>
         <div className="block text-sm">
@@ -147,7 +151,7 @@ export function ContractEngagementOpsPanel({
           rows={3}
           value={detail}
           onChange={(e) => setDetail(e.target.value)}
-          className="mt-1 w-full rounded-lg border border-line bg-background px-3 py-2 text-sm"
+          className={`mt-1 ${ADMIN_INPUT}`}
         />
       </label>
 

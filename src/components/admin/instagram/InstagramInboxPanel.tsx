@@ -6,7 +6,7 @@ import type {
   InstagramConversation,
   InstagramInboxMessage,
 } from "@/lib/instagram/types";
-import { ADMIN_BTN_PRIMARY } from "@/lib/ui/admin";
+import { ADMIN_BTN_PRIMARY, ADMIN_INPUT } from "@/lib/ui/admin";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
@@ -186,7 +186,7 @@ export function InstagramInboxPanel() {
             <input
               type="search"
               placeholder="Search @username…"
-              className="w-full rounded-lg border border-line bg-black/40 px-2.5 py-1.5 text-sm"
+              className={`${ADMIN_INPUT} py-1.5 text-sm`}
               value={contactSearch}
               onChange={(e) => setContactSearch(e.target.value)}
             />
@@ -283,7 +283,7 @@ export function InstagramInboxPanel() {
                   onChange={(e) => setCompose(e.target.value)}
                   rows={2}
                   placeholder="Reply within the messaging window…"
-                  className="min-h-[2.5rem] flex-1 resize-y rounded-lg border border-line bg-background px-3 py-2 text-sm"
+                  className={`min-h-[2.5rem] flex-1 resize-y ${ADMIN_INPUT}`}
                 />
                 <button
                   type="submit"

@@ -2,6 +2,7 @@
 
 import { AdminActionButton } from "@/components/admin/AdminActionButton";
 import { StackwiseSelect } from "@/components/stackwise";
+import { ADMIN_INPUT } from "@/lib/ui/admin";
 import { AdminConfirmDialog } from "@/components/admin/AdminConfirmDialog";
 import { TablePagination } from "@/components/admin/TablePagination";
 import { useToast } from "@/components/ToastProvider";
@@ -119,7 +120,7 @@ export function InstagramTeamPanel({
           <label className="text-sm sm:col-span-2">
             Work email
             <input
-              className="mt-1 w-full rounded-lg border border-line bg-black/40 px-3 py-2"
+              className={`mt-1 ${ADMIN_INPUT}`}
               value={form.email}
               onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
             />
@@ -127,7 +128,7 @@ export function InstagramTeamPanel({
           <label className="text-sm">
             Label
             <input
-              className="mt-1 w-full rounded-lg border border-line bg-black/40 px-3 py-2"
+              className={`mt-1 ${ADMIN_INPUT}`}
               value={form.label}
               onChange={(e) => setForm((f) => ({ ...f, label: e.target.value }))}
             />

@@ -4,6 +4,7 @@ import { useToast } from "@/components/ToastProvider";
 import type { GrowthPlatform } from "@/lib/growth/types";
 import { AdminActionButton } from "@/components/admin/AdminActionButton";
 import { StackwiseSelect } from "@/components/stackwise";
+import { ADMIN_INPUT } from "@/lib/ui/admin";
 import { useState } from "react";
 
 export function GrowthCaptureForm({ onCreated }: { onCreated?: () => void }) {
@@ -76,7 +77,7 @@ export function GrowthCaptureForm({ onCreated }: { onCreated?: () => void }) {
         <label className="block text-sm sm:col-span-2">
           <span className="text-muted">Post URL</span>
           <input
-            className="mt-1 w-full rounded-lg border border-line bg-black/50 px-3 py-2"
+            className={`mt-1 ${ADMIN_INPUT}`}
             value={sourceUrl}
             onChange={(e) => setSourceUrl(e.target.value)}
             placeholder="https://…"
@@ -86,7 +87,7 @@ export function GrowthCaptureForm({ onCreated }: { onCreated?: () => void }) {
           <span className="text-muted">Author name</span>
           <input
             required
-            className="mt-1 w-full rounded-lg border border-line bg-black/50 px-3 py-2"
+            className={`mt-1 ${ADMIN_INPUT}`}
             value={authorName}
             onChange={(e) => setAuthorName(e.target.value)}
           />
@@ -94,7 +95,7 @@ export function GrowthCaptureForm({ onCreated }: { onCreated?: () => void }) {
         <label className="block text-sm">
           <span className="text-muted">Role / title</span>
           <input
-            className="mt-1 w-full rounded-lg border border-line bg-black/50 px-3 py-2"
+            className={`mt-1 ${ADMIN_INPUT}`}
             value={roleTitle}
             onChange={(e) => setRoleTitle(e.target.value)}
             placeholder="Founder, CTO…"
@@ -104,7 +105,7 @@ export function GrowthCaptureForm({ onCreated }: { onCreated?: () => void }) {
           <span className="text-muted">What they said</span>
           <textarea
             required
-            className="mt-1 min-h-28 w-full rounded-lg border border-line bg-black/50 px-3 py-2"
+            className={`mt-1 min-h-28 ${ADMIN_INPUT}`}
             value={bodyText}
             onChange={(e) => setBodyText(e.target.value)}
           />
