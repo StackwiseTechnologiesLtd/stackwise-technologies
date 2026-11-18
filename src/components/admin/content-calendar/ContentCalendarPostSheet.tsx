@@ -3,6 +3,7 @@
 import {
   StackwiseColorPicker,
   StackwiseDatePicker,
+  StackwiseFilePicker,
   StackwiseTimePicker,
 } from "@/components/calendar";
 import { ADMIN_BTN_PRIMARY, ADMIN_BTN_SECONDARY, ADMIN_INPUT, ADMIN_SELECT } from "@/lib/ui/admin";
@@ -134,9 +135,9 @@ export function ContentCalendarPostSheet({
     }
   }
 
-  async function onUpload(files: FileList | null) {
-    if (!files?.length || !postId) {
-      if (!postId) toast.error("Save the post before uploading media");
+  async function uploadFiles(files: FileList) {
+    if (!postId) {
+      toast.error("Save the post before uploading media");
       return;
     }
     setUploading(true);
@@ -163,8 +164,32 @@ export function ContentCalendarPostSheet({
     }
   }
 
+  async function addLink(url: string) {
+    if (!postId) {
+      toast.error("Save the post before adding links");
+      return;
+    }
+    try {
+      const form = new FormData();
+      form.set("url", url);
+      const res = await fetch(`/api/admin/content-calendar/posts/${postId}/assets`, {
+        method: "POST",
+        body: form,
+      });
+      if (!res.ok) {
+        const j = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(j.error ?? "Add link failed");
+      }
+      const asset = (await res.json()) as ContentCalendarPostDetail["assets"][number];
+      setAssets((prev) => [...prev, asset]);
+      toast.toast("Link added");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Add link failed");
+      throw e;
+    }
+  }
+
   async function removeAsset(assetId: string) {
-    if (!window.confirm("Remove this file?")) return;
     try {
       const res = await fetch(`/api/admin/content-calendar/assets/${assetId}`, { method: "DELETE" });
       if (!res.ok) throw new Error("Remove failed");
@@ -279,66 +304,19 @@ export function ContentCalendarPostSheet({
                 />
               </label>
 
-              <div className="space-y-2">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-medium text-muted">Images & video</span>
-                  <label className="cursor-pointer text-xs font-medium text-accent hover:underline">
-                    {uploading ? "Uploading…" : "Add files"}
-                    <input
-                      type="file"
-                      className="sr-only"
-                      accept="image/*,video/*"
-                      multiple
-                      disabled={uploading || isNew}
-                      onChange={(e) => void onUpload(e.target.files)}
-                    />
-                  </label>
-                </div>
-                {isNew ? (
-                  <p className="text-xs text-muted">Save once, then attach media (stored in R2 on deploy).</p>
-                ) : null}
-                {assets.length > 0 ? (
-                  <ul className="grid grid-cols-2 gap-3">
-                    {assets.map((a) => {
-                      const isVideo = a.contentType.startsWith("video/");
-                      return (
-                        <li
-                          key={a.id}
-                          className="group relative overflow-hidden rounded-lg border border-[var(--admin-border)] bg-[var(--admin-canvas)]"
-                        >
-                          {isVideo ? (
-                            <video
-                              src={assetUrl(a.id)}
-                              className="aspect-[4/3] w-full object-cover"
-                              controls
-                              preload="metadata"
-                            />
-                          ) : (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={assetUrl(a.id)}
-                              alt={a.filename}
-                              className="aspect-[4/3] w-full object-cover"
-                            />
-                          )}
-                          <div className="flex items-center justify-between gap-2 px-2 py-1.5 text-[10px] text-muted">
-                            <span className="truncate">{a.filename}</span>
-                            <button
-                              type="button"
-                              className="shrink-0 text-accent hover:underline"
-                              onClick={() => void removeAsset(a.id)}
-                            >
-                              Remove
-                            </button>
-                          </div>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                ) : (
-                  <p className="text-xs text-muted">No media yet.</p>
-                )}
-              </div>
+              <label className="block space-y-1.5">
+                <span className="text-xs font-medium text-muted">Attachments</span>
+                <StackwiseFilePicker
+                  assets={assets}
+                  assetUrl={assetUrl}
+                  disabled={isNew}
+                  disabledHint="Save once, then attach files, links, or media (R2 on deploy)."
+                  uploading={uploading}
+                  onUploadFiles={(files) => uploadFiles(files)}
+                  onAddLink={addLink}
+                  onRemove={removeAsset}
+                />
+              </label>
             </>
           )}
         </div>

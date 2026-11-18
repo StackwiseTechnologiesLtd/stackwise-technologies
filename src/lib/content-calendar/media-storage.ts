@@ -43,8 +43,17 @@ export function buildR2Key(postId: string, assetId: string, filename: string): s
 
 export const CONTENT_CALENDAR_MAX_BYTES = 25 * 1024 * 1024;
 
+/** Stored as `content_type`; `filename` holds the URL. No R2 blob. */
+export const CONTENT_CALENDAR_LINK_TYPE = "application/x-stackwise-url";
+
 export function isAllowedMediaType(contentType: string): boolean {
   if (contentType.startsWith("image/")) return true;
   if (contentType.startsWith("video/")) return true;
+  if (contentType.startsWith("audio/")) return true;
+  if (contentType === "application/pdf") return true;
   return false;
+}
+
+export function isContentCalendarLinkAsset(contentType: string): boolean {
+  return contentType === CONTENT_CALENDAR_LINK_TYPE;
 }

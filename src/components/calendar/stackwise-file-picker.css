@@ -1,0 +1,322 @@
+.sw-file-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  width: 100%;
+}
+
+.sw-file-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 5.5rem;
+  padding: 1rem 1.1rem;
+  border-radius: 0.65rem;
+  border: 1px dashed color-mix(in srgb, var(--admin-border) 85%, var(--foreground));
+  background: color-mix(in srgb, var(--admin-canvas) 92%, var(--admin-surface));
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.sw-file-drop:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  outline-offset: 2px;
+}
+
+.sw-file-drop--active {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--admin-border));
+  background: color-mix(in srgb, var(--accent) 8%, var(--admin-canvas));
+}
+
+.sw-file-drop--disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.sw-file-drop-icon {
+  color: color-mix(in srgb, var(--foreground) 55%, transparent);
+}
+
+.sw-file-drop-title {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--foreground);
+  text-align: center;
+}
+
+.sw-file-drop-hint {
+  margin: 0;
+  font-size: 0.6875rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+.sw-file-disabled-hint {
+  margin: -0.25rem 0 0;
+  font-size: 0.6875rem;
+  color: var(--muted);
+}
+
+.sw-file-link-row {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.sw-file-link-toggle {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--accent) 88%, var(--foreground));
+  cursor: pointer;
+}
+
+.sw-file-link-toggle:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.sw-file-link-form {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.sw-file-link-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.45rem 0.6rem;
+  border-radius: 0.45rem;
+  border: 1px solid var(--admin-border);
+  background: var(--admin-canvas);
+  font-size: 0.75rem;
+  color: var(--foreground);
+}
+
+.sw-file-link-add {
+  flex-shrink: 0;
+  padding: 0.45rem 0.75rem;
+  border-radius: 0.45rem;
+  border: 1px solid var(--admin-border);
+  background: color-mix(in srgb, var(--admin-surface) 90%, var(--foreground));
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.sw-file-section-label {
+  margin: 0.15rem 0 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.sw-file-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sw-file-row {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.5rem 0.55rem;
+  border-radius: 0.55rem;
+  border: 1px solid var(--admin-border);
+  background: color-mix(in srgb, var(--admin-surface) 96%, var(--admin-canvas));
+}
+
+.sw-file-row-icon {
+  flex-shrink: 0;
+  display: flex;
+  color: color-mix(in srgb, var(--foreground) 70%, transparent);
+}
+
+.sw-file-row-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.sw-file-row-name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sw-file-row-meta {
+  font-size: 0.625rem;
+  color: var(--muted);
+}
+
+.sw-file-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.sw-file-row-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.65rem;
+  height: 1.65rem;
+  border-radius: 0.4rem;
+  border: 1px solid var(--admin-border);
+  background: var(--admin-canvas);
+  color: color-mix(in srgb, var(--foreground) 75%, transparent);
+}
+
+.sw-file-row-remove {
+  border-color: transparent;
+  background: transparent;
+}
+
+.sw-file-row--audio {
+  flex-wrap: wrap;
+}
+
+.sw-file-row--audio .sw-file-row-main {
+  flex: 1 1 5rem;
+}
+
+.sw-file-audio {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: 100%;
+  max-width: 11rem;
+  order: 3;
+  flex: 1 1 100%;
+  padding-top: 0.25rem;
+}
+
+@media (min-width: 420px) {
+  .sw-file-row--audio .sw-file-audio {
+    order: unset;
+    flex: 0 1 10.5rem;
+    padding-top: 0;
+  }
+}
+
+.sw-file-audio-time,
+.sw-file-audio-dur {
+  font-size: 0.625rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.sw-file-audio-wave {
+  flex: 1;
+  height: 0.35rem;
+  border-radius: 999px;
+  background: repeating-linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--foreground) 35%, transparent) 0 2px,
+    transparent 2px 5px
+  );
+  opacity: 0.55;
+}
+
+.sw-file-audio-play {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--admin-border);
+  background: var(--admin-canvas);
+  font-size: 0.55rem;
+  line-height: 1;
+  color: var(--foreground);
+  flex-shrink: 0;
+}
+
+.sw-file-gallery {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.sw-file-gallery::-webkit-scrollbar {
+  display: none;
+}
+
+.sw-file-gallery-item {
+  position: relative;
+  flex: 0 0 auto;
+  width: 4.75rem;
+  height: 4.75rem;
+  border-radius: 0.55rem;
+  overflow: hidden;
+  border: 1px solid var(--admin-border);
+  background: var(--admin-canvas);
+}
+
+.sw-file-gallery-media {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sw-file-gallery-size {
+  position: absolute;
+  left: 0.25rem;
+  bottom: 0.25rem;
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.25rem;
+  background: rgba(0, 0, 0, 0.55);
+  font-size: 0.5625rem;
+  font-weight: 600;
+  color: #f8fafc;
+}
+
+.sw-file-gallery-remove {
+  position: absolute;
+  top: 0.2rem;
+  left: 0.2rem;
+  z-index: 2;
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 999px;
+  border: 0;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
+.sw-file-gallery-add {
+  width: 4.75rem;
+  height: 4.75rem;
+  border-radius: 0.55rem;
+  border: 1px dashed var(--admin-border);
+  background: color-mix(in srgb, var(--admin-canvas) 90%, var(--admin-surface));
+  font-size: 1.35rem;
+  font-weight: 300;
+  color: var(--muted);
+}
+
+.sw-file-gallery-add:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

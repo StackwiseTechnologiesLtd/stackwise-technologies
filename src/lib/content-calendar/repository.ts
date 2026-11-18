@@ -3,6 +3,7 @@ import { asRows, getSql, isDatabaseConfigured } from "@/lib/db/postgres";
 import { isoDateLocal } from "@/lib/content-calendar/dates";
 import {
   buildR2Key,
+  CONTENT_CALENDAR_LINK_TYPE,
   CONTENT_CALENDAR_MAX_BYTES,
   getContentCalendarBucket,
   isAllowedMediaType,
@@ -299,6 +300,48 @@ export async function addContentCalendarAsset(
     await sql`SELECT * FROM content_calendar_assets WHERE id = ${assetId}::uuid LIMIT 1`,
   );
   if (!rows[0]) throw new Error("Asset save failed");
+  return mapAsset(rows[0]);
+}
+
+export async function addContentCalendarLink(
+  postId: string,
+  rawUrl: string,
+): Promise<ContentCalendarAsset> {
+  await ready();
+  const trimmed = rawUrl.trim();
+  let href: string;
+  try {
+    href = new URL(trimmed.includes("://") ? trimmed : `https://${trimmed}`).href;
+  } catch {
+    throw new Error("Enter a valid URL");
+  }
+
+  const post = await getContentCalendarPost(postId);
+  if (!post) throw new Error("Post not found");
+
+  const sql = getSql();
+  const assetId = crypto.randomUUID();
+  const sortOrder = post.assets.length;
+
+  await sql`
+    INSERT INTO content_calendar_assets (
+      id, post_id, r2_key, content_type, filename, byte_size, sort_order, dev_data
+    ) VALUES (
+      ${assetId}::uuid,
+      ${postId}::uuid,
+      ${null},
+      ${CONTENT_CALENDAR_LINK_TYPE},
+      ${href},
+      ${0},
+      ${sortOrder},
+      ${null}
+    )
+  `;
+
+  const rows = asRows<AssetRow>(
+    await sql`SELECT * FROM content_calendar_assets WHERE id = ${assetId}::uuid LIMIT 1`,
+  );
+  if (!rows[0]) throw new Error("Link save failed");
   return mapAsset(rows[0]);
 }
 
