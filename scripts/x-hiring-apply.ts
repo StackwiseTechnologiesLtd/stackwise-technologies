@@ -123,6 +123,7 @@ async function main() {
     close: () => Promise<void>;
   };
   let browserCtx: BrowserCtx | null = null;
+  let closeBrowser: (() => Promise<void>) | null = null;
 
   async function ensureBrowserPage(): Promise<BrowserCtx | null> {
     if (dryRun || tasksOnly) return null;
@@ -143,18 +144,18 @@ async function main() {
 
     const browser = await launchGrowthChromium({ headless: false, slowMo: 60 });
     const context = await browser.newContext({
-      userAgent: session.user_agent ?? undefined,
+      userAgent: session.userAgent ?? undefined,
       viewport: { width: 1280, height: 900 },
     });
     await context.addCookies(session.cookies);
     const page = await context.newPage();
-    browserCtx = {
-      page,
-      close: async () => {
-        await browser.close();
-        browserCtx = null;
-      },
+    const close = async () => {
+      await browser.close();
+      browserCtx = null;
+      closeBrowser = null;
     };
+    browserCtx = { page, close };
+    closeBrowser = close;
     return browserCtx;
   }
 
@@ -420,7 +421,8 @@ async function main() {
     await sleep(12_000 + Math.floor(Math.random() * 8000));
   }
   } finally {
-    if (browserCtx) await browserCtx.close();
+    const close = closeBrowser as (() => Promise<void>) | null;
+    if (close) await close();
   }
 
   console.log("\nDone.");
