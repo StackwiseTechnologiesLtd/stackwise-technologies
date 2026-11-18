@@ -260,6 +260,21 @@ export async function listOpportunities(options?: {
         LIMIT ${limit}
       `,
     );
+  } else if (view === "x_hiring") {
+    rows = asRows<OpportunityRow>(
+      await sql`
+        SELECT o.*
+        FROM crm_opportunities o
+        WHERE o.platform = 'x'
+          AND EXISTS (
+            SELECT 1 FROM crm_activities a
+            WHERE a.opportunity_id = o.id
+              AND a.body ILIKE '%X hiring post%'
+          )
+        ORDER BY o.created_at DESC
+        LIMIT ${limit}
+      `,
+    );
   } else if (view === "linkedin" || platform) {
     const plat = platform ?? "linkedin";
     rows = asRows<OpportunityRow>(

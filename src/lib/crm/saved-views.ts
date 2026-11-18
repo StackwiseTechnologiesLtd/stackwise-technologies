@@ -6,6 +6,7 @@ export const crmSavedViewIds = [
   "high_fit",
   "needs_action",
   "linkedin",
+  "x_hiring",
 ] as const;
 
 export type CrmSavedViewId = (typeof crmSavedViewIds)[number];
@@ -40,6 +41,11 @@ export const crmSavedViews: CrmSavedView[] = [
     label: "LinkedIn",
     platform: "linkedin",
     description: "Opportunities tied to LinkedIn harvest",
+  },
+  {
+    id: "x_hiring",
+    label: "X hiring",
+    description: "Developer job posts from X harvest · apply queue",
   },
 ];
 

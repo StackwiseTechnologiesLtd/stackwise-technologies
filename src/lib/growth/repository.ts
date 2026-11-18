@@ -2,6 +2,7 @@ import { ensureSchema } from "@/lib/db/ensure-schema";
 import { asRows, getSql, isDatabaseConfigured } from "@/lib/db/postgres";
 import { decryptJson, encryptJson } from "@/lib/growth/crypto";
 import { buildPersonalizedApplyNote } from "@/lib/growth/personalized-apply-draft";
+import { buildPersonalizedXJobApplyReply } from "@/lib/growth/personalized-x-job-apply";
 import { buildPersonalizedReplyDraft } from "@/lib/growth/personalized-draft";
 import { DEFAULT_ICP_CONFIG } from "@/lib/growth/icp-default";
 import { INBOX_DEFAULT_FRESHNESS_HOURS } from "@/lib/growth/harvest-config";
@@ -475,6 +476,89 @@ export async function generateApplyNoteForLead(
   }
 
   return { draft, usedAi, aiError, applyUrl };
+}
+
+/** Public X reply draft for developer job applications on hiring tweets. */
+export async function generateXJobApplyReplyForLead(
+  leadId: string,
+): Promise<{
+  draft: GrowthDraft;
+  usedAi: boolean;
+  aiError?: string;
+  tweetUrl: string | null;
+} | null> {
+  const ctx = await loadLeadSignalContext(leadId);
+  if (!ctx) return null;
+
+  const sql = getSql();
+  const { lead, signal } = ctx;
+  const platform = (lead.platform ?? signal.platform) as GrowthPlatform;
+  if (platform !== "x") {
+    throw new Error("X job apply replies are only for X leads");
+  }
+
+  const tweetUrl = signal.source_url?.trim() || null;
+  const { body, usedAi, aiError } = await buildPersonalizedXJobApplyReply({
+    authorName: lead.full_name,
+    roleTitle: lead.role_title,
+    companyName: lead.company_name,
+    bodyText: signal.body_text,
+    profileSummary: lead.profile_summary,
+  });
+
+  const existingRows = asRows<DraftRow>(
+    await sql`
+      SELECT * FROM growth_drafts
+      WHERE lead_id = ${leadId}::uuid
+        AND draft_kind = 'x_job_apply'
+        AND status IN ('pending_review', 'approved', 'failed', 'published')
+      ORDER BY created_at DESC
+      LIMIT 1
+    `,
+  );
+  const existing = existingRows[0];
+  const now = new Date().toISOString();
+
+  let draft: GrowthDraft;
+  if (existing && existing.status !== "published") {
+    const updated = await updateDraft(existing.id, {
+      bodyText: body,
+      status: "pending_review",
+      publishError: null,
+    });
+    if (!updated) return null;
+    draft = updated;
+  } else if (existing?.status === "published") {
+    return {
+      draft: mapDraft(existing),
+      usedAi,
+      aiError,
+      tweetUrl,
+    };
+  } else {
+    const draftId = crypto.randomUUID();
+    await sql`
+      INSERT INTO growth_drafts (
+        id, lead_id, signal_id, platform, draft_kind, body_text, status, created_at, updated_at
+      ) VALUES (
+        ${draftId}::uuid,
+        ${leadId}::uuid,
+        ${lead.signal_id}::uuid,
+        'x',
+        'x_job_apply',
+        ${body},
+        'pending_review',
+        ${now}::timestamptz,
+        ${now}::timestamptz
+      )
+    `;
+    const draftRows = asRows<DraftRow>(
+      await sql`SELECT * FROM growth_drafts WHERE id = ${draftId}::uuid`,
+    );
+    draft = mapDraft(draftRows[0]);
+  }
+
+  return { draft, usedAi, aiError, tweetUrl };
 }
 
 export async function listInbox(options?: {

@@ -22,11 +22,12 @@ export async function GET(request: Request) {
       ? (stageParam as PipelineStatus)
       : null;
 
+  const view = parseCrmSavedView(searchParams.get("view"));
   const includeBelow =
     searchParams.get("includeBelowThreshold") === "1" ||
-    searchParams.get("includeBelowThreshold") === "true";
+    searchParams.get("includeBelowThreshold") === "true" ||
+    view === "x_hiring";
 
-  const view = parseCrmSavedView(searchParams.get("view"));
   const viewMeta = crmSavedViews.find((v) => v.id === view);
   const leadSourceParam = searchParams.get("leadSource");
   const leadSource = leadSourceParam

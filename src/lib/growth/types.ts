@@ -102,7 +102,7 @@ export type GrowthDraft = {
   leadId: string | null;
   signalId: string | null;
   platform: GrowthPlatform;
-  draftKind: "reply" | "post" | "dm" | "apply_note";
+  draftKind: "reply" | "post" | "dm" | "apply_note" | "x_job_apply";
   bodyText: string;
   imageNotes: string | null;
   status: DraftStatus;
