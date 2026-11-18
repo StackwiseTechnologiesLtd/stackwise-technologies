@@ -83,10 +83,20 @@ Optional: `npm run growth:connect-server` is a legacy standalone helper. `GROWTH
 
 1. **Connect** — Settings → **Connect** (or connect page). Production uses Cloudflare Browser Rendering; local dev opens Chromium on your machine.
 2. **Harvest** — `/admin/growth` → **Harvest** (runs up to 4 ICP intent-phrase searches on X/LinkedIn, then scores and saves leads). Tune phrases in Settings → ICP JSON (`intentPhrases`). If LinkedIn search returns 0 posts, check the activity log for DOM counts; try `GROWTH_HARVEST_HEADED=1` in `.env.local` and reconnect LinkedIn.
-3. **Jobs (optional)** — `/admin/growth/jobs` → **Harvest LinkedIn jobs** uses the same Connect session to search **remote** LinkedIn Jobs from ICP `titleKeywords` (plus freehire ingest). Expand a job → **Generate apply note** → **Copy & open apply** → submit yourself on LinkedIn/ATS → **Mark submitted**. There is no unattended Easy Apply.
-4. **Review** — **Inbox**: filter by **Source** (X / LinkedIn) and fit score, expand a lead, **Generate reply**, then approve / post / copy.
-5. **Pipeline** — **Leads** / **CRM**: filter by score, update pipeline status.
-6. **Tune scoring** — **Settings**: edit ICP JSON and connect platforms.
+3. **Jobs — personal search on X** — `/admin/growth/jobs` documents the flow. From your machine (Playwright + connected X session):
+
+   ```bash
+   npm run growth:x-hiring:run              # harvest → CRM → post apply replies + log
+   npm run growth:x-hiring:run -- --dry     # drafts only
+   npm run growth:x-hiring:run -- --ats     # also open ATS links (prefill)
+   ```
+
+   Records land in `crm_job_applications` — **Overview** and **Jobs → Your applications** show post/apply links and response status. CRM saved view **X hiring** lists promoted opps (`/admin/crm?view=x_hiring`). LinkedIn parity: `growth:linkedin-hiring:run` (stub until next).
+
+4. **Jobs — LinkedIn / freehire** — **Harvest LinkedIn jobs** uses the same Connect session to search **remote** LinkedIn Jobs from ICP `titleKeywords` (plus freehire ingest). Expand a job → **Generate apply note** → **Copy & open apply** → submit yourself on LinkedIn/ATS → **Mark submitted**. There is no unattended Easy Apply.
+5. **Review** — **Inbox**: filter by **Source** (X / LinkedIn) and fit score, expand a lead, **Generate reply**, then approve / post / copy.
+6. **Pipeline** — **Leads** / **CRM**: filter by score, update pipeline status.
+7. **Tune scoring** — **Settings**: edit ICP JSON and connect platforms.
 
 If the UI shows **Session expired** or **Login or verification needed**, run `growth-connect` again for that platform.
 

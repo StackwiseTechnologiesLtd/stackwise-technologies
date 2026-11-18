@@ -4,6 +4,7 @@ import { GrowthCrmPipelineBanner } from "@/components/admin/growth/GrowthCrmPipe
 import { GrowthInboxPanel } from "@/components/admin/growth/GrowthInboxPanel";
 import { GrowthLinkedInJobsHarvestPanel } from "@/components/admin/growth/GrowthLinkedInJobsHarvestPanel";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { GrowthXHiringPanel } from "@/components/admin/growth/GrowthXHiringPanel";
 import { JobApplicationsPanel } from "@/components/admin/jobs/JobApplicationsPanel";
 import { jobLeadSources } from "@/lib/growth/types";
 import { useState } from "react";
@@ -15,8 +16,9 @@ export default function GrowthJobsPage() {
     <div className="space-y-6">
       <AdminPageHeader
         title="Jobs"
-        description="Hiring-intent leads from freehire and LinkedIn Jobs. Filter by freshness; duplicates are skipped by job URL."
+        description="Personal job search: X pipeline and LinkedIn/freehire harvest. Applications are logged with post links."
       />
+      <GrowthXHiringPanel />
       <GrowthCrmPipelineBanner />
       <section className="space-y-3">
         <h2 className="text-sm font-semibold text-foreground">Your applications</h2>

@@ -10,9 +10,9 @@ loadEnvLocal();
 
 const HIRING_SEARCH_PHRASES = [
   "we're hiring",
-  "we are hiring",
-  "hiring developer",
-  "hiring engineers",
+  "hiring remote developer",
+  "hiring full stack",
+  "hiring software engineer",
 ] as const;
 
 async function main() {

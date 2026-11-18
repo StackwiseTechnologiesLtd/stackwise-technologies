@@ -4,18 +4,23 @@ import { CrmOpportunityModal } from "@/components/admin/crm/CrmOpportunityModal"
 import { CrmPipelineBoard } from "@/components/admin/crm/CrmPipelineBoard";
 import { CrmRecordTable } from "@/components/admin/crm/CrmRecordTable";
 import { CrmSavedViewTabs } from "@/components/admin/crm/CrmSavedViewTabs";
-import type { CrmSavedViewId } from "@/lib/crm/saved-views";
+import {
+  parseCrmSavedView,
+  type CrmSavedViewId,
+} from "@/lib/crm/saved-views";
 import { useCallback, useState } from "react";
 
 type CrmView = "board" | "table";
 
 export function CrmWorkspace({
   initialOpportunityId = null,
+  initialSavedView = "all",
 }: {
   initialOpportunityId?: string | null;
+  initialSavedView?: CrmSavedViewId;
 }) {
   const [view, setView] = useState<CrmView>("board");
-  const [savedView, setSavedView] = useState<CrmSavedViewId>("all");
+  const [savedView, setSavedView] = useState<CrmSavedViewId>(initialSavedView);
   const [selectedId, setSelectedId] = useState<string | null>(
     initialOpportunityId,
   );
