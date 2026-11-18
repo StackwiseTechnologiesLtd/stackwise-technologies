@@ -329,9 +329,10 @@ function AudioInline({ src }: { src: string }) {
 
 function RowIcon({ kind }: { kind: AssetUiKind }) {
   if (kind === "link") return <IconLink />;
-  if (kind === "pdf") return <IconPaperclip />;
+  if (kind === "pdf") return <IconPdf />;
   if (kind === "image") return <IconImage />;
   if (kind === "audio") return <IconMic />;
+  if (kind === "video") return <IconVideo />;
   return <IconPaperclip />;
 }
 
@@ -351,13 +352,38 @@ function IconUpload() {
 
 function IconPaperclip() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
       <path
-        d="M21 8.5l-9.5 9.5a5 5 0 01-7-7L15 5.5"
+        d="m16 6-8.38 8.38a3 3 0 1 0 4.24 4.24L20.24 10.1a5 5 0 0 0-7.07-7.07L4.9 11.3a7 7 0 0 0 9.9 9.9l9.2-9.19"
         stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
+        strokeLinejoin="round"
       />
+    </svg>
+  );
+}
+
+function IconPdf() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M8 4h8l4 4v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+      <path d="M16 4v4h4" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+      <path d="M9 13h6M9 16h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IconVideo() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <rect x="3" y="6" width="13" height="12" rx="2" stroke="currentColor" strokeWidth="2" />
+      <path d="M16 10.5 21 8v8l-5-2.5v-3z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
     </svg>
   );
 }
