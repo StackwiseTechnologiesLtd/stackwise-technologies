@@ -563,6 +563,85 @@ export async function generateXJobApplyReplyForLead(
   return { draft, usedAi, aiError, tweetUrl };
 }
 
+/** Brief X acknowledgment after applying via link (ATS prefill). */
+export async function generateXJobAtsAckForLead(
+  leadId: string,
+  applyUrl: string,
+): Promise<{
+  draft: GrowthDraft;
+  tweetUrl: string | null;
+  bodyText: string;
+} | null> {
+  const ctx = await loadLeadSignalContext(leadId);
+  if (!ctx) return null;
+
+  const sql = getSql();
+  const { lead, signal } = ctx;
+  const platform = (lead.platform ?? signal.platform) as GrowthPlatform;
+  if (platform !== "x") {
+    throw new Error("X job apply replies are only for X leads");
+  }
+
+  const { buildXJobAtsAckReply } = await import(
+    "@/lib/growth/personalized-x-job-apply"
+  );
+  const body = buildXJobAtsAckReply({
+    roleTitle: lead.role_title,
+    applyUrl,
+  });
+  const tweetUrl = signal.source_url?.trim() || null;
+
+  const existingRows = asRows<DraftRow>(
+    await sql`
+      SELECT * FROM growth_drafts
+      WHERE lead_id = ${leadId}::uuid
+        AND draft_kind = 'x_job_apply'
+        AND status IN ('pending_review', 'approved', 'failed', 'published')
+      ORDER BY created_at DESC
+      LIMIT 1
+    `,
+  );
+  const existing = existingRows[0];
+  const now = new Date().toISOString();
+
+  let draft: GrowthDraft;
+  if (existing?.status === "published") {
+    return { draft: mapDraft(existing), tweetUrl, bodyText: existing.body_text };
+  }
+  if (existing) {
+    const updated = await updateDraft(existing.id, {
+      bodyText: body,
+      status: "pending_review",
+      publishError: null,
+    });
+    if (!updated) return null;
+    draft = updated;
+  } else {
+    const draftId = crypto.randomUUID();
+    await sql`
+      INSERT INTO growth_drafts (
+        id, lead_id, signal_id, platform, draft_kind, body_text, status, created_at, updated_at
+      ) VALUES (
+        ${draftId}::uuid,
+        ${leadId}::uuid,
+        ${lead.signal_id}::uuid,
+        'x',
+        'x_job_apply',
+        ${body},
+        'pending_review',
+        ${now}::timestamptz,
+        ${now}::timestamptz
+      )
+    `;
+    const draftRows = asRows<DraftRow>(
+      await sql`SELECT * FROM growth_drafts WHERE id = ${draftId}::uuid`,
+    );
+    draft = mapDraft(draftRows[0]);
+  }
+
+  return { draft, tweetUrl, bodyText: body };
+}
+
 export async function listInbox(options?: {
   minScore?: number;
   platform?: GrowthPlatform | null;

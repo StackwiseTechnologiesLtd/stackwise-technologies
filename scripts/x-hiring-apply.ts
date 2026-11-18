@@ -23,8 +23,13 @@ async function main() {
   const { getSql, asRows } = await import("../src/lib/db/postgres");
   const {
     generateXJobApplyReplyForLead,
+    generateXJobAtsAckForLead,
     getPlatformSession,
   } = await import("../src/lib/growth/repository");
+  const {
+    buildXJobAtsAckReply,
+    isXAckAfterAtsEnabled,
+  } = await import("../src/lib/growth/personalized-x-job-apply");
   const { sessionCookieName } = await import(
     "../src/lib/growth/connect-platform"
   );
@@ -219,7 +224,12 @@ async function main() {
       console.log(`  Apply URL: ${applyUrl}`);
 
       if (dryRun) {
-        console.log("  (dry — would open ATS, skip public X reply)");
+        console.log("  (dry — would open ATS)");
+        if (isXAckAfterAtsEnabled()) {
+          console.log(
+            `  Ack: ${buildXJobAtsAckReply({ roleTitle: null, applyUrl })}`,
+          );
+        }
         continue;
       }
 
@@ -233,6 +243,32 @@ async function main() {
         const ctx = await ensureBrowserPage();
         if (!ctx) throw new Error("Browser not available");
         await prefillAtsApplyPage(ctx.page, applyUrl, coverNote);
+
+        let ackText: string | null = null;
+        if (
+          isXAckAfterAtsEnabled() &&
+          postUrl &&
+          !row.already_published
+        ) {
+          const ackPack = await generateXJobAtsAckForLead(
+            row.growth_lead_id,
+            applyUrl,
+          );
+          if (ackPack && ackPack.draft.status !== "published") {
+            ackText = ackPack.bodyText;
+            console.log(`  Ack (${ackText.length} chars): ${ackText}`);
+            try {
+              await publishDraftReply(ackPack.draft.id, ackText);
+              await updateOpportunityStage(row.opportunity_id, "replied");
+              console.log("  ✓ Posted ATS ack on X");
+            } catch (ackErr) {
+              const ackMsg =
+                ackErr instanceof Error ? ackErr.message : String(ackErr);
+              console.warn(`  ✗ Ack post failed: ${ackMsg}`);
+            }
+          }
+        }
+
         await recordJobApplication({
           opportunityId: row.opportunity_id,
           growthLeadId: row.growth_lead_id,
@@ -241,14 +277,19 @@ async function main() {
           employerLabel: row.opp_name,
           sourcePostUrl: postUrl,
           applyUrl,
-          outcomeNotes: "Opened ATS with prefill; submit manually if required.",
+          replyPreview: ackText,
+          outcomeNotes: ackText
+            ? "Opened ATS with prefill; posted short X ack."
+            : "Opened ATS with prefill; submit manually if required.",
         });
         await addOpportunityActivity(row.opportunity_id, {
           activityType: "note",
-          body: `Opened job application (${applyUrl}) — no public X reply (apply via link).`,
+          body: ackText
+            ? `Opened ${applyUrl} and posted X ack: ${ackText}`
+            : `Opened job application (${applyUrl}).`,
         });
         await completeJobTasks(row.opportunity_id, ["Apply on ATS", "Apply on X"]);
-        console.log("  ✓ ATS opened (no X reply)");
+        console.log("  ✓ ATS opened");
         await sleep(8000 + Math.floor(Math.random() * 4000));
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
