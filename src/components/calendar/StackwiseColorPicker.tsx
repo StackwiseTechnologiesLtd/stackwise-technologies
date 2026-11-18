@@ -58,18 +58,13 @@ export function StackwiseColorPicker({
   const header = (
     <button
       type="button"
-      className={`sw-color-header ${expanded ? "sw-color-header--muted" : "sw-color-header--fill"}`}
+      className="sw-color-header sw-color-header--fill"
       onClick={onHeaderClick}
       aria-expanded={expanded}
       aria-controls={expanded ? panelId : undefined}
     >
-      {expanded ? null : (
-        <span className="sw-color-header-fill" style={{ backgroundColor: hex }} aria-hidden />
-      )}
-      <span
-        className="sw-color-header-label"
-        style={{ color: expanded ? "var(--foreground)" : shade }}
-      >
+      <span className="sw-color-header-fill" style={{ backgroundColor: hex }} aria-hidden />
+      <span className="sw-color-header-label" style={{ color: shade }}>
         {hex}
       </span>
     </button>

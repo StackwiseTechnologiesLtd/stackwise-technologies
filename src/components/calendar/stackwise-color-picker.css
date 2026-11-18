@@ -14,7 +14,7 @@
   border: 1px solid var(--admin-border);
   overflow: hidden;
   text-align: center;
-  background: var(--admin-canvas);
+  background: transparent;
 }
 
 .sw-color-picker--compact .sw-color-header {
@@ -53,7 +53,7 @@
 .sw-color-card .sw-color-header {
   min-height: 2.35rem;
   border-radius: 0.55rem;
-  background: color-mix(in srgb, var(--admin-canvas) 92%, #000);
+  border-color: color-mix(in srgb, var(--admin-border) 55%, transparent);
 }
 
 @keyframes sw-color-card-in {
