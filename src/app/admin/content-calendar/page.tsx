@@ -8,10 +8,10 @@ export default async function AdminContentCalendarPage() {
   if (!session) redirect("/admin/login");
 
   return (
-    <div className="space-y-2">
+    <div>
       <AdminPageHeader
         title="Content calendar"
-        description="Plan posts with scripts, notes, and creative assets. Media lives in Cloudflare R2 (free tier) on deploy; local dev keeps small files in the database."
+        description="Scripts, production notes, and media by channel. Images and video use R2 in production; small files stay in the database during local dev."
       />
       <ContentCalendarPanel />
     </div>

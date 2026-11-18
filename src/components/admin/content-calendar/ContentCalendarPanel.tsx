@@ -113,41 +113,43 @@ export function ContentCalendarPanel() {
 
   return (
     <div
-      className={`content-cal-root ${visual === "scrapbook" ? "content-cal-scrapbook" : "content-cal-studio"}`}
+      className={`content-cal-root ${visual === "scrapbook" ? "content-cal-scrapbook" : ""}`}
     >
-      <CalendarToolbar
-        headerLabel={headerLabel}
-        mode={mode}
-        visual={visual}
-        loading={loading}
-        onToday={() => setCursor(startOfDay(new Date()))}
-        onPrev={() => nav(-1)}
-        onNext={() => nav(1)}
-        onMode={setMode}
-        onVisual={setVisual}
-        onNew={() => openNew(TODAY_ISO)}
-        channels={channelsInView}
-      />
+      <section className="content-cal-panel">
+        <CalendarToolbar
+          headerLabel={headerLabel}
+          mode={mode}
+          visual={visual}
+          loading={loading}
+          onToday={() => setCursor(startOfDay(new Date()))}
+          onPrev={() => nav(-1)}
+          onNext={() => nav(1)}
+          onMode={setMode}
+          onVisual={setVisual}
+          onNew={() => openNew(TODAY_ISO)}
+          channels={channelsInView}
+        />
 
-      {error ? (
-        <p className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm">
-          {error}
-        </p>
-      ) : null}
+        {error ? (
+          <p className="border-b border-red-500/25 bg-red-500/10 px-4 py-3 text-sm sm:px-5">
+            {error}
+          </p>
+        ) : null}
 
-      <div className={`content-cal-surface ${loading ? "opacity-60" : ""}`}>
-        {mode === "month" ? (
-          <MonthGrid
-            cursor={cursor}
-            postsByDay={postsByDay}
-            visual={visual}
-            onNew={openNew}
-            onOpen={openEdit}
-          />
-        ) : (
-          <WeekGrid postsByDay={postsByDay} cursor={cursor} onNew={openNew} onOpen={openEdit} />
-        )}
-      </div>
+        <div className={`content-cal-surface ${loading ? "opacity-60" : ""}`}>
+          {mode === "month" ? (
+            <MonthGrid
+              cursor={cursor}
+              postsByDay={postsByDay}
+              visual={visual}
+              onNew={openNew}
+              onOpen={openEdit}
+            />
+          ) : (
+            <WeekGrid postsByDay={postsByDay} cursor={cursor} onNew={openNew} onOpen={openEdit} />
+          )}
+        </div>
+      </section>
 
       {sheetOpen ? (
         <ContentCalendarPostSheet
@@ -195,20 +197,8 @@ function CalendarToolbar({
   channels: ContentCalendarPostDetail["channel"][];
 }) {
   return (
-    <div className="mb-4 space-y-4">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h2 className="text-lg font-semibold tracking-tight">Content calendar</h2>
-          <p className="text-sm text-muted">
-            Scripts, production notes, and media across channels.
-          </p>
-        </div>
-        <button type="button" className={ADMIN_BTN_PRIMARY} onClick={onNew}>
-          + New post
-        </button>
-      </div>
-
-      <div className="content-cal-toolbar flex flex-wrap items-center gap-2">
+    <div className="content-cal-panel-head">
+      <div className="flex flex-wrap items-center gap-2">
         <button type="button" className={ADMIN_BTN_SECONDARY} onClick={onToday}>
           Today
         </button>
@@ -220,11 +210,10 @@ function CalendarToolbar({
             ›
           </button>
         </div>
-        <h3 className="text-sm font-semibold tracking-tight" aria-live="polite">
+        <p className="text-sm font-semibold tracking-tight text-foreground" aria-live="polite">
           {headerLabel}
           {loading ? <span className="ml-2 text-xs font-normal text-muted">Loading…</span> : null}
-        </h3>
-        <span className="flex-1" />
+        </p>
         {channels.length > 0 ? (
           <div className="hidden flex-wrap items-center gap-3 text-[11px] text-muted lg:flex">
             {channels.slice(0, 5).map((ch) => (
@@ -268,6 +257,10 @@ function CalendarToolbar({
           </button>
         </div>
       </div>
+      <span className="flex-1" />
+      <button type="button" className={ADMIN_BTN_PRIMARY} onClick={onNew}>
+        + New post
+      </button>
     </div>
   );
 }

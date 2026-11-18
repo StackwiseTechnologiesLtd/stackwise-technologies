@@ -1,42 +1,53 @@
-/* Gr8r Studio–style grid + scrapbook overlays for content calendar */
+/* Content calendar — same tokens as admin shell (Agency panels). */
 
 .content-cal-root {
   --cal-divider: var(--admin-border);
   --cal-surface: var(--admin-surface);
-  --cal-sunken: color-mix(in srgb, var(--admin-canvas) 85%, transparent);
+  --cal-sunken: color-mix(in srgb, var(--admin-canvas) 88%, transparent);
 }
 
-.content-cal-studio .content-cal-surface {
+.content-cal-panel {
   overflow: hidden;
   border-radius: 0.75rem;
   border: 1px solid var(--admin-border);
   background: var(--admin-surface);
-  min-height: 36rem;
+  box-shadow: var(--admin-panel-inset);
+}
+
+.content-cal-panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--admin-border);
+  padding: 0.75rem 1rem;
+  background: var(--admin-canvas);
+}
+
+@media (min-width: 640px) {
+  .content-cal-panel-head {
+    padding: 0.75rem 1.25rem;
+  }
+}
+
+.content-cal-surface {
   display: flex;
   flex-direction: column;
+  min-height: 32rem;
 }
 
-.content-cal-scrapbook {
-  padding: 1rem;
-  border-radius: 1.25rem;
-  background: linear-gradient(165deg, #b8d9f5 0%, #e8f4fc 45%, #f5f9ff 100%);
-}
-
+/* Scrapbook: subtle texture + polaroids — still on admin palette */
 .content-cal-scrapbook .content-cal-surface {
-  overflow: hidden;
-  border-radius: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  background: #fff;
-  box-shadow: 0 18px 40px rgba(30, 64, 120, 0.12);
-  min-height: 36rem;
-  display: flex;
-  flex-direction: column;
+  background: var(--admin-canvas);
 }
 
-.content-cal-scrapbook .content-cal-toolbar .text-muted,
-.content-cal-scrapbook h2,
-.content-cal-scrapbook h3 {
-  color: #1e293b;
+.content-cal-scrapbook .content-cal-day:not(.out) {
+  background: color-mix(in srgb, var(--admin-surface) 94%, var(--accent) 6%);
+}
+
+.content-cal-scrapbook .content-cal-chip.scrap {
+  font-family: var(--font-serif, Georgia, "Times New Roman", serif);
+  letter-spacing: 0.01em;
 }
 
 .content-cal-nav-btn {
@@ -74,6 +85,7 @@
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   border-bottom: 1px solid var(--cal-divider);
+  background: var(--admin-canvas);
 }
 
 .content-cal-h div {
@@ -101,6 +113,8 @@
   min-width: 0;
   position: relative;
   min-height: 7.5rem;
+  background: var(--cal-surface);
+  transition: background 0.15s ease;
 }
 
 .content-cal-day:nth-child(7n) {
@@ -125,6 +139,7 @@
   place-items: center;
   border-radius: 999px;
   font-variant-numeric: tabular-nums;
+  color: var(--foreground);
 }
 
 .content-cal-day.today .dn {
@@ -144,6 +159,7 @@
   opacity: 0;
   color: var(--muted);
   background: var(--admin-nav-hover);
+  border: 1px solid var(--admin-border);
 }
 
 .content-cal-day:hover .content-cal-day-add,
@@ -173,10 +189,6 @@
 
 .content-cal-chip.draft {
   border-style: dashed;
-}
-
-.content-cal-chip.scrap {
-  font-family: var(--font-serif, Georgia, "Times New Roman", serif);
 }
 
 .content-cal-chip-thumb {
@@ -217,11 +229,11 @@
   bottom: 0.35rem;
   width: 3.25rem;
   padding: 0.2rem 0.2rem 0.45rem;
-  background: #fff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--admin-canvas) 30%, transparent);
   transform: rotate(4deg);
   z-index: 2;
-  border: none;
   text-align: left;
 }
 
@@ -237,8 +249,8 @@
   margin-top: 0.15rem;
   font-size: 6px;
   line-height: 1.2;
-  color: #334155;
-  font-family: Georgia, serif;
+  color: var(--muted);
+  font-family: var(--font-serif, Georgia, serif);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -256,6 +268,7 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  background: var(--cal-surface);
 }
 
 .content-cal-wcol:last-child {
@@ -268,6 +281,7 @@
   display: flex;
   align-items: baseline;
   gap: 0.35rem;
+  background: var(--admin-canvas);
 }
 
 .content-cal-wcol-h .n {
