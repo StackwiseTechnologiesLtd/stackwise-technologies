@@ -81,3 +81,19 @@
   height: 0.5rem;
   border-radius: 999px;
 }
+
+.content-cal-legend-frame {
+  width: 1.125rem;
+  height: 0.625rem;
+  border-radius: 0.2rem;
+  border: 2px solid var(--admin-border);
+  background: var(--admin-surface);
+}
+
+.content-cal-legend-frame--work {
+  border-style: solid;
+}
+
+.content-cal-legend-frame--due {
+  border-style: dotted;
+}

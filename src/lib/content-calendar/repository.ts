@@ -112,8 +112,14 @@ export async function listContentCalendarPosts(options: {
         id, title, scheduled_on, scheduled_time, channel, status,
         ''::text AS script, ''::text AS notes, accent, project_id, created_at, updated_at
       FROM content_calendar_posts
-      WHERE scheduled_on >= ${options.from}::date
-        AND scheduled_on <= ${options.to}::date
+      WHERE (
+          scheduled_on >= ${options.from}::date
+          AND scheduled_on <= ${options.to}::date
+        )
+        OR (
+          created_at::date >= ${options.from}::date
+          AND created_at::date <= ${options.to}::date
+        )
       ORDER BY scheduled_on ASC, scheduled_time NULLS LAST, title ASC
     `,
   );

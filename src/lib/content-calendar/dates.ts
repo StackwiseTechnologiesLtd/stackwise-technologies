@@ -1,5 +1,10 @@
 const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
 
+/** Calendar day (local) from a post `createdAt` / `updatedAt` ISO string. */
+export function isoDateFromInstant(iso: string): string {
+  return isoDateLocal(new Date(iso));
+}
+
 export function isoDateLocal(d: Date): string {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");

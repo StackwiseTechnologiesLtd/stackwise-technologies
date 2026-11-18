@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 /**
- * Seed December content ideas (scripts only — no media). Safe to re-run — replaces [dec-plan] posts.
+ * Seed content ideas from today through end of December (scripts only — no media).
+ * Sets created_at on "work" days before each scheduled_on so the calendar shows
+ * creating (solid) vs due (dotted). Safe to re-run — replaces [dec-plan] posts.
  *
  *   npm run content-calendar:plan-december
  *   CONTENT_CALENDAR_PLAN_YEAR=2025 npm run content-calendar:plan-december
@@ -13,9 +15,7 @@ import { loadEnvLocal } from "./lib/load-env-local.mjs";
 loadEnvLocal();
 
 const PLAN_PREFIX = "[dec-plan]";
-const YEAR = Number(process.env.CONTENT_CALENDAR_PLAN_YEAR ?? "2026");
-const MONTH = 12;
-const DAYS_IN_MONTH = 31;
+const YEAR = Number(process.env.CONTENT_CALENDAR_PLAN_YEAR ?? String(new Date().getFullYear()));
 
 const BRANDS = {
   looial: { accent: "#c9a87c", label: "Looial" },
@@ -111,41 +111,103 @@ const STACKWISE_ANGLES = [
   },
 ];
 
-function isoDay(year, month, day) {
-  const m = String(month).padStart(2, "0");
-  const d = String(day).padStart(2, "0");
-  return `${year}-${m}-${d}`;
+function isoDay(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
-function pickSlots(day) {
-  if (day % 3 === 0) return TIMES_THREE;
+function addDaysDate(d, n) {
+  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  x.setDate(x.getDate() + n);
+  return x;
+}
+
+function parseIsoDay(iso) {
+  const [y, m, day] = iso.split("-").map(Number);
+  return new Date(y, m - 1, day);
+}
+
+function daysBetween(aIso, bIso) {
+  const a = parseIsoDay(aIso);
+  const b = parseIsoDay(bIso);
+  return Math.round((b - a) / 86_400_000);
+}
+
+/** When to show the post on the calendar for creating (solid), not the due day. */
+function workOnForScheduled(scheduledIso, todayIso) {
+  if (scheduledIso <= todayIso) return todayIso;
+  const daysUntil = daysBetween(todayIso, scheduledIso);
+  const lead = Math.min(12, Math.max(2, Math.floor(daysUntil * 0.45)));
+  const work = addDaysDate(parseIsoDay(scheduledIso), -lead);
+  const workIso = isoDay(work);
+  return workIso < todayIso ? todayIso : workIso;
+}
+
+function workTimestamp(workIso, hour = 9) {
+  return `${workIso}T${String(hour).padStart(2, "0")}:00:00.000Z`;
+}
+
+function pickSlots(dayIndex) {
+  if (dayIndex % 3 === 0) return TIMES_THREE;
   return TIMES_TWO;
 }
 
-function buildPosts() {
+function planDays() {
+  const today = new Date();
+  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const end = new Date(YEAR, 11, 31);
+  if (todayStart > end) {
+    return { todayIso: isoDay(todayStart), days: [] };
+  }
+  const start =
+    todayStart.getFullYear() === YEAR || todayStart < end
+      ? todayStart
+      : new Date(YEAR, 11, 1);
+
+  const days = [];
+  for (let d = new Date(start); d <= end; d = addDaysDate(d, 1)) {
+    days.push(isoDay(d));
+  }
+  return { todayIso: isoDay(todayStart), days };
+}
+
+function buildPosts(todayIso, scheduleDays) {
   const posts = [];
   let globalIndex = 0;
 
-  for (let day = 1; day <= DAYS_IN_MONTH; day += 1) {
-    const slots = pickSlots(day);
+  for (let dayIndex = 0; dayIndex < scheduleDays.length; dayIndex += 1) {
+    const scheduledOn = scheduleDays[dayIndex];
+    const slots = pickSlots(dayIndex);
+    const monthDay = parseIsoDay(scheduledOn).getDate();
+    const isDecember = scheduledOn.startsWith(`${YEAR}-12-`);
+
     for (let slot = 0; slot < slots.length; slot += 1) {
-      const brandKey = (day + slot) % 2 === 0 ? "looial" : "stackwise";
+      const brandKey = (dayIndex + slot) % 2 === 0 ? "looial" : "stackwise";
       const brand = BRANDS[brandKey];
       const angles = brandKey === "looial" ? LOOIAL_ANGLES : STACKWISE_ANGLES;
-      const angle = angles[(day + slot + globalIndex) % angles.length];
-      const channel = CHANNELS[(day + slot) % CHANNELS.length];
-      const status = day <= 7 ? "scheduled" : "draft";
-      const title = `${PLAN_PREFIX} ${brand.label} — ${angle.title} (${isoDay(YEAR, MONTH, day)})`;
+      const angle = angles[(monthDay + slot + globalIndex) % angles.length];
+      const channel = CHANNELS[(dayIndex + slot) % CHANNELS.length];
+      const daysUntilDue = daysBetween(todayIso, scheduledOn);
+      const status =
+        daysUntilDue <= 3 ? "scheduled" : daysUntilDue <= 10 ? "draft" : "draft";
+      const workOn = workOnForScheduled(scheduledOn, todayIso);
+      const title = `${PLAN_PREFIX} ${brand.label} — ${angle.title} (${scheduledOn})`;
 
       posts.push({
         title,
-        scheduledOn: isoDay(YEAR, MONTH, day),
+        scheduledOn,
+        workOn,
+        createdAt: workTimestamp(workOn, 9 + (globalIndex % 5)),
         time: slots[slot],
         channel,
         status,
         accent: brand.accent,
         script: angle.script,
-        notes: `${angle.notes}\nBrand: ${brand.label}. Attach visuals in the post sheet when styles are ready.`,
+        notes: `${angle.notes}\nBrand: ${brand.label}. Attach visuals in the post sheet when styles are ready.${
+          !isDecember ? "\n(Late Nov ramp — part of December campaign.)" : ""
+        }`,
       });
       globalIndex += 1;
     }
@@ -163,7 +225,13 @@ const sql = neon(process.env.DATABASE_URL);
 async function main() {
   await sql`DELETE FROM content_calendar_posts WHERE title LIKE ${`${PLAN_PREFIX}%`}`;
 
-  const posts = buildPosts();
+  const { todayIso, days: scheduleDays } = planDays();
+  if (scheduleDays.length === 0) {
+    console.error(`No schedule days: today is after Dec 31 ${YEAR}.`);
+    process.exit(1);
+  }
+
+  const posts = buildPosts(todayIso, scheduleDays);
   let inserted = 0;
 
   for (const p of posts) {
@@ -171,7 +239,7 @@ async function main() {
     await sql`
       INSERT INTO content_calendar_posts (
         id, title, scheduled_on, scheduled_time, channel, status,
-        script, notes, accent, updated_at
+        script, notes, accent, created_at, updated_at
       ) VALUES (
         ${id}::uuid,
         ${p.title},
@@ -182,16 +250,17 @@ async function main() {
         ${p.script},
         ${p.notes},
         ${p.accent},
-        NOW()
+        ${p.createdAt}::timestamptz,
+        ${p.createdAt}::timestamptz
       )
     `;
     inserted += 1;
   }
 
-  const slotsPerDay =
-    posts.length / DAYS_IN_MONTH >= 2.9 ? "~3 on every 3rd day, else 2" : "2";
+  const firstDue = scheduleDays[0];
+  const lastDue = scheduleDays[scheduleDays.length - 1];
   console.log(
-    `Seeded ${inserted} December ${YEAR} plan post(s) (${slotsPerDay}/day). Prefix: ${PLAN_PREFIX}`,
+    `Seeded ${inserted} plan post(s) from ${firstDue} → ${lastDue} (work starts ${todayIso}). Prefix: ${PLAN_PREFIX}`,
   );
 }
 

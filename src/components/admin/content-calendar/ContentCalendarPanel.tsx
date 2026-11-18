@@ -4,6 +4,7 @@ import { ContentCalendarPostSheet } from "@/components/admin/content-calendar/Co
 import {
   CONTENT_CAL_DRAG_MIME,
   ContentCalendarDayItems,
+  type ContentCalendarDayEntry,
 } from "@/components/admin/content-calendar/ContentCalendarDayItems";
 import {
   CalendarDayAddButton,
@@ -21,6 +22,7 @@ import {
   addDays,
   formatMonthYear,
   formatWeekRange,
+  isoDateFromInstant,
   isoDateLocal,
   rangeForMonth,
   rangeForWeek,
@@ -88,11 +90,21 @@ export function ContentCalendarPanel() {
   );
 
   const postsByDay = useMemo(() => {
-    const map = new Map<string, ContentCalendarPostDetail[]>();
+    const map = new Map<string, ContentCalendarDayEntry[]>();
+    const push = (iso: string, entry: ContentCalendarDayEntry) => {
+      const list = map.get(iso) ?? [];
+      list.push(entry);
+      map.set(iso, list);
+    };
     for (const p of posts) {
-      const list = map.get(p.scheduledOn) ?? [];
-      list.push(p);
-      map.set(p.scheduledOn, list);
+      const workOn = isoDateFromInstant(p.createdAt);
+      const dueOn = p.scheduledOn;
+      if (workOn === dueOn) {
+        push(dueOn, { post: p, placement: "work" });
+      } else {
+        push(workOn, { post: p, placement: "work" });
+        push(dueOn, { post: p, placement: "due" });
+      }
     }
     return map;
   }, [posts]);
@@ -370,16 +382,27 @@ function CalendarToolbar({
             <span className="ml-2 text-xs font-normal text-muted">Updating…</span>
           ) : null}
         </p>
-        {channels.length > 0 ? (
-          <div className="hidden flex-wrap items-center gap-3 text-[11px] text-muted lg:flex">
-            {channels.slice(0, 5).map((ch) => (
-              <span key={ch} className="inline-flex items-center gap-1.5">
-                <span className="content-cal-legend-dot" style={{ background: channelColor(ch) }} />
-                {contentCalendarChannelLabels[ch]}
-              </span>
-            ))}
-          </div>
-        ) : null}
+        <div className="hidden flex-wrap items-center gap-3 text-[11px] text-muted lg:flex">
+          <span className="inline-flex items-center gap-1.5" title="Create / work on this day">
+            <span className="content-cal-legend-frame content-cal-legend-frame--work" />
+            Creating
+          </span>
+          <span className="inline-flex items-center gap-1.5" title="Scheduled publish day">
+            <span className="content-cal-legend-frame content-cal-legend-frame--due" />
+            Due
+          </span>
+          {channels.length > 0
+            ? channels.slice(0, 4).map((ch) => (
+                <span key={ch} className="inline-flex items-center gap-1.5">
+                  <span
+                    className="content-cal-legend-dot"
+                    style={{ background: channelColor(ch) }}
+                  />
+                  {contentCalendarChannelLabels[ch]}
+                </span>
+              ))
+            : null}
+        </div>
         <div className="content-cal-seg flex overflow-hidden rounded-md border border-[var(--admin-border)] text-xs">
           <button
             type="button"

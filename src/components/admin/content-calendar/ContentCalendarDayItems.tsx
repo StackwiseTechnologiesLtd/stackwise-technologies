@@ -6,6 +6,13 @@ import type { CSSProperties, DragEvent, MutableRefObject } from "react";
 
 export const CONTENT_CAL_DRAG_MIME = "application/x-stackwise-content-post";
 
+export type ContentCalendarPlacement = "work" | "due";
+
+export type ContentCalendarDayEntry = {
+  post: ContentCalendarPostDetail;
+  placement: ContentCalendarPlacement;
+};
+
 export type ContentCalendarDragCallbacks = {
   dropTargetDay: string | null;
   draggingPostId: string | null;
@@ -53,7 +60,7 @@ export function ContentCalendarDayItems({
   onOpen,
   maxVisible = 3,
 }: {
-  items: ContentCalendarPostDetail[];
+  items: ContentCalendarDayEntry[];
   visual: CalendarVisual;
   drag: ContentCalendarDragCallbacks;
   onOpen: (id: string) => void;
@@ -67,31 +74,33 @@ export function ContentCalendarDayItems({
 
   return (
     <>
-      {visible.map((post) =>
+      {visible.map((entry) =>
         scrapbook ? (
           <ScrapbookPostCard
-            key={post.id}
-            post={post}
+            key={`${entry.post.id}-${entry.placement}`}
+            post={entry.post}
+            placement={entry.placement}
             drag={drag}
             onOpen={() => {
               if (drag.skipClickRef.current) {
                 drag.skipClickRef.current = false;
                 return;
               }
-              onOpen(post.id);
+              onOpen(entry.post.id);
             }}
           />
         ) : (
           <StudioPostChip
-            key={post.id}
-            post={post}
+            key={`${entry.post.id}-${entry.placement}`}
+            post={entry.post}
+            placement={entry.placement}
             drag={drag}
             onOpen={() => {
               if (drag.skipClickRef.current) {
                 drag.skipClickRef.current = false;
                 return;
               }
-              onOpen(post.id);
+              onOpen(entry.post.id);
             }}
           />
         ),
@@ -100,7 +109,7 @@ export function ContentCalendarDayItems({
         <button
           type="button"
           className="text-left text-[10px] text-muted hover:text-foreground"
-          onClick={() => onOpen(items[0].id)}
+          onClick={() => onOpen(items[0].post.id)}
         >
           +{items.length - visible.length} more
         </button>
@@ -109,12 +118,18 @@ export function ContentCalendarDayItems({
   );
 }
 
+function placementClass(placement: ContentCalendarPlacement): string {
+  return placement === "due" ? "sw-cal-placement--due" : "sw-cal-placement--work";
+}
+
 function ScrapbookPostCard({
   post,
+  placement,
   drag,
   onOpen,
 }: {
   post: ContentCalendarPostDetail;
+  placement: ContentCalendarPlacement;
   drag: ContentCalendarDragCallbacks;
   onOpen: () => void;
 }) {
@@ -126,8 +141,8 @@ function ScrapbookPostCard({
     return (
       <button
         type="button"
-        draggable
-        className={`sw-cal-polaroid ${dragging ? "dragging" : ""}`}
+        draggable={placement === "due"}
+        className={`sw-cal-polaroid ${placementClass(placement)} ${dragging ? "dragging" : ""}`}
         style={
           {
             "--polaroid-tilt": tiltFromId(post.id),
@@ -157,8 +172,8 @@ function ScrapbookPostCard({
   return (
     <button
       type="button"
-      draggable
-      className={`sw-cal-scrap-note ${dragging ? "opacity-45" : ""}`}
+      draggable={placement === "due"}
+      className={`sw-cal-scrap-note ${placementClass(placement)} ${dragging ? "opacity-45" : ""}`}
       style={
         {
           "--post-accent": accent,
@@ -187,10 +202,12 @@ function ScrapbookPostCard({
 
 function StudioPostChip({
   post,
+  placement,
   drag,
   onOpen,
 }: {
   post: ContentCalendarPostDetail;
+  placement: ContentCalendarPlacement;
   drag: ContentCalendarDragCallbacks;
   onOpen: () => void;
 }) {
@@ -201,8 +218,8 @@ function StudioPostChip({
   return (
     <button
       type="button"
-      draggable
-      className={`sw-cal-chip ${post.status === "draft" ? "draft" : ""} ${dragging ? "dragging" : ""}`}
+      draggable={placement === "due"}
+      className={`sw-cal-chip ${placementClass(placement)} ${post.status === "draft" && placement === "work" ? "draft" : ""} ${dragging ? "dragging" : ""}`}
       style={{ "--post-accent": c } as CSSProperties}
       onClick={onOpen}
       onDragStart={(e) => {
