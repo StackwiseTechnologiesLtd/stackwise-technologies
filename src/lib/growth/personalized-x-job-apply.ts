@@ -101,3 +101,41 @@ ${input.profileSummary ? `Applicant context:\n${input.profileSummary.slice(0, 60
   growthAiLogMultiline("x-job-apply-out", body);
   return { body, usedAi: Boolean(raw) };
 }
+
+export function applyUrlAckLabel(applyUrl: string): string {
+  try {
+    const host = new URL(applyUrl).hostname.toLowerCase();
+    if (host.includes("ashbyhq")) return "Ashby posting";
+    if (host.includes("greenhouse.io") || host.includes("boards.greenhouse")) {
+      return "Greenhouse posting";
+    }
+    if (host.includes("lever.co")) return "Lever posting";
+    if (host.includes("jobvite")) return "Jobvite posting";
+    if (host.includes("smartrecruiters")) return "SmartRecruiters posting";
+    if (host.includes("workday") || host.includes("myworkdayjobs")) {
+      return "Workday posting";
+    }
+    if (host.includes("careers.")) return "careers page";
+  } catch {
+    /* ignore */
+  }
+  return "application link";
+}
+
+/** Short public reply after opening an ATS link (antislop template, no DMs). */
+export function buildXJobAtsAckReply(input: {
+  roleTitle: string | null;
+  applyUrl: string;
+}): string {
+  const role = input.roleTitle?.trim() || "this role";
+  const where = applyUrlAckLabel(input.applyUrl);
+  return fitToXLimit(
+    stripEmDash(
+      `On your ${where} for ${role}. Full-stack: Next.js, Node, Postgres.`,
+    ),
+  );
+}
+
+export function isXAckAfterAtsEnabled(): boolean {
+  return process.env.GROWTH_X_ACK_AFTER_ATS !== "0";
+}
