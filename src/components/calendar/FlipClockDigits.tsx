@@ -149,21 +149,3 @@ export function FlipClockDigits({
     </div>
   );
 }
-
-export function FlipStepChevron({ direction }: { direction: "up" | "down" }) {
-  return (
-    <svg
-      className="sw-flip-step-icon"
-      viewBox="0 0 12 8"
-      width="12"
-      height="8"
-      aria-hidden
-    >
-      {direction === "up" ? (
-        <path fill="currentColor" d="M6 0 12 8H0z" />
-      ) : (
-        <path fill="currentColor" d="M6 8 0 0h12z" />
-      )}
-    </svg>
-  );
-}

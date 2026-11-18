@@ -1,6 +1,6 @@
 "use client";
 
-import { FlipClockDigits, FlipStepChevron } from "@/components/calendar/FlipClockDigits";
+import { FlipClockDigits } from "@/components/calendar/FlipClockDigits";
 import {
   formatTime24,
   formatTimeLabel,
@@ -9,7 +9,7 @@ import {
   to12Hour,
 } from "@/lib/calendar/time";
 import { ADMIN_INPUT } from "@/lib/ui/admin";
-import { useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 
 import "./stackwise-calendar.css";
 
@@ -18,6 +18,8 @@ function defaultDraft(): { hour12: number; minutes: number; pm: boolean } {
   const { hour12, pm } = to12Hour(now.getHours());
   return { hour12, minutes: now.getMinutes(), pm };
 }
+
+type ActiveField = "hour" | "minute";
 
 export function StackwiseTimePicker({
   value,
@@ -31,6 +33,8 @@ export function StackwiseTimePicker({
   className?: string;
 }) {
   const [open, setOpen] = useState(false);
+  const [active, setActive] = useState<ActiveField>("hour");
+  const [digitBuffer, setDigitBuffer] = useState("");
   const [draft, setDraft] = useState(() => {
     const p = parseTime24(value);
     if (p) {
@@ -40,6 +44,7 @@ export function StackwiseTimePicker({
     return defaultDraft();
   });
   const rootRef = useRef<HTMLDivElement>(null);
+  const popRef = useRef<HTMLDivElement>(null);
   const listId = useId();
 
   useEffect(() => {
@@ -49,6 +54,12 @@ export function StackwiseTimePicker({
     };
     document.addEventListener("mousedown", onDoc);
     return () => document.removeEventListener("mousedown", onDoc);
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const t = requestAnimationFrame(() => popRef.current?.focus());
+    return () => cancelAnimationFrame(t);
   }, [open]);
 
   const label = value ? formatTimeLabel(value) : "";
@@ -61,13 +72,18 @@ export function StackwiseTimePicker({
     } else {
       setDraft(defaultDraft());
     }
+    setDigitBuffer("");
+    setActive("hour");
   }
 
-  function commit(next: { hour12: number; minutes: number; pm: boolean }) {
-    setDraft(next);
-    const hours = from12Hour(next.hour12, next.pm);
-    onChange(formatTime24(hours, next.minutes));
-  }
+  const commit = useCallback(
+    (next: { hour12: number; minutes: number; pm: boolean }) => {
+      setDraft(next);
+      const hours = from12Hour(next.hour12, next.pm);
+      onChange(formatTime24(hours, next.minutes));
+    },
+    [onChange],
+  );
 
   function stepHour(delta: number) {
     let hour12 = draft.hour12 + delta;
@@ -82,6 +98,85 @@ export function StackwiseTimePicker({
     if (minutes < 0) minutes = 59;
     commit({ ...draft, minutes });
   }
+
+  function applyTypedHour(n: number) {
+    if (n < 1 || n > 12) return false;
+    commit({ ...draft, hour12: n });
+    setActive("minute");
+    return true;
+  }
+
+  function applyTypedMinute(n: number) {
+    if (n < 0 || n > 59) return false;
+    commit({ ...draft, minutes: n });
+    return true;
+  }
+
+  function onDigit(ch: string) {
+    const next = `${digitBuffer}${ch}`.slice(-2);
+    setDigitBuffer(next);
+    const n = Number(next);
+
+    if (active === "hour") {
+      if (next.length === 1 && n >= 2 && n <= 9) {
+        applyTypedHour(n);
+        setDigitBuffer("");
+        return;
+      }
+      if (next.length === 2) {
+        if (applyTypedHour(n)) setDigitBuffer("");
+        else setDigitBuffer(ch);
+      }
+      return;
+    }
+
+    if (next.length === 2) {
+      if (applyTypedMinute(n)) setDigitBuffer("");
+      else setDigitBuffer(ch);
+    }
+  }
+
+  const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (active === "hour") stepHour(1);
+      else stepMinute(1);
+      setDigitBuffer("");
+      return;
+    }
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (active === "hour") stepHour(-1);
+      else stepMinute(-1);
+      setDigitBuffer("");
+      return;
+    }
+    if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      setActive("hour");
+      setDigitBuffer("");
+      return;
+    }
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      setActive("minute");
+      setDigitBuffer("");
+      return;
+    }
+    if (/^\d$/.test(e.key)) {
+      e.preventDefault();
+      onDigit(e.key);
+      return;
+    }
+    if (e.key === "Escape") {
+      e.preventDefault();
+      setOpen(false);
+    }
+    if (e.key === "Enter") {
+      e.preventDefault();
+      setOpen(false);
+    }
+  };
 
   const period = draft.pm ? "PM" : "AM";
 
@@ -106,61 +201,58 @@ export function StackwiseTimePicker({
         </span>
       </button>
       {open ? (
-        <div id={listId} className="sw-cal-time-pop" role="dialog" aria-label="Choose time">
+        <div
+          ref={popRef}
+          id={listId}
+          className="sw-cal-time-pop"
+          role="dialog"
+          aria-label="Choose time"
+          tabIndex={-1}
+          onKeyDown={onKeyDown}
+        >
+          <p className="sw-cal-time-hint">
+            Click hour or minute · ↑↓ to flip · 0–9 to type
+          </p>
           <div className="sw-flip-clock">
-            <div
-              className="sw-flip-col"
+            <button
+              type="button"
+              className={`sw-flip-select ${active === "hour" ? "sw-flip-select--active" : ""}`}
+              aria-pressed={active === "hour"}
+              aria-label="Hours"
+              onClick={() => {
+                setActive("hour");
+                setDigitBuffer("");
+              }}
               onWheel={(e) => {
                 e.preventDefault();
+                setActive("hour");
+                setDigitBuffer("");
                 stepHour(e.deltaY > 0 ? -1 : 1);
               }}
             >
-              <button
-                type="button"
-                className="sw-flip-step"
-                aria-label="Increase hour"
-                onClick={() => stepHour(1)}
-              >
-                <FlipStepChevron direction="up" />
-              </button>
               <FlipClockDigits value={draft.hour12} pad={2} period={period} />
-              <button
-                type="button"
-                className="sw-flip-step"
-                aria-label="Decrease hour"
-                onClick={() => stepHour(-1)}
-              >
-                <FlipStepChevron direction="down" />
-              </button>
-            </div>
+            </button>
             <span className="sw-flip-colon" aria-hidden>
               :
             </span>
-            <div
-              className="sw-flip-col"
+            <button
+              type="button"
+              className={`sw-flip-select ${active === "minute" ? "sw-flip-select--active" : ""}`}
+              aria-pressed={active === "minute"}
+              aria-label="Minutes"
+              onClick={() => {
+                setActive("minute");
+                setDigitBuffer("");
+              }}
               onWheel={(e) => {
                 e.preventDefault();
+                setActive("minute");
+                setDigitBuffer("");
                 stepMinute(e.deltaY > 0 ? -1 : 1);
               }}
             >
-              <button
-                type="button"
-                className="sw-flip-step"
-                aria-label="Increase minute"
-                onClick={() => stepMinute(1)}
-              >
-                <FlipStepChevron direction="up" />
-              </button>
               <FlipClockDigits value={draft.minutes} pad={2} />
-              <button
-                type="button"
-                className="sw-flip-step"
-                aria-label="Decrease minute"
-                onClick={() => stepMinute(-1)}
-              >
-                <FlipStepChevron direction="down" />
-              </button>
-            </div>
+            </button>
           </div>
           <div className="sw-cal-time-actions">
             <button

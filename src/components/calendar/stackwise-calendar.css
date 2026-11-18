@@ -539,6 +539,14 @@
   padding: 1rem 0.85rem 0.7rem;
 }
 
+.sw-cal-time-hint {
+  margin: 0 0 0.65rem;
+  text-align: center;
+  font-size: 0.625rem;
+  letter-spacing: 0.01em;
+  color: var(--muted);
+}
+
 .sw-flip-clock {
   display: flex;
   align-items: center;
@@ -546,35 +554,25 @@
   gap: 0.5rem;
 }
 
-.sw-flip-col {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.35rem;
+.sw-flip-select {
+  position: relative;
+  padding: 0.2rem;
+  border-radius: 0.55rem;
+  border: 2px solid transparent;
+  background: transparent;
   touch-action: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
-.sw-flip-step {
-  display: grid;
-  place-items: center;
-  width: 2.25rem;
-  height: 1.35rem;
-  color: color-mix(in srgb, var(--muted) 80%, var(--foreground));
-  border-radius: 0.35rem;
+.sw-flip-select:hover {
+  border-color: color-mix(in srgb, var(--admin-border) 85%, var(--foreground));
 }
 
-.sw-flip-step:hover {
-  color: var(--foreground);
-  background: var(--admin-nav-hover);
-}
-
-.sw-flip-step-icon {
-  display: block;
-  opacity: 0.75;
-}
-
-.sw-flip-step:hover .sw-flip-step-icon {
-  opacity: 1;
+.sw-flip-select--active {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--admin-border));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
 }
 
 .sw-flip-colon {
