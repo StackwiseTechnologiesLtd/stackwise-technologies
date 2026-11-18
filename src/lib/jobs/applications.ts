@@ -1,9 +1,8 @@
 import { ensureSchema } from "@/lib/db/ensure-schema";
 import { asRows, getSql, isDatabaseConfigured } from "@/lib/db/postgres";
+import { resolveApplyUrlFromPostBody } from "@/lib/growth/x-apply-urls";
 
 export function firstApplyUrlFromPostBody(bodyText: string): string | null {
-  const { resolveApplyUrlFromPostBody } =
-    require("@/lib/growth/x-apply-urls") as typeof import("@/lib/growth/x-apply-urls");
   return resolveApplyUrlFromPostBody(bodyText);
 }
 

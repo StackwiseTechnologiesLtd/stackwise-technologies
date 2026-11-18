@@ -43,6 +43,20 @@ async function main() {
     recordJobApplication,
     firstApplyUrlFromPostBody,
   } = await import("../src/lib/jobs/applications");
+  const {
+    postBodyNeedsThreadApplyLink,
+    resolveApplyUrlFromPostBody,
+  } = await import("../src/lib/growth/x-apply-urls");
+  const { resolveXApplyUrlWithThread } = await import(
+    "../src/lib/growth/x-tweet-thread-apply-links"
+  );
+  const { prefillAtsApplyPage } = await import("../src/lib/growth/x-ats-prefill");
+  const { buildPersonalizedApplyNote } = await import(
+    "../src/lib/growth/personalized-apply-draft"
+  );
+  const { launchGrowthChromium } = await import(
+    "../src/lib/growth/playwright-launch"
+  );
 
   await ensureSchema();
   const backfilled = await backfillJobApplicationsFromDrafts();
@@ -57,6 +71,7 @@ async function main() {
     source_post_url: string | null;
     opp_name: string;
     body_text: string;
+    author_handle: string | null;
     already_published: boolean;
   };
 
@@ -68,6 +83,7 @@ async function main() {
         o.source_post_url,
         o.name AS opp_name,
         s.body_text,
+        s.author_handle,
         EXISTS (
           SELECT 1 FROM growth_drafts d
           WHERE d.lead_id = o.growth_lead_id
@@ -97,6 +113,56 @@ async function main() {
 
   const today = new Date().toISOString().slice(0, 10);
 
+  type BrowserCtx = {
+    page: import("playwright").Page;
+    close: () => Promise<void>;
+  };
+  let browserCtx: BrowserCtx | null = null;
+
+  async function ensureBrowserPage(): Promise<BrowserCtx | null> {
+    if (dryRun || tasksOnly) return null;
+    if (browserCtx) return browserCtx;
+
+    const session = await getPlatformSession("x");
+    const cookieName = sessionCookieName.x;
+    if (
+      !session?.cookies ||
+      !Array.isArray(session.cookies) ||
+      !session.cookies.some(
+        (c: { name?: string; value?: string }) =>
+          c.name === cookieName && c.value,
+      )
+    ) {
+      throw new Error("Connect X in Growth Settings before applying.");
+    }
+
+    const browser = await launchGrowthChromium({ headless: false, slowMo: 60 });
+    const context = await browser.newContext({
+      userAgent: session.user_agent ?? undefined,
+      viewport: { width: 1280, height: 900 },
+    });
+    await context.addCookies(session.cookies);
+    const page = await context.newPage();
+    browserCtx = {
+      page,
+      close: async () => {
+        await browser.close();
+        browserCtx = null;
+      },
+    };
+    return browserCtx;
+  }
+
+  async function completeJobTasks(opportunityId: string, titles: string[]) {
+    const open = await listOpportunityTasks(opportunityId);
+    for (const t of open) {
+      if (titles.some((title) => t.title.startsWith(title)) && !t.completedAt) {
+        await updateCrmTask(t.id, { completed: true });
+      }
+    }
+  }
+
+  try {
   for (const row of rows) {
     let tasks;
     try {
@@ -115,10 +181,10 @@ async function main() {
       console.log(`  + Task "Apply on X" — ${row.opp_name}`);
     }
     const hasAtsTask = tasks.some((t) => t.title.startsWith("Apply on ATS"));
-    if (
-      !hasAtsTask &&
-      /jobs\.(jobvite|smartrecruiters)|\/careers\//i.test(row.body_text)
-    ) {
+    const mightHaveAts =
+      Boolean(resolveApplyUrlFromPostBody(row.body_text)) ||
+      postBodyNeedsThreadApplyLink(row.body_text);
+    if (!hasAtsTask && mightHaveAts) {
       await createOpportunityTask(row.opportunity_id, {
         title: "Apply on ATS (link in post)",
         dueAt: `${today}T12:00:00.000Z`,
@@ -128,14 +194,82 @@ async function main() {
 
     if (tasksOnly) continue;
 
+    const postUrl = row.source_post_url;
+    let applyUrl =
+      resolveApplyUrlFromPostBody(row.body_text) ||
+      firstApplyUrlFromPostBody(row.body_text);
+
+    const needsThread =
+      !applyUrl && postUrl && postBodyNeedsThreadApplyLink(row.body_text);
+
+    if (needsThread && !dryRun) {
+      const ctx = await ensureBrowserPage();
+      if (ctx) {
+        console.log(`  … Resolving apply link from thread — ${row.opp_name}`);
+        applyUrl = await resolveXApplyUrlWithThread(
+          ctx.page,
+          postUrl,
+          row.body_text,
+        );
+      }
+    }
+
+    if (applyUrl) {
+      console.log(`\n→ ${row.opp_name}`);
+      console.log(`  Apply URL: ${applyUrl}`);
+
+      if (dryRun) {
+        console.log("  (dry — would open ATS, skip public X reply)");
+        continue;
+      }
+
+      const { body: coverNote } = await buildPersonalizedApplyNote({
+        roleTitle: null,
+        companyName: row.opp_name.split("@")[0]?.trim() ?? null,
+        bodyText: row.body_text,
+      });
+
+      try {
+        const ctx = await ensureBrowserPage();
+        if (!ctx) throw new Error("Browser not available");
+        await prefillAtsApplyPage(ctx.page, applyUrl, coverNote);
+        await recordJobApplication({
+          opportunityId: row.opportunity_id,
+          growthLeadId: row.growth_lead_id,
+          channel: "ats",
+          status: "partial",
+          employerLabel: row.opp_name,
+          sourcePostUrl: postUrl,
+          applyUrl,
+          outcomeNotes: "Opened ATS with prefill; submit manually if required.",
+        });
+        await addOpportunityActivity(row.opportunity_id, {
+          activityType: "note",
+          body: `Opened job application (${applyUrl}) — no public X reply (apply via link).`,
+        });
+        await completeJobTasks(row.opportunity_id, ["Apply on ATS", "Apply on X"]);
+        console.log("  ✓ ATS opened (no X reply)");
+        await sleep(8000 + Math.floor(Math.random() * 4000));
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        console.warn(`  ✗ ATS open failed: ${msg}`);
+        await recordJobApplication({
+          opportunityId: row.opportunity_id,
+          growthLeadId: row.growth_lead_id,
+          channel: "ats",
+          status: "failed",
+          employerLabel: row.opp_name,
+          sourcePostUrl: postUrl,
+          applyUrl,
+          outcomeNotes: msg,
+        });
+      }
+      continue;
+    }
+
     if (row.already_published) {
       console.log(`  · Already replied — ${row.opp_name}`);
-      const open = await listOpportunityTasks(row.opportunity_id);
-      for (const t of open) {
-        if (t.title === "Apply on X" && !t.completedAt) {
-          await updateCrmTask(t.id, { completed: true });
-        }
-      }
+      await completeJobTasks(row.opportunity_id, ["Apply on X"]);
       continue;
     }
 
@@ -145,8 +279,16 @@ async function main() {
       continue;
     }
 
-    if (pack.aiError === "not_a_job_post" || !pack.draft.bodyText.trim()) {
-      console.log(`  · Skipped (not a job post) — ${row.opp_name}`);
+    if (
+      pack.aiError === "not_a_job_post" ||
+      pack.aiError === "use_ats_instead" ||
+      !pack.draft.bodyText.trim()
+    ) {
+      const reason =
+        pack.aiError === "use_ats_instead"
+          ? "Apply link expected but not resolved"
+          : "Not a direct job listing";
+      console.log(`  · Skipped public reply — ${row.opp_name} (${reason})`);
       await recordJobApplication({
         opportunityId: row.opportunity_id,
         growthLeadId: row.growth_lead_id,
@@ -154,19 +296,14 @@ async function main() {
         status: "skipped",
         employerLabel: row.opp_name,
         sourcePostUrl: row.source_post_url,
-        applyUrl: firstApplyUrlFromPostBody(row.body_text),
-        outcomeNotes: "Not a direct job listing",
+        applyUrl: null,
+        outcomeNotes: reason,
       });
       await addOpportunityActivity(row.opportunity_id, {
         activityType: "note",
-        body: "Skipped X apply — post is not a direct job listing.",
+        body: `Skipped public X reply — ${reason}.`,
       });
-      const open = await listOpportunityTasks(row.opportunity_id);
-      for (const t of open) {
-        if (t.title === "Apply on X" && !t.completedAt) {
-          await updateCrmTask(t.id, { completed: true });
-        }
-      }
+      await completeJobTasks(row.opportunity_id, ["Apply on X"]);
       continue;
     }
 
@@ -217,12 +354,7 @@ async function main() {
       });
       await updateOpportunityStage(row.opportunity_id, "replied");
 
-      const open = await listOpportunityTasks(row.opportunity_id);
-      for (const t of open) {
-        if (t.title === "Apply on X" && !t.completedAt) {
-          await updateCrmTask(t.id, { completed: true });
-        }
-      }
+      await completeJobTasks(row.opportunity_id, ["Apply on X"]);
       console.log("  ✓ Posted reply");
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -245,6 +377,9 @@ async function main() {
     }
 
     await sleep(12_000 + Math.floor(Math.random() * 8000));
+  }
+  } finally {
+    if (browserCtx) await browserCtx.close();
   }
 
   console.log("\nDone.");

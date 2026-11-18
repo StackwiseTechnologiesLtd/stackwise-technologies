@@ -50,9 +50,8 @@ export async function resolveXApplyUrlWithThread(
   const fromBody = pickBestApplyUrl(extractUrlsFromPostText(bodyText));
   if (fromBody) return fromBody;
 
-  const needThread =
-    postBodyNeedsThreadApplyLink(bodyText) || Boolean(normalizeTweetUrl(tweetUrl));
-  if (!needThread) return null;
+  if (!normalizeTweetUrl(tweetUrl)) return null;
+  if (!postBodyNeedsThreadApplyLink(bodyText)) return null;
 
   const urls = await scrapeApplyUrlsFromTweetConversation(page, tweetUrl);
   return pickBestApplyUrl(urls);

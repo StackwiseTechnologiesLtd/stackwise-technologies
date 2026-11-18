@@ -10,6 +10,7 @@ import { freshnessCutoffIso } from "@/lib/growth/harvest-freshness";
 import { resolveGrowthPostUrl } from "@/lib/growth/post-url";
 import { syncIngestedLeadToCrm } from "@/lib/crm/sync-from-ingest";
 import { icpConfigForJobIngest } from "@/lib/growth/job-ingest-quality";
+import { resolveApplyUrlFromPostBody } from "@/lib/growth/x-apply-urls";
 import { scoreLead } from "@/lib/growth/scoring";
 import {
   parseLeadSource,
@@ -499,11 +500,12 @@ export async function generateXJobApplyReplyForLead(
 
   const tweetUrl = signal.source_url?.trim() || null;
   const { body, usedAi, aiError } = await buildPersonalizedXJobApplyReply({
-    authorName: lead.full_name,
+    authorName: lead.full_name ?? signal.author_name ?? "unknown",
     roleTitle: lead.role_title,
     companyName: lead.company_name,
     bodyText: signal.body_text,
     profileSummary: lead.profile_summary,
+    applyUrl: resolveApplyUrlFromPostBody(signal.body_text),
   });
 
   const existingRows = asRows<DraftRow>(

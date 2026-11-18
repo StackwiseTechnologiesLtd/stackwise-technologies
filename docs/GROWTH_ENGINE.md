@@ -86,10 +86,12 @@ Optional: `npm run growth:connect-server` is a legacy standalone helper. `GROWTH
 3. **Jobs — personal search on X** — `/admin/growth/jobs` documents the flow. From your machine (Playwright + connected X session):
 
    ```bash
-   npm run growth:x-hiring:run              # harvest → CRM → post apply replies + log
+   npm run growth:x-hiring:run              # harvest → CRM → apply (ATS-first when a link exists)
    npm run growth:x-hiring:run -- --dry     # drafts only
    npm run growth:x-hiring:run -- --ats     # also open ATS links (prefill)
    ```
+
+   When a posting includes an apply URL in the main tweet or in a thread reply (“link in the reply”, Ashby/Greenhouse/etc.), `growth:x-hiring:apply` resolves it (Playwright on the permalink), opens ATS with prefill, and **does not** post a public “DM me” reply. Public X replies are only used when there is no apply link; copy follows antislop rules (no buzzwords, no DM spam on aggregator accounts).
 
    Records land in `crm_job_applications` — **Overview** and **Jobs → Your applications** show post/apply links and response status. CRM saved view **X hiring** lists promoted opps (`/admin/crm?view=x_hiring`). LinkedIn parity: `growth:linkedin-hiring:run` (stub until next).
 
