@@ -1,7 +1,3 @@
-export type ContentCalendarBucketEnv = {
-  CONTENT_CALENDAR_BUCKET?: R2BucketLike;
-};
-
 export type R2BucketLike = {
   put: (
     key: string,
@@ -12,6 +8,10 @@ export type R2BucketLike = {
     key: string,
   ) => Promise<{ body: ReadableStream | null; httpMetadata?: { contentType?: string } } | null>;
   delete: (key: string) => Promise<void>;
+};
+
+export type ContentCalendarBucketEnv = {
+  CONTENT_CALENDAR_BUCKET?: R2BucketLike;
 };
 
 export async function getContentCalendarBucketBinding(): Promise<R2BucketLike | null> {

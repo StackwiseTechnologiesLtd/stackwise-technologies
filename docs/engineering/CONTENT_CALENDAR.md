@@ -11,15 +11,27 @@ Migration: `migrations/0031_content_calendar.sql` — run `npm run db:migrate`.
 
 ## R2 (no paid storage at low volume)
 
-Cloudflare R2 includes a free tier (storage + modest operations). Binding: `CONTENT_CALENDAR_BUCKET` → bucket `stackwise-content-calendar` in `wrangler.jsonc`.
+Cloudflare R2 includes a free tier (storage + modest operations). Bucket: `stackwise-content-calendar`. Worker binding: `CONTENT_CALENDAR_BUCKET` in `wrangler.jsonc`.
 
-One-time (per account):
+One-time:
 
 ```bash
 npx wrangler r2 bucket create stackwise-content-calendar
 ```
 
-Deploy as usual after migrate. Media uploads in production use R2; previews are served from `/api/admin/content-calendar/assets/[id]/file` (admin session required).
+**Production / `opennextjs-cloudflare preview`:** uploads use the Worker R2 binding.
+
+**`next dev`:** same bucket via the S3-compatible API when these are in `.env.local` (create an R2 API token in Cloudflare dashboard):
+
+- `CLOUDFLARE_ACCOUNT_ID`
+- `R2_ACCESS_KEY_ID`
+- `R2_SECRET_ACCESS_KEY`
+
+Optional: `CONTENT_CALENDAR_R2_BUCKET` (defaults to `stackwise-content-calendar`).
+
+If neither binding nor S3 env is set, uploads fall back to Neon `dev_data` (fine for tiny local tests only).
+
+Previews: `GET /api/admin/content-calendar/assets/[id]/file` (admin session).
 
 ## UI
 

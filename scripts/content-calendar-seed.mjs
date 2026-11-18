@@ -1,13 +1,20 @@
 #!/usr/bin/env node
 /**
  * Seed demo content-calendar posts (current month). Safe to re-run — replaces [sample] posts.
+ * Uploads real preview images to R2 when S3 credentials or wrangler auth is available.
  */
 import { randomUUID } from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
 import process from "node:process";
+import { fileURLToPath } from "node:url";
 import { neon } from "@neondatabase/serverless";
 import { loadEnvLocal } from "./lib/load-env-local.mjs";
+import { buildDemoR2Key, putContentCalendarObject } from "./lib/r2-content-calendar.mjs";
 
 loadEnvLocal();
+
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 if (!process.env.DATABASE_URL) {
   console.error("DATABASE_URL is required");
@@ -16,11 +23,12 @@ if (!process.env.DATABASE_URL) {
 
 const sql = neon(process.env.DATABASE_URL);
 
-/** 1×1 PNG (warm accent) for dev_data demo */
-const DEMO_PNG = Buffer.from(
-  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
-  "base64",
-);
+const DEMO_IMAGES = {
+  social: "public/branding/opsis/previews/044b4bf96039d0c0a819-400.webp",
+  launch: "public/branding/opsis/previews/3ebe7e302100bb897430-400.webp",
+  carousel: "public/branding/opsis/previews/b888a89d234f43a543ed-400.webp",
+  tiktok: "public/branding/opsis/previews/a4d14e1ed75cdf980cce-400.webp",
+};
 
 function isoDay(d) {
   const y = d.getFullYear();
@@ -46,6 +54,7 @@ const samples = [
     accent: "#e85d8a",
     script: "Hook: New case study drop.\nCTA: Link in bio.",
     notes: "Need vertical + square crops",
+    image: DEMO_IMAGES.social,
   },
   {
     title: "[sample] LinkedIn thought piece",
@@ -66,6 +75,7 @@ const samples = [
     accent: "#e85d8a",
     script: "Behind the scenes — client portal walkthrough.",
     notes: "Posted from phone",
+    image: DEMO_IMAGES.launch,
   },
   {
     title: "[sample] X thread — hiring",
@@ -86,6 +96,7 @@ const samples = [
     accent: "#f97316",
     script: "Office day / desk setup",
     notes: "Use trending audio",
+    image: DEMO_IMAGES.tiktok,
   },
   {
     title: "[sample] Case study carousel",
@@ -96,9 +107,49 @@ const samples = [
     accent: "#e85d8a",
     script: "Slide 1: problem\nSlide 5: results",
     notes: "Attach polaroid still",
-    withImage: true,
+    image: DEMO_IMAGES.carousel,
   },
 ];
+
+async function insertAsset(postId, relImagePath) {
+  const abs = path.join(repoRoot, relImagePath);
+  if (!fs.existsSync(abs)) {
+    console.warn(`Skip missing image: ${relImagePath}`);
+    return;
+  }
+  const assetId = randomUUID();
+  const filename = path.basename(abs);
+  const contentType = filename.endsWith(".webp") ? "image/webp" : "image/png";
+  const byteSize = fs.statSync(abs).size;
+
+  let r2Key = null;
+  let devData = null;
+
+  r2Key = buildDemoR2Key(postId, assetId, filename);
+  try {
+    const put = await putContentCalendarObject(r2Key, abs, contentType);
+    console.log(`  ↑ R2 (${put.via}): ${r2Key}`);
+  } catch (err) {
+    console.warn(`  R2 upload failed for ${filename}, using dev_data fallback:`, err.message);
+    r2Key = null;
+    devData = fs.readFileSync(abs);
+  }
+
+  await sql`
+    INSERT INTO content_calendar_assets (
+      id, post_id, r2_key, content_type, filename, byte_size, sort_order, dev_data
+    ) VALUES (
+      ${assetId}::uuid,
+      ${postId}::uuid,
+      ${r2Key},
+      ${contentType},
+      ${filename},
+      ${byteSize},
+      0,
+      ${devData}
+    )
+  `;
+}
 
 async function main() {
   await sql`DELETE FROM content_calendar_posts WHERE title LIKE '[sample]%'`;
@@ -125,23 +176,9 @@ async function main() {
       )
     `;
     inserted += 1;
-
-    if (s.withImage) {
-      const assetId = randomUUID();
-      await sql`
-        INSERT INTO content_calendar_assets (
-          id, post_id, r2_key, content_type, filename, byte_size, sort_order, dev_data
-        ) VALUES (
-          ${assetId}::uuid,
-          ${id}::uuid,
-          NULL,
-          'image/png',
-          'sample-thumb.png',
-          ${DEMO_PNG.byteLength},
-          0,
-          ${DEMO_PNG}
-        )
-      `;
+    if (s.image) {
+      console.log(s.title);
+      await insertAsset(id, s.image);
     }
   }
 
