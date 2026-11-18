@@ -253,9 +253,6 @@ export function StackwiseTimePicker({
           tabIndex={-1}
           onKeyDown={onKeyDown}
         >
-          <p className="sw-cal-time-hint">
-            Click hour or minute · ↑↓ to flip · type digits (12 = two keys)
-          </p>
           <div className="sw-flip-clock">
             <button
               type="button"

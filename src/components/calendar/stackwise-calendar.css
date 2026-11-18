@@ -539,14 +539,6 @@
   padding: 1rem 0.85rem 0.7rem;
 }
 
-.sw-cal-time-hint {
-  margin: 0 0 0.65rem;
-  text-align: center;
-  font-size: 0.625rem;
-  letter-spacing: 0.01em;
-  color: var(--muted);
-}
-
 .sw-flip-clock {
   display: flex;
   align-items: center;
