@@ -25,10 +25,7 @@
 }
 
 .content-cal-panel-head :is(.admin-btn-primary, .admin-btn-secondary) {
-  min-height: 2rem;
-  padding: 0.2rem 0.75rem;
   font-size: 0.8125rem;
-  line-height: 1.25;
 }
 
 @media (min-width: 640px) {

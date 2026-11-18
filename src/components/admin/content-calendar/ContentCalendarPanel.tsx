@@ -239,7 +239,7 @@ export function ContentCalendarPanel() {
             cursor={cursor}
             view={mode}
             visual={visual}
-            minMonthRowHeight={visual === "scrapbook" ? "8.75rem" : "7.5rem"}
+            minMonthRowHeight={visual === "scrapbook" ? "12.5rem" : "7.5rem"}
             dayActions={(iso) => <CalendarDayAddButton iso={iso} onNew={openNew} />}
             renderDayBody={(ctx) => {
               const items = postsByDay.get(ctx.iso) ?? [];

@@ -116,3 +116,28 @@ body {
   background: var(--accent-hover);
 }
 
+.admin-shell :is(a, button).admin-btn-primary,
+.admin-shell :is(a, button).admin-btn-secondary {
+  min-height: 2rem;
+  padding-block: 0.375rem;
+}
+
+.navigation-progress {
+  pointer-events: none;
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 99999;
+  height: 3px;
+  background: color-mix(in srgb, var(--foreground) 6%, transparent);
+}
+
+.navigation-progress-bar {
+  height: 100%;
+  width: 0;
+  background: var(--accent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 55%, transparent);
+  transition:
+    width 0.22s ease-out,
+    opacity 0.28s ease;
+}
+

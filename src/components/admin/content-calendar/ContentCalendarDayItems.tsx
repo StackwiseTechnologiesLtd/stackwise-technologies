@@ -62,7 +62,8 @@ export function ContentCalendarDayItems({
   if (items.length === 0) return null;
 
   const scrapbook = visual === "scrapbook";
-  const visible = items.slice(0, scrapbook ? 2 : maxVisible);
+  const scrapbookCap = 4;
+  const visible = items.slice(0, scrapbook ? scrapbookCap : maxVisible);
 
   return (
     <>
