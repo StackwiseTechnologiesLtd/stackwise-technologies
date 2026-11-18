@@ -9,6 +9,8 @@ Admin route: `/admin/content-calendar` (Agency sidebar + Overview shortcut).
 
 Migration: `migrations/0031_content_calendar.sql` — run `npm run db:migrate`.
 
+**December plan (scripts only, no attachments):** `npm run content-calendar:plan-december` — replaces posts titled `[dec-plan] …`. Default year is 2026; override with `CONTENT_CALENDAR_PLAN_YEAR=2025`. Mix: Looial + Stackwise on Instagram, X, and TikTok (~2 posts/day, 3 every third day).
+
 ## R2 (no paid storage at low volume)
 
 Cloudflare R2 includes a free tier (storage + modest operations). Bucket: `stackwise-content-calendar`. Worker binding: `CONTENT_CALENDAR_BUCKET` in `wrangler.jsonc`.

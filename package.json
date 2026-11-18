@@ -5,6 +5,7 @@
   "scripts": {
     "db:migrate": "node scripts/migrate.mjs",
     "content-calendar:seed": "node scripts/content-calendar-seed.mjs",
+    "content-calendar:plan-december": "node scripts/content-calendar-december-plan.mjs",
     "dev": "next dev",
     "build": "node scripts/next-production-build.mjs",
     "start": "next start",

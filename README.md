@@ -190,7 +190,7 @@ Requires `wrangler` login. Uploads all non-comment `KEY=value` lines from the fi
 | --- | --- | --- |
 | `scripts/deploy-live.sh` | `npm run deploy:live` | End-to-end production deploy: env, secrets, build, publish. |
 | `scripts/sync-cloudflare-env.mjs` | `npm run cf:secrets`, `deploy-live.sh` | Parses an env file and runs `wrangler secret bulk` for Worker `stackwise-technologies`. Optional arg: path to env file (default `.env.prod`). |
-| `scripts/migrate.mjs` | `npm run db:migrate`, `npm run db:migrate:prod` | Loads env files, connects to Neon, runs all `migrations/*.sql` in order. Set `MIGRATE_ENV=prod` to force `.env.prod`. |
+| `scripts/migrate.mjs` | `npm run db:migrate`, `npm run db:migrate:prod` | Loads env files, connects to Neon, runs each `migrations/*.sql` file once and records it in `stackwise_schema_migrations` (`name`, `applied_at`, `checksum`, `description`). Re-runs skip already-recorded files. Set `MIGRATE_ENV=prod` to force `.env.prod`. |
 | `scripts/db-reset-prod-payments.mjs` | `npm run db:reset:prod-payments` | Removes test/sandbox payment links from production Neon and marks remaining drafts as live (`kpay_is_test = false`). Dry-run by default; `--confirm` to apply. |
 
 ### Admin & payments (local)

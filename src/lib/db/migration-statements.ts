@@ -701,6 +701,17 @@ CREATE INDEX IF NOT EXISTS idx_content_calendar_assets_post
   ON content_calendar_assets (post_id, sort_order ASC, created_at ASC);
 `;
 
+const SCHEMA_MIGRATIONS_SQL = `
+CREATE TABLE IF NOT EXISTS stackwise_schema_migrations (
+  name TEXT PRIMARY KEY,
+  applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  checksum TEXT,
+  description TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_stackwise_schema_migrations_applied_at
+  ON stackwise_schema_migrations (applied_at DESC);
+`;
+
 const JOB_APPLICATIONS_SQL = `
 CREATE TABLE IF NOT EXISTS crm_job_applications (
   id UUID PRIMARY KEY,
@@ -765,4 +776,5 @@ export const MIGRATION_STATEMENTS = [
   ...splitStatements(AGENCY_PROJECTS_SQL),
   ...splitStatements(JOB_APPLICATIONS_SQL),
   ...splitStatements(CONTENT_CALENDAR_SQL),
+  ...splitStatements(SCHEMA_MIGRATIONS_SQL),
 ];
