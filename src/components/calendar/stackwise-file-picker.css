@@ -142,11 +142,11 @@
 .sw-file-row {
   display: flex;
   align-items: center;
-  gap: 0.55rem;
-  padding: 0.5rem 0.55rem;
-  border-radius: 0.55rem;
-  border: 1px solid var(--admin-border);
-  background: color-mix(in srgb, var(--admin-surface) 96%, var(--admin-canvas));
+  gap: 0.5rem;
+  padding: 0.45rem 0.5rem;
+  border-radius: 0.65rem;
+  border: 1px solid color-mix(in srgb, var(--admin-border) 88%, transparent);
+  background: color-mix(in srgb, var(--admin-surface) 97%, var(--admin-canvas));
 }
 
 .sw-file-row-icon {
@@ -155,12 +155,19 @@
   color: color-mix(in srgb, var(--foreground) 70%, transparent);
 }
 
+.sw-file-row-icon--chip {
+  align-items: center;
+  justify-content: center;
+  width: 1.85rem;
+  height: 1.85rem;
+  border-radius: 0.45rem;
+  border: 1px solid color-mix(in srgb, var(--admin-border) 80%, transparent);
+  background: color-mix(in srgb, var(--admin-canvas) 92%, var(--admin-surface));
+}
+
 .sw-file-row-main {
   flex: 1;
   min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
 }
 
 .sw-file-row-name {
@@ -172,15 +179,27 @@
   white-space: nowrap;
 }
 
-.sw-file-row-meta {
+.sw-file-row-size {
+  flex-shrink: 0;
   font-size: 0.625rem;
+  font-weight: 600;
   color: var(--muted);
+  min-width: 3.25rem;
+  text-align: right;
+}
+
+.sw-file-row-actions-divider {
+  flex-shrink: 0;
+  width: 1px;
+  align-self: stretch;
+  margin: 0.15rem 0;
+  background: color-mix(in srgb, var(--admin-border) 90%, transparent);
 }
 
 .sw-file-row-actions {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.15rem;
   flex-shrink: 0;
 }
 
@@ -188,76 +207,128 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 1.65rem;
-  height: 1.65rem;
+  width: 1.75rem;
+  height: 1.75rem;
   border-radius: 0.4rem;
-  border: 1px solid var(--admin-border);
+  border: 1px solid transparent;
+  background: transparent;
+  color: color-mix(in srgb, var(--foreground) 72%, transparent);
+}
+
+.sw-file-row-action:hover {
+  border-color: var(--admin-border);
   background: var(--admin-canvas);
-  color: color-mix(in srgb, var(--foreground) 75%, transparent);
 }
 
 .sw-file-row-remove {
-  border-color: transparent;
-  background: transparent;
+  color: color-mix(in srgb, var(--foreground) 55%, transparent);
 }
 
 .sw-file-row--audio {
-  flex-wrap: wrap;
-}
-
-.sw-file-row--audio .sw-file-row-main {
-  flex: 1 1 5rem;
+  gap: 0.45rem;
+  padding: 0.55rem 0.5rem;
 }
 
 .sw-file-audio {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
-  width: 100%;
-  max-width: 11rem;
-  order: 3;
-  flex: 1 1 100%;
-  padding-top: 0.25rem;
+  gap: 0.4rem;
+  flex: 1;
+  min-width: 0;
 }
 
-@media (min-width: 420px) {
-  .sw-file-row--audio .sw-file-audio {
-    order: unset;
-    flex: 0 1 10.5rem;
-    padding-top: 0;
-  }
+.sw-file-audio-title {
+  flex: 0 1 6.5rem;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
 }
 
-.sw-file-audio-time,
-.sw-file-audio-dur {
+.sw-file-audio-name {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.sw-file-audio-title:hover .sw-file-audio-name {
+  color: color-mix(in srgb, var(--accent) 75%, var(--foreground));
+  text-decoration: underline;
+}
+
+.sw-file-audio-time {
   font-size: 0.625rem;
   font-variant-numeric: tabular-nums;
   color: var(--muted);
   flex-shrink: 0;
+  min-width: 1.65rem;
+}
+
+.sw-file-audio-time--current {
+  text-align: right;
+}
+
+.sw-file-audio-time--total {
+  text-align: left;
 }
 
 .sw-file-audio-wave {
+  position: relative;
   flex: 1;
-  height: 0.35rem;
-  border-radius: 999px;
+  min-width: 2.5rem;
+  height: 1.35rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0.35rem;
+  cursor: pointer;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--foreground) 22%, transparent) 0 2px,
+      transparent 2px 5px
+    ),
+    color-mix(in srgb, var(--admin-canvas) 88%, transparent);
+  overflow: hidden;
+}
+
+.sw-file-audio-wave::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--sw-audio-progress, 0%);
   background: repeating-linear-gradient(
     90deg,
-    color-mix(in srgb, var(--foreground) 35%, transparent) 0 2px,
+    color-mix(in srgb, var(--foreground) 52%, transparent) 0 2px,
     transparent 2px 5px
   );
-  opacity: 0.55;
+  pointer-events: none;
 }
 
 .sw-file-audio-play {
-  width: 1.5rem;
-  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.65rem;
+  height: 1.65rem;
   border-radius: 999px;
   border: 1px solid var(--admin-border);
   background: var(--admin-canvas);
-  font-size: 0.55rem;
+  font-size: 0.5rem;
   line-height: 1;
   color: var(--foreground);
   flex-shrink: 0;
+}
+
+@media (max-width: 480px) {
+  .sw-file-audio-title {
+    display: none;
+  }
 }
 
 .sw-file-gallery {
@@ -278,9 +349,9 @@
 .sw-file-gallery-item {
   position: relative;
   flex: 0 0 auto;
-  width: 4.75rem;
-  height: 4.75rem;
-  border-radius: 0.55rem;
+  width: 5.5rem;
+  height: 5.5rem;
+  border-radius: 0.75rem;
   overflow: hidden;
   border: 1px solid var(--admin-border);
   background: var(--admin-canvas);

@@ -12,7 +12,7 @@ import {
 } from "@/lib/content-calendar/asset-ui";
 import { contentCalendarAssetDownloadUrl } from "@/lib/content-calendar/asset-download";
 import { CONTENT_CALENDAR_MAX_BYTES } from "@/lib/content-calendar/media-storage";
-import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 
 import "./stackwise-file-picker.css";
@@ -338,9 +338,29 @@ function AttachmentRow({
   const fileDownloadHref =
     kind === "link" ? href : contentCalendarAssetDownloadUrl(assetUrl(asset.id));
 
+  if (kind === "audio") {
+    return (
+      <li className="sw-file-row sw-file-row--audio">
+        <span className="sw-file-row-icon sw-file-row-icon--chip" aria-hidden>
+          <IconMic />
+        </span>
+        <AudioInline src={href} title={asset.filename} onOpen={onQuickView} />
+        <span className="sw-file-row-actions-divider" aria-hidden />
+        <button
+          type="button"
+          className="sw-file-row-action sw-file-row-remove"
+          aria-label="Remove"
+          onClick={() => void onRemove(asset.id)}
+        >
+          <IconClose />
+        </button>
+      </li>
+    );
+  }
+
   return (
     <li className={`sw-file-row sw-file-row--${kind}`}>
-      <span className="sw-file-row-icon" aria-hidden>
+      <span className="sw-file-row-icon sw-file-row-icon--chip" aria-hidden>
         <RowIcon kind={kind} />
       </span>
       <div className="sw-file-row-main">
@@ -353,27 +373,13 @@ function AttachmentRow({
             {name}
           </span>
         )}
-        <span className="sw-file-row-meta">
-          {kind === "link" ? kindLabel(kind) : formatFileBytes(asset.byteSize)}
-        </span>
       </div>
+      <span className="sw-file-row-size">
+        {kind === "link" ? kindLabel(kind) : formatFileBytes(asset.byteSize)}
+      </span>
+      <span className="sw-file-row-actions-divider" aria-hidden />
       <div className="sw-file-row-actions">
-        {kind === "audio" ? (
-          <>
-            <AudioInline src={href} />
-            <button
-              type="button"
-              className="sw-file-row-action"
-              aria-label="Quick view"
-              onClick={onQuickView}
-            >
-              <IconEye />
-            </button>
-            <a className="sw-file-row-action" href={fileDownloadHref} download={asset.filename} aria-label="Download">
-              <IconDownload />
-            </a>
-          </>
-        ) : kind === "link" ? (
+        {kind === "link" ? (
           <a
             className="sw-file-row-action"
             href={href}
@@ -383,20 +389,6 @@ function AttachmentRow({
           >
             <IconExternal />
           </a>
-        ) : canQuickViewAsset(asset.contentType) ? (
-          <>
-            <button type="button" className="sw-file-row-action" aria-label="Quick view" onClick={onQuickView}>
-              <IconEye />
-            </button>
-            <a
-              className="sw-file-row-action"
-              href={fileDownloadHref}
-              download={asset.filename}
-              aria-label="Download"
-            >
-              <IconDownload />
-            </a>
-          </>
         ) : (
           <a
             className="sw-file-row-action"
@@ -420,8 +412,17 @@ function AttachmentRow({
   );
 }
 
-function AudioInline({ src }: { src: string }) {
+function AudioInline({
+  src,
+  title,
+  onOpen,
+}: {
+  src: string;
+  title: string;
+  onOpen: () => void;
+}) {
   const audioRef = useRef<HTMLAudioElement>(null);
+  const waveRef = useRef<HTMLButtonElement>(null);
   const [playing, setPlaying] = useState(false);
   const [current, setCurrent] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -433,11 +434,35 @@ function AudioInline({ src }: { src: string }) {
     return `${m}:${s.toString().padStart(2, "0")}`;
   }
 
+  const progress = duration > 0 ? Math.min(100, (current / duration) * 100) : 0;
+
+  function seek(clientX: number) {
+    const el = waveRef.current;
+    const audio = audioRef.current;
+    if (!el || !audio || !Number.isFinite(audio.duration)) return;
+    const rect = el.getBoundingClientRect();
+    const x = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    audio.currentTime = x * audio.duration;
+  }
+
   return (
     <div className="sw-file-audio">
-      <span className="sw-file-audio-time">{fmt(current)}</span>
-      <span className="sw-file-audio-wave" aria-hidden />
-      <span className="sw-file-audio-dur">{fmt(duration)}</span>
+      <button type="button" className="sw-file-audio-title" title={title} onClick={onOpen}>
+        <span className="sw-file-audio-name">{title}</span>
+      </button>
+      <span className="sw-file-audio-time sw-file-audio-time--current">{fmt(current)}</span>
+      <button
+        ref={waveRef}
+        type="button"
+        className="sw-file-audio-wave"
+        style={{ "--sw-audio-progress": `${progress}%` } as CSSProperties}
+        aria-label="Seek"
+        onClick={(e) => seek(e.clientX)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") e.preventDefault();
+        }}
+      />
+      <span className="sw-file-audio-time sw-file-audio-time--total">{fmt(duration)}</span>
       <button
         type="button"
         className="sw-file-audio-play"
@@ -445,11 +470,8 @@ function AudioInline({ src }: { src: string }) {
         onClick={() => {
           const el = audioRef.current;
           if (!el) return;
-          if (playing) {
-            el.pause();
-          } else {
-            void el.play();
-          }
+          if (playing) el.pause();
+          else void el.play();
         }}
       >
         {playing ? "❚❚" : "▶"}
@@ -458,7 +480,7 @@ function AudioInline({ src }: { src: string }) {
         ref={audioRef}
         src={src}
         preload="metadata"
-        className="sr-only"
+        className="sw-file-input-hidden"
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
         onEnded={() => setPlaying(false)}
@@ -471,7 +493,7 @@ function AudioInline({ src }: { src: string }) {
 
 function RowIcon({ kind }: { kind: AssetUiKind }) {
   if (kind === "link") return <IconLink />;
-  if (kind === "pdf") return <IconPdf />;
+  if (kind === "pdf") return <IconPaperclip />;
   if (kind === "image") return <IconImage />;
   if (kind === "audio") return <IconMic />;
   if (kind === "video") return <IconVideo />;
@@ -502,21 +524,6 @@ function IconPaperclip() {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-    </svg>
-  );
-}
-
-function IconPdf() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M8 4h8l4 4v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinejoin="round"
-      />
-      <path d="M16 4v4h4" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-      <path d="M9 13h6M9 16h4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
     </svg>
   );
 }
@@ -564,20 +571,6 @@ function IconMic() {
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
       <rect x="9" y="3" width="6" height="11" rx="3" stroke="currentColor" strokeWidth="2" />
       <path d="M5 11a7 7 0 0014 0M12 18v3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function IconEye() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinejoin="round"
-      />
-      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
     </svg>
   );
 }
