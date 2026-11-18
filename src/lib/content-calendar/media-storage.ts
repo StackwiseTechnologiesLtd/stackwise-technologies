@@ -1,18 +1,20 @@
-type R2BucketLike = {
+export type ContentCalendarBucketEnv = {
+  CONTENT_CALENDAR_BUCKET?: R2BucketLike;
+};
+
+export type R2BucketLike = {
   put: (
     key: string,
     value: ArrayBuffer | ArrayBufferView | ReadableStream | string | Blob,
     options?: { httpMetadata?: { contentType?: string } },
   ) => Promise<unknown>;
-  get: (key: string) => Promise<{ body: ReadableStream | null; httpMetadata?: { contentType?: string } } | null>;
+  get: (
+    key: string,
+  ) => Promise<{ body: ReadableStream | null; httpMetadata?: { contentType?: string } } | null>;
   delete: (key: string) => Promise<void>;
 };
 
-export type ContentCalendarBucketEnv = {
-  CONTENT_CALENDAR_BUCKET?: R2BucketLike;
-};
-
-export async function getContentCalendarBucket(): Promise<R2BucketLike | null> {
+export async function getContentCalendarBucketBinding(): Promise<R2BucketLike | null> {
   try {
     const { getCloudflareContext } = await import("@opennextjs/cloudflare");
     const { env } = await getCloudflareContext({ async: true });
@@ -21,6 +23,17 @@ export async function getContentCalendarBucket(): Promise<R2BucketLike | null> {
   } catch {
     return null;
   }
+}
+
+/** Worker R2 binding in prod/preview; S3 API to the same bucket during `next dev`. */
+export async function getContentCalendarBucket(): Promise<R2BucketLike | null> {
+  const binding = await getContentCalendarBucketBinding();
+  if (binding) return binding;
+
+  const { getContentCalendarR2S3Client, s3AsR2Bucket } = await import("@/lib/content-calendar/r2-s3");
+  const client = getContentCalendarR2S3Client();
+  if (!client) return null;
+  return s3AsR2Bucket(client);
 }
 
 export function buildR2Key(postId: string, assetId: string, filename: string): string {

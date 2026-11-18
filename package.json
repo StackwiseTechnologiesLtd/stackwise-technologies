@@ -78,6 +78,7 @@
     "integrations:huginn:scenario": "node scripts/render-huginn-scenario.mjs"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.984.0",
     "@cloudflare/puppeteer": "^1.4.0",
     "@neondatabase/serverless": "^1.0.2",
     "next": "16.2.6",
