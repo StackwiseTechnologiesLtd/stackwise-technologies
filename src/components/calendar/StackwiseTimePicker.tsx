@@ -45,7 +45,18 @@ export function StackwiseTimePicker({
   });
   const rootRef = useRef<HTMLDivElement>(null);
   const popRef = useRef<HTMLDivElement>(null);
+  const typeTimerRef = useRef<number | null>(null);
   const listId = useId();
+  const TYPE_PAIR_MS = 700;
+
+  function clearTypeTimer() {
+    if (typeTimerRef.current != null) {
+      window.clearTimeout(typeTimerRef.current);
+      typeTimerRef.current = null;
+    }
+  }
+
+  useEffect(() => () => clearTypeTimer(), []);
 
   useEffect(() => {
     if (!open) return;
@@ -72,6 +83,7 @@ export function StackwiseTimePicker({
     } else {
       setDraft(defaultDraft());
     }
+    clearTypeTimer();
     setDigitBuffer("");
     setActive("hour");
   }
@@ -113,27 +125,42 @@ export function StackwiseTimePicker({
   }
 
   function onDigit(ch: string) {
-    const next = `${digitBuffer}${ch}`.slice(-2);
-    setDigitBuffer(next);
-    const n = Number(next);
+    clearTypeTimer();
+    const next = digitBuffer + ch;
 
-    if (active === "hour") {
-      if (next.length === 1 && n >= 2 && n <= 9) {
-        applyTypedHour(n);
-        setDigitBuffer("");
+    if (active === "minute") {
+      if (next.length >= 2) {
+        const n = Number(next.slice(-2));
+        if (applyTypedMinute(n)) setDigitBuffer("");
+        else setDigitBuffer(ch);
         return;
       }
-      if (next.length === 2) {
-        if (applyTypedHour(n)) setDigitBuffer("");
-        else setDigitBuffer(ch);
-      }
+      applyTypedMinute(Number(ch));
+      setDigitBuffer(ch);
+      typeTimerRef.current = window.setTimeout(() => setDigitBuffer(""), TYPE_PAIR_MS);
       return;
     }
 
-    if (next.length === 2) {
-      if (applyTypedMinute(n)) setDigitBuffer("");
+    if (next.length >= 2) {
+      const n = Number(next.slice(-2));
+      if (applyTypedHour(n)) setDigitBuffer("");
       else setDigitBuffer(ch);
+      return;
     }
+
+    const n = Number(ch);
+    if (n >= 2 && n <= 9) {
+      applyTypedHour(n);
+      setDigitBuffer("");
+      return;
+    }
+
+    setDigitBuffer(ch);
+    typeTimerRef.current = window.setTimeout(() => {
+      if (n >= 1 && n <= 9) applyTypedHour(n);
+      setDigitBuffer("");
+      typeTimerRef.current = null;
+    }, TYPE_PAIR_MS);
   }
 
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
@@ -141,6 +168,7 @@ export function StackwiseTimePicker({
       e.preventDefault();
       if (active === "hour") stepHour(1);
       else stepMinute(1);
+      clearTypeTimer();
       setDigitBuffer("");
       return;
     }
@@ -148,18 +176,21 @@ export function StackwiseTimePicker({
       e.preventDefault();
       if (active === "hour") stepHour(-1);
       else stepMinute(-1);
+      clearTypeTimer();
       setDigitBuffer("");
       return;
     }
     if (e.key === "ArrowLeft") {
       e.preventDefault();
       setActive("hour");
+      clearTypeTimer();
       setDigitBuffer("");
       return;
     }
     if (e.key === "ArrowRight") {
       e.preventDefault();
       setActive("minute");
+      clearTypeTimer();
       setDigitBuffer("");
       return;
     }
@@ -211,7 +242,7 @@ export function StackwiseTimePicker({
           onKeyDown={onKeyDown}
         >
           <p className="sw-cal-time-hint">
-            Click hour or minute · ↑↓ to flip · 0–9 to type
+            Click hour or minute · ↑↓ to flip · 3 sets :03 · 30 types 3 then 0
           </p>
           <div className="sw-flip-clock">
             <button
