@@ -9,7 +9,7 @@ Admin route: `/admin/content-calendar` (Agency sidebar + Overview shortcut).
 
 Migration: `migrations/0031_content_calendar.sql` — run `npm run db:migrate`.
 
-**December plan (scripts only, no attachments):** `npm run content-calendar:plan-december` — replaces posts titled `[dec-plan] …`. Schedules from **today** through **31 Dec** (not December-only). Sets `created_at` on earlier “work” days so you can start creating now. Override year: `CONTENT_CALENDAR_PLAN_YEAR=2025`. Mix: **Looial** (WhatsApp-first loyalty for merchants — [looial.com](https://looial.com)) + **Stackwise** (agency ops) on Instagram, X, and TikTok (~2 posts/day, 3 every third day). Looial scripts are merchant/B2B, not consumer product retail.
+**December plan (scripts only, no attachments):** `npm run content-calendar:plan-december` — replaces posts titled `[dec-plan] …`. Schedules from **today** through **31 Dec** (not December-only). Sets `created_at` on earlier “work” days so you can start creating now. Override year: `CONTENT_CALENDAR_PLAN_YEAR=2025`. Mix: **Looial** + **Stackwise** on Instagram, X, and TikTok (~2 posts/day, 3 every third day). Looial voice: [LOOIAL_CONTENT_BRIEF.md](./LOOIAL_CONTENT_BRIEF.md) (synced with [looial.com](https://looial.com)).
 
 **Moment marketing baked in:** new-month welcome, Black Friday / Cyber Monday, Giving Tuesday, **Jamhuri Day**, **daily Christmas countdown** (13–24 Dec), Christmas Eve/Day, Boxing Day, New Year’s Eve. First slot(s) on those dates use celebration scripts instead of the rotating angle pool.
 
