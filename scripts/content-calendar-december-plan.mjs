@@ -6,6 +6,8 @@
  *
  *   npm run content-calendar:plan-december
  *   CONTENT_CALENDAR_PLAN_YEAR=2025 npm run content-calendar:plan-december
+ *
+ * Looial voice: docs/engineering/LOOIAL_CONTENT_BRIEF.md (looial.com)
  */
 import { randomUUID } from "node:crypto";
 import process from "node:process";
@@ -65,6 +67,30 @@ const LOOIAL_ANGLES = [
       "Hook: '50% of first-timers never come back — unless you make the second visit easy.'\nStats on screen (subtle) + stamp progress visual.\nCTA: looial.com — priced in your currency.",
     notes: "Educational. Pair with merchant testimonial quote from site if permitted.",
   },
+  {
+    title: "Win-back automations (January-ready)",
+    script:
+      "Hook: 'They shopped in December — did they come back in January?'\nVO: Set welcome, near-reward, and win-back messages so your team isn't chasing DMs manually.\nCTA: merchant.looial.com — Start Free.",
+    notes: "Automations pillar. Screen record or message mock; Growth/Pro features where accurate.",
+  },
+  {
+    title: "Analytics — know your regulars",
+    script:
+      "Hook: 'I can name my Thursday lunch crowd now.'\n3 beats: who returned, who drifted, which reward actually redeemed.\nCTA: looial.com/features — analytics built for merchants.",
+    notes: "Analytics pillar. Quote Adaeze-style outcome (café Lagos) if licensed.",
+  },
+  {
+    title: "No WhatsApp? Wallet + PWA backup",
+    script:
+      "Hook: FAQ beat — 'What if they don't use WhatsApp every day?'\nAnswer: Same card in Apple/Google Wallet or Looial PWA — WhatsApp stays primary.\nCTA: looial.com — See Demo.",
+    notes: "FAQ content. Do not imply app-store download.",
+  },
+  {
+    title: "One card, every merchant on Looial",
+    script:
+      "Hook: 'Your customer already has Looial — enrolling at your counter is one scan.'\nExplain network card + your shop's reward rules.\nCTA: Join merchants across Africa — Start Free Trial.",
+    notes: "Platform/network angle. Good for TikTok explainer.",
+  },
 ];
 
 const STACKWISE_ANGLES = [
@@ -95,7 +121,7 @@ const STACKWISE_ANGLES = [
   {
     title: "Content calendar workflow",
     script:
-      "Hook: 'Scripts in the sheet, creative in your gallery.'\nShow scrapbook grid + attachment slots empty.\nCTA: How we plan December drops.",
+      "Hook: 'Scripts in the sheet, creative in your gallery.'\nShow scrapbook grid + attachment slots empty.\nCTA: How we plan December content.",
     notes: "Meta post — film the actual calendar UI.",
   },
   {
