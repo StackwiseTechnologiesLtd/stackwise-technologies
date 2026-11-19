@@ -27,42 +27,43 @@ const CHANNELS = ["instagram", "x", "tiktok"];
 const TIMES_TWO = ["10:00", "17:30"];
 const TIMES_THREE = ["09:30", "14:00", "18:15"];
 
+/** Looial = WhatsApp-first loyalty for African SMBs (looial.com). Merchant-facing; not retail/beauty e-comm. */
 const LOOIAL_ANGLES = [
   {
-    title: "Morning ritual — 15s hook",
+    title: "Paper card vs WhatsApp — 15s hook",
     script:
-      "Hook: Split screen — clutter vs calm vanity.\nVO: What if your shelf matched your mood?\nCTA: looial.com — shop the edit.",
-    notes: "Visual: soft natural light, product hero on marble. Carousel or Reel.",
+      "Hook: Split screen — lost punch card vs phone showing stamp update in WhatsApp.\nVO: Your regulars already live in WhatsApp. Why force another app?\nCTA: looial.com — loyalty in 5 minutes.",
+    notes: "Problem/solution. Show merchant counter + customer chat notification. Reel or carousel.",
   },
   {
-    title: "Ingredient transparency",
+    title: "Merchant setup in 5 minutes",
     script:
-      "Hook: 'I stopped guessing what's in my serum.'\n3 beats: label callouts, texture ASMR, before/after (subtle).\nCTA: Link in bio.",
-    notes: "Static or carousel — no heavy retouch.",
+      "Hook: 'I set up loyalty before lunch service.'\n3 beats: business name + reward rule → print QR → first stamp.\nCTA: Start free trial — no card required.",
+    notes: "Screen record (demo merchant). Blur real customer data.",
   },
   {
-    title: "Gift guide micro-edit",
+    title: "Customer journey — scan to stamped",
     script:
-      "Hook: 'Gifts that don't feel last-minute.'\nShow 3 bundles under one aesthetic.\nCTA: Shop the gift edit.",
-    notes: "December gifting angle; attach your pack shots when ready.",
+      "Hook: QR on counter → WhatsApp opens → tap Send → progress updates.\nOn-screen text: No app store. No forms.\nCTA: looial.com — see how enrolment works.",
+    notes: "B-roll: cafe/salon counter. Optional Wallet pass as backup beat.",
   },
   {
-    title: "Customer DM → FAQ",
+    title: "Referrals that grow foot traffic",
     script:
-      "Hook: 'You asked about shipping before the holidays.'\nAnswer in 20s with on-screen text.\nCTA: looial.com/faq",
-    notes: "Talking head or text-on-b-roll.",
+      "Hook: 'Every regular gets a link — bring a friend, both win.'\nShow referral message mock in WhatsApp.\nCTA: Turn December visitors into January regulars.",
+    notes: "Feature spotlight. Merchant POV + customer share gesture.",
   },
   {
-    title: "Unboxing pacing",
+    title: "Rush hour — find customer in seconds",
     script:
-      "Hook: Satisfying peel + tissue pull (no logo flash first).\nBeat 2: texture close-ups.\nCTA: 'New drops weekly.'",
-    notes: "TikTok-native pacing; trending sound optional.",
+      "Hook: 'Lunch rush, no time to search a notebook.'\nStaff flow: phone / 4-digit PIN / QR verify → one-tap visit.\nCTA: Built for local businesses, not chains.",
+    notes: "Operational credibility. Fast cuts; subtitle the steps.",
   },
   {
-    title: "Shelfie / restock",
+    title: "Repeat visits beat one-off sales",
     script:
-      "Hook: 'Sunday restock ritual.'\nQuick cuts: wipe, arrange, light a candle.\nCTA: Tag a friend who needs calm.",
-    notes: "User-generated style; film on phone.",
+      "Hook: '50% of first-timers never come back — unless you make the second visit easy.'\nStats on screen (subtle) + stamp progress visual.\nCTA: looial.com — priced in your currency.",
+    notes: "Educational. Pair with merchant testimonial quote from site if permitted.",
   },
 ];
 
@@ -169,12 +170,12 @@ function celebrationMomentsByDate(year) {
   set(pad(11, 28), [
     {
       brandKey: "looial",
-      title: "Black Friday — giftable edits",
+      title: "Black Friday — capture holiday foot traffic",
       channel: "instagram",
       time: "09:00",
       script:
-        "Hook: 'The edit that actually ships before the weekend.'\n3 hero SKUs + limited window.\nCTA: looial.com — Black Friday lane.",
-      notes: "Celebration: retail moment. Bold type + sale end time on slide 1.",
+        "Hook: 'BFCM shoppers show up once — loyalty brings them back in January.'\nQR at counter + double-stamp weekend (merchant sets rules).\nCTA: looial.com — 7-day trial before the rush.",
+      notes: "Celebration: retail moment for merchants. No consumer ‘sale lane’ — SMB offer.",
     },
     {
       brandKey: "stackwise",
@@ -190,11 +191,11 @@ function celebrationMomentsByDate(year) {
   set(pad(11, 29), [
     {
       brandKey: "looial",
-      title: "Small Business Saturday — maker story",
+      title: "Small Business Saturday — shop local, stay local",
       channel: "instagram",
       script:
-        "Hook: Behind the shelf — who makes the edit.\nVO: Small batch, intentional restocks.\nCTA: Shop small / share a shelfie.",
-      notes: "Celebration: Small Business Saturday.",
+        "Hook: 'Buy Small Saturday is one day — regulars are the whole year.'\nVO: WhatsApp loyalty built for the café, salon, and bookstore on your high street.\nCTA: Tag a merchant who deserves repeat customers → looial.com",
+      notes: "Celebration: Small Business Saturday. Merchant hero, not product shelf.",
     },
   ]);
 
@@ -209,11 +210,11 @@ function celebrationMomentsByDate(year) {
     },
     {
       brandKey: "looial",
-      title: "November close — December preview",
+      title: "November close — December preview for merchants",
       channel: "tiktok",
       script:
-        "Hook: December moodboard in 15s.\nTease: gifts, rituals, countdown.\nCTA: Follow for Dec drops.",
-      notes: "Celebration: month transition tease before Dec 1 welcome.",
+        "Hook: 'December queue at the door?'\nQuick montage: QR, stamp ping in WhatsApp, referral text.\nCTA: Follow for merchant loyalty tips — looial.com",
+      notes: "Celebration: month transition. Peak retail prep for SMBs.",
     },
   ]);
 
@@ -224,8 +225,8 @@ function celebrationMomentsByDate(year) {
       channel: "instagram",
       time: "08:30",
       script:
-        "Hook: 'December is a vibe, not a scramble.'\nWelcome: gifting + slow rituals.\nCTA: Save for the December edit.",
-      notes: "Celebration: new month welcome. Cozy palette; pin to profile optional.",
+        "Hook: 'December foot traffic is a gift — if you can turn strangers into regulars.'\nWelcome: stamp promos, referrals, win-back before you close for the holidays.\nCTA: looial.com — set your reward in 5 minutes.",
+      notes: "Celebration: new month welcome for merchants. Pin to profile optional.",
     },
     {
       brandKey: "stackwise",
@@ -260,11 +261,11 @@ function celebrationMomentsByDate(year) {
     },
     {
       brandKey: "looial",
-      title: "Jamhuri Day — local ritual",
+      title: "Jamhuri Day — Kenya builds local",
       channel: "instagram",
       script:
-        "Hook: Kenyan-made calm — shelf ritual at home.\nSoft patriot tone; product secondary.\nCTA: looial.com",
-      notes: "Celebration: Jamhuri Day. Avoid flag clutter unless brand-appropriate.",
+        "Hook: 'From here, for here — shops that keep neighbourhoods moving.'\nNod to Jamhuri Day + loyalty priced in local currency for Kenyan SMBs.\nCTA: looial.com",
+      notes: "Celebration: Jamhuri Day. Merchant/community tone; respectful, not salesy.",
     },
   ]);
 
@@ -281,7 +282,7 @@ function celebrationMomentsByDate(year) {
         time: "18:00",
         script:
           brandKey === "looial"
-            ? `Hook: On-screen tally — ${label}.\n1 giftable idea + 1 self-care beat.\nCTA: looial.com gift edit.`
+            ? `Hook: On-screen tally — ${label}.\nMerchant tip: holiday stamp goal (e.g. 5 visits = reward) or referral nudge for last-minute shoppers.\nCTA: looial.com`
             : `Hook: ${label} — what's still in the sprint queue?\n1 tip to ship before holidays.\nCTA: Stackwise calendar workflow.`,
         notes: `Celebration: Christmas countdown (${label}). Number graphic or handwritten tally.`,
       },
@@ -291,12 +292,12 @@ function celebrationMomentsByDate(year) {
   set(pad(12, 24), [
     {
       brandKey: "looial",
-      title: "Christmas Eve — last orders & warmth",
+      title: "Christmas Eve — thank your regulars",
       channel: "instagram",
       time: "12:00",
       script:
-        "Hook: Eve light, soft VO.\nShipping cutoff reminder + gratitude.\nCTA: Stories for last-minute links.",
-      notes: "Celebration: Christmas Eve.",
+        "Hook: Eve pause at the counter.\nVO: Message your top regulars (WhatsApp) — thank-you stamp or ‘see you in the new year.’\nCTA: looial.com — loyalty that lives where they already chat.",
+      notes: "Celebration: Christmas Eve. Merchant gratitude, not shipping cutoffs.",
     },
     {
       brandKey: "stackwise",
@@ -315,8 +316,8 @@ function celebrationMomentsByDate(year) {
       channel: "instagram",
       time: "10:00",
       script:
-        "Hook: Still frame + one line of thanks.\nNo hard sell — brand warmth only.\nCTA: Optional 'shop when ready' in bio.",
-      notes: "Celebration: Christmas Day. Minimal copy.",
+        "Hook: Still frame + one line of thanks to merchants keeping communities fed, styled, and caffeinated.\nNo hard sell.\nCTA: Bio → looial.com when you reopen.",
+      notes: "Celebration: Christmas Day. Minimal copy; merchant appreciation.",
     },
     {
       brandKey: "stackwise",
@@ -331,11 +332,11 @@ function celebrationMomentsByDate(year) {
   set(pad(12, 26), [
     {
       brandKey: "looial",
-      title: "Boxing Day — unbox & restock",
+      title: "Boxing Day — second-visit season",
       channel: "tiktok",
       script:
-        "Hook: Boxing Day shelf reset.\nASMR organize + what we're restocking.\nCTA: looial.com",
-      notes: "Celebration: Boxing Day / post-Christmas retail.",
+        "Hook: 'Everyone’s out spending — did you capture them in loyalty?'\nQR still on counter + stamp reminder push in WhatsApp.\nCTA: looial.com",
+      notes: "Celebration: Boxing Day. Post-holiday traffic for merchants.",
     },
   ]);
 
@@ -346,8 +347,8 @@ function celebrationMomentsByDate(year) {
       channel: "instagram",
       time: "17:00",
       script:
-        "Hook: 'December, you were a lot.'\nMontage of posts/rituals (use your attachments).\nCTA: What are you bringing into January?",
-      notes: "Celebration: New Year's Eve / year close.",
+        "Hook: 'December, you were a lot.'\nMontage: merchants, QR moments, stamp wins (use your attachments).\nCTA: January goal — how many regulars will you know by name? → looial.com",
+      notes: "Celebration: New Year's Eve / year close. Merchant outcomes, not lifestyle aesthetic.",
     },
     {
       brandKey: "stackwise",
