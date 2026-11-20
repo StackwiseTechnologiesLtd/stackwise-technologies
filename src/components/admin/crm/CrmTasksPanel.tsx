@@ -1,8 +1,20 @@
 "use client";
 
+import { StackwiseDatePicker, StackwiseTimePicker } from "@/components/stackwise";
+import { parseTime24 } from "@/lib/calendar/time";
+import { parseIsoDay } from "@/lib/content-calendar/dates";
 import { ADMIN_INPUT } from "@/lib/ui/admin";
 import type { CrmTask } from "@/lib/crm/types";
 import { useState } from "react";
+
+function buildDueIso(date: string, time: string): string | null {
+  if (!date.trim()) return null;
+  const d = parseIsoDay(date.trim());
+  const t = parseTime24(time);
+  if (t) d.setHours(t.hours, t.minutes, 0, 0);
+  else d.setHours(9, 0, 0, 0);
+  return d.toISOString();
+}
 
 function formatDue(iso: string | null): string {
   if (!iso) return "No due date";
@@ -28,7 +40,8 @@ export function CrmTasksPanel({
   onChange: () => void;
 }) {
   const [title, setTitle] = useState("");
-  const [dueAt, setDueAt] = useState("");
+  const [dueDate, setDueDate] = useState("");
+  const [dueTime, setDueTime] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -43,12 +56,13 @@ export function CrmTasksPanel({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: trimmed,
-          dueAt: dueAt.trim() ? new Date(dueAt).toISOString() : null,
+          dueAt: buildDueIso(dueDate, dueTime),
         }),
       });
       if (!res.ok) throw new Error("Could not add task");
       setTitle("");
-      setDueAt("");
+      setDueDate("");
+      setDueTime("");
       onChange();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Add failed");
@@ -98,17 +112,33 @@ export function CrmTasksPanel({
             }}
           />
         </div>
-        <div className="sm:w-44">
-          <label className="text-[10px] font-semibold uppercase text-muted">
-            Due
-          </label>
-          <input
-            type="datetime-local"
-            className={`${ADMIN_INPUT} mt-1`}
-            value={dueAt}
-            disabled={busy}
-            onChange={(e) => setDueAt(e.target.value)}
-          />
+        <div className="grid min-w-0 gap-2 sm:grid-cols-2 sm:w-72">
+          <div>
+            <label className="text-[10px] font-semibold uppercase text-muted">
+              Due date
+            </label>
+            <div className="mt-1">
+              <StackwiseDatePicker
+                value={dueDate}
+                onChange={setDueDate}
+                placeholder="Optional"
+                className={busy ? "pointer-events-none opacity-50" : ""}
+              />
+            </div>
+          </div>
+          <div>
+            <label className="text-[10px] font-semibold uppercase text-muted">
+              Due time
+            </label>
+            <div className="mt-1">
+              <StackwiseTimePicker
+                value={dueTime}
+                onChange={setDueTime}
+                placeholder="Optional"
+                className={busy ? "pointer-events-none opacity-50" : ""}
+              />
+            </div>
+          </div>
         </div>
         <button
           type="button"
