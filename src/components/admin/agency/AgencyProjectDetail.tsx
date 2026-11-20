@@ -6,10 +6,15 @@ import {
   type AgencyProjectDetail,
   type AgencyProjectMilestone,
 } from "@/lib/agency/types";
+import {
+  StackwiseDatePicker,
+  StackwiseSelect,
+  StackwiseTimePicker,
+} from "@/components/stackwise";
+import { buildLocalIsoFromDateAndTime } from "@/lib/calendar/datetime";
 import { ADMIN_INPUT } from "@/lib/ui/admin";
 import { useDeferredEffect } from "@/lib/use-deferred-effect";
 import Link from "next/link";
-import { StackwiseSelect } from "@/components/stackwise";
 import { useCallback, useState } from "react";
 
 function formatDue(iso: string | null): string {
@@ -31,7 +36,8 @@ export function AgencyProjectDetailPanel({ projectId }: { projectId: string }) {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [title, setTitle] = useState("");
-  const [dueAt, setDueAt] = useState("");
+  const [dueDate, setDueDate] = useState("");
+  const [dueTime, setDueTime] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -73,12 +79,13 @@ export function AgencyProjectDetailPanel({ projectId }: { projectId: string }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: trimmed,
-          dueAt: dueAt.trim() ? new Date(dueAt).toISOString() : null,
+          dueAt: buildLocalIsoFromDateAndTime(dueDate, dueTime),
         }),
       });
       if (!res.ok) throw new Error("Could not add milestone");
       setTitle("");
-      setDueAt("");
+      setDueDate("");
+      setDueTime("");
       await load();
     } finally {
       setBusy(false);
@@ -175,17 +182,33 @@ export function AgencyProjectDetailPanel({ projectId }: { projectId: string }) {
               onChange={(e) => setTitle(e.target.value)}
             />
           </div>
-          <div className="sm:w-44">
-            <label className="text-[10px] font-semibold uppercase text-muted">
-              Due
-            </label>
-            <input
-              type="datetime-local"
-              className={`${ADMIN_INPUT} mt-1`}
-              value={dueAt}
-              disabled={busy}
-              onChange={(e) => setDueAt(e.target.value)}
-            />
+          <div className="grid min-w-0 gap-2 sm:grid-cols-2 sm:w-72">
+            <div>
+              <label className="text-[10px] font-semibold uppercase text-muted">
+                Due date
+              </label>
+              <div className="mt-1">
+                <StackwiseDatePicker
+                  value={dueDate}
+                  onChange={setDueDate}
+                  placeholder="Optional"
+                  className={busy ? "pointer-events-none opacity-50" : ""}
+                />
+              </div>
+            </div>
+            <div>
+              <label className="text-[10px] font-semibold uppercase text-muted">
+                Due time
+              </label>
+              <div className="mt-1">
+                <StackwiseTimePicker
+                  value={dueTime}
+                  onChange={setDueTime}
+                  placeholder="Optional"
+                  className={busy ? "pointer-events-none opacity-50" : ""}
+                />
+              </div>
+            </div>
           </div>
           <button
             type="button"

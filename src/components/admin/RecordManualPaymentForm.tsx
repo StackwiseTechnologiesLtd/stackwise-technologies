@@ -6,14 +6,16 @@ import { useToast } from "@/components/ToastProvider";
 import { formatMoney } from "@/lib/currency";
 import { MANUAL_PAYMENT_METHODS } from "@/lib/payments/manual-payment-methods";
 import type { PaymentLink } from "@/lib/payments/types";
-import { StackwiseSelect } from "@/components/stackwise";
+import {
+  StackwiseDatePicker,
+  StackwiseSelect,
+  StackwiseTimePicker,
+} from "@/components/stackwise";
+import {
+  buildLocalIsoFromDateAndTime,
+  dateAndTimeFromDate,
+} from "@/lib/calendar/datetime";
 import { ADMIN_BTN_PRIMARY, ADMIN_INPUT } from "@/lib/ui/admin";
-
-function toDatetimeLocalValue(ms: number): string {
-  const date = new Date(ms);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-}
 
 export function RecordManualPaymentForm({ link }: { link: PaymentLink }) {
   const router = useRouter();
@@ -26,8 +28,11 @@ export function RecordManualPaymentForm({ link }: { link: PaymentLink }) {
   const [amountReceivedLocal, setAmountReceivedLocal] = useState(
     String(link.amountLocal),
   );
-  const [collectedAt, setCollectedAt] = useState(() =>
-    toDatetimeLocalValue(Date.now()),
+  const [collectedDate, setCollectedDate] = useState(() =>
+    dateAndTimeFromDate(new Date()).date,
+  );
+  const [collectedTime, setCollectedTime] = useState(() =>
+    dateAndTimeFromDate(new Date()).time,
   );
   const [paymentReference, setPaymentReference] = useState("");
   const [paymentNotes, setPaymentNotes] = useState("");
@@ -44,6 +49,14 @@ export function RecordManualPaymentForm({ link }: { link: PaymentLink }) {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    const collectedAt = buildLocalIsoFromDateAndTime(collectedDate, collectedTime, {
+      defaultHour: 12,
+      defaultMinute: 0,
+    });
+    if (!collectedAt) {
+      toast.error("Choose when the payment was collected.");
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch(`/api/admin/payment-links/${link.id}/record-payment`, {
@@ -53,7 +66,7 @@ export function RecordManualPaymentForm({ link }: { link: PaymentLink }) {
           paymentMethod,
           amountReceivedUsd: Number(amountReceivedUsd),
           amountReceivedLocal: Number(amountReceivedLocal),
-          collectedAt: new Date(collectedAt).toISOString(),
+          collectedAt,
           paymentReference,
           paymentNotes: paymentNotes.trim() || undefined,
           sendReceipt,
@@ -131,16 +144,20 @@ export function RecordManualPaymentForm({ link }: { link: PaymentLink }) {
           </label>
         </div>
 
-        <label className="block space-y-2">
-          <span className="text-sm text-muted">Time of collection</span>
-          <input
-            type="datetime-local"
-            required
-            value={collectedAt}
-            onChange={(e) => setCollectedAt(e.target.value)}
-            className={ADMIN_INPUT}
-          />
-        </label>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="block space-y-2">
+            <span className="text-sm text-muted">Date of collection</span>
+            <StackwiseDatePicker
+              value={collectedDate}
+              onChange={setCollectedDate}
+              placeholder="Select date"
+            />
+          </label>
+          <label className="block space-y-2">
+            <span className="text-sm text-muted">Time of collection</span>
+            <StackwiseTimePicker value={collectedTime} onChange={setCollectedTime} />
+          </label>
+        </div>
 
         <label className="block space-y-2">
           <span className="text-sm text-muted">Payment reference</span>

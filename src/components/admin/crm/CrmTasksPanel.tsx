@@ -1,20 +1,10 @@
 "use client";
 
 import { StackwiseDatePicker, StackwiseTimePicker } from "@/components/stackwise";
-import { parseTime24 } from "@/lib/calendar/time";
-import { parseIsoDay } from "@/lib/content-calendar/dates";
+import { buildLocalIsoFromDateAndTime } from "@/lib/calendar/datetime";
 import { ADMIN_INPUT } from "@/lib/ui/admin";
 import type { CrmTask } from "@/lib/crm/types";
 import { useState } from "react";
-
-function buildDueIso(date: string, time: string): string | null {
-  if (!date.trim()) return null;
-  const d = parseIsoDay(date.trim());
-  const t = parseTime24(time);
-  if (t) d.setHours(t.hours, t.minutes, 0, 0);
-  else d.setHours(9, 0, 0, 0);
-  return d.toISOString();
-}
 
 function formatDue(iso: string | null): string {
   if (!iso) return "No due date";
@@ -56,7 +46,7 @@ export function CrmTasksPanel({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: trimmed,
-          dueAt: buildDueIso(dueDate, dueTime),
+          dueAt: buildLocalIsoFromDateAndTime(dueDate, dueTime),
         }),
       });
       if (!res.ok) throw new Error("Could not add task");
