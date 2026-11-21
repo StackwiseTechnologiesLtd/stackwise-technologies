@@ -358,8 +358,8 @@ function buildPosts(todayIso, scheduleDays) {
 
       const rotating =
         brandKey === "looial"
-          ? looialRotatingPost(looialSeq++, { scheduledOn, channel })
-          : stackwiseRotatingPost(stackwiseSeq++, { scheduledOn, channel });
+          ? looialRotatingPost(looialSeq++, { scheduledOn, channel, slot })
+          : stackwiseRotatingPost(stackwiseSeq++, { scheduledOn, channel, slot });
 
       const title = `${PLAN_PREFIX} ${brand.label} — ${rotating.title} (${scheduledOn})`;
 
@@ -383,14 +383,51 @@ function buildPosts(todayIso, scheduleDays) {
   return posts;
 }
 
-if (!process.env.DATABASE_URL) {
-  console.error("DATABASE_URL is required");
-  process.exit(1);
+function assertPlanPostUniqueness(posts) {
+  const scriptToTitle = new Map();
+  const titleToDate = new Map();
+  for (const p of posts) {
+    if (scriptToTitle.has(p.script)) {
+      throw new Error(
+        `Duplicate script for "${p.title}" and "${scriptToTitle.get(p.script)}"`,
+      );
+    }
+    scriptToTitle.set(p.script, p.title);
+    if (titleToDate.has(p.title)) {
+      throw new Error(`Duplicate title: ${p.title}`);
+    }
+    titleToDate.set(p.title, p.scheduledOn);
+  }
 }
 
-const sql = neon(process.env.DATABASE_URL);
-
 async function main() {
+  const { todayIso, days: scheduleDays } = planDays();
+  if (scheduleDays.length === 0) {
+    console.error(`No schedule days: today is after Dec 31 ${YEAR}.`);
+    process.exit(1);
+  }
+
+  const posts = buildPosts(todayIso, scheduleDays);
+  assertPlanPostUniqueness(posts);
+
+  if (process.env.CONTENT_CALENDAR_PLAN_DRY === "1") {
+    const rotating = posts.filter((p) => !p.title.includes("Christmas countdown"));
+    const scripts = new Set(posts.map((p) => p.script));
+    const titles = new Set(posts.map((p) => p.title));
+    console.log(
+      `[dec-plan dry-run] ${posts.length} posts, ${scripts.size} unique scripts, ${titles.size} unique titles.`,
+    );
+    console.log(`  Rotating (excl. some moments): ${rotating.length} slots.`);
+    return;
+  }
+
+  if (!process.env.DATABASE_URL) {
+    console.error("DATABASE_URL is required");
+    process.exit(1);
+  }
+
+  const sql = neon(process.env.DATABASE_URL);
+
   const manual = await sql`
     SELECT COUNT(*)::int AS n FROM content_calendar_posts
     WHERE title LIKE ${`${PLAN_PREFIX}%`}
@@ -404,13 +441,6 @@ async function main() {
 
   await sql`DELETE FROM content_calendar_posts WHERE title LIKE ${`${PLAN_PREFIX}%`}`;
 
-  const { todayIso, days: scheduleDays } = planDays();
-  if (scheduleDays.length === 0) {
-    console.error(`No schedule days: today is after Dec 31 ${YEAR}.`);
-    process.exit(1);
-  }
-
-  const posts = buildPosts(todayIso, scheduleDays);
   let inserted = 0;
 
   for (const p of posts) {

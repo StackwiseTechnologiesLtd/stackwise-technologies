@@ -13,8 +13,18 @@ function channelNotes(channel) {
   return "Format: carousel (3–5 slides) or 30–45s Reel.";
 }
 
-function pick(arr, index) {
-  return arr[((index % arr.length) + arr.length) % arr.length];
+function mixSeed(sequence, scheduledOn, channel, slot) {
+  let h = (sequence + 1) * 2654435761;
+  const key = `${scheduledOn}|${channel}|${slot}`;
+  for (let i = 0; i < key.length; i += 1) {
+    h = Math.imul(h ^ key.charCodeAt(i), 2246822519);
+    h >>>= 0;
+  }
+  return h;
+}
+
+function pick(arr, seed) {
+  return arr[seed % arr.length];
 }
 
 const LOOIAL_SCENES = [
@@ -60,19 +70,24 @@ const LOOIAL_CTAS = [
   "@trylooial on X — DM 'demo' for a walkthrough.",
 ];
 
-export function looialRotatingPost(sequence, { scheduledOn, channel }) {
+export function looialRotatingPost(sequence, { scheduledOn, channel, slot = 0 }) {
   const d = new Date(scheduledOn + "T12:00:00");
   const weekday = WEEKDAYS[d.getDay()];
-  const scene = pick(LOOIAL_SCENES, sequence + d.getDate());
-  const hook = pick(LOOIAL_HOOKS, sequence);
-  const beat = pick(LOOIAL_BEATS, sequence + channel.length);
-  const cta = pick(LOOIAL_CTAS, Math.floor(sequence / 2));
+  const seed = mixSeed(sequence, scheduledOn, channel, slot);
+  const scene = pick(LOOIAL_SCENES, seed);
+  const hook = pick(LOOIAL_HOOKS, seed + sequence * 7 + 1);
+  const beat = pick(LOOIAL_BEATS, seed + sequence * 11 + 2);
+  const cta = pick(LOOIAL_CTAS, seed + sequence * 3 + 3);
+  const angle = pick(
+    ["Problem/solution", "Feature demo", "Merchant POV", "FAQ", "Social proof", "How-to"],
+    seed + 5,
+  );
 
-  const title = `Merchant loyalty · ${weekday} ${shortDate(scheduledOn)} (#${sequence + 1})`;
+  const title = `Merchant loyalty · ${angle} · ${shortDate(scheduledOn)}`;
   const script = [
-    `Hook: ${weekday} at the ${scene}.`,
-    hook,
+    `Hook (${shortDate(scheduledOn)}, ${weekday}): ${scene} — ${hook}`,
     beat,
+    `Angle: ${angle}. Channel: ${channel}.`,
     `CTA: ${cta}`,
   ].join("\n");
 
@@ -127,19 +142,24 @@ const STACKWISE_CTAS = [
   "Read INTEGRATIONS_BUILD_PLAN (internal link in notes).",
 ];
 
-export function stackwiseRotatingPost(sequence, { scheduledOn, channel }) {
+export function stackwiseRotatingPost(sequence, { scheduledOn, channel, slot = 0 }) {
   const d = new Date(scheduledOn + "T12:00:00");
   const weekday = WEEKDAYS[d.getDay()];
-  const scene = pick(STACKWISE_SCENES, sequence + d.getDate());
-  const hook = pick(STACKWISE_HOOKS, sequence);
-  const beat = pick(STACKWISE_BEATS, sequence + d.getMonth());
-  const cta = pick(STACKWISE_CTAS, Math.floor(sequence / 3));
+  const seed = mixSeed(sequence, scheduledOn, channel, slot);
+  const scene = pick(STACKWISE_SCENES, seed);
+  const hook = pick(STACKWISE_HOOKS, seed + sequence * 7 + 1);
+  const beat = pick(STACKWISE_BEATS, seed + sequence * 11 + 2);
+  const cta = pick(STACKWISE_CTAS, seed + sequence * 3 + 3);
+  const angle = pick(
+    ["Behind the scenes", "Client-safe demo", "Build log", "Ops tip", "Integration", "Process"],
+    seed + 5,
+  );
 
-  const title = `Agency ops · ${weekday} ${shortDate(scheduledOn)} (#${sequence + 1})`;
+  const title = `Agency ops · ${angle} · ${shortDate(scheduledOn)}`;
   const script = [
-    `Hook: ${weekday} — ${scene}.`,
-    hook,
+    `Hook (${shortDate(scheduledOn)}, ${weekday}): ${scene} — ${hook}`,
     beat,
+    `Angle: ${angle}. Channel: ${channel}.`,
     `CTA: ${cta}`,
   ].join("\n");
 
