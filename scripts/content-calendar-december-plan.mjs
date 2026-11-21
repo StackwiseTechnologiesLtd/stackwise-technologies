@@ -13,6 +13,10 @@ import { randomUUID } from "node:crypto";
 import process from "node:process";
 import { neon } from "@neondatabase/serverless";
 import { loadEnvLocal } from "./lib/load-env-local.mjs";
+import {
+  looialRotatingPost,
+  stackwiseRotatingPost,
+} from "./lib/december-plan-variants.mjs";
 
 loadEnvLocal();
 
@@ -28,115 +32,6 @@ const CHANNELS = ["instagram", "x", "tiktok"];
 
 const TIMES_TWO = ["10:00", "17:30"];
 const TIMES_THREE = ["09:30", "14:00", "18:15"];
-
-/** Looial = WhatsApp-first loyalty for African SMBs (looial.com). Merchant-facing; not retail/beauty e-comm. */
-const LOOIAL_ANGLES = [
-  {
-    title: "Paper card vs WhatsApp — 15s hook",
-    script:
-      "Hook: Split screen — lost punch card vs phone showing stamp update in WhatsApp.\nVO: Your regulars already live in WhatsApp. Why force another app?\nCTA: looial.com — loyalty in 5 minutes.",
-    notes: "Problem/solution. Show merchant counter + customer chat notification. Reel or carousel.",
-  },
-  {
-    title: "Merchant setup in 5 minutes",
-    script:
-      "Hook: 'I set up loyalty before lunch service.'\n3 beats: business name + reward rule → print QR → first stamp.\nCTA: Start free trial — no card required.",
-    notes: "Screen record (demo merchant). Blur real customer data.",
-  },
-  {
-    title: "Customer journey — scan to stamped",
-    script:
-      "Hook: QR on counter → WhatsApp opens → tap Send → progress updates.\nOn-screen text: No app store. No forms.\nCTA: looial.com — see how enrolment works.",
-    notes: "B-roll: cafe/salon counter. Optional Wallet pass as backup beat.",
-  },
-  {
-    title: "Referrals that grow foot traffic",
-    script:
-      "Hook: 'Every regular gets a link — bring a friend, both win.'\nShow referral message mock in WhatsApp.\nCTA: Turn December visitors into January regulars.",
-    notes: "Feature spotlight. Merchant POV + customer share gesture.",
-  },
-  {
-    title: "Rush hour — find customer in seconds",
-    script:
-      "Hook: 'Lunch rush, no time to search a notebook.'\nStaff flow: phone / 4-digit PIN / QR verify → one-tap visit.\nCTA: Built for local businesses, not chains.",
-    notes: "Operational credibility. Fast cuts; subtitle the steps.",
-  },
-  {
-    title: "Repeat visits beat one-off sales",
-    script:
-      "Hook: '50% of first-timers never come back — unless you make the second visit easy.'\nStats on screen (subtle) + stamp progress visual.\nCTA: looial.com — priced in your currency.",
-    notes: "Educational. Pair with merchant testimonial quote from site if permitted.",
-  },
-  {
-    title: "Win-back automations (January-ready)",
-    script:
-      "Hook: 'They shopped in December — did they come back in January?'\nVO: Set welcome, near-reward, and win-back messages so your team isn't chasing DMs manually.\nCTA: merchant.looial.com — Start Free.",
-    notes: "Automations pillar. Screen record or message mock; Growth/Pro features where accurate.",
-  },
-  {
-    title: "Analytics — know your regulars",
-    script:
-      "Hook: 'I can name my Thursday lunch crowd now.'\n3 beats: who returned, who drifted, which reward actually redeemed.\nCTA: looial.com/features — analytics built for merchants.",
-    notes: "Analytics pillar. Quote Adaeze-style outcome (café Lagos) if licensed.",
-  },
-  {
-    title: "No WhatsApp? Wallet + PWA backup",
-    script:
-      "Hook: FAQ beat — 'What if they don't use WhatsApp every day?'\nAnswer: Same card in Apple/Google Wallet or Looial PWA — WhatsApp stays primary.\nCTA: looial.com — See Demo.",
-    notes: "FAQ content. Do not imply app-store download.",
-  },
-  {
-    title: "One card, every merchant on Looial",
-    script:
-      "Hook: 'Your customer already has Looial — enrolling at your counter is one scan.'\nExplain network card + your shop's reward rules.\nCTA: Join merchants across Africa — Start Free Trial.",
-    notes: "Platform/network angle. Good for TikTok explainer.",
-  },
-];
-
-const STACKWISE_ANGLES = [
-  {
-    title: "Ship ops in a week — myth vs reality",
-    script:
-      "Hook: 'We didn't replace your stack overnight.'\n3 truths: ingest → CRM → delivery alerts.\nCTA: DM 'ops' or site CTA.",
-    notes: "X thread or IG carousel; attach case study still when ready.",
-  },
-  {
-    title: "Behind the admin portal",
-    script:
-      "Hook: Screen record — calendar + CRM in one shell.\nVO: How agencies stop context switching.\nCTA: Book a walkthrough.",
-    notes: "Blur client data; 45–60s max.",
-  },
-  {
-    title: "Hiring signal — X thread",
-    script:
-      "1/ Founders hire when delivery breaks, not when design is pretty.\n2/ What we instrument first.\n3/ CTA: cal link.",
-    notes: "Thread format; single brand image optional.",
-  },
-  {
-    title: "Integration fabric (plain English)",
-    script:
-      "Hook: 'One ingest endpoint, many automations.'\nDiagram on screen: webhook → queue → CRM.\nCTA: Read the build plan (link).",
-    notes: "Educational; purple accent on diagrams.",
-  },
-  {
-    title: "Content calendar workflow",
-    script:
-      "Hook: 'Scripts in the sheet, creative in your gallery.'\nShow scrapbook grid + attachment slots empty.\nCTA: How we plan December content.",
-    notes: "Meta post — film the actual calendar UI.",
-  },
-  {
-    title: "Client portal / brand guidelines",
-    script:
-      "Hook: 'Your brand system, not a PDF graveyard.'\n3 UI beats: tokens, type, usage do/don't.\nCTA: stackwise — agency ops.",
-    notes: "Opsis or client-safe redacted preview.",
-  },
-  {
-    title: "Year-end delivery retrospective",
-    script:
-      "Hook: 'What we shipped in Q4 for partners.'\nBullet milestones (no names) + lesson learned.\nCTA: Reply with your bottleneck.",
-    notes: "LinkedIn cross-post optional later — keep channel as scheduled here.",
-  },
-];
 
 function isoDay(d) {
   const y = d.getFullYear();
@@ -434,12 +329,13 @@ function postFromCelebration(celebration, scheduledOn, todayIso, time, globalInd
 function buildPosts(todayIso, scheduleDays) {
   const posts = [];
   let globalIndex = 0;
+  let looialSeq = 0;
+  let stackwiseSeq = 0;
   const celebrations = celebrationMomentsByDate(YEAR);
 
   for (let dayIndex = 0; dayIndex < scheduleDays.length; dayIndex += 1) {
     const scheduledOn = scheduleDays[dayIndex];
     const slots = pickSlots(dayIndex);
-    const monthDay = parseIsoDay(scheduledOn).getDate();
     const isDecember = scheduledOn.startsWith(`${YEAR}-12-`);
     const dayCelebrations = celebrations.get(scheduledOn) ?? [];
 
@@ -455,13 +351,17 @@ function buildPosts(todayIso, scheduleDays) {
 
       const brandKey = (dayIndex + slot) % 2 === 0 ? "looial" : "stackwise";
       const brand = BRANDS[brandKey];
-      const angles = brandKey === "looial" ? LOOIAL_ANGLES : STACKWISE_ANGLES;
-      const angle = angles[(monthDay + slot + globalIndex) % angles.length];
       const channel = CHANNELS[(dayIndex + slot) % CHANNELS.length];
       const daysUntilDue = daysBetween(todayIso, scheduledOn);
       const status = daysUntilDue <= 3 ? "scheduled" : "draft";
       const workOn = workOnForScheduled(scheduledOn, todayIso);
-      const title = `${PLAN_PREFIX} ${brand.label} — ${angle.title} (${scheduledOn})`;
+
+      const rotating =
+        brandKey === "looial"
+          ? looialRotatingPost(looialSeq++, { scheduledOn, channel })
+          : stackwiseRotatingPost(stackwiseSeq++, { scheduledOn, channel });
+
+      const title = `${PLAN_PREFIX} ${brand.label} — ${rotating.title} (${scheduledOn})`;
 
       posts.push({
         title,
@@ -472,8 +372,8 @@ function buildPosts(todayIso, scheduleDays) {
         channel,
         status,
         accent: brand.accent,
-        script: angle.script,
-        notes: `${angle.notes}\nBrand: ${brand.label}. Attach visuals in the post sheet when styles are ready.${
+        script: rotating.script,
+        notes: `${rotating.notes}\nBrand: ${brand.label}.${
           !isDecember ? "\n(Late Nov ramp — part of December campaign.)" : ""
         }`,
       });
@@ -491,6 +391,17 @@ if (!process.env.DATABASE_URL) {
 const sql = neon(process.env.DATABASE_URL);
 
 async function main() {
+  const manual = await sql`
+    SELECT COUNT(*)::int AS n FROM content_calendar_posts
+    WHERE title LIKE ${`${PLAN_PREFIX}%`}
+      AND updated_at > created_at + interval '2 minutes'
+  `;
+  if (manual[0]?.n > 0) {
+    console.warn(
+      `[dec-plan] ${manual[0].n} post(s) look hand-edited (updated_at >> created_at). Re-run replaces ALL ${PLAN_PREFIX} rows.`,
+    );
+  }
+
   await sql`DELETE FROM content_calendar_posts WHERE title LIKE ${`${PLAN_PREFIX}%`}`;
 
   const { todayIso, days: scheduleDays } = planDays();
