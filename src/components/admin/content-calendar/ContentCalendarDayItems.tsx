@@ -1,6 +1,10 @@
 "use client";
 
 import type { CalendarVisual } from "@/components/calendar/types";
+import {
+  contentCalendarAssetMediaUrl,
+  isGalleryImageAsset,
+} from "@/lib/content-calendar/asset-ui";
 import type { ContentCalendarPostDetail } from "@/lib/content-calendar/types";
 import type { CSSProperties, DragEvent, MutableRefObject } from "react";
 
@@ -31,11 +35,15 @@ function tiltFromId(id: string, span = 7): string {
 }
 
 function firstImageAsset(post: ContentCalendarPostDetail) {
-  return post.assets.find((a) => a.contentType.startsWith("image/"));
+  return post.assets.find((a) => isGalleryImageAsset(a));
 }
 
-function assetThumbUrl(assetId: string): string {
+function adminAssetFileUrl(assetId: string): string {
   return `/api/admin/content-calendar/assets/${assetId}/file`;
+}
+
+function assetThumbSrc(asset: ContentCalendarPostDetail["assets"][number]): string {
+  return contentCalendarAssetMediaUrl(asset, adminAssetFileUrl);
 }
 
 function channelColor(channel: ContentCalendarPostDetail["channel"]): string {
@@ -169,7 +177,7 @@ function ScrapbookPostCard({
         title={post.title}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={assetThumbUrl(thumb.id)} alt="" loading="lazy" decoding="async" />
+        <img src={assetThumbSrc(thumb)} alt="" loading="lazy" decoding="async" />
         <span className="sw-cal-polaroid-cap">{post.title.replace(/^\[sample\]\s*/, "")}</span>
       </button>
     );
@@ -244,7 +252,7 @@ function StudioPostChip({
         // eslint-disable-next-line @next/next/no-img-element
         <img
           className="sw-cal-chip-thumb"
-          src={assetThumbUrl(thumb.id)}
+          src={assetThumbSrc(thumb)}
           alt=""
           loading="lazy"
           decoding="async"

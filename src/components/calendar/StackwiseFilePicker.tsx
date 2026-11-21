@@ -3,6 +3,7 @@
 import {
   assetLinkUrl,
   canQuickViewAsset,
+  contentCalendarAssetMediaUrl,
   displayAssetName,
   formatFileBytes,
   getAssetUiKind,
@@ -64,8 +65,8 @@ export function StackwiseFilePicker({
   const [linkBusy, setLinkBusy] = useState(false);
   const [preview, setPreview] = useState<StackwiseFilePickerAsset | null>(null);
 
-  const listAssets = assets.filter((a) => isAttachmentListAsset(a.contentType));
-  const galleryImages = assets.filter((a) => isGalleryImageAsset(a.contentType));
+  const listAssets = assets.filter((a) => isAttachmentListAsset(a));
+  const galleryImages = assets.filter((a) => isGalleryImageAsset(a));
   const maxLabel = formatFileBytes(maxBytes);
 
   const handleFiles = useCallback(
@@ -205,7 +206,12 @@ export function StackwiseFilePicker({
                 aria-label={`Preview ${a.filename}`}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={assetUrl(a.id)} alt="" className="sw-file-gallery-media" loading="lazy" />
+                <img
+                  src={contentCalendarAssetMediaUrl(a, assetUrl)}
+                  alt=""
+                  className="sw-file-gallery-media"
+                  loading="lazy"
+                />
                 <span className="sw-file-gallery-size">{formatFileBytes(a.byteSize)}</span>
               </button>
             </li>
@@ -233,9 +239,13 @@ function QuickViewModal({
   assetUrl: (id: string) => string;
   onClose: () => void;
 }) {
-  const kind = getAssetUiKind(asset.contentType);
-  const src = assetUrl(asset.id);
-  const downloadHref = contentCalendarAssetDownloadUrl(src);
+  const kind = getAssetUiKind(asset.contentType, asset.filename);
+  const src = contentCalendarAssetMediaUrl(asset, assetUrl);
+  const isExternalImage =
+    kind === "image" && src.startsWith("http");
+  const downloadHref = isExternalImage
+    ? src
+    : contentCalendarAssetDownloadUrl(assetUrl(asset.id));
   const title = asset.filename;
   const pdfSrc = `${src}#toolbar=0&navpanes=0&scrollbar=1`;
   const [mounted, setMounted] = useState(false);
@@ -331,12 +341,14 @@ function AttachmentRow({
   onRemove: (id: string) => void | Promise<void>;
   onQuickView: () => void;
 }) {
-  const kind = getAssetUiKind(asset.contentType);
+  const kind = getAssetUiKind(asset.contentType, asset.filename);
   const name = displayAssetName(asset.filename, kind);
-  const href =
-    kind === "link" ? assetLinkUrl(asset.filename) : assetUrl(asset.id);
+  const mediaSrc = contentCalendarAssetMediaUrl(asset, assetUrl);
+  const href = kind === "link" ? assetLinkUrl(asset.filename) : mediaSrc;
   const fileDownloadHref =
-    kind === "link" ? href : contentCalendarAssetDownloadUrl(assetUrl(asset.id));
+    kind === "link" || (kind === "image" && mediaSrc.startsWith("http"))
+      ? href
+      : contentCalendarAssetDownloadUrl(assetUrl(asset.id));
 
   if (kind === "audio") {
     return (
@@ -364,7 +376,7 @@ function AttachmentRow({
         <RowIcon kind={kind} />
       </span>
       <div className="sw-file-row-main">
-        {canQuickViewAsset(asset.contentType) ? (
+        {canQuickViewAsset(asset.contentType, asset.filename) ? (
           <button type="button" className="sw-file-row-name-btn" title={asset.filename} onClick={onQuickView}>
             {name}
           </button>
