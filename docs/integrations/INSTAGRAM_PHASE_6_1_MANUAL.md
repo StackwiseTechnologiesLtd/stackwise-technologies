@@ -7,6 +7,8 @@ Runs the checklist in [INTEGRATIONS_BUILD_PLAN.md](../INTEGRATIONS_BUILD_PLAN.md
 ```bash
 npm run integrations:instagram:61-setup          # T1 probe + active account check
 INSTAGRAM_61_MEDIA_ID=<post-id> npm run integrations:instagram:61-setup   # creates GUIDE comment campaign on @loo.ial
+INSTAGRAM_DRY_RUN=1 npm run dev                  # then in another terminal:
+INSTAGRAM_SMOKE_BASE=http://localhost:3002 npm run integrations:instagram:61-exercise  # T4–T8 on Neon via /simulate
 ```
 
 Get `<post-id>` from the post in Meta/IG (or admin after reconnecting OAuth). Uses prod webhook host `https://stackwisetechnologies.com` unless `INSTAGRAM_61_WEBHOOK_HOST` is set.

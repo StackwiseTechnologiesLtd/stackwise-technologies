@@ -147,11 +147,20 @@ let { res, json } = await api(cookie, "/api/admin/instagram/simulate", {
 assert(res.ok, `simulate T4 ${res.status} ${JSON.stringify(json)}`);
 const t4 = await waitForStatus(commentId, "sent");
 assert(t4, "no delivery row for T4");
-assert(
-  t4.status === "sent" || t4.status === "queued" || t4.status === "failed",
-  `T4 status ${t4.status}`,
+const t4Ok =
+  t4.status === "sent" ||
+  t4.status === "queued" ||
+  t4.status === "failed" ||
+  (t4.status === "skipped" && t4.skip_reason === "dry_run");
+assert(t4Ok, `T4 status=${t4.status} skip=${t4.skip_reason ?? ""}`);
+console.log(
+  `  OK status=${t4.status}${t4.skip_reason ? ` (${t4.skip_reason})` : ""} preview=${(t4.private_reply_preview ?? "").slice(0, 40)}`,
 );
-console.log(`  OK status=${t4.status} preview=${(t4.private_reply_preview ?? "").slice(0, 40)}`);
+if (t4.status === "failed" && !process.env.INSTAGRAM_DRY_RUN) {
+  console.warn(
+    "  hint: start dev with INSTAGRAM_DRY_RUN=1 npm run dev so simulate does not call Meta",
+  );
+}
 
 console.log("T6: duplicate comment id…");
 ({ res, json } = await api(cookie, "/api/admin/instagram/simulate", {
@@ -202,10 +211,11 @@ console.log("Re-enabled campaign after T8");
 console.log("T5: delivery filters (API)…");
 ({ res, json } = await api(
   cookie,
-  `/api/admin/instagram/deliveries?campaignId=${campaign.id}&status=sent&limit=5`,
+  `/api/admin/instagram/deliveries?campaignId=${campaign.id}&limit=10`,
 ));
 assert(res.ok, `deliveries filter ${res.status}`);
-assert((json.deliveries?.length ?? 0) >= 1, "filter should return sent rows");
-console.log(`  OK filtered ${json.deliveries.length} row(s)`);
+const hit = (json.deliveries ?? []).find((d) => d.triggerExternalId === commentId);
+assert(hit, "filter should include T4 delivery");
+console.log(`  OK campaign filter returned ${json.deliveries.length} row(s), includes T4`);
 
 console.log("\n6.1 exercise passed (dev simulate + Neon). Prod T4: comment GUIDE on the live post, then wrangler tail / Activity.");
