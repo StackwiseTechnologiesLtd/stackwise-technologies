@@ -30,9 +30,24 @@ export function GrowthXHiringPanel() {
           .
         </li>
         <li>
-          <span className="font-medium text-foreground">2.</span> From the repo root run:{" "}
+          <span className="font-medium text-foreground">2.</span> Monitor X (harvest + CRM, no
+          replies):{" "}
+          <code className="rounded bg-[var(--admin-canvas)] px-1.5 py-0.5 text-[11px] text-foreground">
+            npm run growth:x-hiring:watch
+          </code>{" "}
+          — or full run:{" "}
           <code className="rounded bg-[var(--admin-canvas)] px-1.5 py-0.5 text-[11px] text-foreground">
             npm run growth:x-hiring:run
+          </code>
+        </li>
+        <li>
+          <span className="font-medium text-foreground">2b.</span> Tidy pipeline noise:{" "}
+          <code className="rounded bg-[var(--admin-canvas)] px-1.5 py-0.5 text-[11px] text-foreground">
+            npm run growth:pipeline:cleanup
+          </code>{" "}
+          then{" "}
+          <code className="rounded bg-[var(--admin-canvas)] px-1.5 py-0.5 text-[11px] text-foreground">
+            PIPELINE_CLEANUP_APPLY=1 npm run growth:pipeline:cleanup
           </code>
         </li>
         <li>

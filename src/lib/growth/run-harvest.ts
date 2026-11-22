@@ -23,7 +23,7 @@ import {
 import { evaluateHarvestCandidate } from "@/lib/growth/harvest-quality";
 import {
   evaluateJobIngestCandidate,
-  isDeveloperHiringPost,
+  isDeveloperHiringSignal,
 } from "@/lib/growth/job-ingest-quality";
 import type { IcpConfig } from "@/lib/growth/types";
 import {
@@ -73,7 +73,10 @@ async function ingestSignals(
     const signal = signals[i];
     if (!signal.authorName?.trim() || !signal.bodyText?.trim()) continue;
 
-    if (jobMode && !isDeveloperHiringPost(signal.bodyText)) {
+    if (
+      jobMode &&
+      !isDeveloperHiringSignal(signal.authorName.trim(), signal.bodyText)
+    ) {
       skipped += 1;
       await report?.(
         "score",

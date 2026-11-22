@@ -542,13 +542,13 @@ export function AgencyOverviewDashboard() {
             }
           >
             <dl className="grid grid-cols-2 gap-3 border-b border-[var(--admin-border)] px-4 py-3 text-sm sm:px-5">
-              <div>
+              <div className="text-start">
                 <dt className="text-xs text-muted">Last 7 days</dt>
                 <dd className="text-lg font-semibold tabular-nums">
                   {data.jobApplications.stats.submittedLast7Days}
                 </dd>
               </div>
-              <div>
+              <div className="text-end">
                 <dt className="text-xs text-muted">Last 30 days</dt>
                 <dd className="text-lg font-semibold tabular-nums">
                   {data.jobApplications.stats.submittedLast30Days}

@@ -13,6 +13,10 @@ const HIRING_SEARCH_PHRASES = [
   "hiring remote developer",
   "hiring full stack",
   "hiring software engineer",
+  "looking for developer",
+  "need a developer",
+  "seeking software engineer",
+  "freelance developer needed",
 ] as const;
 
 async function main() {
@@ -20,7 +24,7 @@ async function main() {
     "../src/lib/growth/repository"
   );
   const { runPlatformHarvest } = await import("../src/lib/growth/run-harvest");
-  const { isDeveloperHiringPost } = await import(
+  const { isDeveloperHiringSignal } = await import(
     "../src/lib/growth/job-ingest-quality"
   );
   const { promoteGrowthLeadToCrm } = await import("../src/lib/crm/repository");
@@ -67,7 +71,9 @@ async function main() {
     `,
   );
 
-  const fits = rows.filter((r) => isDeveloperHiringPost(r.body_text));
+  const fits = rows.filter((r) =>
+    isDeveloperHiringSignal(r.full_name, r.body_text),
+  );
   console.log(
     `\nDeveloper hiring posts (not yet in CRM): ${fits.length} of ${rows.length} recent X leads.`,
   );

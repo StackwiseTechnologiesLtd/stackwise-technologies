@@ -8,13 +8,14 @@ import {
 } from "@/lib/growth/harvest-config";
 import { scoreLead } from "@/lib/growth/scoring";
 import type { HarvestFilterResult } from "@/lib/growth/harvest-quality";
+import { isXJobAggregator } from "@/lib/growth/x-job-aggregator";
 
 function normalize(text: string): string {
   return text.toLowerCase().replace(/\s+/g, " ").trim();
 }
 
 const DEV_HIRING_RE =
-  /\b(hiring|we(?:'|’)re hiring|we are hiring|join our team|open role|open position)\b/i;
+  /\b(hiring|we(?:'|’)re hiring|we are hiring|join our team|open role|open position|looking for (?:a )?(?:senior )?|need(?:ing)? (?:a )?|seeking (?:a )?|contract(?:or)?(?:\s+for)?)\b/i;
 const DEV_ROLE_RE =
   /\b(developer|engineer|software|full[\s-]?stack|backend|front[\s-]?end|devops|sre|react|node\.?js|typescript|javascript|python|golang|remote (?:dev|engineer)|\bswe\b)\b/i;
 const SOCIAL_JOB_EXCLUDE_RE =
@@ -25,6 +26,15 @@ export function isDeveloperHiringPost(bodyText: string): boolean {
   const text = bodyText.trim();
   if (text.length < 30 || SOCIAL_JOB_EXCLUDE_RE.test(text)) return false;
   return DEV_HIRING_RE.test(text) && DEV_ROLE_RE.test(text);
+}
+
+/** Hiring post from a real employer account (not a job-board reposter). */
+export function isDeveloperHiringSignal(
+  authorName: string,
+  bodyText: string,
+): boolean {
+  if (isXJobAggregator(authorName, bodyText)) return false;
+  return isDeveloperHiringPost(bodyText);
 }
 
 const JOB_HINTS = [

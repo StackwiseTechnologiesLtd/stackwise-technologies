@@ -2,8 +2,44 @@ import { describe, expect, it } from "vitest";
 import { DEFAULT_ICP_CONFIG } from "@/lib/growth/icp-default";
 import {
   evaluateJobIngestCandidate,
+  isDeveloperHiringPost,
+  isDeveloperHiringSignal,
   looksLikeJobPosting,
 } from "@/lib/growth/job-ingest-quality";
+import { isXJobAggregator } from "@/lib/growth/x-job-aggregator";
+
+describe("isXJobAggregator", () => {
+  it("flags job board reposters", () => {
+    expect(isXJobAggregator("Jobs for Developers@jobsfordevs_com", "New remote role")).toBe(
+      true,
+    );
+    expect(isXJobAggregator("Acme Inc", "We're hiring a full stack developer remotely")).toBe(
+      false,
+    );
+  });
+});
+
+describe("isDeveloperHiringSignal", () => {
+  it("requires employer-style posts", () => {
+    expect(
+      isDeveloperHiringSignal(
+        "Jobs for Developers@jobsfordevs_com",
+        "We're hiring a React developer — apply on our site",
+      ),
+    ).toBe(false);
+    expect(
+      isDeveloperHiringPost(
+        "We're hiring a remote TypeScript engineer. DM portfolio.",
+      ),
+    ).toBe(true);
+    expect(
+      isDeveloperHiringSignal(
+        "Jane@startup",
+        "Looking for a senior full-stack developer to join our team — React/Node.",
+      ),
+    ).toBe(true);
+  });
+});
 
 describe("looksLikeJobPosting", () => {
   it("accepts role title", () => {
