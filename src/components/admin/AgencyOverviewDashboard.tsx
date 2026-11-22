@@ -398,8 +398,8 @@ export function AgencyOverviewDashboard() {
         />
       </Box>
 
-      <Box className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
-        <div className="space-y-6">
+      <Box className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
+        <div className="min-w-0 space-y-6">
           <Panel
             title="Work queue"
             action={
@@ -499,7 +499,7 @@ export function AgencyOverviewDashboard() {
           </Panel>
         </div>
 
-        <aside className="space-y-6">
+        <aside className="min-w-0 space-y-6 xl:sticky xl:top-0 xl:max-h-[calc(100dvh-5.5rem)] xl:overflow-y-auto xl:overscroll-y-contain xl:pr-0.5">
           <Panel
             title="Delivery"
             action={

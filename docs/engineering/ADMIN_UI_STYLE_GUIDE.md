@@ -63,6 +63,8 @@ When a sidebar item has multiple screens, add a **tab strip** under the breadcru
 - Pipeline: `GrowthSubNavBar` on `/admin/crm`, `/admin/growth/*`, etc. (nested under Pipeline in sidebar).
 - Instagram: `InstagramSubNavBar` on `/admin/instagram/*` (still under Pipeline → Instagram DM in sidebar).
 
+**Two-column overview grids** (`1fr` + sidebar): use `items-start` so the main column does not stretch to the sidebar height. Sidebar rails: `sticky top-0 max-h-[calc(100dvh-5.5rem)] overflow-y-auto` when stacked panels exceed the viewport.
+
 Sub-nav classes:
 
 ```txt
