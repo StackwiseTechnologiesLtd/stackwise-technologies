@@ -101,15 +101,15 @@ type CampaignTab = "active" | "paused" | "all";
 function DashboardSkeleton() {
   return (
     <div className="animate-pulse space-y-6 pb-8">
-      <div className="h-16 w-2/3 max-w-md rounded-xl bg-white/5" />
+      <div className="h-16 w-2/3 max-w-md rounded-xl bg-[var(--admin-nav-hover)]" />
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="h-28 rounded-2xl border border-line bg-panel" />
+          <div key={i} className="h-28 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--admin-panel-inset)]" />
         ))}
       </div>
       <div className="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
-        <div className="h-80 rounded-2xl border border-line bg-panel" />
-        <div className="h-80 rounded-2xl border border-line bg-panel" />
+        <div className="h-80 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--admin-panel-inset)]" />
+        <div className="h-80 rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--admin-panel-inset)]" />
       </div>
     </div>
   );
@@ -135,7 +135,7 @@ function StatCard({
       ? "border-emerald-500/25"
       : accent === "danger"
         ? "border-red-500/30"
-        : "border-line/90";
+        : "border-[var(--admin-border)]";
 
   const inner = (
     <>
@@ -164,7 +164,7 @@ function StatusBadge({ status }: { status: InstagramDelivery["status"] }) {
     sent: "bg-emerald-500/15 text-emerald-300",
     failed: "bg-red-500/15 text-red-300",
     queued: "bg-amber-500/15 text-amber-200",
-    skipped: "bg-white/8 text-muted",
+    skipped: "bg-[var(--admin-nav-hover)] text-muted",
   };
   return (
     <span
@@ -183,7 +183,7 @@ function SectionTitle({
   action?: ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 border-b border-line px-5 py-4">
+    <div className="flex items-center justify-between gap-3 border-b border-[var(--admin-border)] px-5 py-4">
       <h2 className="text-sm font-semibold text-foreground">{title}</h2>
       {action}
     </div>
@@ -376,11 +376,11 @@ export function InstagramOverviewDashboard() {
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)]">
         <div className="space-y-6">
-          <section className="overflow-hidden rounded-2xl border border-line bg-panel">
+          <section className="overflow-hidden rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--admin-panel-inset)]">
             <SectionTitle
               title="Automations"
               action={
-                <div className="flex gap-0.5 rounded-lg border border-line bg-black/25 p-0.5 text-xs">
+                <div className="flex gap-0.5 rounded-lg border border-[var(--admin-border)] bg-black/25 p-0.5 text-xs">
                   {(
                     [
                       ["active", "Active"],
@@ -393,7 +393,7 @@ export function InstagramOverviewDashboard() {
                       type="button"
                       className={`rounded-md px-2.5 py-1 font-medium transition-colors ${
                         campaignTab === id
-                          ? "bg-white/10 text-foreground"
+                          ? "bg-[var(--admin-nav-active)] text-foreground"
                           : "text-muted hover:text-foreground"
                       }`}
                       onClick={() => setCampaignTab(id)}
@@ -412,7 +412,7 @@ export function InstagramOverviewDashboard() {
               emptyMessage="No automations in this view."
             />
             {filteredInsights.length === 0 ? (
-              <div className="border-t border-line px-5 py-4 text-center">
+              <div className="border-t border-[var(--admin-border)] px-5 py-4 text-center">
                 <Link
                   href="/admin/instagram/campaigns"
                   className="text-sm font-medium text-accent hover:underline"
@@ -421,7 +421,7 @@ export function InstagramOverviewDashboard() {
                 </Link>
               </div>
             ) : null}
-            <div className="border-t border-line px-5 py-3">
+            <div className="border-t border-[var(--admin-border)] px-5 py-3">
               <Link
                 href="/admin/instagram/campaigns"
                 className="text-xs font-medium text-accent hover:underline"
@@ -431,7 +431,7 @@ export function InstagramOverviewDashboard() {
             </div>
           </section>
 
-          <section className="overflow-hidden rounded-2xl border border-line bg-panel">
+          <section className="overflow-hidden rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--admin-panel-inset)]">
             <SectionTitle title="Connected accounts" />
             <ul className="divide-y divide-line/60">
               {(data?.accounts ?? []).length === 0 ? (
@@ -502,12 +502,12 @@ export function InstagramOverviewDashboard() {
         </div>
 
         <aside className="space-y-6">
-          <section className="rounded-2xl border border-line bg-panel p-5">
+          <section className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--admin-panel-inset)] p-5">
             <h2 className="text-sm font-semibold">Delivery pipeline (7d)</h2>
             <div className="mt-4">
               <InstagramSendTrendChart days={data?.sendTrend ?? []} />
             </div>
-            <div className="mt-4 space-y-4 border-t border-line/80 pt-4">
+            <div className="mt-4 space-y-4 border-t border-[var(--admin-border)] pt-4">
               <div>
                 <div className="mb-1.5 flex justify-between text-xs">
                   <span className="text-muted">Sent</span>
@@ -515,7 +515,7 @@ export function InstagramOverviewDashboard() {
                     {metrics?.sentThisWeek ?? 0}
                   </span>
                 </div>
-                <div className="h-2 overflow-hidden rounded-full bg-white/8">
+                <div className="h-2 overflow-hidden rounded-full bg-[var(--admin-nav-hover)]">
                   <div
                     className="h-full rounded-full bg-emerald-500/80 transition-all"
                     style={{
@@ -531,7 +531,7 @@ export function InstagramOverviewDashboard() {
                     {metrics?.failedThisWeek ?? 0}
                   </span>
                 </div>
-                <div className="h-2 overflow-hidden rounded-full bg-white/8">
+                <div className="h-2 overflow-hidden rounded-full bg-[var(--admin-nav-hover)]">
                   <div
                     className="h-full rounded-full bg-red-500/70 transition-all"
                     style={{
@@ -541,7 +541,7 @@ export function InstagramOverviewDashboard() {
                 </div>
               </div>
             </div>
-            <ul className="mt-5 space-y-2 border-t border-line/80 pt-4 text-xs text-muted">
+            <ul className="mt-5 space-y-2 border-t border-[var(--admin-border)] pt-4 text-xs text-muted">
               <li className="flex justify-between gap-2">
                 <span>In queue now</span>
                 <span className="font-medium tabular-nums text-foreground">
@@ -559,7 +559,7 @@ export function InstagramOverviewDashboard() {
             </ul>
           </section>
 
-          <section className="overflow-hidden rounded-2xl border border-line bg-panel">
+          <section className="overflow-hidden rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--admin-panel-inset)]">
             <SectionTitle
               title="Recent activity"
               action={
@@ -568,7 +568,7 @@ export function InstagramOverviewDashboard() {
                 </Link>
               }
             />
-            <p className="border-b border-line/60 px-5 py-2 text-[11px] text-muted">
+            <p className="border-b border-[var(--admin-border)] px-5 py-2 text-[11px] text-muted">
               Keyword matches on connected accounts only.
             </p>
             <ul className="max-h-[28rem] divide-y divide-line/60 overflow-y-auto">
@@ -580,7 +580,7 @@ export function InstagramOverviewDashboard() {
                 data?.recentDeliveries.map((d) => (
                   <li key={d.id} className="flex gap-3 px-5 py-3.5">
                     <div
-                      className="flex size-9 shrink-0 items-center justify-center rounded-full bg-white/8 text-[11px] font-semibold text-muted"
+                      className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[var(--admin-nav-hover)] text-[11px] font-semibold text-muted"
                       aria-hidden
                     >
                       {initialsFromDelivery(d)}

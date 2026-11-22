@@ -108,7 +108,7 @@ export function InstagramTeamPanel({
         }}
         onConfirm={() => void confirmRevokeGrant()}
       />
-      <section className="rounded-xl border border-line bg-panel p-5 sm:p-6">
+      <section className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--admin-panel-inset)] p-5 sm:p-6">
         <h2 className="text-base font-semibold">Invite operator</h2>
         <p className="mt-1 text-sm text-muted">
           Adding someone whitelists their email — we do not send an invite email. They sign in at{" "}
@@ -157,7 +157,7 @@ export function InstagramTeamPanel({
         </AdminActionButton>
       </section>
 
-      <section className="rounded-xl border border-line bg-panel p-5 sm:p-6">
+      <section className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--admin-panel-inset)] p-5 sm:p-6">
         <h2 className="text-base font-semibold">Active grants</h2>
         <div className="mt-3 overflow-x-auto">
           <table className="w-full min-w-[480px] text-left text-sm">
@@ -178,7 +178,7 @@ export function InstagramTeamPanel({
                 </tr>
               ) : (
                 pagedGrants.map((g) => (
-                  <tr key={g.id} className="border-t border-line/60">
+                  <tr key={g.id} className="border-t border-[var(--admin-border)]">
                     <td className="py-2 pr-3">{g.email}</td>
                     <td className="py-2 pr-3">{g.label ?? "—"}</td>
                     <td className="py-2 pr-3">

@@ -217,8 +217,6 @@ export function AdminShell({
   const router = useRouter();
   const toast = useToast();
   const isLogin = pathname === "/admin/login";
-  const isInstagramPortal =
-    pathname === "/admin/instagram" || pathname.startsWith("/admin/instagram/");
   const [menuOpen, setMenuOpen] = useState(false);
   const sidebarCollapsed = useSyncExternalStore(
     subscribeAdminSidebar,
@@ -233,7 +231,7 @@ export function AdminShell({
   }, [pathname]);
 
   useDeferredEffect(() => {
-    if (!user || isLogin || isInstagramPortal) return;
+    if (!user || isLogin) return;
     void fetch("/api/admin/instagram/access")
       .then(async (res) => {
         if (!res.ok) return null;
@@ -244,7 +242,7 @@ export function AdminShell({
           router.replace("/admin/instagram");
         }
       });
-  }, [user, isLogin, isInstagramPortal, pathname, router]);
+  }, [user, isLogin, pathname, router]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -270,7 +268,7 @@ export function AdminShell({
     }
   }
 
-  if (isLogin || isInstagramPortal) {
+  if (isLogin) {
     return (
       <div className="min-h-screen bg-background text-foreground">{children}</div>
     );

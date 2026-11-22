@@ -1,12 +1,10 @@
 import type { ReactNode } from "react";
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
-import { InstagramAppShell } from "@/components/admin/instagram/InstagramAppShell";
+import { InstagramLayoutClient } from "@/components/admin/instagram/InstagramLayoutClient";
 import { InstagramPortalExtras } from "@/components/admin/instagram/InstagramPortalExtras";
 import { getAdminSession } from "@/lib/auth/session";
 import { getInstagramAccessForEmail } from "@/lib/instagram/access";
-import { gravatarUrl } from "@/lib/gravatar";
-
 export default async function InstagramPortalLayout({
   children,
 }: {
@@ -19,22 +17,17 @@ export default async function InstagramPortalLayout({
   if (!access) redirect("/admin/login");
 
   return (
-    <InstagramAppShell
-      user={{
-        email: session.email,
-        avatarUrl: gravatarUrl(session.email, 72),
-      }}
-      access={{
-        kind: access.kind,
-        canManageTeam: access.canManageTeam,
-        canManageMetaApps: access.canManageMetaApps,
-      }}
-    >
-      <InstagramPortalExtras>
+    <InstagramPortalExtras>
+      <InstagramLayoutClient
+        access={{
+          canManageTeam: access.canManageTeam,
+          canManageMetaApps: access.canManageMetaApps,
+        }}
+      >
         <Suspense fallback={<div className="text-sm text-muted">Loading…</div>}>
           {children}
         </Suspense>
-      </InstagramPortalExtras>
-    </InstagramAppShell>
+      </InstagramLayoutClient>
+    </InstagramPortalExtras>
   );
 }

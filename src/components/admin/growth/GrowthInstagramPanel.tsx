@@ -417,7 +417,7 @@ export function GrowthInstagramPanel({
         onConfirm={() => void runPendingConfirm()}
       />
       {show("connection") && canConfigureMeta ? (
-      <section className="rounded-xl border border-line bg-panel p-5 sm:p-6">
+      <section className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--admin-panel-inset)] p-5 sm:p-6">
         <h3 className="text-base font-semibold tracking-tight">Meta apps</h3>
         <p className="mt-1 text-sm text-muted">
           Instagram Business Login + Graph API (OpenReply-class). Register OAuth redirect and
@@ -426,7 +426,7 @@ export function GrowthInstagramPanel({
           <code className="text-foreground">/api/webhooks/meta/[slug]</code>.
         </p>
         {oauthSetup && (
-          <div className="mt-3 space-y-4 rounded-lg border border-line bg-black/30 px-3 py-3 text-xs">
+          <div className="mt-3 space-y-4 rounded-lg border border-[var(--admin-border)] bg-black/30 px-3 py-3 text-xs">
             <div>
               <p className="font-medium text-foreground">
                 Set up Instagram business login → Redirect URL
@@ -435,7 +435,7 @@ export function GrowthInstagramPanel({
                 Paste this in Meta (exact match; no trailing slash). This is not the webhook URL.
               </p>
               <div className="mt-2 flex flex-wrap items-start gap-2">
-                <code className="min-w-0 flex-1 break-all rounded-md border border-line bg-black/40 px-2 py-1.5 text-foreground">
+                <code className="min-w-0 flex-1 break-all rounded-md border border-[var(--admin-border)] bg-black/40 px-2 py-1.5 text-foreground">
                   {oauthSetup.redirectUri}
                 </code>
                 <AdminActionButton
@@ -475,7 +475,7 @@ export function GrowthInstagramPanel({
             {apps.map((app) => (
               <li
                 key={app.id}
-                className="flex flex-col gap-2 rounded-lg border border-line bg-black/30 px-3 py-2"
+                className="flex flex-col gap-2 rounded-lg border border-[var(--admin-border)] bg-black/30 px-3 py-2"
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                 <span>
@@ -564,7 +564,7 @@ export function GrowthInstagramPanel({
       ) : null}
 
       {show("connection") ? (
-      <section className="rounded-xl border border-line bg-panel p-5 sm:p-6">
+      <section className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--admin-panel-inset)] p-5 sm:p-6">
         <h3 className="text-base font-semibold tracking-tight">Instagram account</h3>
         <p className="mt-1 text-sm text-muted">
           Meta console step 2: copy the account’s numeric ID and paste the token from{" "}
@@ -635,7 +635,7 @@ export function GrowthInstagramPanel({
             {accounts.map((a) => (
               <li
                 key={a.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-line bg-black/20 px-3 py-2"
+                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[var(--admin-border)] bg-black/20 px-3 py-2"
               >
                 <span className="text-sm">
                   {a.username ? `@${a.username}` : a.igUserId} ·{" "}
@@ -689,7 +689,7 @@ export function GrowthInstagramPanel({
           </AdminActionButton>
         ) : null}
         {canConfigureMeta && removedAccounts.length > 0 ? (
-          <div className="mt-6 border-t border-line pt-4">
+          <div className="mt-6 border-t border-[var(--admin-border)] pt-4">
             <h4 className="text-sm font-semibold text-muted">Disconnected (archived)</h4>
             <p className="mt-1 text-xs text-muted">
               Tokens cleared; delivery history kept. Reconnect with the same IG user ID and Meta app to
@@ -699,7 +699,7 @@ export function GrowthInstagramPanel({
               {removedAccounts.map((a) => (
                 <li
                   key={a.id}
-                  className="rounded-lg border border-line/60 bg-black/10 px-3 py-2"
+                  className="rounded-lg border border-[var(--admin-border)] bg-black/10 px-3 py-2"
                 >
                   {a.username ? `@${a.username}` : a.igUserId}
                   <span className="text-xs"> · removed</span>
@@ -712,13 +712,13 @@ export function GrowthInstagramPanel({
       ) : null}
 
       {show("campaigns") ? (
-      <section className="rounded-xl border border-line bg-panel p-5 sm:p-6">
+      <section className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--admin-panel-inset)] p-5 sm:p-6">
         <h3 className="text-base font-semibold tracking-tight">Campaign insights</h3>
         <p className="mt-1 text-sm text-muted">
           Clicks come from tracked links in DMs. CTR = clicks ÷ total sends. Open a name to filter
           Activity.
         </p>
-        <div className="mt-4 overflow-hidden rounded-xl border border-line bg-black/20">
+        <div className="mt-4 overflow-hidden rounded-xl border border-[var(--admin-border)] bg-black/20">
           <InstagramCampaignInsightsTable
             insights={campaignInsights}
             accounts={accounts}
@@ -833,7 +833,7 @@ export function GrowthInstagramPanel({
       ) : null}
 
       {show("activity") ? (
-      <section className="rounded-xl border border-line bg-panel p-5 sm:p-6">
+      <section className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--admin-panel-inset)] p-5 sm:p-6">
         <p className="text-sm text-muted">
           Only keyword-matched campaign events on connected accounts. Unmatched DMs and removed
           accounts are omitted.
@@ -891,7 +891,7 @@ export function GrowthInstagramPanel({
             </thead>
             <tbody>
               {deliveries.map((d) => (
-                <tr key={d.id} className="border-t border-line/60 align-top">
+                <tr key={d.id} className="border-t border-[var(--admin-border)] align-top">
                   <td className="py-2 pr-3 whitespace-nowrap">{formatWhen(d.createdAt)}</td>
                   <td className="py-2 pr-3">{formatDeliveryStatus(d)}</td>
                   <td className="py-2 pr-3">{d.triggerType}</td>

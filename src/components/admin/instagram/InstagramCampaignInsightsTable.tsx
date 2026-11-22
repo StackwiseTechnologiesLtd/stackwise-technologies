@@ -54,7 +54,7 @@ export function InstagramCampaignInsightsTable({
     <div className="overflow-x-auto">
       <table className="w-full min-w-[42rem] text-left text-sm">
         <thead>
-          <tr className="border-b border-line/80 text-[11px] uppercase tracking-wide text-muted">
+          <tr className="border-b border-[var(--admin-border)] text-[11px] uppercase tracking-wide text-muted">
             <th className="px-5 py-3 font-medium">Campaign</th>
             {!compact ? (
               <th className="hidden px-3 py-3 font-medium lg:table-cell">Account</th>
@@ -76,7 +76,7 @@ export function InstagramCampaignInsightsTable({
         </thead>
         <tbody className="divide-y divide-line/60">
           {insights.map((row) => (
-            <tr key={row.campaignId} className="hover:bg-white/[0.02]">
+            <tr key={row.campaignId} className="hover:bg-[var(--admin-surface-hover)]">
               <td className="px-5 py-3.5">
                 <Link
                   href={`/admin/instagram/activity?campaignId=${encodeURIComponent(row.campaignId)}`}

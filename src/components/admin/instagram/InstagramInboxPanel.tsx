@@ -180,8 +180,8 @@ export function InstagramInboxPanel() {
       </p>
 
       <div className="grid min-h-[28rem] gap-4 lg:grid-cols-[minmax(12rem,16rem)_1fr]">
-        <aside className="rounded-xl border border-line bg-panel">
-          <div className="space-y-2 border-b border-line px-3 py-2">
+        <aside className="rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--admin-panel-inset)]">
+          <div className="space-y-2 border-b border-[var(--admin-border)] px-3 py-2">
             <p className="text-xs font-medium text-muted">Contacts</p>
             <input
               type="search"
@@ -203,8 +203,8 @@ export function InstagramInboxPanel() {
                 <li key={c.id}>
                   <button
                     type="button"
-                    className={`w-full border-b border-line/60 px-3 py-3 text-left text-sm transition-colors hover:bg-white/5 ${
-                      selectedId === c.id ? "bg-white/8" : ""
+                    className={`w-full border-b border-[var(--admin-border)] px-3 py-3 text-left text-sm transition-colors hover:bg-[var(--admin-nav-hover)] ${
+                      selectedId === c.id ? "bg-[var(--admin-nav-hover)]" : ""
                     }`}
                     onClick={() => setSelectedId(c.id)}
                   >
@@ -222,7 +222,7 @@ export function InstagramInboxPanel() {
               ))
             )}
           </ul>
-          <div className="border-t border-line p-2">
+          <div className="border-t border-[var(--admin-border)] p-2">
             <TablePagination
               currentPage={conversationPage}
               totalPages={conversationTotalPages}
@@ -233,10 +233,10 @@ export function InstagramInboxPanel() {
           </div>
         </aside>
 
-        <section className="flex min-h-[28rem] flex-col rounded-xl border border-line bg-panel">
+        <section className="flex min-h-[28rem] flex-col rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--admin-panel-inset)]">
           {selected ? (
             <>
-              <div className="border-b border-line px-4 py-3">
+              <div className="border-b border-[var(--admin-border)] px-4 py-3">
                 <p className="text-sm font-semibold">
                   {selected.participantUsername
                     ? `@${selected.participantUsername}`
@@ -261,7 +261,7 @@ export function InstagramInboxPanel() {
                 )}
               </ul>
               {messageTotal > MESSAGE_PAGE_SIZE ? (
-                <div className="border-t border-line px-3 py-2">
+                <div className="border-t border-[var(--admin-border)] px-3 py-2">
                   <p className="mb-2 text-center text-[10px] text-muted">
                     Page {messagePage}: newer ← → older messages
                   </p>
@@ -276,7 +276,7 @@ export function InstagramInboxPanel() {
               ) : null}
               <form
                 onSubmit={sendReply}
-                className="flex gap-2 border-t border-line p-3"
+                className="flex gap-2 border-t border-[var(--admin-border)] p-3"
               >
                 <textarea
                   value={compose}

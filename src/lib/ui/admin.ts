@@ -27,3 +27,16 @@ export const ADMIN_TABLE_SCROLL = "overflow-x-auto overscroll-x-contain";
 
 export const ADMIN_TABLE_HEAD =
   "bg-[var(--admin-canvas)] text-left text-[11px] font-medium uppercase tracking-wide text-muted";
+
+/** Card / section container (Overview KPIs, Instagram panels, etc.) */
+export const ADMIN_PANEL =
+  "overflow-hidden rounded-xl border border-[var(--admin-border)] bg-[var(--admin-surface)] shadow-[var(--admin-panel-inset)]";
+
+export const ADMIN_PANEL_PAD = `${ADMIN_PANEL} p-5 sm:p-6`;
+
+/** Nested inset block inside a panel (forms, code blocks) */
+export const ADMIN_INSET =
+  "rounded-lg border border-[var(--admin-border)] bg-[var(--admin-canvas)]";
+
+export const ADMIN_PANEL_HEADER =
+  "flex items-center justify-between gap-3 border-b border-[var(--admin-border)] px-5 py-4";
