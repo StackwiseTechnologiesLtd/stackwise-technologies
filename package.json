@@ -44,6 +44,7 @@
     "integrations:smoke": "node scripts/huginn-ingest-smoke.mjs",
     "integrations:instagram:smoke": "INSTAGRAM_DRY_RUN=1 node scripts/instagram-smoke.mjs",
     "integrations:instagram:61-setup": "node scripts/instagram-61-setup.mjs",
+    "integrations:instagram:61-exercise": "INSTAGRAM_DRY_RUN=1 node scripts/instagram-61-exercise.mjs",
     "integrations:freehire:sample": "node scripts/freehire-ingest.mjs deploy/integrations/freehire/sample-jobs.json",
     "integrations:freehire:clone": "node scripts/freehire-clone.mjs",
     "integrations:freehire:up": "node scripts/integrations-freehire-up.mjs",
