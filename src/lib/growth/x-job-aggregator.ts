@@ -1,10 +1,10 @@
 /** Repost / job-board X accounts — not direct employers (skip CRM promote + pipeline clutter). */
 
 const AGGREGATOR_HANDLE_RE =
-  /\b(jobsfordevs|jobs\s*for\s*developers|remoteornothing|remote\s*code|allweb3jobs|web3\s*jobs|hiring\s*board|job\s*alert|devitjobs|devitjob)\b/i;
+  /\b(jobsfordevs|jobs\s*for\s*developers|remoteornothing|remote\s*code|remoteok|remotelink|allweb3jobs|web3\s*jobs|jobspresso|invokegeek|softwareduniya|visajobsdaily|jobsincrypto|hireeing|hirewitharfeen|hiring\s*board|job\s*alert|devitjobs|devitjob|careers?at|_jobs|jobscrypto)\b/i;
 
 const AGGREGATOR_NAME_RE =
-  /(jobs\s*for\s*developers|remote\s*or\s*nothing|remote\s*code|allweb3|web3\s*jobs|crypto\s*vazi|job\s*board|hiring\s*alert)/i;
+  /(jobs\s*for\s*developers|remote\s*or\s*nothing|remote\s*code|remote\s*ok|remote\s*link|allweb3|web3\s*jobs|crypto\s*vazi|job\s*board|job\s*spresso|invoke\s*geek|visa\s*jobs|software\s*duniya|hireeing|job\s*alert|careers\s*@)/i;
 
 export function isXJobAggregator(
   authorName: string,

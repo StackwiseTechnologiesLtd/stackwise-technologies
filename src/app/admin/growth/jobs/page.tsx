@@ -2,11 +2,11 @@
 
 import { GrowthCrmPipelineBanner } from "@/components/admin/growth/GrowthCrmPipelineBanner";
 import { GrowthInboxPanel } from "@/components/admin/growth/GrowthInboxPanel";
-import { GrowthLinkedInJobsHarvestPanel } from "@/components/admin/growth/GrowthLinkedInJobsHarvestPanel";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { GrowthXHiringPanel } from "@/components/admin/growth/GrowthXHiringPanel";
 import { JobApplicationsPanel } from "@/components/admin/jobs/JobApplicationsPanel";
 import { jobLeadSources } from "@/lib/growth/types";
+import Link from "next/link";
 import { useState } from "react";
 
 export default function GrowthJobsPage() {
@@ -16,7 +16,7 @@ export default function GrowthJobsPage() {
     <div className="space-y-6">
       <AdminPageHeader
         title="Jobs"
-        description="Personal job search: X pipeline and LinkedIn/freehire harvest. Applications are logged with post links."
+        description="X and LinkedIn social harvest only — each lead keeps a post URL. Huginn, freehire, and job-board ingests are out of the pipeline."
       />
       <GrowthXHiringPanel />
       <GrowthCrmPipelineBanner />
@@ -28,9 +28,14 @@ export default function GrowthJobsPage() {
         </p>
         <JobApplicationsPanel />
       </section>
-      <GrowthLinkedInJobsHarvestPanel
-        onHarvested={() => setInboxKey((k) => k + 1)}
-      />
+      <p className="text-xs text-muted">
+        LinkedIn company posts: run{" "}
+        <Link href="/admin/growth" className="text-accent hover:underline">
+          Growth → Harvest
+        </Link>{" "}
+        with a connected LinkedIn session. Legacy freehire / Huginn data was cleared from the
+        pipeline.
+      </p>
       <GrowthInboxPanel
         key={inboxKey}
         fixedLeadSources={[...jobLeadSources]}

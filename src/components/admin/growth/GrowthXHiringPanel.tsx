@@ -9,9 +9,11 @@ export function GrowthXHiringPanel() {
         <div>
           <h2 className="text-sm font-semibold text-foreground">X.com job search</h2>
           <p className="mt-1 max-w-xl text-xs text-muted">
-            Harvest hiring tweets with your connected X session, promote dev-fit posts to
-            CRM, post public apply replies, and log everything for the dashboard. LinkedIn
-            uses the panels below — same application log when we wire it next.
+            Harvest hiring posts on X (and LinkedIn via Growth → Harvest). Each lead keeps a
+            post URL for reference. Huginn, freehire, firecrawl, and LinkedIn Jobs ingests are
+            cleared from the pipeline — use{" "}
+            <code className="text-foreground">npm run growth:pipeline:clear-sources</code> after
+            legacy imports.
           </p>
         </div>
         <Link

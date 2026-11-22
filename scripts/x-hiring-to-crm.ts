@@ -71,8 +71,10 @@ async function main() {
     `,
   );
 
-  const fits = rows.filter((r) =>
-    isDeveloperHiringSignal(r.full_name, r.body_text),
+  const fits = rows.filter(
+    (r) =>
+      Boolean(r.source_url?.trim()) &&
+      isDeveloperHiringSignal(r.full_name, r.body_text),
   );
   console.log(
     `\nDeveloper hiring posts (not yet in CRM): ${fits.length} of ${rows.length} recent X leads.`,

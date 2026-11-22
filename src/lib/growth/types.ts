@@ -12,8 +12,8 @@ export const leadSources = [
 ] as const;
 export type LeadSource = (typeof leadSources)[number];
 
-/** Job-board channels shown on Growth → Jobs. */
-export const jobLeadSources = ["freehire", "linkedin_jobs"] as const;
+/** Social harvest only (Growth → Jobs inbox filter). */
+export const jobLeadSources = ["harvest"] as const;
 export type JobLeadSource = (typeof jobLeadSources)[number];
 
 export function isJobLeadSource(value: LeadSource): boolean {
