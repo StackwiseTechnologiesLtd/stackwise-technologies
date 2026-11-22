@@ -33,12 +33,13 @@ async function main() {
   }
 
   const v = getInstagramGraphVersion();
-  const url = new URL(`https://graph.facebook.com/${v}/${igUserId}/media`);
+  const url = new URL(`https://graph.instagram.com/${v}/${igUserId}/media`);
   url.searchParams.set("fields", "id,media_type,caption,permalink,timestamp");
   url.searchParams.set("limit", "6");
-  url.searchParams.set("access_token", token);
 
-  const res = await fetch(url);
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
   const json = (await res.json()) as {
     data?: Array<{ id: string; media_type: string; caption?: string; permalink?: string }>;
     error?: { message: string };

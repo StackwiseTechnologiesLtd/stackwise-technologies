@@ -8,6 +8,7 @@
  * Uses DATABASE_URL + optional INSTAGRAM_ACCESS_TOKEN_LOOIAL from .env.local.
  */
 import { randomUUID } from "node:crypto";
+import { spawnSync } from "node:child_process";
 import { loadEnvLocal } from "./lib/load-env-local.mjs";
 import { neon } from "@neondatabase/serverless";
 
@@ -35,14 +36,16 @@ async function probeWebhook(slug, verifyToken) {
 }
 
 async function fetchRecentMedia(igUserId, token) {
-  const url = new URL(`https://graph.facebook.com/${GRAPH}/${igUserId}/media`);
+  const url = new URL(`https://graph.instagram.com/${GRAPH}/${igUserId}/media`);
   url.searchParams.set(
     "fields",
     "id,caption,media_type,permalink,timestamp",
   );
   url.searchParams.set("limit", "8");
-  url.searchParams.set("access_token", token);
-  const res = await fetch(url, { signal: AbortSignal.timeout(60_000) });
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}` },
+    signal: AbortSignal.timeout(60_000),
+  });
   const json = await res.json();
   if (!res.ok) {
     throw new Error(json.error?.message ?? `Graph media ${res.status}`);
@@ -98,6 +101,27 @@ async function main() {
 
   let mediaId = process.env.INSTAGRAM_61_MEDIA_ID?.trim() ?? "";
   const token = process.env.INSTAGRAM_ACCESS_TOKEN_LOOIAL?.trim();
+
+  if (!mediaId) {
+    const pick = spawnSync(
+      "npx",
+      ["tsx", "scripts/instagram-61-fetch-media.ts"],
+      {
+        cwd: process.cwd(),
+        env: {
+          ...process.env,
+          INSTAGRAM_61_ACCOUNT_ID: primary.id,
+          INSTAGRAM_61_IG_USER_ID: primary.ig_user_id,
+        },
+        encoding: "utf8",
+      },
+    );
+    const first = (pick.stdout ?? "")
+      .split("\n")
+      .map((l) => l.trim())
+      .find((l) => /^\d+\t/.test(l));
+    if (first) mediaId = first.split("\t")[0];
+  }
 
   if (!mediaId && token) {
     try {
