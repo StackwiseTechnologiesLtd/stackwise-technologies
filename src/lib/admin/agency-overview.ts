@@ -185,7 +185,11 @@ export async function getAgencyOverview(): Promise<AgencyOverviewPayload> {
     getInstagramOpsStatus(),
     getInstagramDeliveryMetrics(),
     getIntegrationsStatus(),
-    listOpportunities({ limit: 8 }),
+    listOpportunities({
+      limit: 10,
+      view: "high_fit",
+      leadSource: "harvest",
+    }),
     listPaymentLinks("production"),
     listContractEngagements(),
     listMaintenanceSubscriptions(),

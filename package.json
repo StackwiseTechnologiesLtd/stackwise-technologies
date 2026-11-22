@@ -34,6 +34,7 @@
     "growth:x-hiring:run": "node scripts/x-hiring-run.mjs",
     "growth:pipeline:cleanup": "npx tsx scripts/pipeline-cleanup.ts",
     "growth:pipeline:clear-sources": "npx tsx scripts/pipeline-clear-sources.ts",
+    "growth:pipeline:sync-crm": "npx tsx scripts/pipeline-sync-crm-stages.ts",
     "growth:x-hiring:apply": "NODE_ENV=development npx tsx scripts/x-hiring-apply.ts",
     "growth:x-hiring:ats": "NODE_ENV=development npx tsx scripts/x-hiring-ats-apply.ts",
     "growth:linkedin-hiring:run": "node scripts/linkedin-hiring-run.mjs",

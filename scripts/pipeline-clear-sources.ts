@@ -115,7 +115,24 @@ async function main() {
       AND stage NOT IN ('not_a_fit', 'lost', 'won')
   `;
 
-  console.log(`\nDisqualified ${leadRows.length} lead(s), synced ${opps}+ CRM rows.`);
+  const synced = asRows<{ n: number }>(
+    await sql`
+      WITH u AS (
+        UPDATE crm_opportunities o
+        SET stage = 'not_a_fit', updated_at = ${now}::timestamptz
+        FROM growth_leads l
+        WHERE l.id = o.growth_lead_id
+          AND l.pipeline_status = 'not_a_fit'
+          AND o.stage NOT IN ('not_a_fit', 'lost', 'won')
+        RETURNING o.id
+      )
+      SELECT COUNT(*)::int AS n FROM u
+    `,
+  );
+
+  console.log(
+    `\nDisqualified ${leadRows.length} lead(s), synced CRM (deprecated + ${synced[0]?.n ?? 0} from lead status).`,
+  );
   console.log("Active pipeline is harvest on X/LinkedIn (source_url on each signal).");
 }
 
