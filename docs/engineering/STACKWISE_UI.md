@@ -1,6 +1,8 @@
 # Stackwise UI (admin inputs)
 
-Shared pickers and lists for the admin shell (`--admin-*` tokens). **Prefer `@/components/stackwise` over native `<select>`, `<input type="file">`, and one-off popovers.**
+Shell layout, panels, and nav: **[ADMIN_UI_STYLE_GUIDE.md](./ADMIN_UI_STYLE_GUIDE.md)** (always use `AdminShell` + `--admin-*` tokens).
+
+Shared pickers and lists for the admin shell. **Prefer `@/components/stackwise` over native `<select>`, `<input type="file">`, and one-off popovers.**
 
 ## Catalog
 

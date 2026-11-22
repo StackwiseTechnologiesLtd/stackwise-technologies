@@ -6,7 +6,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## Stackwise UI (admin forms)
 
-Use shared pickers from `@/components/stackwise` (date, time, color, file attachments, single/multi dropdowns). See `docs/engineering/STACKWISE_UI.md`.
+Use shared pickers from `@/components/stackwise` (date, time, color, file attachments, single/multi dropdowns). See `docs/engineering/STACKWISE_UI.md`. **Admin chrome and panels:** `docs/engineering/ADMIN_UI_STYLE_GUIDE.md` — one `AdminShell`, `ADMIN_PANEL*` / `--admin-*` tokens; no separate feature shells.
 
 ## Stackwise integrations (agents)
 

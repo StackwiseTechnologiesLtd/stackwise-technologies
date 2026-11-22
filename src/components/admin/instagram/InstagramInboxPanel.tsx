@@ -314,7 +314,7 @@ function MessageBubble({ message: m }: { message: InstagramInboxMessage }) {
           ? failed
             ? "border border-red-500/40 bg-red-500/10"
             : "bg-accent/20"
-          : "border border-line bg-background"
+          : "border border-[var(--admin-border)] bg-[var(--admin-canvas)]"
       }`}
     >
       <p className="whitespace-pre-wrap">{m.bodyText ?? ""}</p>

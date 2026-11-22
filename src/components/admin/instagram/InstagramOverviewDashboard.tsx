@@ -147,7 +147,7 @@ function StatCard({
     </>
   );
 
-  const className = `block rounded-2xl border ${borderAccent} bg-panel/90 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition-colors hover:bg-panel`;
+  const className = `block rounded-xl border ${borderAccent} bg-[var(--admin-surface)] p-5 shadow-[var(--admin-panel-inset)] transition-colors hover:bg-[var(--admin-surface-hover)]`;
 
   if (href) {
     return (
