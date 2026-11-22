@@ -2,6 +2,15 @@
 
 Runs the checklist in [INTEGRATIONS_BUILD_PLAN.md](../INTEGRATIONS_BUILD_PLAN.md) (6.1.T1–6.1.T9). Do not check **6.1** complete until all steps pass on **production** (or tunneled preview with Meta webhooks pointed at the same URL).
 
+## Quick setup (CLI)
+
+```bash
+npm run integrations:instagram:61-setup          # T1 probe + active account check
+INSTAGRAM_61_MEDIA_ID=<post-id> npm run integrations:instagram:61-setup   # creates GUIDE comment campaign on @loo.ial
+```
+
+Get `<post-id>` from the post in Meta/IG (or admin after reconnecting OAuth). Uses prod webhook host `https://stackwisetechnologies.com` unless `INSTAGRAM_61_WEBHOOK_HOST` is set.
+
 ## Prerequisites
 
 - `npm run db:migrate:prod` applied (Instagram migrations `0020`–`0026+`).
