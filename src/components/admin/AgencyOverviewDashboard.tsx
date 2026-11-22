@@ -650,7 +650,6 @@ export function AgencyOverviewDashboard() {
           >
             <AdminScrollPaginatedPanel
               items={data.integrations.services}
-              firstLast
               empty="No integration activity yet."
               getKey={(s) => s.id}
               renderItem={(s) => <ActivityRow service={s} />}

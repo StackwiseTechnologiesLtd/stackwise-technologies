@@ -34,7 +34,7 @@ export function AdminPanelPagination({
   totalItems,
   pageSize,
   onPageChange,
-  firstLast = false,
+  firstLast = true,
 }: {
   currentPage: number;
   totalPages: number;
@@ -68,16 +68,6 @@ export function AdminPanelPagination({
             «
           </button>
         ) : null}
-        <button
-          type="button"
-          className={navBtn}
-          disabled={currentPage <= 1}
-          onClick={() => onPageChange(currentPage - 1)}
-          aria-label="Previous page"
-        >
-          <span aria-hidden>‹</span>
-          <span className="hidden sm:inline">Back</span>
-        </button>
         {pages.map((p, i) =>
           p === "gap" ? (
             <span key={`gap-${i}`} className="px-1 text-xs text-muted">
@@ -95,16 +85,6 @@ export function AdminPanelPagination({
             </button>
           ),
         )}
-        <button
-          type="button"
-          className={navBtn}
-          disabled={currentPage >= totalPages}
-          onClick={() => onPageChange(currentPage + 1)}
-          aria-label="Next page"
-        >
-          <span className="hidden sm:inline">Next</span>
-          <span aria-hidden>›</span>
-        </button>
         {firstLast ? (
           <button
             type="button"

@@ -13,7 +13,7 @@ export function AdminScrollPaginatedPanel<T>({
   items,
   pageSize = ADMIN_PANEL_PAGE_SIZE,
   maxHeightClass = ADMIN_PANEL_SCROLL_MAX_H,
-  firstLast,
+  firstLast = true,
   empty,
   getKey,
   renderItem,

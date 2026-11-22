@@ -90,6 +90,8 @@ import { ADMIN_PANEL_PAD, ADMIN_PANEL_HEADER, ADMIN_INSET } from "@/lib/ui/admin
 
 **Tables:** `ADMIN_TABLE_WRAP` + `ADMIN_TABLE_SCROLL`; header row `ADMIN_TABLE_HEAD`.
 
+**Panel pagination:** `AdminPanelPagination` / `AdminScrollPaginatedPanel` — `«` page numbers `»` only (no single-step ‹ › or “Back” / “Next” text). Range: `1-4 of 6`.
+
 ## Instagram / growth integration UI
 
 - Routes: `/admin/instagram/*` (not `/admin/growth/instagram` — redirect only).
