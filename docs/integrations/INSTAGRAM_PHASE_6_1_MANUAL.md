@@ -6,7 +6,7 @@ Runs the checklist in [INTEGRATIONS_BUILD_PLAN.md](../INTEGRATIONS_BUILD_PLAN.md
 
 ```bash
 npm run integrations:instagram:61-setup          # T1 probe + active account check
-INSTAGRAM_61_MEDIA_ID=<post-id> npm run integrations:instagram:61-setup   # creates GUIDE comment campaign on @loo.ial
+INSTAGRAM_61_MEDIA_ID=<post-id> npm run integrations:instagram:61-setup   # GUIDE campaign on active account (@trylooial)
 INSTAGRAM_DRY_RUN=1 npm run dev                  # then in another terminal:
 INSTAGRAM_SMOKE_BASE=http://localhost:3002 npm run integrations:instagram:61-exercise  # T4–T8 on Neon via /simulate
 ```
@@ -45,3 +45,12 @@ When all pass, update the progress table in `INTEGRATIONS_BUILD_PLAN.md`:
 ```
 
 Then proceed to **Phase 6.2** manual tests (triggers, links, `{username}`).
+
+### Automated smoke (6.1 + 6.2 paths, local only)
+
+```bash
+PORT=3002 INSTAGRAM_DRY_RUN=1 npm run dev    # terminal A
+INSTAGRAM_SMOKE_BASE=http://localhost:3002 npm run integrations:instagram:smoke   # terminal B
+```
+
+Use port **3002** when **3000** is taken (e.g. other Docker stacks). Account connect in smoke uses token `fake-token-for-dry-run` (dev-only bypass).

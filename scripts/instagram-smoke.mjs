@@ -1,9 +1,13 @@
 #!/usr/bin/env node
 /**
- * Phase 6.1 smoke: meta app + account + campaign + simulate comment → delivery log.
- * Requires: npm run dev, DATABASE_URL, NODE_ENV=development (simulate route).
+ * Phase 6.1 + 6.2 smoke: meta app, account (dev fake token), campaigns, simulate, tracked link.
  *
- *   node scripts/instagram-smoke.mjs
+ * Terminal A (server must dry-run sends even if .env.local has INSTAGRAM_DRY_RUN=0):
+ *   PORT=3002 INSTAGRAM_DRY_RUN=1 npm run dev
+ * Terminal B:
+ *   INSTAGRAM_SMOKE_BASE=http://localhost:3002 npm run integrations:instagram:smoke
+ *
+ * Needs DATABASE_URL + dev admin session secret (see devAdminCookie below).
  */
 import "dotenv/config";
 import { config } from "dotenv";
