@@ -5,6 +5,8 @@ import {
 } from "@/lib/instagram/meta-oauth";
 import { getMetaAppById } from "@/lib/instagram/repository";
 
+const SMOKE_ACCOUNT_TOKEN = "fake-token-for-dry-run";
+
 export type SaveInstagramAccountTokenInput = {
   metaAppRowId: string;
   igUserId: string;
@@ -32,6 +34,23 @@ export async function prepareInstagramAccountToken(
   const trimmed = input.accessToken.trim();
   if (!trimmed) {
     throw new Error("Access token required");
+  }
+
+  if (
+    process.env.NODE_ENV === "development" &&
+    trimmed === SMOKE_ACCOUNT_TOKEN
+  ) {
+    const igUserId = input.igUserId.trim();
+    if (!igUserId) {
+      throw new Error("igUserId required for dry-run account connect");
+    }
+    return {
+      igUserId,
+      username: input.username?.trim() || null,
+      accessToken: trimmed,
+      tokenExpiresAt: null,
+      webhookSubscribed: false,
+    };
   }
 
   let accessToken = trimmed;
