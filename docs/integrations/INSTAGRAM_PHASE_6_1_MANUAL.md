@@ -44,7 +44,7 @@ When all pass, update the progress table in `INTEGRATIONS_BUILD_PLAN.md`:
 | 6.1 IG comment-to-DM | ☑ | <initials> | YYYY-MM-DD | 6.1.T1–T9 prod |
 ```
 
-Then proceed to **Phase 6.2** manual tests (triggers, links, `{username}`).
+Then proceed to **[Phase 6.2](./INSTAGRAM_PHASE_6_2_MANUAL.md)** (triggers, links, `{username}`).
 
 ### Automated smoke (6.1 + 6.2 paths, local only)
 
