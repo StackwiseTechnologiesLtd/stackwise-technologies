@@ -269,4 +269,213 @@ I ship on that layer: orchestration assumes connectors exist; I made more of the
 If your hiring bar is “prompt engineer,” we’ll talk past each other. If it’s “tooling in production,” that’s my CMND footprint.`,
     notes: "WhatsApp 8690b76b; community index refactor f9097c12.",
   },
+  {
+    slug: "CMND — YouTube trigger dedupe",
+    audience: "Primary: AI hiring / recruiters",
+    angle: "4 — polling + state",
+    script: `YouTube agents fail in boring ways: the “new video” trigger fires twice for one upload, and your graph spam comments or Slack posts.
+
+I extended the YouTube piece in cmnd-ai-api—actions for search, playlists, captions, upload—and refactored the new-video trigger around robust deduplication (polling + store keys, not hope).
+
+Constraint: RSS and feed shapes shift; agents don’t care—they only see “run again.”
+
+Orchestration needs idempotent triggers the same way it needs confirmed sends: if the scheduler can’t remember what it already emitted, humans lose trust in automation.
+
+That’s the work I like: connector-level state, not prettier prompts.
+
+If you run agent workflows on social or content webhooks, ask how triggers dedupe—not how often you poll.`,
+    notes: "73bc1ebe new-video dedupe.",
+  },
+  {
+    slug: "CMND — Calendly as agent tools",
+    audience: "Primary: AI hiring / recruiters",
+    angle: "4 — scheduling actions",
+    script: `An agent that “schedules a meeting” without tools is just a polite hallucination.
+
+I added Calendly actions and triggers to CMND’s Activepieces layer—event types, invitees, scheduling links, availability—so graphs can book from real APIs, not invented calendar URLs.
+
+Constraint: Calendly tokens are scope-sensitive; a demo token can read but not book.
+
+So each action documents what it needs, and failures surface as tool errors the model can replan—not silent success text.
+
+Agents that touch customers need scheduling with the same discipline as email: validate args, confirm when it’s outbound, dedupe triggers when it’s inbound.
+
+I ship those connectors in TypeScript on the same registry WhatsApp and Gmail use.
+
+If your use case is revenue agents or support agents that actually book time, that’s production tool work.`,
+    notes: "aa353c30 Calendly piece.",
+  },
+  {
+    slug: "CMND — Google Calendar polling",
+    audience: "Primary: AI hiring / recruiters",
+    angle: "4 — triggers",
+    script: `Google Calendar triggers are deceptively hard: “event created” isn’t one webhook shape for every tenant.
+
+On CMND I worked on Calendar actions and triggers—create, get, cancel, search-style flows—with polling where push subscriptions aren’t reliable.
+
+Constraint: agent graphs want instant reaction; Google gives quotas, sync tokens, and partial failures.
+
+So the connector owns backoff and dedupe, not the LLM.
+
+That split is the orchestration story: models propose; infrastructure remembers what already fired.
+
+Calendly plus Calendar pieces mean CMND agents can reason about time in tools, not in prose.
+
+If you’re hiring for agent backends, calendar integrations are a good interview—errors are messy, users notice immediately.`,
+    notes: "70ccf685 Calendar; ddf596ae polling refactor.",
+  },
+  {
+    slug: "CMND — Notion page ID resolution",
+    audience: "Primary: AI hiring / recruiters",
+    angle: "2 — integration gotcha",
+    script: `Notion agents break when the model cites a pretty page title but the API wants an ID.
+
+I worked on Notion integration updates in cmnd-ai-api—resolving page IDs, clearer errors on comments and updates—so tool calls fail with something the graph can correct, not a generic 404.
+
+Constraint: users speak in titles; Notion speaks in UUIDs.
+
+Same class as getFunctionToRun pushing validation errors back into context: the fix isn’t “smarter prompt,” it’s resolver logic at the connector.
+
+Knowledge agents need read paths that survive messy inputs—search then act—not one-shot JSON from the model.
+
+I extend CMND’s Activepieces Notion piece with that mindset: agents are only as good as the tools they’re allowed to call correctly.
+
+If your stack connects Notion to agents, compare how you resolve entities before execute.`,
+    notes: "d3610ffd Notion page ID.",
+  },
+  {
+    slug: "CMND — Google Docs and Sheets tools",
+    audience: "Primary: AI hiring / recruiters",
+    angle: "4 — document automation",
+    script: `“Update the doc” sounds like one step. In practice it’s insert text, batchUpdate ranges, Sheets row appends, and auth that expires mid-run.
+
+I shipped Google Docs and Sheets integrations in cmnd-ai-api so CMND agents manipulate documents through Activepieces actions—not copy-paste from chat.
+
+Constraint: a partial batchUpdate leaves the document in a worse state than before the agent touched it.
+
+Tools need explicit args, idempotent patterns where possible, and errors that map to user-meaningful chunks.
+
+That’s agent orchestration for office workflows: connectors expose small verbs; graphs compose them; humans confirm when the verb is destructive.
+
+Founding-team pace meant I owned boring API glue while others owned model routing—and customers still see “the agent edited my sheet.”
+
+If you hire for enterprise agents, ask who wrote the Docs/Sheets tools, not who tuned temperature.`,
+    notes: "Google docs/sheets commits May–Jun 2024 where.is.one.",
+  },
+  {
+    slug: "CMND — Discord bot actions",
+    audience: "Primary: AI hiring / recruiters",
+    angle: "4 — community ops agents",
+    script: `Community agents need Discord tools that match how moderators think: roles, channels, bans, sends—not one generic “HTTP request.”
+
+I added Discord actions and a new-member trigger to CMND’s Activepieces Discord piece—create channel, guild roles, ban/remove ban, send with bot—alongside triggers that can start graphs on real server events.
+
+Constraint: Discord rate limits and permission errors are user-visible instantly.
+
+So each action maps to Graph API shapes with clear props; failures belong in tool results the orchestrator can branch on.
+
+Messaging agents often start with Slack or WhatsApp; ops teams still live in Discord for communities and support labs.
+
+Same CMND registry, same validation path as email—another channel where tool calling is the product.
+
+If you’re building agents that moderate or notify in Discord, I’ve extended production connectors there.`,
+    notes: "ff67ca27 Discord piece.",
+  },
+  {
+    slug: "CMND — Trello read before write",
+    audience: "Primary: AI hiring / recruiters",
+    angle: "2 — design decision",
+    script: `The first Trello tools I added to CMND were create-heavy—cards, lists, comments.
+
+Then agent demos kept duplicating cards because the model never listed boards first.
+
+I added list-boards and list-cards actions so graphs could read state before write—a small API surface change, a large reduction in messy boards.
+
+Constraint: agents default to action verbs; product needs guardrail verbs.
+
+That’s orchestration design: expose safe reads, mark writes as higher risk, let getFunctionToRun and confirmations sit in front of the dangerous ones.
+
+Same pattern later on Gmail and WhatsApp—know what’s already true before you send.
+
+If you evaluate agent engineers, ask whether they’ve shipped read tools, not only “create” wrappers.`,
+    notes: "ee3bb170 Trello WIP; Daniel Teddy 2024.",
+  },
+  {
+    slug: "CMND — conversation memory tools",
+    audience: "Primary: AI hiring / recruiters",
+    angle: "4 — state in agents",
+    script: `Stateless agents forget; stateful agents without schema leak keys across turns.
+
+CMND built-ins include memory tools—set, get, remove item—with Yup schemas and backend FunctionType so the model can persist conversation-scoped facts without ad-hoc prompt stuffing.
+
+Constraint: memory keys must parse consistently (we normalized MySQL JSON paths) or retries write garbage.
+
+Orchestration connects memory to chatbot conversations: tools receive conversationId injection, not trust from the LLM.
+
+That’s the difference between “agent with RAG” and “agent with controlled recall across tool calls.”
+
+I worked on that built-in registry alongside UI tools—maps, charts, tables—so agents both remember and show.
+
+If your hiring loop tests memory design, I can walk through what we shipped in built-in/index—not theory.`,
+    notes: "built-in memory tools; parseMySqlJsonKey.",
+  },
+  {
+    slug: "CMND — WhatsApp as chatbot type",
+    audience: "Primary: AI hiring / recruiters",
+    angle: "4 — product wiring",
+    script: `A WhatsApp connector in git isn’t the same as WhatsApp as a first-class CMND chatbot.
+
+I updated chatbot type constants and conversation title logic so WhatsApp sits beside other agent surfaces—not a bolt-on demo.
+
+Constraint: inbound messages need verified webhooks; outbound needs phone-number auth; the UX needs to know which channel shaped the thread.
+
+Product + API had to agree, or support chases ghosts in logs.
+
+That’s why I care about both the WhatsApp piece (send, template, interactive, triggers) and the types that route conversations in the monolith.
+
+Messaging agents are full-stack: Meta signatures, Graph errors, and how the admin UI labels the thread.
+
+If you hire for omnichannel agents, ask who connected channel types end-to-end—not only who wrote the sendMessage action.`,
+    notes: "8adc1a33 chatbot types.",
+  },
+  {
+    slug: "Activepieces — extend, don’t fork",
+    audience: "Primary: AI hiring / recruiters",
+    angle: "4 — OSS + platform",
+    script: `I contribute to open-source Activepieces and ship extensions inside CMND’s cmnd-ai-api fork of the community catalog.
+
+The pattern: keep pieces compatible with Activepieces’ action/trigger model, load them in CMND’s tool registry, let getFunctionToRun validate what agents call.
+
+Constraint: upstream pieces drift; CMND tenants expect Gmail, WhatsApp, Calendar, Notion to keep working after dependency bumps.
+
+So work is import hygiene, auth docs in piece markdown, and error handling that survives agent retries—not rebrand someone else’s connector as “AI magic.”
+
+When community/index grew, reorganizing imports was unglamorous—and necessary—or pieces fail to register at boot.
+
+Phi taught me to fix browser state in public. Activepieces taught me to keep connector contracts boring and versioned.
+
+If your stack is agents on top of workflow tools, I’m a fit on the integration seam.`,
+    notes: "Brief: OSS Activepieces + in-repo community/. f9097c12 index refactor.",
+  },
+  {
+    slug: "Activepieces — Phi parallel (OSS shipping)",
+    audience: "Primary: AI hiring / recruiters",
+    angle: "7 — solo OSS habit",
+    script: `Two repos, same habit: ship the unglamorous fix where the operator loses trust.
+
+Phi: split mirrored vs presenting so Meet users aren’t lied to by one “recording” flag.
+
+CMND Activepieces layer: split propose vs confirm on dangerous tools; verify Meta webhooks before triggers; dedupe YouTube polling fires.
+
+Constraint: nobody shares screenshots of import refactors or HMAC checks—they share demos that only work on Wi‑Fi.
+
+I still do the refactors because hiring managers who’ve operated agents ask what happens on the second run or the duplicate webhook—not what model you picked.
+
+Open source Phi means I don’t wait for a vendor. CMND community pieces mean customers get connectors that stay registered after we ship.
+
+I’m a full-stack engineer who defaults to that work.
+
+If you want references for OSS velocity plus production tenancy, Phi PR 268 and WhatsApp in cmnd-ai-api are concrete starting points.`,
+    notes: "Bridge / pin alternate.",
+  },
 ];

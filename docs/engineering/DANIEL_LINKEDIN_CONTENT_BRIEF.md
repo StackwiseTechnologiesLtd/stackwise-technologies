@@ -21,7 +21,7 @@ Optional env when seeding:
 
 Re-run **replaces** all `[daniel-li]` posts (same pattern as `[dec-plan]`). Edits in admin with heavy `updated_at` drift are warned in the script output.
 
-Source of truth for copy: `scripts/lib/daniel-linkedin-posts.mjs`.
+Source of truth for copy: `scripts/lib/daniel-linkedin-posts.mjs` (26 posts: CMND connectors, Phi, Looial, INSIGHTER, Activepieces/OSS).
 
 ## Voice (summary)
 
