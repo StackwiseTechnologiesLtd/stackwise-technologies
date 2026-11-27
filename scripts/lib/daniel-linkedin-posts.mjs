@@ -6,6 +6,25 @@
 /** @type {Array<{ slug: string; audience: string; angle: string; script: string; notes: string }>} */
 export const danielLinkedInPosts = [
   {
+    slug: "CMND — dangerous tools + handover",
+    audience: "Primary: AI hiring / recruiters",
+    angle: "1 — blast radius (kickoff)",
+    script: `On CMND, not every tool belongs in the same trust tier.
+
+Built-in sendCMNDEmail is marked dangerous: true. The agent can propose it; the product still expects confirmation in the chat loop—tool.confirmed false means no execution, the model rethinks.
+
+Same registry includes handoverToHumanOperator—automation ends, a person takes over.
+
+Early Gmail Activepieces work was the same lesson at the connector layer: send, list, search, multi-recipient MIME—outbound mail isn’t “another function call.”
+
+Pattern: classify tools by blast radius, validate args in getFunctionToRun, don’t execute side effects on the first JSON blob.
+
+Phi taught me the UI version—don’t collapse “recording” and “mirrored” into one badge. CMND taught me the API version.
+
+If you’re hiring for agents with email or chat side effects, ask how candidates split propose from commit—that’s code I’ve shipped.`,
+    notes: "Good first republish after Phi. built-in/index.ts dangerous + handover.",
+  },
+  {
     slug: "CMND — getFunctionToRun validation",
     audience: "Primary: AI hiring / recruiters",
     angle: "4 — agentic pattern (validation routing)",
@@ -60,27 +79,6 @@ That’s the same discipline I use on outbound channels today: plan in the LLM, 
 
 Happy to compare notes if your agent stack still auto-runs tools on the first JSON blob.`,
     notes: "src/utils/chat/index.ts — confirmed gate.",
-  },
-  {
-    slug: "CMND — dangerous tools + handover",
-    audience: "Primary: AI hiring / recruiters",
-    angle: "1 — blast radius",
-    script: `On CMND, not every tool belongs in the same trust tier.
-
-Built-in sendCMNDEmail is marked dangerous: true. The agent can propose it; the product still expects confirmation in the chat loop—tool.confirmed false means no execution, model rethinks.
-
-Same registry includes handoverToHumanOperator—automation ends, a person takes over.
-
-Early Gmail Activepieces work was the same lesson at the connector layer: send, list, search, multi-recipient MIME—outbound mail isn’t “another function call.”
-
-I also added Trello actions so workflows could read state before writing.
-
-Pattern: classify tools by blast radius, validate args in getFunctionToRun, don’t execute side effects on the first JSON blob.
-
-Phi taught me the UI version—don’t collapse “recording” and “mirrored” into one badge. CMND taught me the API version.
-
-If you’re hiring for agents with email or chat side effects, ask how candidates split propose from commit—that’s code I’ve shipped.`,
-    notes: "built-in/index.ts dangerous + handover.",
   },
   {
     slug: "CMND — built-in UI vs backend tools",
@@ -217,5 +215,58 @@ Tradeoff: more persisted state and a busier timeline. Worth it because productio
 
 If you’re shipping agentic workflows with real side effects, I’m interested in how you draw retry boundaries and approval gates.`,
     notes: "Align wording with what shipped on main today—soft conceptual post.",
+  },
+  {
+    slug: "CMND — Gmail multi-recipient MIME",
+    audience: "Primary: AI hiring / recruiters",
+    angle: "2 — integration bug",
+    script: `CMND’s Gmail send action looked done until someone tried the boring case: multiple recipients and an attachment in one agent turn.
+
+The model produced valid-looking args. MailComposer still built a MIME draft that failed silently or addressed the wrong thread when cc/bcc and base64 attachments overlapped.
+
+I fixed send/list/search in the Activepieces Gmail piece and threaded it through the same chat loop as tool.confirmed—not a one-off script.
+
+Constraint: agents don’t fail on happy path demos; they fail on the second cc with a PDF.
+
+That’s why I care about connector code in cmnd-ai-api as much as prompts—tool calling is product surface.
+
+If you evaluate agent platforms, ask who owns email MIME edge cases, not who picked the embedding model.`,
+    notes: "Commits: bb52addd, 11f55fc0, 5887a4d0 (Daniel Teddy).",
+  },
+  {
+    slug: "Looial — cashier problem (verify vs first use)",
+    audience: "Secondary: SMB; hiring",
+    angle: "5 — verification vs production",
+    script: `Between “it works in verification” and the first busy hour at a counter, most loyalty products die.
+
+I’m building Looial for that gap: WhatsApp they already open, wallet pass staff can scan, no install sermon at checkout.
+
+Verification rewards clean demos—one phone, quiet shop, patient tester.
+
+Production rewards one motion while three people wait, when mobile data hiccups, when the cashier is new.
+
+Engineering choices I care about: signup in the chat they already use, staff UI that doesn’t need a manual, webhooks that don’t block the line on retries.
+
+I’m in Nairobi with pilots until mid-December watching that transition, not chasing feature parity with app-first programmes.
+
+If you’ve launched loyalty or payments where the first real Saturday mattered, I’d hear what broke—we might be solving the same gap.`,
+    notes: "Angle 5. No invented merchant metrics.",
+  },
+  {
+    slug: "CMND — connectors are the agent API",
+    audience: "Primary: AI hiring / recruiters",
+    angle: "4 — Activepieces as tool surface",
+    script: `Models are interchangeable. What sticks in production is which tools your graph can call without lying about state.
+
+On CMND I spent a lot of cmnd-ai-api in Activepieces community pieces—WhatsApp inbound/outbound, Gmail depth, Trello reads, later calendar and docs connectors—the same registry the runtime exposes to agents.
+
+Adding a piece isn’t marketing. It’s schema, auth, error shapes, and tests so getFunctionToRun can validate args before a customer sees a send.
+
+When community/index grew huge, refactoring imports was tedious—but the alternative is agents that reference tools that don’t load in some tenants.
+
+I ship on that layer: orchestration assumes connectors exist; I made more of them exist, including WhatsApp webhooks with verified signatures.
+
+If your hiring bar is “prompt engineer,” we’ll talk past each other. If it’s “tooling in production,” that’s my CMND footprint.`,
+    notes: "WhatsApp 8690b76b; community index refactor f9097c12.",
   },
 ];

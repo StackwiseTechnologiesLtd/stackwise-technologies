@@ -18,22 +18,40 @@ const PLAN_PREFIX = "[daniel-li]";
 const ACCENT = "#0a66c2";
 const CHANNEL = "linkedin";
 const STATUS = "scheduled";
-const POST_TIME = "10:00";
+const POST_TIME = process.env.CONTENT_CALENDAR_DANIEL_TIME ?? "10:00";
+const SKIP_MMDD = new Set(
+  (process.env.CONTENT_CALENDAR_DANIEL_SKIP ?? "12-24,12-25,12-31,01-01").split(",").map((s) => s.trim()),
+);
+/** First slot: Sat kickoff if CONTENT_CALENDAR_DANIEL_KICKOFF=1 (default on). */
+const KICKOFF_SAT = process.env.CONTENT_CALENDAR_DANIEL_KICKOFF !== "0";
 
-/** Tue/Thu slots starting the first Tue on or after tomorrow (or today if Tue). */
-function upcomingTueThuSlots(count, fromDate = new Date()) {
+function isSkippedDay(iso) {
+  return SKIP_MMDD.has(iso.slice(5));
+}
+
+/**
+ * Publishing slots: Tue/Thu; optional first Saturday kickoff; skips holiday MMDD list.
+ * Starts no earlier than CONTENT_CALENDAR_DANIEL_START (YYYY-MM-DD) or today.
+ */
+function upcomingPublishSlots(count) {
+  const startIso = process.env.CONTENT_CALENDAR_DANIEL_START ?? isoDay(new Date());
   const slots = [];
-  const cursor = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
-  while (slots.length < count) {
-    const day = cursor.getDay();
-    if (day === 2 || day === 4) {
-      const y = cursor.getFullYear();
-      const m = String(cursor.getMonth() + 1).padStart(2, "0");
-      const d = String(cursor.getDate()).padStart(2, "0");
-      slots.push(`${y}-${m}-${d}`);
+  const cursor = parseIsoDay(startIso);
+  let usedKickoff = false;
+
+  const guardEnd = addDaysDate(cursor, 400);
+  while (slots.length < count && cursor <= guardEnd) {
+    const iso = isoDay(cursor);
+    if (!isSkippedDay(iso)) {
+      const dow = cursor.getDay();
+      if (dow === 2 || dow === 4) {
+        slots.push(iso);
+      } else if (KICKOFF_SAT && !usedKickoff && dow === 6) {
+        slots.push(iso);
+        usedKickoff = true;
+      }
     }
     cursor.setDate(cursor.getDate() + 1);
-    if (slots.length < count && cursor - fromDate > 366 * 86_400_000) break;
   }
   return slots;
 }
@@ -77,7 +95,7 @@ function workTimestamp(workIso, hour = 9) {
 
 async function main() {
   const todayIso = isoDay(new Date());
-  const scheduleDays = upcomingTueThuSlots(danielLinkedInPosts.length);
+  const scheduleDays = upcomingPublishSlots(danielLinkedInPosts.length);
 
   if (scheduleDays.length < danielLinkedInPosts.length) {
     console.error("Not enough Tue/Thu slots computed");
