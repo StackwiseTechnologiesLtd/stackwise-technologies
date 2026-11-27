@@ -9,8 +9,15 @@ Scripts for Daniel "Teddy" Tshikomba (hiring + Looial SMB audience). **Not** Loo
 
 ```bash
 npm run content-calendar:plan-daniel-linkedin
-CONTENT_CALENDAR_PLAN_DRY=1 npm run content-calendar:plan-daniel-linkedin
+npm run content-calendar:plan-daniel-linkedin:audit
 ```
+
+Optional env when seeding:
+
+- `CONTENT_CALENDAR_DANIEL_KICKOFF=0` — no first-Saturday slot (Tue/Thu only)
+- `CONTENT_CALENDAR_DANIEL_START=2026-12-01` — earliest publish day
+- `CONTENT_CALENDAR_DANIEL_SKIP=12-24,12-25,12-31,01-01` — skip holidays (default)
+- `CONTENT_CALENDAR_DANIEL_TIME=10:00` — scheduled_time column
 
 Re-run **replaces** all `[daniel-li]` posts (same pattern as `[dec-plan]`). Edits in admin with heavy `updated_at` drift are warned in the script output.
 
