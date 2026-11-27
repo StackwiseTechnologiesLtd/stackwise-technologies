@@ -11,6 +11,8 @@ Migration: `migrations/0031_content_calendar.sql` — run `npm run db:migrate`.
 
 **December plan (scripts only, no attachments):** `npm run content-calendar:plan-december` — replaces posts titled `[dec-plan] …`. Rotating slots get **unique** titles/scripts per day (`scripts/lib/december-plan-variants.mjs`); celebrations stay fixed. **Re-run wipes** all `[dec-plan]` rows (including manual edits). Schedules from **today** through **31 Dec** (not December-only). Sets `created_at` on earlier “work” days so you can start creating now. Override year: `CONTENT_CALENDAR_PLAN_YEAR=2025`. Mix: **Looial** + **Stackwise** on Instagram, X, and TikTok (~2 posts/day, 3 every third day). Looial voice: [LOOIAL_CONTENT_BRIEF.md](./LOOIAL_CONTENT_BRIEF.md) (synced with [looial.com](https://looial.com)).
 
+**Daniel personal LinkedIn** (`[daniel-li] …`, channel LinkedIn, Tue/Thu 10:00): `npm run content-calendar:plan-daniel-linkedin` — copy in `scripts/lib/daniel-linkedin-posts.mjs`; voice rules in [DANIEL_LINKEDIN_CONTENT_BRIEF.md](./DANIEL_LINKEDIN_CONTENT_BRIEF.md). Re-run replaces all `[daniel-li]` rows. Dry run: `npm run content-calendar:plan-daniel-linkedin:audit`.
+
 **Moment marketing baked in:** new-month welcome, Black Friday / Cyber Monday, Giving Tuesday, **Jamhuri Day**, **daily Christmas countdown** (13–24 Dec), Christmas Eve/Day, Boxing Day, New Year’s Eve. First slot(s) on those dates use celebration scripts instead of the rotating angle pool.
 
 **Calendar chips:** **Creating** (solid border / inset on `created_at` day) vs **Due** (dotted border on `scheduled_on` when it differs). Same-day posts show as creating only. Legend in the month toolbar.

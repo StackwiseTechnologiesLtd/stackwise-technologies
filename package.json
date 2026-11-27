@@ -7,6 +7,8 @@
     "content-calendar:seed": "node scripts/content-calendar-seed.mjs",
     "content-calendar:plan-december": "node scripts/content-calendar-december-plan.mjs",
     "content-calendar:plan-december:audit": "CONTENT_CALENDAR_PLAN_DRY=1 node scripts/content-calendar-december-plan.mjs",
+    "content-calendar:plan-daniel-linkedin": "node scripts/content-calendar-plan-daniel-linkedin.mjs",
+    "content-calendar:plan-daniel-linkedin:audit": "CONTENT_CALENDAR_PLAN_DRY=1 node scripts/content-calendar-plan-daniel-linkedin.mjs",
     "dev": "next dev",
     "build": "node scripts/next-production-build.mjs",
     "start": "next start",
